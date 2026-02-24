@@ -76,7 +76,7 @@ export default function Navbar() {
               alt="StreamStage.live"
               width={160}
               height={46}
-              className="h-8 sm:h-10 w-auto"
+              className="h-10 sm:h-12 w-auto"
               priority
             />
           </a>
