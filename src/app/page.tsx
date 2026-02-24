@@ -234,8 +234,8 @@ export default function Home() {
         <Hero />
         <About />
         <DanceMedia />
-        <BusinessVideo />
         <Software />
+        <BusinessVideo />
         <Clients />
         <Team />
         <FAQ />

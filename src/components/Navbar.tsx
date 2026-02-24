@@ -6,8 +6,8 @@ import { Menu, X } from "lucide-react";
 
 const navLinks = [
   { label: "Dance & Stage", href: "#dance-media" },
-  { label: "Business", href: "#business-video" },
   { label: "Software", href: "#software" },
+  { label: "Business", href: "#business-video" },
   { label: "Team", href: "#team" },
   { label: "FAQ", href: "#faq" },
   { label: "Contact", href: "#contact" },
