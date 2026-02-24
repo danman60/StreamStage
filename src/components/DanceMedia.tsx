@@ -1,7 +1,8 @@
 "use client";
 
 import ScrollReveal from "./ScrollReveal";
-import { Video, Radio, Film, Share2, Quote } from "lucide-react";
+import VideoCarousel, { type CarouselItem } from "./VideoCarousel";
+import { Radio, Film, Share2, Quote, Video } from "lucide-react";
 
 const services = [
   {
@@ -30,7 +31,7 @@ const services = [
   },
 ];
 
-const portfolio = [
+const portfolio: CarouselItem[] = [
   { title: "National Dance Competition", category: "Livestream" },
   { title: "Annual Studio Recital", category: "Videography" },
   { title: "Theatre Production", category: "Multi-Camera" },
@@ -44,19 +45,19 @@ const testimonials = [
     quote:
       "StreamStage captured the magic of our show in a way that truly honored the performers and the music.",
     name: "Amy Sky",
-    role: "Singer-Songwriter & Performer",
+    role: "Juno-nominated Singer-Songwriter & Performer",
   },
   {
     quote:
       "Professional, creative, and deeply committed to quality. They understand the performing arts.",
     name: "Andrea Donaldson",
-    role: "Artistic Director, Nightwood Theatre",
+    role: "Artistic Director, Nightwood Theatre (Toronto)",
   },
   {
     quote:
       "Our families love being able to watch the performances live. The quality is outstanding every time.",
     name: "Andrew Tribe",
-    role: "Director, Original Kids Theatre",
+    role: "Director, Original Kids Theatre Company (London, ON)",
   },
 ];
 
@@ -103,34 +104,10 @@ export default function DanceMedia() {
           ))}
         </div>
 
-        {/* Portfolio grid */}
+        {/* Portfolio carousel */}
         <ScrollReveal>
-          <h3 className="font-heading text-2xl font-bold text-white text-center mb-8">
-            Recent Work
-          </h3>
+          <VideoCarousel items={portfolio} theme="cyan" heading="Recent Work" />
         </ScrollReveal>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-20">
-          {portfolio.map((item, i) => (
-            <ScrollReveal key={item.title} delay={i * 0.05}>
-              <div className="group relative aspect-video rounded-lg bg-charcoal-mid border border-white/5 overflow-hidden hover:border-cyan-brand/20 transition-all duration-300">
-                {/* Placeholder - will be replaced with actual thumbnails */}
-                <div className="absolute inset-0 bg-gradient-to-br from-charcoal-dark to-charcoal-mid flex items-center justify-center">
-                  <Video
-                    className="text-gray-700 group-hover:text-cyan-brand/30 transition-colors duration-300"
-                    size={40}
-                    strokeWidth={1}
-                  />
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                  <p className="text-sm font-medium text-white">
-                    {item.title}
-                  </p>
-                  <p className="text-xs text-gray-400">{item.category}</p>
-                </div>
-              </div>
-            </ScrollReveal>
-          ))}
-        </div>
 
         {/* Testimonials */}
         <div className="grid md:grid-cols-3 gap-6">

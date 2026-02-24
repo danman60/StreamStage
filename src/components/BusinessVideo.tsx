@@ -1,12 +1,12 @@
 "use client";
 
 import ScrollReveal from "./ScrollReveal";
+import VideoCarousel, { type CarouselItem } from "./VideoCarousel";
 import {
   Monitor,
   Sparkles,
   Megaphone,
   ClipboardList,
-  Video,
   Quote,
 } from "lucide-react";
 
@@ -37,7 +37,7 @@ const services = [
   },
 ];
 
-const portfolio = [
+const portfolio: CarouselItem[] = [
   { title: "Cristini Crossfit", category: "Promo" },
   { title: "Goat Yoga Toronto", category: "Social" },
   { title: "Raw Rock Shop", category: "Brand" },
@@ -102,33 +102,10 @@ export default function BusinessVideo() {
           ))}
         </div>
 
-        {/* Portfolio grid */}
+        {/* Portfolio carousel */}
         <ScrollReveal>
-          <h3 className="font-heading text-2xl font-bold text-white text-center mb-8">
-            Client Work
-          </h3>
+          <VideoCarousel items={portfolio} theme="amber" heading="Client Work" />
         </ScrollReveal>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-20">
-          {portfolio.map((item, i) => (
-            <ScrollReveal key={item.title} delay={i * 0.05}>
-              <div className="group relative aspect-video rounded-lg bg-charcoal-mid border border-white/5 overflow-hidden hover:border-amber-brand/20 transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-charcoal-dark to-charcoal-mid flex items-center justify-center">
-                  <Video
-                    className="text-gray-700 group-hover:text-amber-brand/30 transition-colors duration-300"
-                    size={40}
-                    strokeWidth={1}
-                  />
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                  <p className="text-sm font-medium text-white">
-                    {item.title}
-                  </p>
-                  <p className="text-xs text-gray-400">{item.category}</p>
-                </div>
-              </div>
-            </ScrollReveal>
-          ))}
-        </div>
 
         {/* Testimonials */}
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
