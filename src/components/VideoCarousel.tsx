@@ -56,6 +56,7 @@ export default function VideoCarousel({
   const [activeIndex, setActiveIndex] = useState(0);
   const [radius, setRadius] = useState(0);
   const [cardW, setCardW] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Animated rotation angle of the drum
   const drumAngle = useMotionValue(0);
@@ -63,15 +64,18 @@ export default function VideoCarousel({
   // Angle between each card on the cylinder
   const sliceAngle = 360 / count;
 
-  // Calculate cylinder radius from card width so cards don't overlap too much
+  // Calculate cylinder radius from card width
   const measure = useCallback(() => {
     if (!containerRef.current) return;
     const containerW = containerRef.current.offsetWidth;
-    // Smaller cards — ~30% of container so more of the cylinder is visible
-    const cw = containerW * 0.30;
+    const mobile = containerW < 640;
+    setIsMobile(mobile);
+    // Responsive: 55% on mobile so cards are readable, 35% on desktop
+    const cw = containerW * (mobile ? 0.55 : 0.35);
     setCardW(cw);
-    // Tighter radius — cards closer together, more visible around the drum
-    const r = Math.max((count * (cw + 20)) / (2 * Math.PI), cw * 0.8);
+    // Radius: tighter on mobile, roomier on desktop
+    const gap = mobile ? 10 : 20;
+    const r = Math.max((count * (cw + gap)) / (2 * Math.PI), cw * 0.8);
     setRadius(r);
     return r;
   }, [count]);
@@ -153,14 +157,14 @@ export default function VideoCarousel({
         onKeyDown={handleKeyDown}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
-        className="relative outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y"
-        style={{ perspective: 1200 }}
+        className="relative overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y"
+        style={{ perspective: 1000 }}
       >
         {/* The 3D drum — all cards sit on this rotating cylinder */}
         <motion.div
           className="relative mx-auto"
           style={{
-            width: cardW || "30%",
+            width: cardW || (isMobile ? "55%" : "35%"),
             aspectRatio: "16/9",
             transformStyle: "preserve-3d",
             rotateY: drumAngle,
@@ -268,7 +272,9 @@ function CylinderCard({
       className="absolute inset-0 rounded-xl overflow-hidden"
       style={{
         transform: `rotateY(${cardAngle}deg) translateZ(${radius}px)`,
-        opacity: dist === 0 ? 1 : Math.max(0.4, 1 - dist * 0.15),
+        backfaceVisibility: "hidden",
+        // Front card full opacity, immediate neighbors visible, back cards hidden
+        opacity: dist === 0 ? 1 : dist <= 2 ? Math.max(0.35, 1 - dist * 0.3) : 0,
       }}
     >
       {/* Video or placeholder */}
