@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useMotionValue,
-  animate,
-  motion,
-  useReducedMotion,
-  type PanInfo,
-} from "framer-motion";
+import { motion, useReducedMotion, animate, useMotionValue } from "framer-motion";
 import { Video, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   useRef,
@@ -34,28 +28,20 @@ interface VideoCarouselProps {
 const themeColors = {
   cyan: {
     accent: "text-cyan-brand",
-    accentBg: "bg-cyan-brand",
-    border: "border-cyan-brand/30",
     dot: "bg-cyan-brand",
     dotInactive: "bg-cyan-brand/20",
     arrow: "text-cyan-brand hover:bg-cyan-brand/10",
-    overlay: "from-cyan-brand/5",
   },
   amber: {
     accent: "text-amber-brand",
-    accentBg: "bg-amber-brand",
-    border: "border-amber-brand/30",
     dot: "bg-amber-brand",
     dotInactive: "bg-amber-brand/20",
     arrow: "text-amber-brand hover:bg-amber-brand/10",
-    overlay: "from-amber-brand/5",
   },
 };
 
-// Whippy spring — low damping for overshoot, high stiffness for snap
-const SPRING = { stiffness: 500, damping: 28, mass: 0.6 };
-const GAP = -40; // negative gap = cards overlap for tighter arc
-const PEEK_RATIO = 0.65; // active card is 65% of container — more room for sides
+// Whip spring — snappy with overshoot
+const SPRING = { stiffness: 300, damping: 22, mass: 0.8 };
 
 export default function VideoCarousel({
   items,
@@ -64,83 +50,80 @@ export default function VideoCarousel({
 }: VideoCarouselProps) {
   const reducedMotion = useReducedMotion();
   const colors = themeColors[theme];
+  const count = items.length;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [cardWidth, setCardWidth] = useState(0);
-  const x = useMotionValue(0);
+  const [radius, setRadius] = useState(0);
+  const [cardW, setCardW] = useState(0);
 
-  // Calculate card width from container
+  // Animated rotation angle of the drum
+  const drumAngle = useMotionValue(0);
+
+  // Angle between each card on the cylinder
+  const sliceAngle = 360 / count;
+
+  // Calculate cylinder radius from card width so cards don't overlap too much
   const measure = useCallback(() => {
-    if (!containerRef.current) return 0;
-    const w = containerRef.current.offsetWidth * PEEK_RATIO;
-    setCardWidth(w);
-    return w;
-  }, []);
+    if (!containerRef.current) return;
+    const containerW = containerRef.current.offsetWidth;
+    // Card is ~45% of container width
+    const cw = containerW * 0.45;
+    setCardW(cw);
+    // Radius: place cards so adjacent edges have some gap
+    // circumference = count * (cardWidth + gap), radius = circumference / (2 * PI)
+    const r = Math.max((count * (cw + 40)) / (2 * Math.PI), cw * 0.9);
+    setRadius(r);
+    return r;
+  }, [count]);
 
-  // Get the x offset for a given index
-  const getOffset = useCallback(
-    (index: number, cw?: number) => {
-      const w = cw || cardWidth;
-      if (!containerRef.current || w === 0) return 0;
-      const containerW = containerRef.current.offsetWidth;
-      // Center the active card: offset = (containerW - cardW) / 2 - index * (cardW + gap)
-      return (containerW - w) / 2 - index * (w + GAP);
-    },
-    [cardWidth],
-  );
-
-  // Snap to index
+  // Snap drum to show given index at front
   const snapTo = useCallback(
-    (index: number, velocity = 0) => {
-      const clamped = Math.max(0, Math.min(items.length - 1, index));
+    (index: number) => {
+      // Wrap-around: allow infinite rotation
+      const clamped = ((index % count) + count) % count;
       setActiveIndex(clamped);
-      const target = getOffset(clamped);
+      const target = -(clamped * sliceAngle);
+      // Find shortest rotation path
+      const current = drumAngle.get();
+      const diff = target - (current % 360);
+      const shortDiff =
+        ((diff % 360) + 540) % 360 - 180; // shortest path
+      const finalTarget = current + shortDiff;
+
       if (reducedMotion) {
-        x.set(target);
+        drumAngle.set(finalTarget);
       } else {
-        animate(x, target, { ...SPRING, velocity });
+        animate(drumAngle, finalTarget, SPRING);
       }
     },
-    [getOffset, items.length, reducedMotion, x],
+    [count, sliceAngle, drumAngle, reducedMotion],
   );
 
   // Measure on mount + resize
   useEffect(() => {
-    const cw = measure();
-    if (cw > 0) {
-      x.set(getOffset(activeIndex, cw));
-    }
+    measure();
+    drumAngle.set(0);
 
     const container = containerRef.current;
     if (!container) return;
 
-    const ro = new ResizeObserver(() => {
-      const newW = measure();
-      if (newW > 0) {
-        // Snap without animation on resize
-        const target =
-          (container.offsetWidth - newW) / 2 - activeIndex * (newW + GAP);
-        x.set(target);
-      }
-    });
+    const ro = new ResizeObserver(() => measure());
     ro.observe(container);
     return () => ro.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Drag end handler
-  const handleDragEnd = (_: unknown, info: PanInfo) => {
-    const velocity = info.velocity.x;
-    const offset = info.offset.x;
-    // Determine direction: if flung fast or dragged far enough
-    let newIndex = activeIndex;
-    if (velocity < -300 || offset < -cardWidth * 0.25) {
-      newIndex = activeIndex + 1;
-    } else if (velocity > 300 || offset > cardWidth * 0.25) {
-      newIndex = activeIndex - 1;
+  // Swipe detection
+  const dragStartX = useRef(0);
+  const handlePointerDown = (e: React.PointerEvent) => {
+    dragStartX.current = e.clientX;
+  };
+  const handlePointerUp = (e: React.PointerEvent) => {
+    const dx = e.clientX - dragStartX.current;
+    if (Math.abs(dx) > 50) {
+      snapTo(activeIndex + (dx < 0 ? 1 : -1));
     }
-    snapTo(newIndex, velocity);
   };
 
   // Keyboard nav
@@ -169,57 +152,55 @@ export default function VideoCarousel({
         aria-label={heading || "Video carousel"}
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className="relative overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl"
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        className="relative outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y"
+        style={{ perspective: 1000 }}
       >
-        {/* Track — tight perspective for dramatic depth */}
-        <div style={{ perspective: 800, perspectiveOrigin: "50% 50%" }}>
-          <motion.div
-            className="flex"
-            style={{ x, gap: GAP }}
-            drag={reducedMotion ? false : "x"}
-            dragDirectionLock
-            dragMomentum={false}
-            onDragEnd={handleDragEnd}
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.15}
-          >
-            {items.map((item, i) => (
-              <CarouselCard
-                key={item.title}
-                item={item}
-                offset={i - activeIndex}
-                cardWidth={cardWidth}
-                colors={colors}
-                reducedMotion={!!reducedMotion}
-              />
-            ))}
-          </motion.div>
-        </div>
+        {/* The 3D drum — all cards sit on this rotating cylinder */}
+        <motion.div
+          className="relative mx-auto"
+          style={{
+            width: cardW || "45%",
+            aspectRatio: "16/9",
+            transformStyle: "preserve-3d",
+            rotateY: drumAngle,
+          }}
+        >
+          {items.map((item, i) => (
+            <CylinderCard
+              key={item.title}
+              item={item}
+              index={i}
+              activeIndex={activeIndex}
+              sliceAngle={sliceAngle}
+              radius={radius}
+              colors={colors}
+              count={count}
+            />
+          ))}
+        </motion.div>
 
-        {/* Arrow buttons — desktop only */}
-        {activeIndex > 0 && (
-          <button
-            onClick={() => snapTo(activeIndex - 1)}
-            className={`absolute left-3 top-1/2 -translate-y-1/2 hidden md:flex w-10 h-10 items-center justify-center rounded-full bg-charcoal-dark/80 backdrop-blur-sm border border-white/10 ${colors.arrow} transition-colors duration-200`}
-            aria-label="Previous slide"
-          >
-            <ChevronLeft size={20} strokeWidth={2} />
-          </button>
-        )}
-        {activeIndex < items.length - 1 && (
-          <button
-            onClick={() => snapTo(activeIndex + 1)}
-            className={`absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex w-10 h-10 items-center justify-center rounded-full bg-charcoal-dark/80 backdrop-blur-sm border border-white/10 ${colors.arrow} transition-colors duration-200`}
-            aria-label="Next slide"
-          >
-            <ChevronRight size={20} strokeWidth={2} />
-          </button>
-        )}
+        {/* Arrow buttons */}
+        <button
+          onClick={() => snapTo(activeIndex - 1)}
+          className={`absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 flex w-10 h-10 items-center justify-center rounded-full bg-charcoal-dark/80 backdrop-blur-sm border border-white/10 ${colors.arrow} transition-colors duration-200 z-20`}
+          aria-label="Previous slide"
+        >
+          <ChevronLeft size={20} strokeWidth={2} />
+        </button>
+        <button
+          onClick={() => snapTo(activeIndex + 1)}
+          className={`absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 flex w-10 h-10 items-center justify-center rounded-full bg-charcoal-dark/80 backdrop-blur-sm border border-white/10 ${colors.arrow} transition-colors duration-200 z-20`}
+          aria-label="Next slide"
+        >
+          <ChevronRight size={20} strokeWidth={2} />
+        </button>
       </div>
 
       {/* Dot indicators */}
       <div
-        className="flex justify-center gap-2 mt-6"
+        className="flex justify-center gap-2 mt-8"
         role="tablist"
         aria-label="Carousel navigation"
       >
@@ -242,54 +223,30 @@ export default function VideoCarousel({
   );
 }
 
-// ── Card ──────────────────────────────────────────────
+// ── Cylinder Card ─────────────────────────────────────
 
-interface CarouselCardProps {
+interface CylinderCardProps {
   item: CarouselItem;
-  offset: number; // distance from active: -2, -1, 0, 1, 2 etc.
-  cardWidth: number;
+  index: number;
+  activeIndex: number;
+  sliceAngle: number;
+  radius: number;
   colors: (typeof themeColors)["cyan"];
-  reducedMotion: boolean;
+  count: number;
 }
 
-// Cylindrical arc — cards arranged as if on a curved surface
-function get3DStyle(offset: number) {
-  if (offset === 0)
-    return { rotateY: 0, z: 0, scale: 1, opacity: 1, x: 0 };
-
-  const direction = offset > 0 ? 1 : -1;
-  const abs = Math.abs(offset);
-  const distance = Math.min(abs, 4);
-
-  // Aggressive rotation — immediate neighbors at 62deg, further cards up to 78deg
-  const rotateY = direction * -(45 + 17 * Math.min(distance, 2));
-
-  // Deep z-push — cards fall away fast
-  const z = -300 * distance;
-
-  // Pull side cards inward so they tuck behind center
-  const xPull = direction * -60 * Math.min(distance, 2);
-
-  // Strong scale drop — distant cards are clearly smaller
-  const scale = Math.max(0.55, 1 - 0.15 * distance);
-
-  // Heavy fade for depth cue
-  const opacity = Math.max(0.15, 1 - 0.35 * distance);
-
-  return { rotateY, z, scale, opacity, x: xPull };
-}
-
-function CarouselCard({
+function CylinderCard({
   item,
-  offset,
-  cardWidth,
+  index,
+  activeIndex,
+  sliceAngle,
+  radius,
   colors,
-  reducedMotion,
-}: CarouselCardProps) {
+  count,
+}: CylinderCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const isActive = offset === 0;
+  const isActive = index === activeIndex;
 
-  // Play/pause video based on active state
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -300,26 +257,21 @@ function CarouselCard({
     }
   }, [isActive]);
 
-  const { rotateY, z, scale, opacity, x: xPull } = get3DStyle(offset);
+  // Each card is rotated to its slot on the cylinder, then pushed out by radius
+  const cardAngle = index * sliceAngle;
 
-  // Rotate around the near edge for cylindrical feel:
-  // cards to the right rotate around their left edge, and vice versa
-  const origin =
-    offset === 0 ? "center" : offset > 0 ? "left center" : "right center";
+  // Calculate visual distance from front for opacity
+  const rawDist = Math.abs(index - activeIndex);
+  const dist = Math.min(rawDist, count - rawDist); // wrap-around distance
 
   return (
-    <motion.div
-      className="relative aspect-video rounded-lg overflow-hidden flex-shrink-0 select-none"
+    <div
+      className="absolute inset-0 rounded-xl overflow-hidden"
       style={{
-        width: cardWidth || "65%",
-        transformStyle: "preserve-3d",
-        transformOrigin: origin,
-        zIndex: 10 - Math.abs(offset), // active card on top
+        transform: `rotateY(${cardAngle}deg) translateZ(${radius}px)`,
+        backfaceVisibility: "hidden",
+        opacity: dist === 0 ? 1 : Math.max(0.3, 1 - dist * 0.25),
       }}
-      animate={{ rotateY, z, scale, opacity, x: xPull }}
-      transition={
-        reducedMotion ? { duration: 0 } : { type: "spring", ...SPRING }
-      }
     >
       {/* Video or placeholder */}
       {item.videoSrc ? (
@@ -334,16 +286,12 @@ function CarouselCard({
         />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-charcoal-dark to-charcoal-mid flex items-center justify-center border border-white/5">
-          <Video
-            className="text-gray-700"
-            size={48}
-            strokeWidth={1}
-          />
+          <Video className="text-gray-700" size={48} strokeWidth={1} />
         </div>
       )}
 
       {/* Text overlay */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
         {item.client && (
           <p className={`text-xs font-medium ${colors.accent} mb-0.5`}>
             {item.client}
@@ -360,6 +308,6 @@ function CarouselCard({
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
