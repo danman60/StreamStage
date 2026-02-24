@@ -67,12 +67,11 @@ export default function VideoCarousel({
   const measure = useCallback(() => {
     if (!containerRef.current) return;
     const containerW = containerRef.current.offsetWidth;
-    // Card is ~45% of container width
-    const cw = containerW * 0.45;
+    // Smaller cards — ~30% of container so more of the cylinder is visible
+    const cw = containerW * 0.30;
     setCardW(cw);
-    // Radius: place cards so adjacent edges have some gap
-    // circumference = count * (cardWidth + gap), radius = circumference / (2 * PI)
-    const r = Math.max((count * (cw + 40)) / (2 * Math.PI), cw * 0.9);
+    // Tighter radius — cards closer together, more visible around the drum
+    const r = Math.max((count * (cw + 20)) / (2 * Math.PI), cw * 0.8);
     setRadius(r);
     return r;
   }, [count]);
@@ -155,13 +154,13 @@ export default function VideoCarousel({
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         className="relative outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y"
-        style={{ perspective: 1000 }}
+        style={{ perspective: 1200 }}
       >
         {/* The 3D drum — all cards sit on this rotating cylinder */}
         <motion.div
           className="relative mx-auto"
           style={{
-            width: cardW || "45%",
+            width: cardW || "30%",
             aspectRatio: "16/9",
             transformStyle: "preserve-3d",
             rotateY: drumAngle,
@@ -269,8 +268,7 @@ function CylinderCard({
       className="absolute inset-0 rounded-xl overflow-hidden"
       style={{
         transform: `rotateY(${cardAngle}deg) translateZ(${radius}px)`,
-        backfaceVisibility: "hidden",
-        opacity: dist === 0 ? 1 : Math.max(0.3, 1 - dist * 0.25),
+        opacity: dist === 0 ? 1 : Math.max(0.4, 1 - dist * 0.15),
       }}
     >
       {/* Video or placeholder */}
