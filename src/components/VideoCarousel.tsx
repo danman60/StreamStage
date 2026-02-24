@@ -139,7 +139,7 @@ export default function VideoCarousel({
   return (
     <div className="mb-20">
       {heading && (
-        <h3 className="font-heading text-2xl font-bold text-white text-center mb-8">
+        <h3 className="font-heading text-2xl font-bold text-white text-center mb-12 relative z-10">
           {heading}
         </h3>
       )}
@@ -199,7 +199,7 @@ export default function VideoCarousel({
 
       {/* Dot indicators */}
       <div
-        className="flex justify-center gap-2 mt-8"
+        className="flex justify-center gap-2 mt-10"
         role="tablist"
         aria-label="Carousel navigation"
       >
@@ -268,6 +268,7 @@ function CylinderCard({
       className="absolute inset-0 rounded-xl overflow-hidden"
       style={{
         transform: `rotateY(${cardAngle}deg) translateZ(${radius}px)`,
+        backfaceVisibility: "hidden",
         opacity: dist === 0 ? 1 : Math.max(0.4, 1 - dist * 0.15),
       }}
     >
@@ -288,23 +289,15 @@ function CylinderCard({
         </div>
       )}
 
-      {/* Text overlay */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+      {/* Text overlay — contained within card bounds */}
+      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
         {item.client && (
-          <p className={`text-xs font-medium ${colors.accent} mb-0.5`}>
+          <p className={`text-[10px] font-medium ${colors.accent} mb-0.5 truncate`}>
             {item.client}
           </p>
         )}
-        <p className="text-sm font-semibold text-white">{item.title}</p>
-        <div className="flex items-center gap-2 mt-1">
-          <span className="text-xs text-gray-400">{item.category}</span>
-          {item.description && (
-            <>
-              <span className="text-gray-600">·</span>
-              <span className="text-xs text-gray-400">{item.description}</span>
-            </>
-          )}
-        </div>
+        <p className="text-xs font-semibold text-white truncate">{item.title}</p>
+        <p className="text-[10px] text-gray-400 truncate mt-0.5">{item.category}</p>
       </div>
     </div>
   );
