@@ -16,18 +16,18 @@ const products = [
   {
     icon: Brain,
     name: "StudioSage",
-    tagline: "Studio Intelligence & Insights",
+    tagline: "AI-Powered Studio Assistant",
     description:
-      "Data-driven insights for dance studio owners. Understand your enrollment, retention, and growth with tools designed specifically for the dance industry.",
+      "AI-powered assistant for dance studio owners. Answers parent questions, manages communication, and reduces administrative workload — so you can focus on teaching.",
     href: "#contact",
     color: "cyan",
   },
   {
     icon: MessageSquare,
     name: "StudioSync",
-    tagline: "Studio Management & Communication",
+    tagline: "Unified Studio Management Platform",
     description:
-      "Streamlined communication and management for dance studios. Keep parents, teachers, and students connected and informed.",
+      "All-in-one studio management — class scheduling, attendance tracking, billing, and parent communication in a single platform built for dance studios.",
     href: "#contact",
     color: "cyan",
   },

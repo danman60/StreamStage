@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Menu, X } from "lucide-react";
 
 const navLinks = [
@@ -8,6 +9,7 @@ const navLinks = [
   { label: "Business", href: "#business-video" },
   { label: "Software", href: "#software" },
   { label: "Team", href: "#team" },
+  { label: "FAQ", href: "#faq" },
   { label: "Contact", href: "#contact" },
 ];
 
@@ -69,11 +71,14 @@ export default function Navbar() {
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
           >
-            <span className="font-heading text-xl sm:text-2xl font-bold tracking-tight">
-              <span className="text-cyan-brand">Stream</span>
-              <span className="text-white">Stage</span>
-              <span className="text-cyan-brand text-sm font-normal">.live</span>
-            </span>
+            <Image
+              src="/logo-white.png"
+              alt="StreamStage.live"
+              width={160}
+              height={46}
+              className="h-8 sm:h-10 w-auto"
+              priority
+            />
           </a>
 
           {/* Desktop nav */}

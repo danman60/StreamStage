@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://streamstage.live"),
   title: "StreamStage — Where Dance Meets Technology",
   description:
-    "Canada's dance industry partner — media production, software, and live broadcast. Dance & stage media, business video, and dance software solutions.",
+    "Canada's dance industry partner — 100+ events streamed, 500+ videos produced for 50+ studios. Livestreaming, videography, and dance software (CompSync, StudioSage, StudioSync).",
   keywords: [
     "dance media",
     "livestreaming",
@@ -34,6 +34,10 @@ export const metadata: Metadata = {
     "business video production",
     "Ontario videography",
   ],
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/icon-192.png",
+  },
   alternates: {
     canonical: "/",
   },
@@ -45,12 +49,21 @@ export const metadata: Metadata = {
     siteName: "StreamStage",
     type: "website",
     locale: "en_CA",
+    images: [
+      {
+        url: "https://streamstage.live/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "StreamStage — Dance media production, software, and live broadcast in Canada",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "StreamStage — Where Dance Meets Technology",
     description:
       "Canada's dance industry partner — media production, software, and live broadcast.",
+    images: ["https://streamstage.live/og-image.png"],
   },
   other: {
     "theme-color": "#0e1117",
@@ -83,6 +96,7 @@ export default function RootLayout({
             muted
             loop
             playsInline
+            poster="/hero-poster.jpg"
             className="absolute min-w-full min-h-full w-auto h-auto top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover"
           >
             <source src="/hero-bg.mp4" type="video/mp4" />

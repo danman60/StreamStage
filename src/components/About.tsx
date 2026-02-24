@@ -22,7 +22,9 @@ export default function About() {
             <p className="text-lg sm:text-xl text-gray-400 leading-relaxed">
               We live and breathe dance. From multi-camera broadcasts to
               competition management software, we build the tools and create the
-              media that powers Canada&apos;s dance community.
+              media that powers Canada&apos;s dance community — serving studios,
+              competitions, and performing arts organizations across Ontario and
+              beyond.
             </p>
           </div>
         </ScrollReveal>

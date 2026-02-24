@@ -1,4 +1,31 @@
+# StreamStage - Allow all crawlers and AI search engines
+
 User-agent: *
+Allow: /
+
+# AI Search Engines - Explicitly allowed for GEO visibility
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-Extended
 Allow: /
 
 Sitemap: https://streamstage.live/sitemap.xml

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Instagram, Facebook, Mail } from "lucide-react";
 
 const socialLinks = [
@@ -19,6 +20,7 @@ const footerNav = [
   { label: "Business", href: "#business-video" },
   { label: "Software", href: "#software" },
   { label: "Team", href: "#team" },
+  { label: "FAQ", href: "#faq" },
   { label: "Contact", href: "#contact" },
 ];
 
@@ -30,10 +32,14 @@ export default function Footer() {
           {/* Top row: logo + nav */}
           <div className="flex flex-col sm:flex-row items-center justify-between w-full gap-6">
             {/* Logo */}
-            <a href="/" className="font-heading text-lg font-bold tracking-tight">
-              <span className="text-cyan-brand">Stream</span>
-              <span className="text-white">Stage</span>
-              <span className="text-cyan-brand text-xs font-normal">.live</span>
+            <a href="/" className="block">
+              <Image
+                src="/logo-white.png"
+                alt="StreamStage.live"
+                width={140}
+                height={40}
+                className="h-7 w-auto"
+              />
             </a>
 
             {/* Footer nav */}
@@ -69,10 +75,21 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Bottom row: copyright */}
-          <p className="text-gray-600 text-sm">
-            &copy; {new Date().getFullYear()} StreamStage. All rights reserved.
-          </p>
+          {/* Bottom row: location + copyright */}
+          <div className="text-center space-y-1">
+            <p className="text-gray-600 text-sm">
+              Ontario, Canada &middot;{" "}
+              <a
+                href="mailto:hello@streamstage.live"
+                className="hover:text-gray-400 transition-colors duration-200"
+              >
+                hello@streamstage.live
+              </a>
+            </p>
+            <p className="text-gray-600 text-sm">
+              &copy; {new Date().getFullYear()} StreamStage. All rights reserved.
+            </p>
+          </div>
         </div>
       </div>
     </footer>
