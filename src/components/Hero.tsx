@@ -13,42 +13,7 @@ export default function Hero() {
 
   return (
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-charcoal-deep" />
-        {!shouldReduceMotion ? (
-          <>
-            <motion.div
-              className="absolute top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-cyan-brand/8 blur-[120px]"
-              animate={{
-                x: [0, 50, 0],
-                y: [0, -30, 0],
-                scale: [1, 1.1, 1],
-              }}
-              transition={{
-                duration: 12,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-            <motion.div
-              className="absolute bottom-1/4 -right-1/4 w-[500px] h-[500px] rounded-full bg-cyan-brand/5 blur-[100px]"
-              animate={{
-                x: [0, -40, 0],
-                y: [0, 40, 0],
-                scale: [1, 1.15, 1],
-              }}
-              transition={{
-                duration: 15,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </>
-        ) : (
-          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full bg-cyan-brand/8 blur-[120px]" />
-        )}
-      </div>
+      {/* Transparent — video shows through from layout */}
 
       {/* Content */}
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center">
