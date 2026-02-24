@@ -63,15 +63,17 @@ export default function VideoCarousel({
   // Angle between each card on the cylinder
   const sliceAngle = 360 / count;
 
-  // Calculate cylinder radius from card width so cards don't overlap too much
+  // Calculate cylinder radius from card width
   const measure = useCallback(() => {
     if (!containerRef.current) return;
     const containerW = containerRef.current.offsetWidth;
-    // Smaller cards — ~30% of container so more of the cylinder is visible
-    const cw = containerW * 0.30;
+    // Responsive: bigger cards on mobile so text is readable
+    const ratio = containerW < 640 ? 0.65 : 0.35;
+    const cw = containerW * ratio;
     setCardW(cw);
-    // Tighter radius — cards closer together, more visible around the drum
-    const r = Math.max((count * (cw + 20)) / (2 * Math.PI), cw * 0.8);
+    // Tighter radius on mobile, roomier on desktop
+    const gap = containerW < 640 ? 10 : 20;
+    const r = Math.max((count * (cw + gap)) / (2 * Math.PI), cw * 0.8);
     setRadius(r);
     return r;
   }, [count]);
@@ -160,7 +162,7 @@ export default function VideoCarousel({
         <motion.div
           className="relative mx-auto"
           style={{
-            width: cardW || "30%",
+            width: cardW || "50%",
             aspectRatio: "16/9",
             transformStyle: "preserve-3d",
             rotateY: drumAngle,
