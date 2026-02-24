@@ -170,28 +170,30 @@ export default function VideoCarousel({
         onKeyDown={handleKeyDown}
         className="relative overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl"
       >
-        {/* Track */}
-        <motion.div
-          className="flex"
-          style={{ x, gap: GAP }}
-          drag={reducedMotion ? false : "x"}
-          dragDirectionLock
-          dragMomentum={false}
-          onDragEnd={handleDragEnd}
-          dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.15}
-        >
-          {items.map((item, i) => (
-            <CarouselCard
-              key={item.title}
-              item={item}
-              isActive={i === activeIndex}
-              cardWidth={cardWidth}
-              colors={colors}
-              reducedMotion={!!reducedMotion}
-            />
-          ))}
-        </motion.div>
+        {/* Track — perspective container */}
+        <div style={{ perspective: 1200 }}>
+          <motion.div
+            className="flex"
+            style={{ x, gap: GAP }}
+            drag={reducedMotion ? false : "x"}
+            dragDirectionLock
+            dragMomentum={false}
+            onDragEnd={handleDragEnd}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.15}
+          >
+            {items.map((item, i) => (
+              <CarouselCard
+                key={item.title}
+                item={item}
+                offset={i - activeIndex}
+                cardWidth={cardWidth}
+                colors={colors}
+                reducedMotion={!!reducedMotion}
+              />
+            ))}
+          </motion.div>
+        </div>
 
         {/* Arrow buttons — desktop only */}
         {activeIndex > 0 && (
@@ -243,20 +245,34 @@ export default function VideoCarousel({
 
 interface CarouselCardProps {
   item: CarouselItem;
-  isActive: boolean;
+  offset: number; // distance from active: -2, -1, 0, 1, 2 etc.
   cardWidth: number;
   colors: (typeof themeColors)["cyan"];
   reducedMotion: boolean;
 }
 
+// 3D transform values based on distance from active card
+function get3DStyle(offset: number) {
+  if (offset === 0) return { rotateY: 0, z: 0, scale: 1, opacity: 1 };
+  const direction = offset > 0 ? 1 : -1;
+  const distance = Math.min(Math.abs(offset), 3); // cap at 3 for deep items
+  return {
+    rotateY: direction * -35 * Math.min(distance, 1.5), // curve away, max ~52deg
+    z: -150 * distance, // push into distance
+    scale: 1 - 0.08 * distance, // shrink slightly
+    opacity: Math.max(0.25, 1 - 0.3 * distance), // fade out
+  };
+}
+
 function CarouselCard({
   item,
-  isActive,
+  offset,
   cardWidth,
   colors,
   reducedMotion,
 }: CarouselCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const isActive = offset === 0;
 
   // Play/pause video based on active state
   useEffect(() => {
@@ -269,15 +285,14 @@ function CarouselCard({
     }
   }, [isActive]);
 
+  const { rotateY, z, scale, opacity } = get3DStyle(offset);
+
   return (
     <motion.div
       className="relative aspect-video rounded-lg overflow-hidden flex-shrink-0 select-none"
-      style={{ width: cardWidth || "75%" }}
-      animate={{
-        scale: isActive ? 1 : 0.92,
-        opacity: isActive ? 1 : 0.5,
-      }}
-      transition={reducedMotion ? { duration: 0 } : { duration: 0.3 }}
+      style={{ width: cardWidth || "75%", transformStyle: "preserve-3d" }}
+      animate={{ rotateY, z, scale, opacity }}
+      transition={reducedMotion ? { duration: 0 } : { type: "spring", ...SPRING }}
     >
       {/* Video or placeholder */}
       {item.videoSrc ? (
