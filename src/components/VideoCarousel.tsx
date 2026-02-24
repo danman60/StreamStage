@@ -52,9 +52,10 @@ const themeColors = {
   },
 };
 
-const SPRING = { stiffness: 400, damping: 30, mass: 0.8 };
-const GAP = 16;
-const PEEK_RATIO = 0.75; // active card is 75% of container
+// Whippy spring — low damping for overshoot, high stiffness for snap
+const SPRING = { stiffness: 500, damping: 28, mass: 0.6 };
+const GAP = -40; // negative gap = cards overlap for tighter arc
+const PEEK_RATIO = 0.65; // active card is 65% of container — more room for sides
 
 export default function VideoCarousel({
   items,
@@ -170,8 +171,8 @@ export default function VideoCarousel({
         onKeyDown={handleKeyDown}
         className="relative overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl"
       >
-        {/* Track — perspective container */}
-        <div style={{ perspective: 1200 }}>
+        {/* Track — tight perspective for dramatic depth */}
+        <div style={{ perspective: 800, perspectiveOrigin: "50% 50%" }}>
           <motion.div
             className="flex"
             style={{ x, gap: GAP }}
@@ -251,17 +252,31 @@ interface CarouselCardProps {
   reducedMotion: boolean;
 }
 
-// 3D transform values based on distance from active card
+// Cylindrical arc — cards arranged as if on a curved surface
 function get3DStyle(offset: number) {
-  if (offset === 0) return { rotateY: 0, z: 0, scale: 1, opacity: 1 };
+  if (offset === 0)
+    return { rotateY: 0, z: 0, scale: 1, opacity: 1, x: 0 };
+
   const direction = offset > 0 ? 1 : -1;
-  const distance = Math.min(Math.abs(offset), 3); // cap at 3 for deep items
-  return {
-    rotateY: direction * -35 * Math.min(distance, 1.5), // curve away, max ~52deg
-    z: -150 * distance, // push into distance
-    scale: 1 - 0.08 * distance, // shrink slightly
-    opacity: Math.max(0.25, 1 - 0.3 * distance), // fade out
-  };
+  const abs = Math.abs(offset);
+  const distance = Math.min(abs, 4);
+
+  // Aggressive rotation — immediate neighbors at 62deg, further cards up to 78deg
+  const rotateY = direction * -(45 + 17 * Math.min(distance, 2));
+
+  // Deep z-push — cards fall away fast
+  const z = -300 * distance;
+
+  // Pull side cards inward so they tuck behind center
+  const xPull = direction * -60 * Math.min(distance, 2);
+
+  // Strong scale drop — distant cards are clearly smaller
+  const scale = Math.max(0.55, 1 - 0.15 * distance);
+
+  // Heavy fade for depth cue
+  const opacity = Math.max(0.15, 1 - 0.35 * distance);
+
+  return { rotateY, z, scale, opacity, x: xPull };
 }
 
 function CarouselCard({
@@ -285,14 +300,26 @@ function CarouselCard({
     }
   }, [isActive]);
 
-  const { rotateY, z, scale, opacity } = get3DStyle(offset);
+  const { rotateY, z, scale, opacity, x: xPull } = get3DStyle(offset);
+
+  // Rotate around the near edge for cylindrical feel:
+  // cards to the right rotate around their left edge, and vice versa
+  const origin =
+    offset === 0 ? "center" : offset > 0 ? "left center" : "right center";
 
   return (
     <motion.div
       className="relative aspect-video rounded-lg overflow-hidden flex-shrink-0 select-none"
-      style={{ width: cardWidth || "75%", transformStyle: "preserve-3d" }}
-      animate={{ rotateY, z, scale, opacity }}
-      transition={reducedMotion ? { duration: 0 } : { type: "spring", ...SPRING }}
+      style={{
+        width: cardWidth || "65%",
+        transformStyle: "preserve-3d",
+        transformOrigin: origin,
+        zIndex: 10 - Math.abs(offset), // active card on top
+      }}
+      animate={{ rotateY, z, scale, opacity, x: xPull }}
+      transition={
+        reducedMotion ? { duration: 0 } : { type: "spring", ...SPRING }
+      }
     >
       {/* Video or placeholder */}
       {item.videoSrc ? (
