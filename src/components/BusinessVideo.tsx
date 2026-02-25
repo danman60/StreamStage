@@ -183,13 +183,17 @@ export default function BusinessVideo() {
 
         {/* Portfolio carousels — side by side on desktop */}
         <div className="grid lg:grid-cols-2 gap-6 lg:gap-10 items-start">
-          <ScrollReveal>
-            <VideoCarousel items={portfolioVertical} theme="amber" heading="Reels & Highlights" orientation="vertical" />
-          </ScrollReveal>
+          <div className="overflow-hidden">
+            <ScrollReveal>
+              <VideoCarousel items={portfolioVertical} theme="amber" heading="Reels & Highlights" orientation="vertical" />
+            </ScrollReveal>
+          </div>
 
-          <ScrollReveal delay={0.1}>
-            <VideoCarousel items={portfolioHorizontal} theme="amber" heading="Client Work" orientation="horizontal" />
-          </ScrollReveal>
+          <div className="overflow-hidden">
+            <ScrollReveal delay={0.1}>
+              <VideoCarousel items={portfolioHorizontal} theme="amber" heading="Client Work" orientation="horizontal" />
+            </ScrollReveal>
+          </div>
         </div>
 
         {/* Testimonials */}

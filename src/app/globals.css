@@ -85,6 +85,13 @@ body {
   background: #444;
 }
 
+/* Fullscreen video: contain instead of cover so vertical videos aren't stretched */
+video:fullscreen,
+video:-webkit-full-screen {
+  object-fit: contain;
+  background: #000;
+}
+
 /* Focus styles */
 *:focus-visible {
   outline: 2px solid var(--cyan-brand);
