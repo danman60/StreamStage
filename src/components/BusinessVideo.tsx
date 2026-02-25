@@ -182,7 +182,7 @@ export default function BusinessVideo() {
         </div>
 
         {/* Portfolio carousels — side by side on desktop */}
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-10">
+        <div className="grid lg:grid-cols-2 gap-6 lg:gap-10 items-center">
           <ScrollReveal>
             <VideoCarousel items={portfolioVertical} theme="amber" heading="Reels & Highlights" orientation="vertical" />
           </ScrollReveal>

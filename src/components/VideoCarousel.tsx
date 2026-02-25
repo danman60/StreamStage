@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion, animate, useMotionValue } from "framer-motion";
-import { Video, ChevronLeft, ChevronRight } from "lucide-react";
+import { Video, ChevronLeft, ChevronRight, Volume2, VolumeX } from "lucide-react";
 import {
   useRef,
   useState,
@@ -44,6 +44,21 @@ const themeColors = {
 // Whip spring — snappy with overshoot
 const SPRING = { stiffness: 300, damping: 22, mass: 0.8 };
 
+// Global: only one video can be unmuted at a time across all carousels
+let globalUnmutedVideo: HTMLVideoElement | null = null;
+let globalMuteListener: (() => void) | null = null;
+
+function muteGlobal() {
+  if (globalUnmutedVideo) {
+    globalUnmutedVideo.muted = true;
+    globalUnmutedVideo = null;
+  }
+  if (globalMuteListener) {
+    globalMuteListener();
+    globalMuteListener = null;
+  }
+}
+
 export default function VideoCarousel({
   items,
   theme,
@@ -59,6 +74,7 @@ export default function VideoCarousel({
   const [activeIndex, setActiveIndex] = useState(0);
   const [radius, setRadius] = useState(0);
   const [cardW, setCardW] = useState(0);
+  const [unmutedIndex, setUnmutedIndex] = useState<number | null>(null);
 
   // Animated rotation angle of the drum
   const drumAngle = useMotionValue(0);
@@ -70,14 +86,12 @@ export default function VideoCarousel({
   const measure = useCallback(() => {
     if (!containerRef.current) return;
     const containerW = containerRef.current.offsetWidth;
-    // Vertical cards are narrower; horizontal cards are wider
     // Three breakpoints: mobile (<500), mid/side-by-side (500-900), wide (>900)
     const ratio = isVertical
       ? (containerW < 500 ? 0.4 : containerW < 900 ? 0.3 : 0.2)
       : (containerW < 500 ? 0.65 : containerW < 900 ? 0.5 : 0.35);
     const cw = containerW * ratio;
     setCardW(cw);
-    // Tighter radius on mobile, roomier on desktop
     const gap = containerW < 640 ? 10 : 20;
     const r = Math.max((count * (cw + gap)) / (2 * Math.PI), cw * 0.8);
     setRadius(r);
@@ -87,15 +101,17 @@ export default function VideoCarousel({
   // Snap drum to show given index at front
   const snapTo = useCallback(
     (index: number) => {
-      // Wrap-around: allow infinite rotation
       const clamped = ((index % count) + count) % count;
       setActiveIndex(clamped);
+      // Mute when navigating away
+      setUnmutedIndex(null);
+      muteGlobal();
+
       const target = -(clamped * sliceAngle);
-      // Find shortest rotation path
       const current = drumAngle.get();
       const diff = target - (current % 360);
       const shortDiff =
-        ((diff % 360) + 540) % 360 - 180; // shortest path
+        ((diff % 360) + 540) % 360 - 180;
       const finalTarget = current + shortDiff;
 
       if (reducedMotion) {
@@ -105,6 +121,28 @@ export default function VideoCarousel({
       }
     },
     [count, sliceAngle, drumAngle, reducedMotion],
+  );
+
+  // Handle unmute toggle from a card
+  const handleToggleMute = useCallback(
+    (index: number, videoEl: HTMLVideoElement) => {
+      if (unmutedIndex === index) {
+        // Mute it
+        videoEl.muted = true;
+        setUnmutedIndex(null);
+        globalUnmutedVideo = null;
+        globalMuteListener = null;
+      } else {
+        // Mute any previously unmuted video globally
+        muteGlobal();
+        // Unmute this one
+        videoEl.muted = false;
+        setUnmutedIndex(index);
+        globalUnmutedVideo = videoEl;
+        globalMuteListener = () => setUnmutedIndex(null);
+      }
+    },
+    [unmutedIndex],
   );
 
   // Measure on mount + resize
@@ -164,7 +202,7 @@ export default function VideoCarousel({
         className="relative outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y"
         style={{ perspective: 1200 }}
       >
-        {/* The 3D drum — all cards sit on this rotating cylinder */}
+        {/* The 3D drum */}
         <motion.div
           className="relative mx-auto"
           style={{
@@ -185,6 +223,8 @@ export default function VideoCarousel({
               colors={colors}
               count={count}
               isVertical={isVertical}
+              isUnmuted={unmutedIndex === i}
+              onToggleMute={handleToggleMute}
             />
           ))}
         </motion.div>
@@ -242,12 +282,13 @@ interface CylinderCardProps {
   colors: (typeof themeColors)["cyan"];
   count: number;
   isVertical: boolean;
+  isUnmuted: boolean;
+  onToggleMute: (index: number, videoEl: HTMLVideoElement) => void;
 }
 
 /** Inject Cloudinary video optimizations into the URL */
 function optimizeSrc(src: string, isVertical: boolean): string {
   if (!src.includes("res.cloudinary.com")) return src;
-  // Insert transformations: auto format, auto quality, cap resolution
   const maxH = isVertical ? 960 : 720;
   return src.replace(
     "/video/upload/",
@@ -264,14 +305,16 @@ function CylinderCard({
   colors,
   count,
   isVertical,
+  isUnmuted,
+  onToggleMute,
 }: CylinderCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const isActive = index === activeIndex;
 
-  // Only load videos that are active or 1 slot away
+  // Load active + 2 neighbors to avoid black screens on swipe
   const rawDist = Math.abs(index - activeIndex);
   const dist = Math.min(rawDist, count - rawDist);
-  const shouldLoad = dist <= 1;
+  const shouldLoad = dist <= 2;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -280,10 +323,23 @@ function CylinderCard({
       video.play().catch(() => {});
     } else {
       video.pause();
+      // Mute if navigated away while unmuted
+      if (!video.muted) video.muted = true;
     }
   }, [isActive]);
 
-  // Each card is rotated to its slot on the cylinder, then pushed out by radius
+  // Sync muted state from parent
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !isUnmuted;
+  }, [isUnmuted]);
+
+  const handleClick = () => {
+    if (!isActive || !videoRef.current) return;
+    onToggleMute(index, videoRef.current);
+  };
+
   const cardAngle = index * sliceAngle;
 
   const videoSrc = item.videoSrc && shouldLoad
@@ -301,23 +357,40 @@ function CylinderCard({
     >
       {/* Video or placeholder */}
       {item.videoSrc ? (
-        <video
-          ref={videoRef}
-          src={videoSrc}
-          poster={item.posterSrc}
-          preload={isActive ? "auto" : "none"}
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        <>
+          <video
+            ref={videoRef}
+            src={videoSrc}
+            poster={item.posterSrc}
+            preload={isActive ? "auto" : dist <= 1 ? "metadata" : "none"}
+            muted
+            loop
+            playsInline
+            onClick={handleClick}
+            className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+          />
+          {/* Mute/unmute indicator on active card */}
+          {isActive && (
+            <button
+              onClick={handleClick}
+              className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-sm text-white/80 hover:text-white transition-colors z-10"
+              aria-label={isUnmuted ? "Mute" : "Unmute"}
+            >
+              {isUnmuted ? (
+                <Volume2 size={14} strokeWidth={2} />
+              ) : (
+                <VolumeX size={14} strokeWidth={2} />
+              )}
+            </button>
+          )}
+        </>
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-charcoal-dark to-charcoal-mid flex items-center justify-center border border-white/5">
           <Video className="text-gray-700" size={48} strokeWidth={1} />
         </div>
       )}
 
-      {/* Text overlay — contained within card bounds */}
+      {/* Text overlay */}
       <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
         {item.client && (
           <p className={`text-[10px] font-medium ${colors.accent} mb-0.5 truncate`}>
