@@ -163,7 +163,7 @@ export default function BusinessVideo() {
           {services.map((service, i) => (
             <ScrollReveal key={service.title} delay={i * 0.1}>
               <div className="group p-6 rounded-xl bg-charcoal-dark/50 border border-white/5 hover:border-amber-brand/30 transition-all duration-300 h-full">
-                <div className="w-12 h-12 rounded-lg bg-amber-brand/10 flex items-center justify-center mb-4 group-hover:bg-amber-brand/20 transition-colors duration-300">
+                <div className="w-12 h-12 rounded-lg bg-amber-brand/10 flex items-start justify-center mb-4 group-hover:bg-amber-brand/20 transition-colors duration-300">
                   <service.icon
                     className="text-amber-brand"
                     size={24}
@@ -182,7 +182,7 @@ export default function BusinessVideo() {
         </div>
 
         {/* Portfolio carousels — side by side on desktop */}
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-10 items-center">
+        <div className="grid lg:grid-cols-2 gap-6 lg:gap-10 items-start">
           <ScrollReveal>
             <VideoCarousel items={portfolioVertical} theme="amber" heading="Reels & Highlights" orientation="vertical" />
           </ScrollReveal>

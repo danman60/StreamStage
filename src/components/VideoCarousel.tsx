@@ -89,12 +89,12 @@ export default function VideoCarousel({
     // Slightly smaller to prevent clipping between side-by-side carousels
     const ratio = isVertical
       ? (containerW < 500 ? 0.35 : containerW < 900 ? 0.25 : 0.18)
-      : (containerW < 500 ? 0.55 : containerW < 900 ? 0.4 : 0.28);
+      : (containerW < 500 ? 0.6 : containerW < 900 ? 0.45 : 0.32);
     const cw = containerW * ratio;
     setCardW(cw);
     const gap = containerW < 640 ? 10 : 20;
-    // Landscape gets a tighter/steeper curve (smaller radius multiplier)
-    const minR = isVertical ? cw * 0.8 : cw * 0.6;
+    // Landscape gets a much tighter curve for sharper 3D effect
+    const minR = isVertical ? cw * 0.8 : cw * 0.45;
     const r = Math.max((count * (cw + gap)) / (2 * Math.PI), minR);
     setRadius(r);
     return r;
