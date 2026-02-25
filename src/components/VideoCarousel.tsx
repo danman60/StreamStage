@@ -86,14 +86,16 @@ export default function VideoCarousel({
   const measure = useCallback(() => {
     if (!containerRef.current) return;
     const containerW = containerRef.current.offsetWidth;
-    // Three breakpoints: mobile (<500), mid/side-by-side (500-900), wide (>900)
+    // Slightly smaller to prevent clipping between side-by-side carousels
     const ratio = isVertical
-      ? (containerW < 500 ? 0.4 : containerW < 900 ? 0.3 : 0.2)
-      : (containerW < 500 ? 0.65 : containerW < 900 ? 0.5 : 0.35);
+      ? (containerW < 500 ? 0.35 : containerW < 900 ? 0.25 : 0.18)
+      : (containerW < 500 ? 0.55 : containerW < 900 ? 0.4 : 0.28);
     const cw = containerW * ratio;
     setCardW(cw);
     const gap = containerW < 640 ? 10 : 20;
-    const r = Math.max((count * (cw + gap)) / (2 * Math.PI), cw * 0.8);
+    // Landscape gets a tighter/steeper curve (smaller radius multiplier)
+    const minR = isVertical ? cw * 0.8 : cw * 0.6;
+    const r = Math.max((count * (cw + gap)) / (2 * Math.PI), minR);
     setRadius(r);
     return r;
   }, [count, isVertical]);
@@ -199,7 +201,7 @@ export default function VideoCarousel({
         onKeyDown={handleKeyDown}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
-        className="relative outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y"
+        className="relative outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y overflow-hidden"
         style={{ perspective: 1200 }}
       >
         {/* The 3D drum */}
@@ -296,6 +298,16 @@ function optimizeSrc(src: string, isVertical: boolean): string {
   );
 }
 
+/** Generate a poster thumbnail from a Cloudinary video URL */
+function posterFromVideo(src: string, isVertical: boolean): string {
+  if (!src.includes("res.cloudinary.com")) return "";
+  const maxH = isVertical ? 480 : 360;
+  // Extract frame at 1 second, serve as auto-format image
+  return src
+    .replace("/video/upload/", `/video/upload/so_1,h_${maxH},c_limit,f_auto,q_auto/`)
+    .replace(/\.\w+$/, ".jpg");
+}
+
 function CylinderCard({
   item,
   index,
@@ -357,6 +369,10 @@ function CylinderCard({
     ? optimizeSrc(item.videoSrc, isVertical)
     : undefined;
 
+  // Auto-generate poster from Cloudinary video (always load for instant thumbnails)
+  const poster = item.posterSrc
+    || (item.videoSrc ? posterFromVideo(item.videoSrc, isVertical) : undefined);
+
   return (
     <div
       className="absolute inset-0 rounded-xl overflow-hidden"
@@ -372,7 +388,7 @@ function CylinderCard({
           <video
             ref={videoRef}
             src={videoSrc}
-            poster={item.posterSrc}
+            poster={poster}
             preload={isActive ? "auto" : dist <= 1 ? "metadata" : "none"}
             muted
             loop
