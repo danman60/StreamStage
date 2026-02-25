@@ -224,7 +224,7 @@ export default function DanceMedia() {
         </div>
 
         {/* Portfolio carousels — side by side on desktop */}
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-10">
+        <div className="grid lg:grid-cols-[2fr_3fr] gap-6 lg:gap-10">
           <div className="overflow-hidden h-full">
             <ScrollReveal className="h-full">
               <VideoCarousel items={portfolioVertical} theme="cyan" heading="Reels & Highlights" orientation="vertical" />
