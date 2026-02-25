@@ -23,6 +23,7 @@ interface VideoCarouselProps {
   items: CarouselItem[];
   theme: "cyan" | "amber";
   heading?: string;
+  orientation?: "horizontal" | "vertical";
 }
 
 const themeColors = {
@@ -47,7 +48,9 @@ export default function VideoCarousel({
   items,
   theme,
   heading,
+  orientation = "horizontal",
 }: VideoCarouselProps) {
+  const isVertical = orientation === "vertical";
   const reducedMotion = useReducedMotion();
   const colors = themeColors[theme];
   const count = items.length;
@@ -67,8 +70,10 @@ export default function VideoCarousel({
   const measure = useCallback(() => {
     if (!containerRef.current) return;
     const containerW = containerRef.current.offsetWidth;
-    // Responsive: bigger cards on mobile so text is readable
-    const ratio = containerW < 640 ? 0.65 : 0.35;
+    // Vertical cards are narrower; horizontal cards are wider
+    const ratio = isVertical
+      ? (containerW < 640 ? 0.4 : 0.2)
+      : (containerW < 640 ? 0.65 : 0.35);
     const cw = containerW * ratio;
     setCardW(cw);
     // Tighter radius on mobile, roomier on desktop
@@ -76,7 +81,7 @@ export default function VideoCarousel({
     const r = Math.max((count * (cw + gap)) / (2 * Math.PI), cw * 0.8);
     setRadius(r);
     return r;
-  }, [count]);
+  }, [count, isVertical]);
 
   // Snap drum to show given index at front
   const snapTo = useCallback(
@@ -163,7 +168,7 @@ export default function VideoCarousel({
           className="relative mx-auto"
           style={{
             width: cardW || "50%",
-            aspectRatio: "16/9",
+            aspectRatio: isVertical ? "9/16" : "16/9",
             transformStyle: "preserve-3d",
             rotateY: drumAngle,
           }}
@@ -178,6 +183,7 @@ export default function VideoCarousel({
               radius={radius}
               colors={colors}
               count={count}
+              isVertical={isVertical}
             />
           ))}
         </motion.div>
@@ -234,6 +240,7 @@ interface CylinderCardProps {
   radius: number;
   colors: (typeof themeColors)["cyan"];
   count: number;
+  isVertical: boolean;
 }
 
 function CylinderCard({
@@ -244,6 +251,7 @@ function CylinderCard({
   radius,
   colors,
   count,
+  isVertical,
 }: CylinderCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const isActive = index === activeIndex;
