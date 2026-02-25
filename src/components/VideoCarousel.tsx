@@ -185,13 +185,14 @@ export default function VideoCarousel({
   };
 
   return (
-    <div className="mb-20">
+    <div className="mb-20 flex flex-col h-full">
       {heading && (
         <h3 className="font-heading text-2xl font-bold text-white text-center mb-12 relative z-10">
           {heading}
         </h3>
       )}
 
+      <div className="flex-1 flex flex-col justify-center">
       <div
         ref={containerRef}
         role="region"
@@ -268,6 +269,7 @@ export default function VideoCarousel({
             }`}
           />
         ))}
+      </div>
       </div>
     </div>
   );
