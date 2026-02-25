@@ -181,14 +181,16 @@ export default function BusinessVideo() {
           ))}
         </div>
 
-        {/* Portfolio carousels */}
-        <ScrollReveal>
-          <VideoCarousel items={portfolioVertical} theme="amber" heading="Reels & Highlights" orientation="vertical" />
-        </ScrollReveal>
+        {/* Portfolio carousels — side by side on desktop */}
+        <div className="grid lg:grid-cols-2 gap-6 lg:gap-10">
+          <ScrollReveal>
+            <VideoCarousel items={portfolioVertical} theme="amber" heading="Reels & Highlights" orientation="vertical" />
+          </ScrollReveal>
 
-        <ScrollReveal>
-          <VideoCarousel items={portfolioHorizontal} theme="amber" heading="Client Work" orientation="horizontal" />
-        </ScrollReveal>
+          <ScrollReveal delay={0.1}>
+            <VideoCarousel items={portfolioHorizontal} theme="amber" heading="Client Work" orientation="horizontal" />
+          </ScrollReveal>
+        </div>
 
         {/* Testimonials */}
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">

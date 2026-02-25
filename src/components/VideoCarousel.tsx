@@ -71,9 +71,10 @@ export default function VideoCarousel({
     if (!containerRef.current) return;
     const containerW = containerRef.current.offsetWidth;
     // Vertical cards are narrower; horizontal cards are wider
+    // Three breakpoints: mobile (<500), mid/side-by-side (500-900), wide (>900)
     const ratio = isVertical
-      ? (containerW < 640 ? 0.4 : 0.2)
-      : (containerW < 640 ? 0.65 : 0.35);
+      ? (containerW < 500 ? 0.4 : containerW < 900 ? 0.3 : 0.2)
+      : (containerW < 500 ? 0.65 : containerW < 900 ? 0.5 : 0.35);
     const cw = containerW * ratio;
     setCardW(cw);
     // Tighter radius on mobile, roomier on desktop
