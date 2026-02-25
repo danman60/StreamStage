@@ -293,10 +293,10 @@ interface CylinderCardProps {
 /** Inject Cloudinary video optimizations into the URL */
 function optimizeSrc(src: string, isVertical: boolean): string {
   if (!src.includes("res.cloudinary.com")) return src;
-  const maxH = isVertical ? 960 : 720;
+  const maxH = isVertical ? 1080 : 1080;
   return src.replace(
     "/video/upload/",
-    `/video/upload/q_auto,f_auto,h_${maxH},c_limit/`,
+    `/video/upload/q_auto:good,f_auto,h_${maxH},c_limit/`,
   );
 }
 
