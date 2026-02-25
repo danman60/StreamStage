@@ -70,6 +70,36 @@ const portfolioVertical: CarouselItem[] = [
     client: "Paul Penna",
     category: "Show Highlight",
   },
+  {
+    videoSrc: `${CLD}/streamstage/shuffle-hilite.mp4`,
+    title: "Shuffle Into the Spotlight",
+    client: "Shuffle Dance",
+    category: "Recital Highlight",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/revolutions-dance.mp4`,
+    title: "Revolutions in Motion",
+    client: "Revolutions Dance",
+    category: "Recital Highlight",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/lds-hilite.mp4`,
+    title: "Lindsay Lights Up the Stage",
+    client: "Lindsay Dance Studio",
+    category: "Recital Highlight",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/lds-show-ab.mp4`,
+    title: "Double Feature, Double Energy",
+    client: "Lindsay Dance Studio",
+    category: "Recital Highlight",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/jj-showcase-hilite.mp4`,
+    title: "Showcase Showstopper",
+    client: "JJ Dance Arts",
+    category: "Showcase Highlight",
+  },
 ];
 
 const portfolioHorizontal: CarouselItem[] = [
@@ -79,11 +109,54 @@ const portfolioHorizontal: CarouselItem[] = [
     client: "UDC",
     category: "Showcase",
   },
-  { title: "Bruno: Behind the Curtain", client: "Bruno", category: "EPK" },
-  { title: "Jesus Christ Superstar", client: "Theatre Woodstock", category: "Trailer" },
-  { title: "Backwoods Barbie Takes the Stage", client: "Backwoods Barbie", category: "Promo" },
-  { title: "High-Energy Moves, One Stage", client: "Dance Attack", category: "Promo" },
-  { title: "Where Stars Dance Young", client: "WSDY", category: "Showcase" },
+  {
+    videoSrc: `${CLD}/streamstage/udc-promo26-landscape.mp4`,
+    title: "Season 26 — The Hype Reel",
+    client: "UDC",
+    category: "Promo",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/bruno-epk.mp4`,
+    title: "Bruno: Behind the Curtain",
+    client: "Bruno",
+    category: "EPK",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/jcs-tw-final.mp4`,
+    title: "Jesus Christ Superstar",
+    client: "Theatre Woodstock",
+    category: "Show Film",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/jcs-trailer.mp4`,
+    title: "Superstar — The Trailer",
+    client: "Theatre Woodstock",
+    category: "Trailer",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/dolly-promo.mp4`,
+    title: "Backwoods Barbie Takes the Stage",
+    client: "Backwoods Barbie",
+    category: "Promo",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/cdte25-promo.mp4`,
+    title: "High-Energy Moves, One Stage",
+    client: "Dance Attack",
+    category: "Promo",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/wsdy-4k.mp4`,
+    title: "Where Stars Dance Young",
+    client: "WSDY",
+    category: "Showcase",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/hfn-2025.mp4`,
+    title: "Hope for Nicole 2025",
+    client: "HFN",
+    category: "Event Film",
+  },
 ];
 
 const testimonials = [

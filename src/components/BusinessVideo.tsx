@@ -70,6 +70,18 @@ const portfolioVertical: CarouselItem[] = [
     client: "Embro Tractor Pull",
     category: "Event Reel",
   },
+  {
+    videoSrc: `${CLD}/streamstage/embro-reel-4.mp4`,
+    title: "Full Throttle Friday",
+    client: "Embro Tractor Pull",
+    category: "Event Reel",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/embro-reel-5.mp4`,
+    title: "Pull for the Win",
+    client: "Embro Tractor Pull",
+    category: "Event Reel",
+  },
 ];
 
 const portfolioHorizontal: CarouselItem[] = [
@@ -79,11 +91,36 @@ const portfolioHorizontal: CarouselItem[] = [
     client: "Trevino",
     category: "Commercial",
   },
-  { title: "Wellness, Amplified", client: "Uvalux", category: "Brand" },
-  { title: "Community Champions", client: "YFC Woodstock", category: "Event" },
-  { title: "One Minute, One Studio", client: "Caledonia Dance", category: "Promo" },
-  { title: "Burger Battle Showdown", client: "United Way Oxford", category: "Event" },
-  { title: "Local Love Stories", client: "United Way Oxford", category: "Campaign" },
+  {
+    videoSrc: `${CLD}/streamstage/we-are-wellness.mp4`,
+    title: "Wellness, Amplified",
+    client: "Uvalux",
+    category: "Brand",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/yfc-banquet-final.mp4`,
+    title: "Community Champions",
+    client: "YFC Woodstock",
+    category: "Event",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/csod-1min.mp4`,
+    title: "One Minute, One Studio",
+    client: "Caledonia Dance",
+    category: "Promo",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/burger-battle.mp4`,
+    title: "Burger Battle Showdown",
+    client: "United Way Oxford",
+    category: "Event",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/local-love.mp4`,
+    title: "Local Love Stories",
+    client: "United Way Oxford",
+    category: "Campaign",
+  },
 ];
 
 const testimonials = [
