@@ -89,7 +89,7 @@ export default function VideoCarousel({
     // Slightly smaller to prevent clipping between side-by-side carousels
     const ratio = isVertical
       ? (containerW < 500 ? 0.35 : containerW < 900 ? 0.25 : 0.18)
-      : (containerW < 500 ? 0.6 : containerW < 900 ? 0.45 : 0.32);
+      : (containerW < 500 ? 0.5 : containerW < 900 ? 0.38 : 0.26);
     const cw = containerW * ratio;
     setCardW(cw);
     const gap = containerW < 640 ? 10 : 20;
@@ -202,7 +202,7 @@ export default function VideoCarousel({
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         className="relative outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y"
-        style={{ perspective: 800, clipPath: "inset(-5% 0)" }}
+        style={{ perspective: 800 }}
       >
         {/* The 3D drum */}
         <motion.div
