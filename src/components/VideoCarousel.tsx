@@ -192,8 +192,6 @@ export default function VideoCarousel({
         </h3>
       )}
 
-      {/* Outer clip wrapper — prevents bleed into neighboring columns */}
-      <div className="overflow-hidden">
       <div
         ref={containerRef}
         role="region"
@@ -203,8 +201,8 @@ export default function VideoCarousel({
         onKeyDown={handleKeyDown}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
-        className="relative outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y px-[10%]"
-        style={{ perspective: 800 }}
+        className="relative outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y"
+        style={{ perspective: 800, clipPath: "inset(-5% 0)" }}
       >
         {/* The 3D drum */}
         <motion.div
@@ -249,7 +247,6 @@ export default function VideoCarousel({
           <ChevronRight size={20} strokeWidth={2} />
         </button>
       </div>
-      </div>{/* end clip wrapper */}
 
       {/* Dot indicators */}
       <div
