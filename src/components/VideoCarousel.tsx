@@ -243,6 +243,17 @@ interface CylinderCardProps {
   isVertical: boolean;
 }
 
+/** Inject Cloudinary video optimizations into the URL */
+function optimizeSrc(src: string, isVertical: boolean): string {
+  if (!src.includes("res.cloudinary.com")) return src;
+  // Insert transformations: auto format, auto quality, cap resolution
+  const maxH = isVertical ? 960 : 720;
+  return src.replace(
+    "/video/upload/",
+    `/video/upload/q_auto,f_auto,h_${maxH},c_limit/`,
+  );
+}
+
 function CylinderCard({
   item,
   index,
@@ -255,6 +266,11 @@ function CylinderCard({
 }: CylinderCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const isActive = index === activeIndex;
+
+  // Only load videos that are active or 1 slot away
+  const rawDist = Math.abs(index - activeIndex);
+  const dist = Math.min(rawDist, count - rawDist);
+  const shouldLoad = dist <= 1;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -269,9 +285,9 @@ function CylinderCard({
   // Each card is rotated to its slot on the cylinder, then pushed out by radius
   const cardAngle = index * sliceAngle;
 
-  // Calculate visual distance from front for opacity
-  const rawDist = Math.abs(index - activeIndex);
-  const dist = Math.min(rawDist, count - rawDist); // wrap-around distance
+  const videoSrc = item.videoSrc && shouldLoad
+    ? optimizeSrc(item.videoSrc, isVertical)
+    : undefined;
 
   return (
     <div
@@ -286,8 +302,9 @@ function CylinderCard({
       {item.videoSrc ? (
         <video
           ref={videoRef}
-          src={item.videoSrc}
+          src={videoSrc}
           poster={item.posterSrc}
+          preload={isActive ? "auto" : "none"}
           muted
           loop
           playsInline
