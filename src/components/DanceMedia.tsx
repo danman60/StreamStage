@@ -31,13 +31,59 @@ const services = [
   },
 ];
 
-const portfolio: CarouselItem[] = [
-  { title: "National Dance Competition", category: "Livestream" },
-  { title: "Annual Studio Recital", category: "Videography" },
-  { title: "Theatre Production", category: "Multi-Camera" },
-  { title: "Dance Showcase", category: "Promo" },
-  { title: "Competition Highlights", category: "Editing" },
-  { title: "Studio Promo", category: "Social" },
+const CLD = "https://res.cloudinary.com/dz6snntrf/video/upload";
+
+const portfolioVertical: CarouselItem[] = [
+  {
+    videoSrc: `${CLD}/streamstage/udc-burl-hilite.mov`,
+    title: "Burlington Brings the Heat",
+    client: "UDC",
+    category: "Competition Highlight",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/udc-london-hilite.mov`,
+    title: "London Steals the Show",
+    client: "UDC",
+    category: "Competition Highlight",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/jj-lhl-hilite.mov`,
+    title: "Light Heavy Light Highlights",
+    client: "JJ Dance Arts",
+    category: "Show Highlight",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/udc-promo26-portrait.mov`,
+    title: "Season 26 Is Coming",
+    client: "UDC",
+    category: "Promo",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/generations-hilite.mp4`,
+    title: "Every Generation, Every Beat",
+    client: "Generations",
+    category: "Recital Highlight",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/hsm-final.mp4`,
+    title: "High School Musical Live!",
+    client: "Paul Penna",
+    category: "Show Highlight",
+  },
+];
+
+const portfolioHorizontal: CarouselItem[] = [
+  {
+    videoSrc: `${CLD}/streamstage/udc-synergy.mov`,
+    title: "Synergy in Motion",
+    client: "UDC",
+    category: "Showcase",
+  },
+  { title: "Bruno: Behind the Curtain", client: "Bruno", category: "EPK" },
+  { title: "Jesus Christ Superstar", client: "Theatre Woodstock", category: "Trailer" },
+  { title: "Backwoods Barbie Takes the Stage", client: "Backwoods Barbie", category: "Promo" },
+  { title: "High-Energy Moves, One Stage", client: "Dance Attack", category: "Promo" },
+  { title: "Where Stars Dance Young", client: "WSDY", category: "Showcase" },
 ];
 
 const testimonials = [
@@ -104,9 +150,13 @@ export default function DanceMedia() {
           ))}
         </div>
 
-        {/* Portfolio carousel */}
+        {/* Portfolio carousels */}
         <ScrollReveal>
-          <VideoCarousel items={portfolio} theme="cyan" heading="Recent Work" />
+          <VideoCarousel items={portfolioVertical} theme="cyan" heading="Reels & Highlights" orientation="vertical" />
+        </ScrollReveal>
+
+        <ScrollReveal>
+          <VideoCarousel items={portfolioHorizontal} theme="cyan" heading="Promos & Showcases" orientation="horizontal" />
         </ScrollReveal>
 
         {/* Testimonials */}

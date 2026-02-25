@@ -37,11 +37,53 @@ const services = [
   },
 ];
 
-const portfolio: CarouselItem[] = [
-  { title: "Cristini Crossfit", category: "Promo" },
-  { title: "Goat Yoga Toronto", category: "Social" },
-  { title: "Raw Rock Shop", category: "Brand" },
-  { title: "Uvalux Tanning", category: "Commercial" },
+const CLD = "https://res.cloudinary.com/dz6snntrf/video/upload";
+
+const portfolioVertical: CarouselItem[] = [
+  {
+    videoSrc: `${CLD}/streamstage/sgc-reel-1.mov`,
+    title: "Strength Meets Style",
+    client: "SGC Fitness",
+    category: "Social Reel",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/sgc-reel-2.mov`,
+    title: "No Limits, All Gains",
+    client: "SGC Fitness",
+    category: "Social Reel",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/grand-river.mp4`,
+    title: "Grand River, Grand Night",
+    client: "Grand River",
+    category: "Event Highlight",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/embro-reel-1.mov`,
+    title: "Horsepower & Heart",
+    client: "Embro Tractor Pull",
+    category: "Event Reel",
+  },
+  {
+    videoSrc: `${CLD}/streamstage/embro-reel-2.mov`,
+    title: "Dirt, Diesel & Glory",
+    client: "Embro Tractor Pull",
+    category: "Event Reel",
+  },
+];
+
+const portfolioHorizontal: CarouselItem[] = [
+  {
+    videoSrc: `${CLD}/streamstage/trevino-aloha-30s.mov`,
+    title: "Aloha in 30 Seconds",
+    client: "Trevino",
+    category: "Commercial",
+  },
+  { title: "Wellness, Amplified", client: "Uvalux", category: "Brand" },
+  { title: "Community Champions", client: "YFC Woodstock", category: "Event" },
+  { title: "One Minute, One Studio", client: "Caledonia Dance", category: "Promo" },
+  { title: "Burger Battle Showdown", client: "United Way Oxford", category: "Event" },
+  { title: "Local Love Stories", client: "United Way Oxford", category: "Campaign" },
 ];
 
 const testimonials = [
@@ -102,9 +144,13 @@ export default function BusinessVideo() {
           ))}
         </div>
 
-        {/* Portfolio carousel */}
+        {/* Portfolio carousels */}
         <ScrollReveal>
-          <VideoCarousel items={portfolio} theme="amber" heading="Client Work" />
+          <VideoCarousel items={portfolioVertical} theme="amber" heading="Reels & Highlights" orientation="vertical" />
+        </ScrollReveal>
+
+        <ScrollReveal>
+          <VideoCarousel items={portfolioHorizontal} theme="amber" heading="Client Work" orientation="horizontal" />
         </ScrollReveal>
 
         {/* Testimonials */}
