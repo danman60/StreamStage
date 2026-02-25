@@ -93,8 +93,8 @@ export default function VideoCarousel({
     const cw = containerW * ratio;
     setCardW(cw);
     const gap = containerW < 640 ? 10 : 20;
-    // Landscape gets a much tighter curve for sharper 3D effect
-    const minR = isVertical ? cw * 0.8 : cw * 0.45;
+    // Landscape gets a much tighter curve for dramatic 3D depth
+    const minR = isVertical ? cw * 0.8 : cw * 0.35;
     const r = Math.max((count * (cw + gap)) / (2 * Math.PI), minR);
     setRadius(r);
     return r;
@@ -192,6 +192,8 @@ export default function VideoCarousel({
         </h3>
       )}
 
+      {/* Outer clip wrapper — prevents bleed into neighboring columns */}
+      <div className="overflow-hidden">
       <div
         ref={containerRef}
         role="region"
@@ -201,8 +203,8 @@ export default function VideoCarousel({
         onKeyDown={handleKeyDown}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
-        className="relative outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y overflow-hidden"
-        style={{ perspective: 1200 }}
+        className="relative outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y px-[10%]"
+        style={{ perspective: 800 }}
       >
         {/* The 3D drum */}
         <motion.div
@@ -247,6 +249,7 @@ export default function VideoCarousel({
           <ChevronRight size={20} strokeWidth={2} />
         </button>
       </div>
+      </div>{/* end clip wrapper */}
 
       {/* Dot indicators */}
       <div
