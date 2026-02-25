@@ -93,9 +93,11 @@ export default function VideoCarousel({
     const cw = containerW * ratio;
     setCardW(cw);
     const gap = containerW < 640 ? 10 : 20;
-    // Landscape gets a much tighter curve for dramatic 3D depth
-    const minR = isVertical ? cw * 0.8 : cw * 0.35;
-    const r = Math.max((count * (cw + gap)) / (2 * Math.PI), minR);
+    const natural = (count * (cw + gap)) / (2 * Math.PI);
+    // Vertical: normal cylinder radius. Landscape: force tight curve for dramatic 3D.
+    const r = isVertical
+      ? Math.max(natural, cw * 0.8)
+      : cw * 0.55;
     setRadius(r);
     return r;
   }, [count, isVertical]);
