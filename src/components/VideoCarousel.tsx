@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion, animate, useMotionValue } from "framer-motion";
-import { Video, ChevronLeft, ChevronRight, Volume2, VolumeX } from "lucide-react";
+import { Video, ChevronLeft, ChevronRight, Volume2, VolumeX, Maximize } from "lucide-react";
 import {
   useRef,
   useState,
@@ -340,6 +340,17 @@ function CylinderCard({
     onToggleMute(index, videoRef.current);
   };
 
+  const handleFullscreen = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.requestFullscreen) {
+      video.requestFullscreen();
+    } else if ((video as HTMLVideoElement & { webkitEnterFullscreen?: () => void }).webkitEnterFullscreen) {
+      (video as HTMLVideoElement & { webkitEnterFullscreen: () => void }).webkitEnterFullscreen();
+    }
+  };
+
   const cardAngle = index * sliceAngle;
 
   const videoSrc = item.videoSrc && shouldLoad
@@ -369,19 +380,28 @@ function CylinderCard({
             onClick={handleClick}
             className="absolute inset-0 w-full h-full object-cover cursor-pointer"
           />
-          {/* Mute/unmute indicator on active card */}
+          {/* Controls on active card */}
           {isActive && (
-            <button
-              onClick={handleClick}
-              className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-sm text-white/80 hover:text-white transition-colors z-10"
-              aria-label={isUnmuted ? "Mute" : "Unmute"}
-            >
-              {isUnmuted ? (
-                <Volume2 size={14} strokeWidth={2} />
-              ) : (
-                <VolumeX size={14} strokeWidth={2} />
-              )}
-            </button>
+            <div className="absolute top-2 right-2 flex gap-1.5 z-10">
+              <button
+                onClick={handleClick}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-sm text-white/80 hover:text-white transition-colors"
+                aria-label={isUnmuted ? "Mute" : "Unmute"}
+              >
+                {isUnmuted ? (
+                  <Volume2 size={14} strokeWidth={2} />
+                ) : (
+                  <VolumeX size={14} strokeWidth={2} />
+                )}
+              </button>
+              <button
+                onClick={handleFullscreen}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-sm text-white/80 hover:text-white transition-colors"
+                aria-label="Fullscreen"
+              >
+                <Maximize size={14} strokeWidth={2} />
+              </button>
+            </div>
           )}
         </>
       ) : (
