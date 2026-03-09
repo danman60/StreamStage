@@ -94,7 +94,7 @@ const jsonLd = {
           name: "What is StreamStage?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "StreamStage is Canada's dance industry partner, providing media production (livestreaming, videography, promotional content), dance-specific software (CompSync, StudioSage, StudioSync), and live broadcast services. With over 100 events streamed and 500+ videos produced for 50+ studios across Canada, StreamStage combines creative expertise with purpose-built technology for the performing arts.",
+            text: "StreamStage is Canada's dance industry partner, providing media production (livestreaming, videography, promotional content), dance-specific software (CompSync, StudioSage, StudioBeat), and live broadcast services. With over 100 events streamed and 500+ videos produced for 50+ studios across Canada, StreamStage combines creative expertise with purpose-built technology for the performing arts.",
           },
         },
         {
@@ -126,7 +126,7 @@ const jsonLd = {
           name: "What dance software does StreamStage build?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "StreamStage builds three dance-specific software products: CompSync for competition management (registration, scheduling, scoring, livestream integration), StudioSage for AI-powered studio insights and analytics, and StudioSync for studio management and parent-teacher-student communication. All are purpose-built for the dance industry.",
+            text: "StreamStage builds three dance-specific software products: CompSync for competition management (registration, scheduling, scoring, livestream integration), StudioSage for AI-powered studio insights and analytics, and StudioBeat for studio management and parent-teacher-student communication. All are purpose-built for the dance industry.",
           },
         },
       ],
@@ -213,7 +213,7 @@ const jsonLd = {
     },
     {
       "@type": "SoftwareApplication",
-      name: "StudioSync",
+      name: "StudioBeat",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       description:

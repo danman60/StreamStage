@@ -83,7 +83,7 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
+            {navLinks.filter((l) => l.href !== "#contact").map((link) => (
               <a
                 key={link.href}
                 href={link.href}
@@ -100,6 +100,16 @@ export default function Navbar() {
                 {link.label}
               </a>
             ))}
+            <a
+              href="#contact"
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavClick("#contact");
+              }}
+              className="cursor-pointer ml-2 px-5 py-2 text-sm font-semibold rounded-lg bg-cyan-brand text-charcoal-deep hover:bg-cyan-brand/90 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-brand/20"
+            >
+              Start Your Project
+            </a>
           </div>
 
           {/* Mobile menu button */}
@@ -117,7 +127,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="md:hidden bg-charcoal-deep/95 backdrop-blur-xl border-t border-white/5">
           <div className="px-4 py-4 space-y-1">
-            {navLinks.map((link) => (
+            {navLinks.filter((l) => l.href !== "#contact").map((link) => (
               <a
                 key={link.href}
                 href={link.href}
@@ -134,6 +144,16 @@ export default function Navbar() {
                 {link.label}
               </a>
             ))}
+            <a
+              href="#contact"
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavClick("#contact");
+              }}
+              className="cursor-pointer block w-full text-center px-4 py-3 mt-2 text-base font-semibold rounded-lg bg-cyan-brand text-charcoal-deep hover:bg-cyan-brand/90 transition-all duration-200"
+            >
+              Start Your Project
+            </a>
           </div>
         </div>
       )}

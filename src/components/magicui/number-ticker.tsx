@@ -60,7 +60,7 @@ export function NumberTicker({
       )}
       ref={ref}
     >
-      0{suffix}
+      {Intl.NumberFormat("en-US").format(value)}{suffix}
     </span>
   );
 }

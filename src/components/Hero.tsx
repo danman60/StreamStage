@@ -53,7 +53,7 @@ export default function Hero() {
             className="font-heading font-semibold text-base text-charcoal-deep px-8 py-3.5"
             onClick={() => handleScroll("#dance-media")}
           >
-            Our Work
+            View Portfolio
           </ShimmerButton>
           <a
             href="#software"
@@ -63,7 +63,7 @@ export default function Hero() {
             }}
             className="cursor-pointer px-8 py-3.5 border border-cyan-brand/40 text-cyan-brand font-heading font-semibold text-base rounded-lg hover:bg-cyan-brand/10 hover:border-cyan-brand/60 transition-all duration-200"
           >
-            Our Software
+            Explore Tools
           </a>
         </motion.div>
       </div>

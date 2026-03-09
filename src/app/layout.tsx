@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://streamstage.live"),
   title: "StreamStage — Where Dance Meets Technology",
   description:
-    "Canada's dance industry partner — 100+ events streamed, 500+ videos produced for 50+ studios. Livestreaming, videography, and dance software (CompSync, StudioSage, StudioSync).",
+    "Canada's dance industry partner — 100+ events streamed, 500+ videos produced for 50+ studios. Livestreaming, videography, and dance software (CompSync, StudioSage, StudioBeat).",
   keywords: [
     "dance media",
     "livestreaming",
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     "videography",
     "CompSync",
     "StudioSage",
-    "StudioSync",
+    "StudioBeat",
     "dance software",
     "Canada",
     "dance competition livestream",
@@ -97,6 +97,7 @@ export default function RootLayout({
             loop
             playsInline
             poster="/hero-poster.jpg"
+            title="StreamStage background — dance performance footage"
             className="absolute min-w-full min-h-full w-auto h-auto top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover"
           >
             <source src="/hero-bg.mp4" type="video/mp4" />
