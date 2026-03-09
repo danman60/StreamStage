@@ -8,7 +8,7 @@ const team = [
   {
     name: "Daniel Abrahamson",
     role: "Founder & Creative Director",
-    bio: "AI systems engineer and video production specialist — building intelligent software and crafting cinematic media for the dance industry for over a decade.",
+    bio: "AI systems engineer and video production specialist, building intelligent software and crafting cinematic media for the dance industry for over a decade.",
     photo: "/team-daniel.jpg",
   },
   {
