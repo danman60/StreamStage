@@ -48,6 +48,9 @@ const clients = [
   { name: "Wavestage Theatre Co.", logo: "/logos/wavestage-theatre-co.webp" },
   { name: "Wellington Winds Symphony", logo: "/logos/wellington-winds-symphony.png" },
   { name: "Woodstock Chamber of Commerce", logo: "/logos/woodstock-chamber-of-commerce.webp" },
+  { name: "Embro Truck & Tractor Pull", logo: "/logos/embro-tractor-pull.png" },
+  { name: "Norwich T'N'T Pull", logo: "/logos/norwich-tnt-pull.png" },
+  { name: "United Way Oxford", logo: "/logos/united-way-oxford.png" },
 ];
 
 // Split into two rows for visual variety
