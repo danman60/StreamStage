@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import ScrollReveal from "./ScrollReveal";
 import { Marquee } from "./magicui/marquee";
 
@@ -57,13 +56,13 @@ const row2 = clients.slice(Math.ceil(clients.length / 2));
 
 function ClientLogo({ client }: { client: (typeof clients)[0] }) {
   return (
-    <div className="flex items-center justify-center px-5 py-3 rounded-xl bg-white/90 min-w-[140px] h-16 hover:bg-white transition-colors duration-300">
-      <Image
+    <div className="flex items-center justify-center px-6 py-4 rounded-xl bg-white/90 min-w-[160px] h-20 hover:bg-white transition-colors duration-300">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
         src={client.logo}
         alt={client.name}
-        width={120}
-        height={48}
-        className="max-h-10 w-auto object-contain"
+        className="max-h-12 max-w-[130px] object-contain"
+        loading="lazy"
       />
     </div>
   );
