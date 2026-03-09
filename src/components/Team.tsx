@@ -15,9 +15,9 @@ const team = [
     bio: "Multi-camera specialist with deep roots in the dance community.",
   },
   {
-    name: "Team Member",
-    role: "Software Developer",
-    bio: "Building purpose-built tools for the dance industry.",
+    name: "Kayla James",
+    role: "Creative Director",
+    bio: "Shapes the visual identity behind every project — from brand aesthetics and social content to on-screen graphics and campaign direction.",
   },
 ];
 
