@@ -30,7 +30,7 @@ function ClientCard({ name }: { name: string }) {
 
 export default function Clients() {
   return (
-    <section id="clients" className="py-24 sm:py-32 relative">
+    <section id="clients" className="py-16 sm:py-20 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <ScrollReveal>
           <div className="text-center mb-12">
@@ -53,7 +53,7 @@ export default function Clients() {
         </div>
       </div>
 
-      <div className="section-divider mt-24 sm:mt-32 max-w-4xl mx-auto" />
+      <div className="section-divider mt-16 sm:mt-20 max-w-4xl mx-auto" />
     </section>
   );
 }

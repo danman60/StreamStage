@@ -37,7 +37,7 @@ const products = [
 
 export default function Software() {
   return (
-    <section id="software" className="py-24 sm:py-32 relative">
+    <section id="software" className="py-16 sm:py-20 relative">
       {/* Background glow */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-cyan-brand/5 blur-[150px] rounded-full" />
@@ -128,7 +128,7 @@ export default function Software() {
         </div>
       </div>
 
-      <div className="section-divider mt-24 sm:mt-32 max-w-4xl mx-auto" />
+      <div className="section-divider mt-16 sm:mt-20 max-w-4xl mx-auto" />
     </section>
   );
 }

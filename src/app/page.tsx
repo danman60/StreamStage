@@ -18,7 +18,7 @@ const jsonLd = {
       "@id": "https://streamstage.live/#organization",
       name: "StreamStage",
       url: "https://streamstage.live",
-      email: "hello@streamstage.live",
+      email: "daniel@streamstage.live",
       logo: "https://streamstage.live/logo-color.png",
       foundingDate: "2015",
       description:
@@ -42,8 +42,8 @@ const jsonLd = {
         "Multi-camera live broadcast",
       ],
       sameAs: [
-        "https://instagram.com/streamstage",
-        "https://facebook.com/streamstage",
+        "https://www.instagram.com/streamstage.live/",
+        "https://www.facebook.com/streamstagedotlive",
       ],
       numberOfEmployees: {
         "@type": "QuantitativeValue",

@@ -183,7 +183,7 @@ const testimonials = [
 
 export default function DanceMedia() {
   return (
-    <section id="dance-media" className="py-24 sm:py-32 relative">
+    <section id="dance-media" className="py-16 sm:py-20 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Header */}
         <ScrollReveal>
@@ -277,7 +277,7 @@ export default function DanceMedia() {
         </div>
       </div>
 
-      <div className="section-divider mt-24 sm:mt-32 max-w-4xl mx-auto" />
+      <div className="section-divider mt-16 sm:mt-20 max-w-4xl mx-auto" />
     </section>
   );
 }

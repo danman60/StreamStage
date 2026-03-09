@@ -36,7 +36,7 @@ export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="py-24 sm:py-32 relative">
+    <section id="faq" className="py-16 sm:py-20 relative">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <ScrollReveal>
           <div className="text-center mb-12">
@@ -86,7 +86,7 @@ export default function FAQ() {
         </div>
       </div>
 
-      <div className="section-divider mt-24 sm:mt-32 max-w-4xl mx-auto" />
+      <div className="section-divider mt-16 sm:mt-20 max-w-4xl mx-auto" />
     </section>
   );
 }

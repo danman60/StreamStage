@@ -4,15 +4,15 @@ import { Instagram, Facebook, Mail } from "lucide-react";
 const socialLinks = [
   {
     icon: Instagram,
-    href: "https://instagram.com/streamstage",
+    href: "https://www.instagram.com/streamstage.live/",
     label: "Instagram",
   },
   {
     icon: Facebook,
-    href: "https://facebook.com/streamstage",
+    href: "https://www.facebook.com/streamstagedotlive",
     label: "Facebook",
   },
-  { icon: Mail, href: "mailto:hello@streamstage.live", label: "Email" },
+  { icon: Mail, href: "mailto:daniel@streamstage.live", label: "Email" },
 ];
 
 const footerNav = [
@@ -49,7 +49,7 @@ export default function Footer() {
                   <li key={link.href}>
                     <a
                       href={link.href}
-                      className="text-sm text-gray-500 hover:text-gray-300 transition-colors duration-200"
+                      className="text-sm text-gray-400 hover:text-gray-200 transition-colors duration-200"
                     >
                       {link.label}
                     </a>
@@ -67,7 +67,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={link.label}
-                  className="cursor-pointer p-2 text-gray-500 hover:text-cyan-brand transition-colors duration-200"
+                  className="cursor-pointer p-2 text-gray-400 hover:text-cyan-brand transition-colors duration-200"
                 >
                   <link.icon size={20} strokeWidth={1.5} />
                 </a>
@@ -77,16 +77,16 @@ export default function Footer() {
 
           {/* Bottom row: location + copyright */}
           <div className="text-center space-y-1">
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-400 text-sm">
               Ontario, Canada &middot;{" "}
               <a
-                href="mailto:hello@streamstage.live"
-                className="hover:text-gray-400 transition-colors duration-200"
+                href="mailto:daniel@streamstage.live"
+                className="hover:text-gray-200 transition-colors duration-200"
               >
-                hello@streamstage.live
+                daniel@streamstage.live
               </a>
             </p>
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-400 text-sm">
               &copy; {new Date().getFullYear()} StreamStage. All rights reserved.
             </p>
           </div>
