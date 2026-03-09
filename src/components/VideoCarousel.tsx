@@ -292,24 +292,16 @@ interface CylinderCardProps {
   onToggleMute: (index: number, videoEl: HTMLVideoElement) => void;
 }
 
-/** Inject Cloudinary video optimizations into the URL */
-function optimizeSrc(src: string, isVertical: boolean): string {
-  if (!src.includes("res.cloudinary.com")) return src;
-  const maxH = isVertical ? 1080 : 1080;
-  return src.replace(
-    "/video/upload/",
-    `/video/upload/q_auto:good,f_auto,h_${maxH},c_limit/`,
-  );
+/** Videos are pre-encoded to max 1080p — no runtime transforms needed */
+function optimizeSrc(src: string, _isVertical: boolean): string {
+  return src;
 }
 
-/** Generate a poster thumbnail from a Cloudinary video URL */
-function posterFromVideo(src: string, isVertical: boolean): string {
-  if (!src.includes("res.cloudinary.com")) return "";
-  const maxH = isVertical ? 480 : 360;
-  // Extract frame at 1 second, serve as auto-format image
-  return src
-    .replace("/video/upload/", `/video/upload/so_1,h_${maxH},c_limit,f_auto,q_auto/`)
-    .replace(/\.\w+$/, ".jpg");
+/** Generate poster URL from video URL (pre-generated posters stored alongside videos) */
+function posterFromVideo(src: string, _isVertical: boolean): string {
+  if (!src) return "";
+  // Poster files are stored as {video-id}_poster.jpg alongside the .mp4
+  return src.replace(/\.mp4$/, "_poster.jpg");
 }
 
 function CylinderCard({
@@ -373,7 +365,7 @@ function CylinderCard({
     ? optimizeSrc(item.videoSrc, isVertical)
     : undefined;
 
-  // Auto-generate poster from Cloudinary video (always load for instant thumbnails)
+  // Use pre-generated poster for instant thumbnails
   const poster = item.posterSrc
     || (item.videoSrc ? posterFromVideo(item.videoSrc, isVertical) : undefined);
 

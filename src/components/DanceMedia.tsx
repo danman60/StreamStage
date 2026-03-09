@@ -31,71 +31,71 @@ const services = [
   },
 ];
 
-const CLD = "https://res.cloudinary.com/dz6snntrf/video/upload";
+const R2 = "https://pub-626d1637ca4c4f34a7916019aaa3efce.r2.dev";
 
 const portfolioVertical: CarouselItem[] = [
   {
-    videoSrc: `${CLD}/streamstage/udc-burl-hilite.mov`,
+    videoSrc: `${R2}/streamstage/udc-burl-hilite.mp4`,
     title: "Burlington Brings the Heat",
     client: "UDC",
     category: "Competition Highlight",
   },
   {
-    videoSrc: `${CLD}/streamstage/udc-london-hilite.mov`,
+    videoSrc: `${R2}/streamstage/udc-london-hilite.mp4`,
     title: "London Steals the Show",
     client: "UDC",
     category: "Competition Highlight",
   },
   {
-    videoSrc: `${CLD}/streamstage/jj-lhl-hilite.mov`,
+    videoSrc: `${R2}/streamstage/jj-lhl-hilite.mp4`,
     title: "Light Heavy Light Highlights",
     client: "JJ Dance Arts",
     category: "Show Highlight",
   },
   {
-    videoSrc: `${CLD}/streamstage/udc-promo26-portrait.mov`,
+    videoSrc: `${R2}/streamstage/udc-promo26-portrait.mp4`,
     title: "Season 26 Is Coming",
     client: "UDC",
     category: "Promo",
   },
   {
-    videoSrc: `${CLD}/streamstage/generations-hilite.mp4`,
+    videoSrc: `${R2}/streamstage/generations-hilite.mp4`,
     title: "Every Generation, Every Beat",
     client: "Generations",
     category: "Recital Highlight",
   },
   {
-    videoSrc: `${CLD}/streamstage/hsm-final.mp4`,
+    videoSrc: `${R2}/streamstage/hsm-final.mp4`,
     title: "High School Musical Live!",
     client: "Paul Penna",
     category: "Show Highlight",
   },
   {
-    videoSrc: `${CLD}/streamstage/shuffle-hilite.mp4`,
+    videoSrc: `${R2}/streamstage/shuffle-hilite.mp4`,
     title: "Shuffle Into the Spotlight",
     client: "Shuffle Dance",
     category: "Recital Highlight",
   },
   {
-    videoSrc: `${CLD}/streamstage/revolutions-dance.mp4`,
+    videoSrc: `${R2}/streamstage/revolutions-dance.mp4`,
     title: "Revolutions in Motion",
     client: "Revolutions Dance",
     category: "Recital Highlight",
   },
   {
-    videoSrc: `${CLD}/streamstage/lds-hilite.mp4`,
+    videoSrc: `${R2}/streamstage/lds-hilite.mp4`,
     title: "Lindsay Lights Up the Stage",
     client: "Lindsay Dance Studio",
     category: "Recital Highlight",
   },
   {
-    videoSrc: `${CLD}/streamstage/lds-show-ab.mp4`,
+    videoSrc: `${R2}/streamstage/lds-show-ab.mp4`,
     title: "Double Feature, Double Energy",
     client: "Lindsay Dance Studio",
     category: "Recital Highlight",
   },
   {
-    videoSrc: `${CLD}/streamstage/jj-showcase-hilite.mp4`,
+    videoSrc: `${R2}/streamstage/jj-showcase-hilite.mp4`,
     title: "Showcase Showstopper",
     client: "JJ Dance Arts",
     category: "Showcase Highlight",
@@ -104,55 +104,55 @@ const portfolioVertical: CarouselItem[] = [
 
 const portfolioHorizontal: CarouselItem[] = [
   {
-    videoSrc: `${CLD}/streamstage/udc-synergy.mov`,
+    videoSrc: `${R2}/streamstage/udc-synergy.mp4`,
     title: "Synergy in Motion",
     client: "UDC",
     category: "Showcase",
   },
   {
-    videoSrc: `${CLD}/streamstage/udc-promo26-landscape.mp4`,
+    videoSrc: `${R2}/streamstage/udc-promo26-landscape.mp4`,
     title: "Season 26 — The Hype Reel",
     client: "UDC",
     category: "Promo",
   },
   {
-    videoSrc: `${CLD}/streamstage/bruno-epk.mp4`,
+    videoSrc: `${R2}/streamstage/bruno-epk.mp4`,
     title: "Bruno: Behind the Curtain",
     client: "Bruno",
     category: "EPK",
   },
   {
-    videoSrc: `${CLD}/streamstage/jcs-tw-final.mp4`,
+    videoSrc: `${R2}/streamstage/jcs-tw-final.mp4`,
     title: "Jesus Christ Superstar",
     client: "Theatre Woodstock",
     category: "Show Film",
   },
   {
-    videoSrc: `${CLD}/streamstage/jcs-trailer.mp4`,
+    videoSrc: `${R2}/streamstage/jcs-trailer.mp4`,
     title: "Superstar — The Trailer",
     client: "Theatre Woodstock",
     category: "Trailer",
   },
   {
-    videoSrc: `${CLD}/streamstage/dolly-promo.mp4`,
+    videoSrc: `${R2}/streamstage/dolly-promo.mp4`,
     title: "Backwoods Barbie Takes the Stage",
     client: "Backwoods Barbie",
     category: "Promo",
   },
   {
-    videoSrc: `${CLD}/streamstage/cdte25-promo.mp4`,
+    videoSrc: `${R2}/streamstage/cdte25-promo.mp4`,
     title: "High-Energy Moves, One Stage",
     client: "Dance Attack",
     category: "Promo",
   },
   {
-    videoSrc: `${CLD}/streamstage/wsdy-4k.mp4`,
+    videoSrc: `${R2}/streamstage/wsdy-4k.mp4`,
     title: "Where Stars Dance Young",
     client: "WSDY",
     category: "Showcase",
   },
   {
-    videoSrc: `${CLD}/streamstage/hfn-2025.mp4`,
+    videoSrc: `${R2}/streamstage/hfn-2025.mp4`,
     title: "Hope for Nicole 2025",
     client: "HFN",
     category: "Event Film",

@@ -37,47 +37,47 @@ const services = [
   },
 ];
 
-const CLD = "https://res.cloudinary.com/dz6snntrf/video/upload";
+const R2 = "https://pub-626d1637ca4c4f34a7916019aaa3efce.r2.dev";
 
 const portfolioVertical: CarouselItem[] = [
   {
-    videoSrc: `${CLD}/streamstage/sgc-reel-1.mov`,
+    videoSrc: `${R2}/streamstage/sgc-reel-1.mp4`,
     title: "Strength Meets Style",
     client: "SGC Fitness",
     category: "Social Reel",
   },
   {
-    videoSrc: `${CLD}/streamstage/sgc-reel-2.mov`,
+    videoSrc: `${R2}/streamstage/sgc-reel-2.mp4`,
     title: "No Limits, All Gains",
     client: "SGC Fitness",
     category: "Social Reel",
   },
   {
-    videoSrc: `${CLD}/streamstage/grand-river.mp4`,
+    videoSrc: `${R2}/streamstage/grand-river.mp4`,
     title: "Grand River, Grand Night",
     client: "Grand River",
     category: "Event Highlight",
   },
   {
-    videoSrc: `${CLD}/streamstage/embro-reel-1.mov`,
+    videoSrc: `${R2}/streamstage/embro-reel-1.mp4`,
     title: "Horsepower & Heart",
     client: "Embro Tractor Pull",
     category: "Event Reel",
   },
   {
-    videoSrc: `${CLD}/streamstage/embro-reel-2.mov`,
+    videoSrc: `${R2}/streamstage/embro-reel-2.mp4`,
     title: "Dirt, Diesel & Glory",
     client: "Embro Tractor Pull",
     category: "Event Reel",
   },
   {
-    videoSrc: `${CLD}/streamstage/embro-reel-4.mp4`,
+    videoSrc: `${R2}/streamstage/embro-reel-4.mp4`,
     title: "Full Throttle Friday",
     client: "Embro Tractor Pull",
     category: "Event Reel",
   },
   {
-    videoSrc: `${CLD}/streamstage/embro-reel-5.mp4`,
+    videoSrc: `${R2}/streamstage/embro-reel-5.mp4`,
     title: "Pull for the Win",
     client: "Embro Tractor Pull",
     category: "Event Reel",
@@ -86,37 +86,37 @@ const portfolioVertical: CarouselItem[] = [
 
 const portfolioHorizontal: CarouselItem[] = [
   {
-    videoSrc: `${CLD}/streamstage/trevino-aloha-30s.mov`,
+    videoSrc: `${R2}/streamstage/trevino-aloha-30s.mp4`,
     title: "Aloha in 30 Seconds",
     client: "Trevino",
     category: "Commercial",
   },
   {
-    videoSrc: `${CLD}/streamstage/we-are-wellness.mp4`,
+    videoSrc: `${R2}/streamstage/we-are-wellness.mp4`,
     title: "Wellness, Amplified",
     client: "Uvalux",
     category: "Brand",
   },
   {
-    videoSrc: `${CLD}/streamstage/yfc-banquet-final.mp4`,
+    videoSrc: `${R2}/streamstage/yfc-banquet-final.mp4`,
     title: "Community Champions",
     client: "YFC Woodstock",
     category: "Event",
   },
   {
-    videoSrc: `${CLD}/streamstage/csod-1min.mp4`,
+    videoSrc: `${R2}/streamstage/csod-1min.mp4`,
     title: "One Minute, One Studio",
     client: "Caledonia Dance",
     category: "Promo",
   },
   {
-    videoSrc: `${CLD}/streamstage/burger-battle.mp4`,
+    videoSrc: `${R2}/streamstage/burger-battle.mp4`,
     title: "Burger Battle Showdown",
     client: "United Way Oxford",
     category: "Event",
   },
   {
-    videoSrc: `${CLD}/streamstage/local-love.mp4`,
+    videoSrc: `${R2}/streamstage/local-love.mp4`,
     title: "Local Love Stories",
     client: "United Way Oxford",
     category: "Campaign",
