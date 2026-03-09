@@ -10,11 +10,6 @@ const team = [
     bio: "Bridging technology and the performing arts for over a decade.",
   },
   {
-    name: "Team Member",
-    role: "Production Lead",
-    bio: "Multi-camera specialist with deep roots in the dance community.",
-  },
-  {
     name: "Kayla James",
     role: "Creative Director",
     bio: "Shapes the visual identity behind every project — from brand aesthetics and social content to on-screen graphics and campaign direction.",
@@ -40,7 +35,7 @@ export default function Team() {
           </div>
         </ScrollReveal>
 
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid md:grid-cols-2 gap-6 lg:gap-8 max-w-3xl mx-auto">
           {team.map((member, i) => (
             <ScrollReveal key={i} delay={i * 0.1}>
               <div className="text-center p-6 rounded-xl bg-charcoal-dark/50 border border-white/5 hover:border-cyan-brand/20 transition-colors duration-300">
