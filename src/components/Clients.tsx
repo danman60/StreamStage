@@ -57,13 +57,13 @@ const row2 = clients.slice(Math.ceil(clients.length / 2));
 
 function ClientLogo({ client }: { client: (typeof clients)[0] }) {
   return (
-    <div className="flex items-center justify-center px-6 py-4 rounded-xl bg-charcoal-dark/30 border border-white/5 hover:border-white/10 transition-colors duration-300 min-w-[160px] h-20">
+    <div className="flex items-center justify-center px-5 py-3 rounded-xl bg-white/90 min-w-[140px] h-16 hover:bg-white transition-colors duration-300">
       <Image
         src={client.logo}
         alt={client.name}
         width={120}
         height={48}
-        className="max-h-12 w-auto object-contain brightness-0 invert opacity-60 hover:opacity-100 transition-opacity duration-300"
+        className="max-h-10 w-auto object-contain"
       />
     </div>
   );
