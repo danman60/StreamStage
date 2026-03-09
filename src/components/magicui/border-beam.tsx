@@ -43,12 +43,14 @@ export function BorderBeam({
       }
     >
       <motion.div
-        className={cn("absolute aspect-square", className)}
+        className={cn("absolute", className)}
         style={
           {
             width: size,
+            height: 2,
             offsetPath: `rect(0 auto auto 0 round ${size}px)`,
             background: `linear-gradient(to left, ${colorFrom}, ${colorTo}, transparent)`,
+            filter: `blur(1px)`,
             ...style,
           } as React.CSSProperties
         }
