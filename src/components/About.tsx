@@ -2,12 +2,13 @@
 
 import ScrollReveal from "./ScrollReveal";
 import { Radio, MonitorPlay, Users, Calendar } from "lucide-react";
+import { NumberTicker } from "./magicui/number-ticker";
 
 const stats = [
-  { icon: Radio, value: "100+", label: "Events Streamed" },
-  { icon: MonitorPlay, value: "500+", label: "Videos Produced" },
-  { icon: Users, value: "50+", label: "Studios Served" },
-  { icon: Calendar, value: "10+", label: "Years Experience" },
+  { icon: Radio, value: 100, suffix: "+", label: "Events Streamed" },
+  { icon: MonitorPlay, value: 500, suffix: "+", label: "Videos Produced" },
+  { icon: Users, value: 50, suffix: "+", label: "Studios Served" },
+  { icon: Calendar, value: 10, suffix: "+", label: "Years Experience" },
 ];
 
 export default function About() {
@@ -39,7 +40,11 @@ export default function About() {
                   strokeWidth={1.5}
                 />
                 <div className="font-heading text-2xl sm:text-3xl font-bold text-white mb-1">
-                  {stat.value}
+                  <NumberTicker
+                    value={stat.value}
+                    suffix={stat.suffix}
+                    delay={0.3 + i * 0.15}
+                  />
                 </div>
                 <div className="text-sm text-gray-500">{stat.label}</div>
               </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import ScrollReveal from "./ScrollReveal";
+import { Marquee } from "./magicui/marquee";
 
 const clients = [
   "EMPWR Dance",
@@ -17,6 +18,16 @@ const clients = [
   "Ultimate Dance Connection",
 ];
 
+function ClientCard({ name }: { name: string }) {
+  return (
+    <div className="flex items-center justify-center px-6 py-4 rounded-xl bg-charcoal-dark/30 border border-white/5 hover:border-white/10 transition-colors duration-300 min-w-[160px]">
+      <span className="text-gray-400 text-sm font-medium text-center leading-tight whitespace-nowrap">
+        {name}
+      </span>
+    </div>
+  );
+}
+
 export default function Clients() {
   return (
     <section id="clients" className="py-24 sm:py-32 relative">
@@ -29,17 +40,16 @@ export default function Clients() {
           </div>
         </ScrollReveal>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {clients.map((client, i) => (
-            <ScrollReveal key={client} delay={i * 0.03}>
-              <div className="flex items-center justify-center p-4 sm:p-6 rounded-xl bg-charcoal-dark/30 border border-white/5 hover:border-white/10 transition-colors duration-300 h-20">
-                {/* Logo placeholder — white text for now, will be replaced with actual logos */}
-                <span className="text-gray-500 text-xs sm:text-sm font-medium text-center leading-tight">
-                  {client}
-                </span>
-              </div>
-            </ScrollReveal>
-          ))}
+        <div className="relative">
+          {/* Fade edges */}
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-r from-charcoal-deep to-transparent" />
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-l from-charcoal-deep to-transparent" />
+
+          <Marquee pauseOnHover duration="30s">
+            {clients.map((client) => (
+              <ClientCard key={client} name={client} />
+            ))}
+          </Marquee>
         </div>
       </div>
 

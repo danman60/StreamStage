@@ -2,6 +2,8 @@
 
 import ScrollReveal from "./ScrollReveal";
 import { BarChart3, Brain, MessageSquare, ExternalLink } from "lucide-react";
+import { MagicCard } from "./magicui/magic-card";
+import { BorderBeam } from "./magicui/border-beam";
 
 const products = [
   {
@@ -72,36 +74,54 @@ export default function Software() {
                 }
                 className="group cursor-pointer block h-full"
               >
-                <div className="relative p-8 rounded-2xl bg-charcoal-dark border border-white/5 hover:border-cyan-brand/30 transition-all duration-300 h-full glow-cyan hover:glow-cyan-strong">
-                  {/* Icon */}
-                  <div className="w-14 h-14 rounded-xl bg-cyan-brand/10 flex items-center justify-center mb-6 group-hover:bg-cyan-brand/20 transition-colors duration-300">
-                    <product.icon
-                      className="text-cyan-brand"
-                      size={28}
-                      strokeWidth={1.5}
+                <MagicCard
+                  className="h-full rounded-2xl"
+                  gradientColor="rgba(78, 197, 212, 0.15)"
+                  gradientFrom="#4EC5D4"
+                  gradientTo="#3BA3B0"
+                  gradientSize={250}
+                  gradientOpacity={0.8}
+                >
+                  <div className="relative p-8 h-full">
+                    {/* Border beam on hover — always animating but subtle */}
+                    <BorderBeam
+                      size={80}
+                      duration={8}
+                      colorFrom="#4EC5D4"
+                      colorTo="#3BA3B0"
+                      borderWidth={1}
                     />
+
+                    {/* Icon */}
+                    <div className="w-14 h-14 rounded-xl bg-cyan-brand/10 flex items-center justify-center mb-6 group-hover:bg-cyan-brand/20 transition-colors duration-300">
+                      <product.icon
+                        className="text-cyan-brand"
+                        size={28}
+                        strokeWidth={1.5}
+                      />
+                    </div>
+
+                    {/* Name */}
+                    <h3 className="font-heading text-xl font-bold text-white mb-1 flex items-center gap-2">
+                      {product.name}
+                      <ExternalLink
+                        className="text-gray-600 group-hover:text-cyan-brand transition-colors duration-200"
+                        size={16}
+                        strokeWidth={1.5}
+                      />
+                    </h3>
+
+                    {/* Tagline */}
+                    <p className="text-cyan-brand/70 text-sm font-medium mb-4">
+                      {product.tagline}
+                    </p>
+
+                    {/* Description */}
+                    <p className="text-gray-400 text-sm leading-relaxed">
+                      {product.description}
+                    </p>
                   </div>
-
-                  {/* Name */}
-                  <h3 className="font-heading text-xl font-bold text-white mb-1 flex items-center gap-2">
-                    {product.name}
-                    <ExternalLink
-                      className="text-gray-600 group-hover:text-cyan-brand transition-colors duration-200"
-                      size={16}
-                      strokeWidth={1.5}
-                    />
-                  </h3>
-
-                  {/* Tagline */}
-                  <p className="text-cyan-brand/70 text-sm font-medium mb-4">
-                    {product.tagline}
-                  </p>
-
-                  {/* Description */}
-                  <p className="text-gray-400 text-sm leading-relaxed">
-                    {product.description}
-                  </p>
-                </div>
+                </MagicCard>
               </a>
             </ScrollReveal>
           ))}

@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { ShimmerButton } from "./magicui/shimmer-button";
 
 export default function Hero() {
   const shouldReduceMotion = useReducedMotion();
@@ -43,16 +44,17 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
         >
-          <a
-            href="#dance-media"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScroll("#dance-media");
-            }}
-            className="cursor-pointer px-8 py-3.5 bg-cyan-brand text-charcoal-deep font-heading font-semibold text-base rounded-lg hover:bg-cyan-brand/90 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-brand/20"
+          <ShimmerButton
+            shimmerColor="#4EC5D4"
+            shimmerSize="0.05em"
+            shimmerDuration="3s"
+            borderRadius="0.5rem"
+            background="rgba(78, 197, 212, 1)"
+            className="font-heading font-semibold text-base text-charcoal-deep px-8 py-3.5"
+            onClick={() => handleScroll("#dance-media")}
           >
             Our Work
-          </a>
+          </ShimmerButton>
           <a
             href="#software"
             onClick={(e) => {

@@ -9,6 +9,7 @@ import {
   ClipboardList,
   Quote,
 } from "lucide-react";
+import { BorderBeam } from "./magicui/border-beam";
 
 const services = [
   {
@@ -162,7 +163,15 @@ export default function BusinessVideo() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
           {services.map((service, i) => (
             <ScrollReveal key={service.title} delay={i * 0.1}>
-              <div className="group p-6 rounded-xl bg-charcoal-dark/50 border border-white/5 hover:border-amber-brand/30 transition-all duration-300 h-full">
+              <div className="group relative p-6 rounded-xl bg-charcoal-dark/50 border border-white/5 hover:border-amber-brand/30 transition-all duration-300 h-full overflow-hidden">
+                <BorderBeam
+                  size={60}
+                  duration={10 + i * 2}
+                  delay={i * 1.5}
+                  colorFrom="#F59E0B"
+                  colorTo="#D97706"
+                  borderWidth={1}
+                />
                 <div className="w-12 h-12 rounded-lg bg-amber-brand/10 flex items-start justify-center mb-4 group-hover:bg-amber-brand/20 transition-colors duration-300">
                   <service.icon
                     className="text-amber-brand"
