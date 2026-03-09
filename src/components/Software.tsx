@@ -1,10 +1,10 @@
 "use client";
 
+import { useRef } from "react";
 import ScrollReveal from "./ScrollReveal";
 import { BarChart3, Brain, MessageSquare, ExternalLink } from "lucide-react";
 import { MagicCard } from "./magicui/magic-card";
 import { BorderBeam } from "./magicui/border-beam";
-import { Safari } from "./magicui/safari";
 
 const R2 = "https://pub-626d1637ca4c4f34a7916019aaa3efce.r2.dev";
 
@@ -16,7 +16,7 @@ const products = [
     description:
       "The all-in-one platform for dance competitions. Registration, scheduling, scoring, and live results — built by people who understand competitions.",
     href: "https://compsync.net",
-    color: "cyan",
+    demoVideo: null,
   },
   {
     icon: Brain,
@@ -25,18 +25,121 @@ const products = [
     description:
       "AI-powered assistant for dance studio owners. Answers parent questions, manages communication, and reduces administrative workload — so you can focus on teaching.",
     href: "#contact",
-    color: "cyan",
+    demoVideo: null,
   },
   {
     icon: MessageSquare,
-    name: "StudioSync",
+    name: "StudioBeat",
     tagline: "Unified Studio Management Platform",
     description:
       "All-in-one studio management — class scheduling, attendance tracking, billing, and parent communication in a single platform built for dance studios.",
     href: "#contact",
-    color: "cyan",
+    demoVideo: `${R2}/streamstage/studiobeat-demo.mp4`,
   },
 ];
+
+function ProductCard({
+  product,
+  index,
+}: {
+  product: (typeof products)[0];
+  index: number;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleMouseEnter = () => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play();
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+  };
+
+  return (
+    <ScrollReveal delay={index * 0.15}>
+      <a
+        href={product.href}
+        target={product.href.startsWith("http") ? "_blank" : undefined}
+        rel={
+          product.href.startsWith("http") ? "noopener noreferrer" : undefined
+        }
+        className="group cursor-pointer block h-full"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        <MagicCard
+          className="h-full rounded-2xl"
+          gradientColor="rgba(78, 197, 212, 0.15)"
+          gradientFrom="#4EC5D4"
+          gradientTo="#3BA3B0"
+          gradientSize={250}
+          gradientOpacity={0.8}
+        >
+          <div className="relative p-8 h-full">
+            <BorderBeam
+              size={80}
+              duration={8}
+              colorFrom="#4EC5D4"
+              colorTo="#3BA3B0"
+              borderWidth={1}
+            />
+
+            {/* Icon */}
+            <div className="w-14 h-14 rounded-xl bg-cyan-brand/10 flex items-center justify-center mb-6 group-hover:bg-cyan-brand/20 transition-colors duration-300">
+              <product.icon
+                className="text-cyan-brand"
+                size={28}
+                strokeWidth={1.5}
+              />
+            </div>
+
+            {/* Name */}
+            <h3 className="font-heading text-xl font-bold text-white mb-1 flex items-center gap-2">
+              {product.name}
+              <ExternalLink
+                className="text-gray-600 group-hover:text-cyan-brand transition-colors duration-200"
+                size={16}
+                strokeWidth={1.5}
+              />
+            </h3>
+
+            {/* Tagline */}
+            <p className="text-cyan-brand/70 text-sm font-medium mb-4">
+              {product.tagline}
+            </p>
+
+            {/* Description — hides on hover when video exists */}
+            <p
+              className={`text-gray-400 text-sm leading-relaxed ${product.demoVideo ? "group-hover:opacity-0 transition-opacity duration-300" : ""}`}
+            >
+              {product.description}
+            </p>
+
+            {/* Demo video — fades in on hover */}
+            {product.demoVideo && (
+              <div className="absolute inset-x-4 bottom-4 top-[140px] rounded-lg overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <video
+                  ref={videoRef}
+                  src={product.demoVideo}
+                  muted
+                  playsInline
+                  loop
+                  preload="metadata"
+                  className="w-full h-full object-cover object-top rounded-lg"
+                />
+              </div>
+            )}
+          </div>
+        </MagicCard>
+      </a>
+    </ScrollReveal>
+  );
+}
 
 export default function Software() {
   return (
@@ -66,82 +169,9 @@ export default function Software() {
         {/* Product cards */}
         <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
           {products.map((product, i) => (
-            <ScrollReveal key={product.name} delay={i * 0.15}>
-              <a
-                href={product.href}
-                target={product.href.startsWith("http") ? "_blank" : undefined}
-                rel={
-                  product.href.startsWith("http")
-                    ? "noopener noreferrer"
-                    : undefined
-                }
-                className="group cursor-pointer block h-full"
-              >
-                <MagicCard
-                  className="h-full rounded-2xl"
-                  gradientColor="rgba(78, 197, 212, 0.15)"
-                  gradientFrom="#4EC5D4"
-                  gradientTo="#3BA3B0"
-                  gradientSize={250}
-                  gradientOpacity={0.8}
-                >
-                  <div className="relative p-8 h-full">
-                    {/* Border beam on hover — always animating but subtle */}
-                    <BorderBeam
-                      size={80}
-                      duration={8}
-                      colorFrom="#4EC5D4"
-                      colorTo="#3BA3B0"
-                      borderWidth={1}
-                    />
-
-                    {/* Icon */}
-                    <div className="w-14 h-14 rounded-xl bg-cyan-brand/10 flex items-center justify-center mb-6 group-hover:bg-cyan-brand/20 transition-colors duration-300">
-                      <product.icon
-                        className="text-cyan-brand"
-                        size={28}
-                        strokeWidth={1.5}
-                      />
-                    </div>
-
-                    {/* Name */}
-                    <h3 className="font-heading text-xl font-bold text-white mb-1 flex items-center gap-2">
-                      {product.name}
-                      <ExternalLink
-                        className="text-gray-600 group-hover:text-cyan-brand transition-colors duration-200"
-                        size={16}
-                        strokeWidth={1.5}
-                      />
-                    </h3>
-
-                    {/* Tagline */}
-                    <p className="text-cyan-brand/70 text-sm font-medium mb-4">
-                      {product.tagline}
-                    </p>
-
-                    {/* Description */}
-                    <p className="text-gray-400 text-sm leading-relaxed">
-                      {product.description}
-                    </p>
-                  </div>
-                </MagicCard>
-              </a>
-            </ScrollReveal>
+            <ProductCard key={product.name} product={product} index={i} />
           ))}
         </div>
-
-        {/* Software demo */}
-        <ScrollReveal delay={0.2}>
-          <div className="mt-16 max-w-4xl mx-auto">
-            <p className="text-center text-sm text-gray-500 mb-6 tracking-widest uppercase font-semibold">
-              StudioBeat in Action
-            </p>
-            <Safari
-              url="studiosync.streamstage.live"
-              videoSrc={`${R2}/streamstage/studiobeat-demo.mp4`}
-            />
-          </div>
-        </ScrollReveal>
       </div>
 
       <div className="section-divider mt-16 sm:mt-20 max-w-4xl mx-auto" />
