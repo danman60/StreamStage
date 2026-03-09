@@ -23,11 +23,32 @@ export default function Contact() {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // Form submission will be wired to an API route or external service
-    setSubmitted(true);
+    setSending(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Something went wrong.");
+      }
+
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send. Please try again.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -165,12 +186,17 @@ export default function Contact() {
                   />
                 </div>
 
+                {error && (
+                  <p className="text-red-400 text-sm mb-4">{error}</p>
+                )}
+
                 <button
                   type="submit"
-                  className="cursor-pointer w-full sm:w-auto px-8 py-3.5 bg-cyan-brand text-charcoal-deep font-heading font-semibold text-base rounded-lg hover:bg-cyan-brand/90 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-brand/20 flex items-center justify-center gap-2"
+                  disabled={sending}
+                  className="cursor-pointer w-full sm:w-auto px-8 py-3.5 bg-cyan-brand text-charcoal-deep font-heading font-semibold text-base rounded-lg hover:bg-cyan-brand/90 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-brand/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Send Message
-                  <ArrowRight size={18} strokeWidth={2} />
+                  {sending ? "Sending..." : "Send Message"}
+                  {!sending && <ArrowRight size={18} strokeWidth={2} />}
                 </button>
               </form>
             </NeonGradientCard>
