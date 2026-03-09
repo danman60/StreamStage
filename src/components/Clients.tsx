@@ -44,6 +44,11 @@ const clients = [
   { name: "Alt Vox", logo: "/logos/alt-vox.png" },
   { name: "Yare", logo: "/logos/yare.png" },
   { name: "Elite Dance", logo: "/logos/elite-dance.png" },
+  { name: "Stagecoach Canada", logo: "/logos/stagecoach-canada.png" },
+  { name: "Toronto Dance Teacher Expo", logo: "/logos/toronto-dance-teacher-expo.png" },
+  { name: "Wavestage Theatre Co.", logo: "/logos/wavestage-theatre-co.webp" },
+  { name: "Wellington Winds Symphony", logo: "/logos/wellington-winds-symphony.png" },
+  { name: "Woodstock Chamber of Commerce", logo: "/logos/woodstock-chamber-of-commerce.webp" },
 ];
 
 // Split into two rows for visual variety
