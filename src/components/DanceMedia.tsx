@@ -2,7 +2,7 @@
 
 import ScrollReveal from "./ScrollReveal";
 import VideoCarousel, { type CarouselItem } from "./VideoCarousel";
-import { Radio, Film, Share2, Quote, Video } from "lucide-react";
+import { Radio, Film, Share2, Video } from "lucide-react";
 import { BorderBeam } from "./magicui/border-beam";
 
 const services = [
@@ -160,27 +160,6 @@ const portfolioHorizontal: CarouselItem[] = [
   },
 ];
 
-const testimonials = [
-  {
-    quote:
-      "StreamStage captured the magic of our show in a way that truly honored the performers and the music.",
-    name: "Amy Sky",
-    role: "Juno-nominated Singer-Songwriter & Performer",
-  },
-  {
-    quote:
-      "Professional, creative, and deeply committed to quality. They understand the performing arts.",
-    name: "Andrea Donaldson",
-    role: "Artistic Director, Nightwood Theatre (Toronto)",
-  },
-  {
-    quote:
-      "Our families love being able to watch the performances live. The quality is outstanding every time.",
-    name: "Andrew Tribe",
-    role: "Director, Original Kids Theatre Company (London, ON)",
-  },
-];
-
 export default function DanceMedia() {
   return (
     <section id="dance-media" className="py-16 sm:py-20 relative">
@@ -247,34 +226,6 @@ export default function DanceMedia() {
           </div>
         </div>
 
-        {/* Testimonials */}
-        <div className="grid md:grid-cols-3 gap-6">
-          {testimonials.map((testimonial, i) => (
-            <ScrollReveal key={testimonial.name} delay={i * 0.1}>
-              <figure className="p-6 rounded-xl bg-charcoal-dark/30 border border-white/5">
-                <Quote
-                  className="text-cyan-brand/30 mb-4"
-                  size={24}
-                  strokeWidth={1.5}
-                  aria-hidden="true"
-                />
-                <blockquote className="text-gray-300 text-sm leading-relaxed mb-4 italic">
-                  &ldquo;{testimonial.quote}&rdquo;
-                </blockquote>
-                <figcaption>
-                  <cite className="not-italic">
-                    <span className="text-white text-sm font-medium block">
-                      {testimonial.name}
-                    </span>
-                    <span className="text-gray-500 text-xs">
-                      {testimonial.role}
-                    </span>
-                  </cite>
-                </figcaption>
-              </figure>
-            </ScrollReveal>
-          ))}
-        </div>
       </div>
 
       <div className="section-divider mt-16 sm:mt-20 max-w-4xl mx-auto" />

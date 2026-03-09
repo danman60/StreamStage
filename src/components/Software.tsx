@@ -4,6 +4,9 @@ import ScrollReveal from "./ScrollReveal";
 import { BarChart3, Brain, MessageSquare, ExternalLink } from "lucide-react";
 import { MagicCard } from "./magicui/magic-card";
 import { BorderBeam } from "./magicui/border-beam";
+import { Safari } from "./magicui/safari";
+
+const R2 = "https://pub-626d1637ca4c4f34a7916019aaa3efce.r2.dev";
 
 const products = [
   {
@@ -126,6 +129,19 @@ export default function Software() {
             </ScrollReveal>
           ))}
         </div>
+
+        {/* Software demo */}
+        <ScrollReveal delay={0.2}>
+          <div className="mt-16 max-w-4xl mx-auto">
+            <p className="text-center text-sm text-gray-500 mb-6 tracking-widest uppercase font-semibold">
+              StudioBeat in Action
+            </p>
+            <Safari
+              url="studiosync.streamstage.live"
+              videoSrc={`${R2}/streamstage/studiobeat-demo.mp4`}
+            />
+          </div>
+        </ScrollReveal>
       </div>
 
       <div className="section-divider mt-16 sm:mt-20 max-w-4xl mx-auto" />

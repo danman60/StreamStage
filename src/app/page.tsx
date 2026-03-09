@@ -4,6 +4,7 @@ import About from "@/components/About";
 import DanceMedia from "@/components/DanceMedia";
 import BusinessVideo from "@/components/BusinessVideo";
 import Software from "@/components/Software";
+import Testimonials from "@/components/Testimonials";
 import Clients from "@/components/Clients";
 import Team from "@/components/Team";
 import FAQ from "@/components/FAQ";
@@ -236,6 +237,7 @@ export default function Home() {
         <DanceMedia />
         <Software />
         <BusinessVideo />
+        <Testimonials />
         <Clients />
         <Team />
         <FAQ />

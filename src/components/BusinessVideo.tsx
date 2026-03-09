@@ -7,7 +7,6 @@ import {
   Sparkles,
   Megaphone,
   ClipboardList,
-  Quote,
 } from "lucide-react";
 import { BorderBeam } from "./magicui/border-beam";
 
@@ -124,21 +123,6 @@ const portfolioHorizontal: CarouselItem[] = [
   },
 ];
 
-const testimonials = [
-  {
-    quote:
-      "StreamStage understood our brand instantly and delivered video content that exceeded our expectations.",
-    name: "Sarah Higgins",
-    role: "Founder, Cedar Nook Creative",
-  },
-  {
-    quote:
-      "They made the whole process seamless. From planning through final delivery, everything was professional and on time.",
-    name: "Jan Arp",
-    role: "Director, Holt Xchange",
-  },
-];
-
 export default function BusinessVideo() {
   return (
     <section id="business-video" className="py-16 sm:py-20 relative">
@@ -205,34 +189,6 @@ export default function BusinessVideo() {
           </div>
         </div>
 
-        {/* Testimonials */}
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          {testimonials.map((testimonial, i) => (
-            <ScrollReveal key={testimonial.name} delay={i * 0.1}>
-              <figure className="p-6 rounded-xl bg-charcoal-dark/30 border border-white/5">
-                <Quote
-                  className="text-amber-brand/30 mb-4"
-                  size={24}
-                  strokeWidth={1.5}
-                  aria-hidden="true"
-                />
-                <blockquote className="text-gray-300 text-sm leading-relaxed mb-4 italic">
-                  &ldquo;{testimonial.quote}&rdquo;
-                </blockquote>
-                <figcaption>
-                  <cite className="not-italic">
-                    <span className="text-white text-sm font-medium block">
-                      {testimonial.name}
-                    </span>
-                    <span className="text-gray-500 text-xs">
-                      {testimonial.role}
-                    </span>
-                  </cite>
-                </figcaption>
-              </figure>
-            </ScrollReveal>
-          ))}
-        </div>
       </div>
 
       <div className="section-divider mt-16 sm:mt-20 max-w-4xl mx-auto" />
