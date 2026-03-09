@@ -1,18 +1,21 @@
 "use client";
 
+import Image from "next/image";
 import ScrollReveal from "./ScrollReveal";
-import { MapPin, User } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 const team = [
   {
     name: "Daniel Abrahamson",
     role: "Founder & Creative Director",
     bio: "Bridging technology and the performing arts for over a decade.",
+    photo: "/team-daniel.jpg",
   },
   {
     name: "Kayla James",
     role: "Creative Director",
     bio: "Shapes the visual identity behind every project — from brand aesthetics and social content to on-screen graphics and campaign direction.",
+    photo: "/team-kayla.jpg",
   },
 ];
 
@@ -39,12 +42,13 @@ export default function Team() {
           {team.map((member, i) => (
             <ScrollReveal key={i} delay={i * 0.1}>
               <div className="text-center p-6 rounded-xl bg-charcoal-dark/50 border border-white/5 hover:border-cyan-brand/20 transition-colors duration-300">
-                {/* Photo placeholder */}
-                <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-charcoal-mid border border-white/10 flex items-center justify-center">
-                  <User
-                    className="text-gray-600"
-                    size={36}
-                    strokeWidth={1.5}
+                <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-2 border-cyan-brand/20">
+                  <Image
+                    src={member.photo}
+                    alt={`${member.name} — ${member.role} at StreamStage`}
+                    width={96}
+                    height={96}
+                    className="w-full h-full object-cover"
                   />
                 </div>
                 <h3 className="font-heading text-lg font-semibold text-white mb-1">
