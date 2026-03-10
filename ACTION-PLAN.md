@@ -1,110 +1,105 @@
-# StreamStage SEO Action Plan
-**Generated:** 2026-03-09 | **Overall Score:** 72/100
+# SEO Action Plan — StreamStage
+
+**Date:** 2026-03-09
+**Current Score: 79/100 (Good)**
+**Target Score: 85+/100**
 
 ---
 
-## Priority 1 — Critical (Do Now)
+## Quick Wins (High Impact, Low Effort)
 
-### 1. Remove FAQPage schema markup
-- **File**: `src/app/page.tsx` lines 89-133
-- **Action**: Delete the entire `FAQPage` object from the JSON-LD `@graph` array
-- **Why**: FAQPage rich results restricted to gov/healthcare since Aug 2023. Keep FAQ HTML section, just remove schema.
-- **Effort**: 5 min
+### 1. Add links to llms.txt
+**Impact:** AI search discoverability | **Effort:** 5 min | **Priority:** P1
 
-### 2. Create `/llms.txt` for AI search engines
-- **File**: Create `public/llms.txt`
-- **Action**: Add structured text with site name, description, services, products, contact
-- **Why**: Perplexity, ChatGPT Search, Claude use this to understand your site
-- **Effort**: 10 min
+Add key page/section links to `public/llms.txt`:
+```
+## Links
+- [Dance & Stage Media](https://streamstage.live/#dance-media): Multi-camera livestreaming, videography, and promotional content for dance events
+- [Dance Software](https://streamstage.live/#software): CompSync, StudioSage, and StudioBeat
+- [CompSync](https://compsync.net): Free dance competition management software
+- [Business Video](https://streamstage.live/#business-video): Professional video production for businesses
+- [Contact](https://streamstage.live/#contact): Get in touch with StreamStage
+```
 
-### 3. Fix StudioSync → StudioBeat in FAQ schema answer
-- **File**: `src/app/page.tsx` — FAQ Q5 answer
-- **Action**: Replace "StudioSync" with "StudioBeat" in the last FAQ answer text
-- **Why**: Inconsistent product naming confuses search engines
-- **Effort**: 2 min
+### 2. Add twitter:site meta tag
+**Impact:** Social attribution | **Effort:** 2 min | **Priority:** P3
 
----
-
-## Priority 2 — High Impact (This Week)
-
-### 4. Add security headers
-- **File**: Create/update `vercel.json` or `next.config.ts`
-- **Headers to add**:
-  ```
-  X-Content-Type-Options: nosniff
-  X-Frame-Options: SAMEORIGIN
-  Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=()
-  ```
-- **Why**: Security score 45/100 → should be 90+
-- **Effort**: 15 min
-
-### 5. Add width/height to client logo `<img>` tags
-- **File**: `src/components/Clients.tsx`
-- **Action**: Add `width={130} height={48}` to each `<img>`
-- **Why**: Prevents CLS (Cumulative Layout Shift) — Core Web Vitals metric
-- **Effort**: 2 min
-
-### 6. Change `lang="en"` to `lang="en-CA"`
-- **File**: `src/app/layout.tsx` line 90
-- **Action**: `<html lang="en-CA">`
-- **Why**: Geographic signal for Canadian-targeted content
-- **Effort**: 1 min
-
-### 7. Optimize background video loading
-- **File**: `src/app/layout.tsx` line 95-103
-- **Action**: Add `preload="metadata"` to the background video (already has `poster`)
-- **Why**: Reduces initial page load bandwidth, improves LCP on mobile
-- **Effort**: 1 min
+If StreamStage has an X/Twitter handle, add to the metadata in `layout.tsx`:
+```tsx
+twitter: {
+  site: '@streamstage',
+  creator: '@streamstage',
+}
+```
 
 ---
 
-## Priority 3 — Medium Impact (This Month)
+## Strategic (High Impact, Higher Effort)
 
-### 8. Simplify content readability
-- **Current**: Flesch Reading Ease 36.3 (college level)
-- **Target**: 50+ (high school level)
-- **Action**: Shorten sentences in service descriptions, reduce jargon
-- **Files**: `DanceMedia.tsx`, `BusinessVideo.tsx`, `Software.tsx`, `About.tsx`
-- **Effort**: 30 min
+### 3. Add Content-Security-Policy header
+**Impact:** Security trust signal | **Effort:** 30 min | **Priority:** P2
 
-### 9. Add noindex for staging domain
-- **File**: `vercel.json` or middleware
-- **Action**: Add `X-Robots-Tag: noindex` header when domain is not `streamstage.live`
-- **Why**: Prevents duplicate content indexing from staging
-- **Effort**: 15 min
+Add CSP to `next.config.ts` security headers. Start with report-only mode:
+```
+Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https:;
+```
 
-### 10. Reduce marquee repeat count
-- **File**: `src/components/Clients.tsx` or `marquee.tsx`
-- **Action**: Change `repeat` from 4 to 2 — still creates infinite scroll but halves image requests
-- **Why**: ~188 → ~94 image requests per page load
-- **Effort**: 2 min
+Note: CSP can break functionality if too restrictive. Test thoroughly before enforcing.
+
+### 4. Improve content readability
+**Impact:** User engagement, dwell time | **Effort:** 1-2 hours | **Priority:** P3
+
+Current Flesch score: 38.3 (Very Difficult). Target: 50+ (Fairly Difficult).
+- Shorten sentences over 20 words
+- Replace multi-syllable words where simpler alternatives exist
+- Break up long descriptive paragraphs
+- Low priority — service sites naturally have technical vocabulary
+
+### 5. Run Core Web Vitals audit
+**Impact:** Performance ranking signal | **Effort:** 15 min | **Priority:** P2
+
+PageSpeed API was rate-limited. Re-run later:
+```bash
+python3 ~/.claude/skills/seo/scripts/pagespeed.py https://stream-stage-kappa.vercel.app/ --strategy mobile
+```
+Or use Chrome DevTools > Lighthouse > Performance.
+
+### 6. Create llms-full.txt
+**Impact:** Extended AI search optimization | **Effort:** 20 min | **Priority:** P3
+
+Create `public/llms-full.txt` with comprehensive service descriptions, pricing info, and detailed FAQ answers for AI engines.
 
 ---
 
-## Priority 4 — Low Impact / Nice-to-Have
+## Maintenance (Lower Priority)
 
-### 11. Explicitly manage remaining AI crawlers in robots.txt
-- **Add rules for**: Applebot-Extended, Bytespider, CCBot, FacebookBot, Amazonbot
-- **Effort**: 5 min
+### 7. Verify sitemap after domain migration
+**Effort:** 5 min | **Priority:** When domain is pointed to Vercel
 
-### 12. Pre-optimize team headshot source images
-- **Action**: Run through sharp to reduce `team-daniel.jpg` (1.1MB) and `team-kayla.jpg` (588KB)
-- **Effort**: 5 min
+robots.txt references `https://streamstage.live/sitemap.xml`. Ensure this resolves after DNS migration.
+
+### 8. Add PriceSpecification to software schemas
+**Effort:** 10 min | **Priority:** P4
+
+StudioSage and StudioBeat SoftwareApplication schemas lack pricing info. Add `offers` with pricing when pricing is finalized.
 
 ---
 
-## Already Implemented ✅
-- [x] Single H1 per page
-- [x] Proper heading hierarchy (H1 → H2 → H3)
-- [x] All images have alt text
-- [x] Open Graph tags complete (7/7)
-- [x] Twitter Card tags present (4/4 required)
-- [x] Canonical URL set correctly
-- [x] XML sitemap exists
-- [x] Robots.txt with AI crawler management
-- [x] JSON-LD Organization, WebSite, Service, SoftwareApplication schemas
-- [x] Meta description with numbers and keywords
-- [x] HTTPS with HSTS preload
-- [x] No broken links
-- [x] Lazy loading on client logos
+## Completed (No Action Needed)
+
+- [x] Title tag optimized (46 chars)
+- [x] Meta description optimized (156 chars)
+- [x] Canonical URL set
+- [x] robots.txt with AI crawler management (11 bots)
+- [x] JSON-LD structured data (7 types)
+- [x] Open Graph tags (7/7)
+- [x] Twitter Card tags (4/6)
+- [x] Image alt text on all images
+- [x] Lazy loading on below-fold images
+- [x] HSTS with preload
+- [x] Security headers (5/6)
+- [x] llms.txt present
+- [x] FAQ section (no restricted FAQPage schema)
+- [x] Proper heading hierarchy
+- [x] lang="en-CA" set
+- [x] Googlebot max preview directives

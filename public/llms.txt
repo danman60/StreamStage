@@ -42,3 +42,10 @@ StreamStage provides professional livestreaming, videography, and video producti
 
 ## Location
 Ontario, Canada (serving clients across Canada)
+
+## Links
+- [Dance & Stage Media](https://streamstage.live/#dance-media): Multi-camera livestreaming, videography, and promotional content for dance events
+- [Dance Software](https://streamstage.live/#software): CompSync, StudioSage, and StudioBeat — purpose-built tools for dance studios and competitions
+- [CompSync](https://compsync.net): Free dance competition management platform — registration, scheduling, scoring, livestream integration
+- [Business Video](https://streamstage.live/#business-video): Professional video production for businesses — hybrid events, social content, promos
+- [Contact](https://streamstage.live/#contact): Get in touch with StreamStage

@@ -1,0 +1,102 @@
+# StreamStage — Full Reference
+
+> Canada's dance industry partner — media production, software, and live broadcast.
+
+StreamStage provides professional livestreaming, videography, and video production for dance competitions, recitals, showcases, and business events across Canada. We also build purpose-built software for the dance industry.
+
+## About
+
+StreamStage was founded in 2015 in Ontario, Canada. We specialize in the dance and performing arts industry, combining media production expertise with custom software solutions. Our team has over 10 years of experience in live broadcast and video production.
+
+**Key Stats:**
+- 100+ events streamed live
+- 500+ videos produced
+- 50+ dance studios served
+- 10+ years of experience
+
+## Dance & Stage Media Services
+
+### Livestreaming
+Multi-camera live broadcast for dance competitions, recitals, and showcases. We handle the full technical setup — switching, graphics, and streaming to any platform. Parents and families can watch performances in real-time from anywhere.
+
+### Videography & Editing
+Full-service video production from capture to final cut. We produce performance archives, highlight reels, and cinematic edits. Our team shoots with professional cinema cameras and delivers polished, broadcast-quality results.
+
+### Promotional Videos
+Cinematic promotional content for dance studios, companies, and productions. These videos are designed for websites, social media campaigns, and marketing materials.
+
+### Social Content
+Short-form, platform-optimized content for Instagram Reels, TikTok, and YouTube Shorts. We create scroll-stopping clips from live events, rehearsals, and studio sessions.
+
+## Business Video Services
+
+### Hybrid Events
+Live + virtual event production for corporate and business clients. We handle multi-camera switching, streaming, and on-site projection so your event reaches both in-person and remote audiences.
+
+### Social Highlights
+Short-form video content optimized for business social media. Event recaps, team highlights, and behind-the-scenes content.
+
+### Promotional Content
+Brand videos, product showcases, and marketing content for businesses of any size.
+
+### Planning & Strategy
+End-to-end video strategy consulting — from concept to distribution. We help businesses plan their video content calendar and maximize ROI.
+
+## Software Products
+
+### CompSync
+**Website:** https://compsync.net
+**Price:** Free
+**Category:** Dance Competition Management
+
+CompSync is a complete competition management platform built specifically for dance competitions. Features include:
+- Online registration and entry management
+- Automated scheduling with conflict detection
+- Digital scoring with real-time results
+- Livestream integration for remote viewing
+- Parent and studio portals
+- Award and placement tracking
+
+### StudioSage
+**Category:** AI Studio Assistant
+
+StudioSage is an AI-powered assistant for dance studio owners. It handles parent communication, answers common questions, and reduces administrative workload. Designed to integrate with existing studio workflows.
+
+### StudioBeat
+**Category:** Studio Management Platform
+
+StudioBeat is a unified studio management platform that combines class scheduling, attendance tracking, billing, and parent communication into one system. Built specifically for dance studios.
+
+## Team
+
+### Daniel Abrahamson — Founder & Creative Director
+Daniel founded StreamStage in 2015 with a vision to modernize how dance events are captured and shared. He leads creative direction, technical production, and software development.
+
+### Kayla James — Creative Director
+Kayla brings a filmmaker's eye to StreamStage's productions. She oversees videography, editing, and visual storytelling across all projects.
+
+## FAQ
+
+### What is StreamStage?
+StreamStage is a Canadian company that provides livestreaming, videography, and video production services for the dance and performing arts industry. We also build software tools (CompSync, StudioSage, StudioBeat) specifically designed for dance studios and competitions.
+
+### How does dance competition livestreaming work?
+We set up multi-camera systems at your competition venue, handle all switching and graphics, and stream directly to your platform of choice. Families can watch from anywhere with an internet connection. We handle the full technical setup so organizers can focus on running the event.
+
+### What is CompSync and how much does it cost?
+CompSync is our free dance competition management platform. It handles registration, scheduling, scoring, and livestream integration. There is no cost to use CompSync.
+
+### Do you offer video production for businesses outside of dance?
+Yes. Our Business Video division provides hybrid event production, social media content, promotional videos, and video strategy for businesses across industries.
+
+### What areas do you serve?
+We are based in Ontario, Canada and serve clients across Canada. We travel to events nationwide.
+
+## Contact
+- Email: daniel@streamstage.live
+- Website: https://streamstage.live
+- Instagram: https://www.instagram.com/streamstage.live/
+- Facebook: https://www.facebook.com/streamstagedotlive
+
+## Location
+Ontario, Canada (serving clients across Canada)
