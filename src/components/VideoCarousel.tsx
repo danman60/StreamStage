@@ -94,10 +94,10 @@ export default function VideoCarousel({
     setCardW(cw);
     const gap = containerW < 640 ? 10 : 20;
     // Vertical: natural cylinder radius (scales with count)
-    // Landscape: fixed radius from card width so all carousels match regardless of item count
+    // Landscape: scale radius with item count to match visual density
     const r = isVertical
       ? Math.max((count * (cw + gap)) / (2 * Math.PI), cw * 0.8)
-      : cw * 1.2;
+      : Math.max((count * (cw + gap)) / (2 * Math.PI), cw * 1.2);
     setRadius(r);
     return r;
   }, [count, isVertical]);
