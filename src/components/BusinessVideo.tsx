@@ -53,12 +53,6 @@ const portfolioVertical: CarouselItem[] = [
     category: "Social Reel",
   },
   {
-    videoSrc: `${R2}/streamstage/grand-river.mp4`,
-    title: "Grand River, Grand Night",
-    client: "Grand River",
-    category: "Event Highlight",
-  },
-  {
     videoSrc: `${R2}/streamstage/embro-reel-1.mp4`,
     title: "Horsepower & Heart",
     client: "Embro Tractor Pull",
@@ -85,12 +79,6 @@ const portfolioVertical: CarouselItem[] = [
 ];
 
 const portfolioHorizontal: CarouselItem[] = [
-  {
-    videoSrc: `${R2}/streamstage/trevino-aloha-30s.mp4`,
-    title: "Aloha in 30 Seconds",
-    client: "Trevino",
-    category: "Commercial",
-  },
   {
     videoSrc: `${R2}/streamstage/we-are-wellness.mp4`,
     title: "Wellness, Amplified",

@@ -36,6 +36,12 @@ const R2 = "https://pub-626d1637ca4c4f34a7916019aaa3efce.r2.dev";
 
 const portfolioVertical: CarouselItem[] = [
   {
+    videoSrc: `${R2}/streamstage/grand-river.mp4`,
+    title: "Grand River, Grand Night",
+    client: "Grand River",
+    category: "Event Highlight",
+  },
+  {
     videoSrc: `${R2}/streamstage/udc-burl-hilite.mp4`,
     title: "Burlington Brings the Heat",
     client: "UDC",
@@ -104,6 +110,12 @@ const portfolioVertical: CarouselItem[] = [
 ];
 
 const portfolioHorizontal: CarouselItem[] = [
+  {
+    videoSrc: `${R2}/streamstage/trevino-aloha-30s.mp4`,
+    title: "Aloha in 30 Seconds",
+    client: "Trevino",
+    category: "Commercial",
+  },
   {
     videoSrc: `${R2}/streamstage/udc-synergy.mp4`,
     title: "Synergy in Motion",

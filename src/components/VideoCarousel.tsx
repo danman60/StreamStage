@@ -189,7 +189,7 @@ export default function VideoCarousel({
   return (
     <div className="mb-20 flex flex-col h-full">
       {heading && (
-        <h3 className="font-heading text-2xl font-bold text-white text-center mb-12 relative z-10">
+        <h3 className="font-heading text-2xl font-bold text-white text-center mb-12 relative z-10 px-4">
           {heading}
         </h3>
       )}
