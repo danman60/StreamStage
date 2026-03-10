@@ -96,10 +96,16 @@ export default function VideoCarousel({
     const cw = containerW * ratio;
     setCardW(cw);
     const gap = containerW < 640 ? 10 : 20;
-    const r = isVertical
-      ? Math.max((count * (cw + gap)) / (2 * Math.PI), cw * 0.8)
-      : cw * 1.2;
-    setRadius(r);
+    if (isVertical) {
+      // Vertical: original formula (works well)
+      const r = Math.max((count * (cw + gap)) / (2 * Math.PI), cw * 0.8);
+      setRadius(r);
+    } else {
+      // Landscape: scale radius with item count so spacing is consistent
+      const circumference = count * (cw + gap);
+      const r = Math.max(circumference / (2 * Math.PI), cw * 1.0);
+      setRadius(r);
+    }
   }, [count, isVertical]);
 
   // Auto-rotation loop
@@ -355,6 +361,20 @@ function CylinderCard({
     if (!isActive || !videoRef.current) return;
     onToggleMute(index, videoRef.current);
   };
+
+  // Mute when exiting fullscreen
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const onFsChange = () => {
+      if (!document.fullscreenElement && !video.muted) {
+        video.muted = true;
+        onToggleMute(index, video);
+      }
+    };
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, [index, onToggleMute]);
 
   const handleFullscreen = (e: React.MouseEvent) => {
     e.stopPropagation();
