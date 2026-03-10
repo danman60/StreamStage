@@ -14,7 +14,7 @@ const products = [
     name: "CompSync",
     tagline: "Competition Management Platform",
     description:
-      "The all-in-one platform for dance competitions. Registration, scheduling, scoring, and live results — built by people who understand competitions.",
+      "The all-in-one platform for dance competitions. Registration, scheduling, scoring, and live results in one place.",
     href: "https://compsync.net",
     demoVideo: null,
   },
@@ -23,7 +23,7 @@ const products = [
     name: "StudioSage",
     tagline: "AI-Powered Studio Assistant",
     description:
-      "AI-powered assistant for dance studio owners. Answers parent questions, manages communication, and reduces administrative workload — so you can focus on teaching.",
+      "AI assistant for dance studio owners. Answers parent questions, manages communication, and cuts admin work so you can teach.",
     href: "#contact",
     demoVideo: null,
   },
@@ -32,7 +32,7 @@ const products = [
     name: "StudioBeat",
     tagline: "Unified Studio Management Platform",
     description:
-      "All-in-one studio management — class scheduling, attendance tracking, billing, and parent communication in a single platform built for dance studios.",
+      "All-in-one studio management. Class scheduling, attendance, billing, and parent communication in one platform.",
     href: "#contact",
     demoVideo: `${R2}/streamstage/studiobeat-demo.mp4`,
   },

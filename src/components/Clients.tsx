@@ -90,13 +90,13 @@ export default function Clients() {
           <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-r from-charcoal-deep to-transparent" />
           <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-l from-charcoal-deep to-transparent" />
 
-          <Marquee pauseOnHover duration="40s">
+          <Marquee pauseOnHover duration="40s" repeat={2}>
             {row1.map((client) => (
               <ClientLogo key={client.name} client={client} />
             ))}
           </Marquee>
 
-          <Marquee pauseOnHover duration="45s" reverse>
+          <Marquee pauseOnHover duration="45s" reverse repeat={2}>
             {row2.map((client) => (
               <ClientLogo key={client.name} client={client} />
             ))}

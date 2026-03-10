@@ -15,25 +15,25 @@ const services = [
     icon: Monitor,
     title: "Hybrid Events",
     description:
-      "Live + virtual event production that extends your reach beyond the room. Multi-camera, switched, and streamed.",
+      "Live + virtual event production. Multi-camera, switched, and streamed beyond the room.",
   },
   {
     icon: Sparkles,
     title: "Social Highlights",
     description:
-      "Short, punchy content designed for social media engagement. Reels, stories, and clips that convert.",
+      "Short, punchy content for social media. Reels, stories, and clips that convert.",
   },
   {
     icon: Megaphone,
     title: "Promotional Content",
     description:
-      "Brand videos, product launches, and marketing content that tells your story with cinematic quality.",
+      "Brand videos, product launches, and marketing content with cinematic quality.",
   },
   {
     icon: ClipboardList,
     title: "Planning & Strategy",
     description:
-      "End-to-end video strategy from concept through delivery. We handle the creative so you can focus on your business.",
+      "Video strategy from concept to delivery. We handle the creative so you focus on your business.",
   },
 ];
 

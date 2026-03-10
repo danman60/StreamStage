@@ -10,25 +10,25 @@ const services = [
     icon: Radio,
     title: "Livestreaming",
     description:
-      "Multi-camera live broadcast for competitions, recitals, and showcases. Professional quality your audience can watch from anywhere.",
+      "Multi-camera live broadcast for competitions, recitals, and showcases. Your audience watches from anywhere.",
   },
   {
     icon: Video,
     title: "Videography & Editing",
     description:
-      "Full-service video production from capture to final cut. Highlight reels, performance archives, and promotional content.",
+      "Full video production from capture to final cut. Highlight reels, archives, and promo content.",
   },
   {
     icon: Film,
     title: "Promotional Videos",
     description:
-      "Cinematic promotional content that captures the energy and artistry of your studio, company, or production.",
+      "Cinematic promos that capture the energy of your studio, company, or production.",
   },
   {
     icon: Share2,
     title: "Social Content",
     description:
-      "Short-form, platform-optimized content for Instagram, TikTok, and YouTube that drives engagement and enrollment.",
+      "Short-form content for Instagram, TikTok, and YouTube. Built to drive engagement and enrollment.",
   },
 ];
 
