@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, useReducedMotion, animate, useMotionValue } from "framer-motion";
 import { Video, ChevronLeft, ChevronRight, Volume2, VolumeX, Maximize } from "lucide-react";
 import {
   useRef,
@@ -40,10 +41,8 @@ const themeColors = {
   },
 };
 
-// Auto-rotation speed in degrees per second
-const AUTO_ROTATE_SPEED = 6;
-// After manual nav, pause auto-rotation for this many ms before resuming
-const PAUSE_AFTER_NAV_MS = 3000;
+// Whip spring — snappy with overshoot
+const SPRING = { stiffness: 300, damping: 22, mass: 0.8 };
 
 // Global: only one video can be unmuted at a time across all carousels
 let globalUnmutedVideo: HTMLVideoElement | null = null;
@@ -67,6 +66,7 @@ export default function VideoCarousel({
   orientation = "horizontal",
 }: VideoCarouselProps) {
   const isVertical = orientation === "vertical";
+  const reducedMotion = useReducedMotion();
   const colors = themeColors[theme];
   const count = items.length;
 
@@ -76,103 +76,70 @@ export default function VideoCarousel({
   const [cardW, setCardW] = useState(0);
   const [unmutedIndex, setUnmutedIndex] = useState<number | null>(null);
 
-  // Continuous rotation angle (degrees)
-  const angleRef = useRef(0);
-  const rafRef = useRef<number>(0);
-  const lastTimeRef = useRef(0);
-  const pauseUntilRef = useRef(0);
-  // For forcing re-render on each frame
-  const [renderAngle, setRenderAngle] = useState(0);
+  // Animated rotation angle of the drum
+  const drumAngle = useMotionValue(0);
 
+  // Angle between each card on the cylinder
   const sliceAngle = 360 / count;
 
   // Calculate cylinder radius from card width
   const measure = useCallback(() => {
     if (!containerRef.current) return;
     const containerW = containerRef.current.offsetWidth;
+    // Slightly smaller to prevent clipping between side-by-side carousels
     const ratio = isVertical
       ? (containerW < 500 ? 0.35 : containerW < 900 ? 0.25 : 0.18)
       : (containerW < 500 ? 0.5 : containerW < 900 ? 0.38 : 0.26);
     const cw = containerW * ratio;
     setCardW(cw);
     const gap = containerW < 640 ? 10 : 20;
+    // Vertical: natural cylinder radius (scales with count)
+    // Landscape: scale radius with item count to match visual density
     const r = isVertical
       ? Math.max((count * (cw + gap)) / (2 * Math.PI), cw * 0.8)
       : cw * 1.2;
     setRadius(r);
+    return r;
   }, [count, isVertical]);
 
-  // Auto-rotation loop
-  useEffect(() => {
-    const tick = (time: number) => {
-      if (lastTimeRef.current === 0) lastTimeRef.current = time;
-      const dt = (time - lastTimeRef.current) / 1000;
-      lastTimeRef.current = time;
-
-      // Only rotate if not paused
-      if (time > pauseUntilRef.current) {
-        angleRef.current += AUTO_ROTATE_SPEED * dt;
-        setRenderAngle(angleRef.current);
-
-        // Update active index based on current angle
-        const normalized = ((angleRef.current % 360) + 360) % 360;
-        const frontIndex = Math.round(normalized / sliceAngle) % count;
-        setActiveIndex(frontIndex);
-      }
-
-      rafRef.current = requestAnimationFrame(tick);
-    };
-
-    rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [count, sliceAngle]);
-
-  // Measure on mount + resize
-  useEffect(() => {
-    measure();
-    const container = containerRef.current;
-    if (!container) return;
-    const ro = new ResizeObserver(() => measure());
-    ro.observe(container);
-    return () => ro.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Snap to a specific card index (manual navigation)
+  // Snap drum to show given index at front
   const snapTo = useCallback(
     (index: number) => {
       const clamped = ((index % count) + count) % count;
       setActiveIndex(clamped);
+      // Mute when navigating away
       setUnmutedIndex(null);
       muteGlobal();
 
-      // Set angle to show this card at front
-      const targetAngle = clamped * sliceAngle;
-      // Find shortest rotation path from current angle
-      const current = angleRef.current % 360;
-      let diff = targetAngle - current;
-      // Shortest path
-      if (diff > 180) diff -= 360;
-      if (diff < -180) diff += 360;
-      angleRef.current += diff;
-      setRenderAngle(angleRef.current);
+      const target = -(clamped * sliceAngle);
+      const current = drumAngle.get();
+      const diff = target - (current % 360);
+      const shortDiff =
+        ((diff % 360) + 540) % 360 - 180;
+      const finalTarget = current + shortDiff;
 
-      // Pause auto-rotation briefly
-      pauseUntilRef.current = performance.now() + PAUSE_AFTER_NAV_MS;
+      if (reducedMotion) {
+        drumAngle.set(finalTarget);
+      } else {
+        animate(drumAngle, finalTarget, SPRING);
+      }
     },
-    [count, sliceAngle],
+    [count, sliceAngle, drumAngle, reducedMotion],
   );
 
-  // Handle unmute toggle
+  // Handle unmute toggle from a card
   const handleToggleMute = useCallback(
     (index: number, videoEl: HTMLVideoElement) => {
       if (unmutedIndex === index) {
+        // Mute it
         videoEl.muted = true;
         setUnmutedIndex(null);
         globalUnmutedVideo = null;
         globalMuteListener = null;
       } else {
+        // Mute any previously unmuted video globally
         muteGlobal();
+        // Unmute this one
         videoEl.muted = false;
         setUnmutedIndex(index);
         globalUnmutedVideo = videoEl;
@@ -181,6 +148,20 @@ export default function VideoCarousel({
     },
     [unmutedIndex],
   );
+
+  // Measure on mount + resize
+  useEffect(() => {
+    measure();
+    drumAngle.set(0);
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(container);
+    return () => ro.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Swipe detection
   const dragStartX = useRef(0);
@@ -214,83 +195,83 @@ export default function VideoCarousel({
       )}
 
       <div className="flex-1 flex flex-col justify-center">
-        <div
-          ref={containerRef}
-          role="region"
-          aria-roledescription="carousel"
-          aria-label={heading || "Video carousel"}
-          tabIndex={0}
-          onKeyDown={handleKeyDown}
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-          className="relative outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y"
-          style={{ perspective: 1000 }}
-        >
-          {/* The 3D drum — auto-rotating */}
-          <div
-            className="relative mx-auto"
-            style={{
-              width: cardW || "50%",
-              aspectRatio: isVertical ? "9/16" : "16/9",
-              transformStyle: "preserve-3d",
-              transform: `rotateY(${-renderAngle}deg)`,
-            }}
-          >
-            {items.map((item, i) => (
-              <CylinderCard
-                key={item.title}
-                item={item}
-                index={i}
-                activeIndex={activeIndex}
-                sliceAngle={sliceAngle}
-                radius={radius}
-                colors={colors}
-                count={count}
-                isVertical={isVertical}
-                isUnmuted={unmutedIndex === i}
-                onToggleMute={handleToggleMute}
-              />
-            ))}
-          </div>
-
-          {/* Arrow buttons */}
-          <button
-            onClick={() => snapTo(activeIndex - 1)}
-            className={`absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 flex w-10 h-10 items-center justify-center rounded-full bg-charcoal-dark/80 backdrop-blur-sm border border-white/10 ${colors.arrow} transition-colors duration-200 z-20`}
-            aria-label="Previous slide"
-          >
-            <ChevronLeft size={20} strokeWidth={2} />
-          </button>
-          <button
-            onClick={() => snapTo(activeIndex + 1)}
-            className={`absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 flex w-10 h-10 items-center justify-center rounded-full bg-charcoal-dark/80 backdrop-blur-sm border border-white/10 ${colors.arrow} transition-colors duration-200 z-20`}
-            aria-label="Next slide"
-          >
-            <ChevronRight size={20} strokeWidth={2} />
-          </button>
-        </div>
-
-        {/* Dot indicators */}
-        <div
-          className="flex justify-center gap-2 mt-10"
-          role="tablist"
-          aria-label="Carousel navigation"
+      <div
+        ref={containerRef}
+        role="region"
+        aria-roledescription="carousel"
+        aria-label={heading || "Video carousel"}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        className="relative outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y"
+        style={{ perspective: 800 }}
+      >
+        {/* The 3D drum */}
+        <motion.div
+          className="relative mx-auto"
+          style={{
+            width: cardW || "50%",
+            aspectRatio: isVertical ? "9/16" : "16/9",
+            transformStyle: "preserve-3d",
+            rotateY: drumAngle,
+          }}
         >
           {items.map((item, i) => (
-            <button
+            <CylinderCard
               key={item.title}
-              role="tab"
-              aria-selected={i === activeIndex}
-              aria-label={`Go to slide ${i + 1}: ${item.title}`}
-              onClick={() => snapTo(i)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                i === activeIndex
-                  ? `w-6 ${colors.dot}`
-                  : `w-2 ${colors.dotInactive}`
-              }`}
+              item={item}
+              index={i}
+              activeIndex={activeIndex}
+              sliceAngle={sliceAngle}
+              radius={radius}
+              colors={colors}
+              count={count}
+              isVertical={isVertical}
+              isUnmuted={unmutedIndex === i}
+              onToggleMute={handleToggleMute}
             />
           ))}
-        </div>
+        </motion.div>
+
+        {/* Arrow buttons */}
+        <button
+          onClick={() => snapTo(activeIndex - 1)}
+          className={`absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 flex w-10 h-10 items-center justify-center rounded-full bg-charcoal-dark/80 backdrop-blur-sm border border-white/10 ${colors.arrow} transition-colors duration-200 z-20`}
+          aria-label="Previous slide"
+        >
+          <ChevronLeft size={20} strokeWidth={2} />
+        </button>
+        <button
+          onClick={() => snapTo(activeIndex + 1)}
+          className={`absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 flex w-10 h-10 items-center justify-center rounded-full bg-charcoal-dark/80 backdrop-blur-sm border border-white/10 ${colors.arrow} transition-colors duration-200 z-20`}
+          aria-label="Next slide"
+        >
+          <ChevronRight size={20} strokeWidth={2} />
+        </button>
+      </div>
+
+      {/* Dot indicators */}
+      <div
+        className="flex justify-center gap-2 mt-10"
+        role="tablist"
+        aria-label="Carousel navigation"
+      >
+        {items.map((item, i) => (
+          <button
+            key={item.title}
+            role="tab"
+            aria-selected={i === activeIndex}
+            aria-label={`Go to slide ${i + 1}: ${item.title}`}
+            onClick={() => snapTo(i)}
+            className={`h-2 rounded-full transition-all duration-300 ${
+              i === activeIndex
+                ? `w-6 ${colors.dot}`
+                : `w-2 ${colors.dotInactive}`
+            }`}
+          />
+        ))}
+      </div>
       </div>
     </div>
   );
@@ -311,9 +292,15 @@ interface CylinderCardProps {
   onToggleMute: (index: number, videoEl: HTMLVideoElement) => void;
 }
 
-/** Generate poster URL from video URL */
-function posterFromVideo(src: string): string {
+/** Videos are pre-encoded to max 1080p — no runtime transforms needed */
+function optimizeSrc(src: string, _isVertical: boolean): string {
+  return src;
+}
+
+/** Generate poster URL from video URL (pre-generated posters stored alongside videos) */
+function posterFromVideo(src: string, _isVertical: boolean): string {
   if (!src) return "";
+  // Poster files are stored as {video-id}_poster.jpg alongside the .mp4
   return src.replace(/\.mp4$/, "_poster.jpg");
 }
 
@@ -323,13 +310,16 @@ function CylinderCard({
   activeIndex,
   sliceAngle,
   radius,
+  colors,
   count,
+  isVertical,
   isUnmuted,
   onToggleMute,
 }: CylinderCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const isActive = index === activeIndex;
 
+  // Load active + 2 neighbors to avoid black screens on swipe
   const rawDist = Math.abs(index - activeIndex);
   const dist = Math.min(rawDist, count - rawDist);
   const shouldLoad = dist <= 2;
@@ -341,10 +331,12 @@ function CylinderCard({
       video.play().catch(() => {});
     } else {
       video.pause();
+      // Mute if navigated away while unmuted
       if (!video.muted) video.muted = true;
     }
   }, [isActive]);
 
+  // Sync muted state from parent
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -369,13 +361,17 @@ function CylinderCard({
 
   const cardAngle = index * sliceAngle;
 
-  const videoSrc = item.videoSrc && shouldLoad ? item.videoSrc : undefined;
+  const videoSrc = item.videoSrc && shouldLoad
+    ? optimizeSrc(item.videoSrc, isVertical)
+    : undefined;
+
+  // Use pre-generated poster for instant thumbnails
   const poster = item.posterSrc
-    || (item.videoSrc ? posterFromVideo(item.videoSrc) : undefined);
+    || (item.videoSrc ? posterFromVideo(item.videoSrc, isVertical) : undefined);
 
   return (
     <div
-      className="absolute inset-0 rounded-2xl md:rounded-3xl overflow-hidden"
+      className="absolute inset-0 rounded-xl overflow-hidden"
       style={{
         transform: `rotateY(${cardAngle}deg) translateZ(${radius}px)`,
         backfaceVisibility: "hidden",
@@ -425,6 +421,17 @@ function CylinderCard({
           <Video className="text-gray-700" size={48} strokeWidth={1} />
         </div>
       )}
+
+      {/* Text overlay */}
+      <div className="absolute bottom-0 left-0 right-0 p-3 pb-5 px-6 bg-gradient-to-t from-black/95 via-black/70 to-transparent text-center">
+        {item.client && (
+          <p className={`text-[10px] font-medium ${colors.accent} mb-0.5 truncate text-center`}>
+            {item.client}
+          </p>
+        )}
+        <p className="text-xs font-semibold text-white truncate leading-tight text-center">{item.title}</p>
+        <p className="text-[10px] text-gray-400 truncate mt-0.5 text-center">{item.category}</p>
+      </div>
     </div>
   );
 }
