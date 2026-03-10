@@ -87,51 +87,6 @@ const jsonLd = {
       ],
     },
     {
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "What is StreamStage?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "StreamStage is Canada's dance industry partner, providing media production (livestreaming, videography, promotional content), dance-specific software (CompSync, StudioSage, StudioBeat), and live broadcast services. With over 100 events streamed and 500+ videos produced for 50+ studios across Canada, StreamStage combines creative expertise with purpose-built technology for the performing arts.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How does dance competition livestreaming work?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "StreamStage provides professional multi-camera livestreaming for dance competitions, recitals, and showcases. The service includes multi-angle camera setups, professional audio capture, real-time switching, and live broadcast to audiences worldwide. Families and fans can watch performances in real-time from any device, anywhere. StreamStage has broadcast over 100 events across Canada with professional-grade quality.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "What is CompSync?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "CompSync is an all-in-one dance competition management platform built by StreamStage. It handles registration, scheduling, scoring, live results, and livestream integration — all in a single system designed specifically for dance competitions. CompSync is free to use and available at compsync.net.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Does StreamStage offer business video production?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. Beyond the dance industry, StreamStage provides full-stack video production for businesses, including hybrid event production (live + virtual), social media content for Instagram, TikTok, and YouTube, promotional and brand videos, and end-to-end video strategy from concept through delivery.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "What dance software does StreamStage build?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "StreamStage builds three dance-specific software products: CompSync for competition management (registration, scheduling, scoring, livestream integration), StudioSage for AI-powered studio insights and analytics, and StudioBeat for studio management and parent-teacher-student communication. All are purpose-built for the dance industry.",
-          },
-        },
-      ],
-    },
-    {
       "@type": "Service",
       name: "Dance & Stage Media",
       provider: { "@id": "https://streamstage.live/#organization" },

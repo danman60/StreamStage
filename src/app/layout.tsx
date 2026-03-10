@@ -87,7 +87,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${outfit.variable} ${dmSans.variable}`}>
+    <html lang="en-CA" className={`${outfit.variable} ${dmSans.variable}`}>
       <body className="font-body antialiased">
         {/* Fixed fullscreen background video */}
         <div className="fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
@@ -96,6 +96,7 @@ export default function RootLayout({
             muted
             loop
             playsInline
+            preload="metadata"
             poster="/hero-poster.jpg"
             title="StreamStage background — dance performance footage"
             className="absolute min-w-full min-h-full w-auto h-auto top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover"
