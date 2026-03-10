@@ -97,7 +97,7 @@ export default function VideoCarousel({
     // Landscape: scale radius with item count to match visual density
     const r = isVertical
       ? Math.max((count * (cw + gap)) / (2 * Math.PI), cw * 0.8)
-      : Math.max((count * (cw + gap)) / (2 * Math.PI), cw * 1.2);
+      : cw * 1.2;
     setRadius(r);
     return r;
   }, [count, isVertical]);
