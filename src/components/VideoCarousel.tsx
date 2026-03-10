@@ -22,7 +22,6 @@ interface VideoCarouselProps {
   items: CarouselItem[];
   theme: "cyan" | "amber";
   heading?: string;
-  orientation?: "horizontal" | "vertical";
 }
 
 const themeColors = {
@@ -64,9 +63,7 @@ export default function VideoCarousel({
   items,
   theme,
   heading,
-  orientation = "horizontal",
 }: VideoCarouselProps) {
-  const isVertical = orientation === "vertical";
   const colors = themeColors[theme];
   const count = items.length;
 
@@ -86,21 +83,19 @@ export default function VideoCarousel({
 
   const sliceAngle = 360 / count;
 
-  // Calculate cylinder radius from card width
+  // Calculate cylinder radius — full-width, BS-style scale
   const measure = useCallback(() => {
     if (!containerRef.current) return;
     const containerW = containerRef.current.offsetWidth;
-    const ratio = isVertical
-      ? (containerW < 500 ? 0.35 : containerW < 900 ? 0.25 : 0.18)
-      : (containerW < 500 ? 0.5 : containerW < 900 ? 0.38 : 0.26);
+    // Card is ~25% of container on desktop, bigger on mobile
+    const ratio = containerW < 500 ? 0.45 : containerW < 900 ? 0.3 : 0.25;
     const cw = containerW * ratio;
     setCardW(cw);
+    // Radius scales with card count to keep spacing natural
     const gap = containerW < 640 ? 10 : 20;
-    const r = isVertical
-      ? Math.max((count * (cw + gap)) / (2 * Math.PI), cw * 0.8)
-      : cw * 1.2;
+    const r = Math.max((count * (cw + gap)) / (2 * Math.PI), cw * 1.2);
     setRadius(r);
-  }, [count, isVertical]);
+  }, [count]);
 
   // Auto-rotation loop
   useEffect(() => {
@@ -206,14 +201,14 @@ export default function VideoCarousel({
   };
 
   return (
-    <div className="mb-20 flex flex-col h-full">
+    <div className="flex flex-col">
       {heading && (
         <h3 className="font-heading text-2xl font-bold text-white text-center mb-12 relative z-10 px-4">
           {heading}
         </h3>
       )}
 
-      <div className="flex-1 flex flex-col justify-center">
+      <div className="flex flex-col justify-center">
         <div
           ref={containerRef}
           role="region"
@@ -223,15 +218,15 @@ export default function VideoCarousel({
           onKeyDown={handleKeyDown}
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}
-          className="relative outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y"
+          className="relative outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-xl touch-pan-y overflow-x-clip"
           style={{ perspective: 1000 }}
         >
           {/* The 3D drum — auto-rotating */}
           <div
             className="relative mx-auto"
             style={{
-              width: cardW || "50%",
-              aspectRatio: isVertical ? "9/16" : "16/9",
+              width: cardW || "25%",
+              aspectRatio: "4/5",
               transformStyle: "preserve-3d",
               transform: `rotateY(${-renderAngle}deg)`,
             }}
@@ -246,7 +241,7 @@ export default function VideoCarousel({
                 radius={radius}
                 colors={colors}
                 count={count}
-                isVertical={isVertical}
+
                 isUnmuted={unmutedIndex === i}
                 onToggleMute={handleToggleMute}
               />
@@ -306,7 +301,6 @@ interface CylinderCardProps {
   radius: number;
   colors: (typeof themeColors)["cyan"];
   count: number;
-  isVertical: boolean;
   isUnmuted: boolean;
   onToggleMute: (index: number, videoEl: HTMLVideoElement) => void;
 }

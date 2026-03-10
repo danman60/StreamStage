@@ -34,7 +34,7 @@ const services = [
 
 const R2 = "https://pub-626d1637ca4c4f34a7916019aaa3efce.r2.dev";
 
-const portfolioVertical: CarouselItem[] = [
+const portfolio: CarouselItem[] = [
   {
     videoSrc: `${R2}/streamstage/grand-river.mp4`,
     title: "Grand River, Grand Night",
@@ -107,9 +107,6 @@ const portfolioVertical: CarouselItem[] = [
     client: "JJ Dance Arts",
     category: "Showcase Highlight",
   },
-];
-
-const portfolioHorizontal: CarouselItem[] = [
   {
     videoSrc: `${R2}/streamstage/trevino-aloha-30s.mp4`,
     title: "Aloha in 30 Seconds",
@@ -223,20 +220,10 @@ export default function DanceMedia() {
           ))}
         </div>
 
-        {/* Portfolio carousels — side by side on desktop */}
-        <div className="grid lg:grid-cols-[2fr_3fr] gap-6 lg:gap-10">
-          <div className="overflow-hidden h-full">
-            <ScrollReveal className="h-full">
-              <VideoCarousel items={portfolioVertical} theme="cyan" heading="Reels & Highlights" orientation="vertical" />
-            </ScrollReveal>
-          </div>
-
-          <div className="overflow-hidden h-full">
-            <ScrollReveal delay={0.1} className="h-full">
-              <VideoCarousel items={portfolioHorizontal} theme="cyan" heading="Promos & Showcases" orientation="horizontal" />
-            </ScrollReveal>
-          </div>
-        </div>
+        {/* Portfolio carousel — full width */}
+        <ScrollReveal>
+          <VideoCarousel items={portfolio} theme="cyan" heading="Our Work" />
+        </ScrollReveal>
 
       </div>
 
