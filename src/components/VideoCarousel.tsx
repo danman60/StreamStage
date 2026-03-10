@@ -423,7 +423,7 @@ function CylinderCard({
       )}
 
       {/* Text overlay */}
-      <div className="absolute bottom-0 left-0 right-0 p-3 pb-4 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
+      <div className="absolute bottom-0 left-0 right-0 p-3 pb-5 bg-gradient-to-t from-black/95 via-black/70 to-transparent">
         {item.client && (
           <p className={`text-[10px] font-medium ${colors.accent} mb-0.5 truncate`}>
             {item.client}
