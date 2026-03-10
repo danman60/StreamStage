@@ -24,7 +24,7 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          Where Dance Meets{" "}
+          Where Stage Meets{" "}
           <span className="text-gradient-cyan">Technology</span>
         </motion.h1>
 

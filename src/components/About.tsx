@@ -21,9 +21,9 @@ export default function About() {
               Built for the Stage
             </h2>
             <p className="text-lg sm:text-xl text-gray-400 leading-relaxed">
-              We live and breathe dance. Multi-camera broadcasts, highlight
-              reels, and competition software — all built for Canada&apos;s
-              dance community. Studios, competitions, and performing arts
+              We live and breathe performance. Multi-camera broadcasts, highlight
+              reels, and dance software — all built for Canada&apos;s
+              performing arts community. Studios, competitions, and performing arts
               organizations across Ontario and beyond.
             </p>
           </div>
