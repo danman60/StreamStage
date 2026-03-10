@@ -39,7 +39,7 @@ const services = [
 
 const R2 = "https://pub-626d1637ca4c4f34a7916019aaa3efce.r2.dev";
 
-const portfolio: CarouselItem[] = [
+const portfolioVertical: CarouselItem[] = [
   {
     videoSrc: `${R2}/streamstage/sgc-reel-1.mp4`,
     title: "Strength Meets Style",
@@ -76,6 +76,9 @@ const portfolio: CarouselItem[] = [
     client: "Embro Tractor Pull",
     category: "Event Reel",
   },
+];
+
+const portfolioHorizontal: CarouselItem[] = [
   {
     videoSrc: `${R2}/streamstage/we-are-wellness.mp4`,
     title: "Wellness, Amplified",
@@ -159,10 +162,20 @@ export default function BusinessVideo() {
           ))}
         </div>
 
-        {/* Portfolio carousel — full width */}
-        <ScrollReveal>
-          <VideoCarousel items={portfolio} theme="amber" heading="Client Work" />
-        </ScrollReveal>
+        {/* Portfolio carousels — side by side on desktop */}
+        <div className="grid lg:grid-cols-[2fr_3fr] gap-6 lg:gap-10">
+          <div className="overflow-hidden h-full">
+            <ScrollReveal className="h-full">
+              <VideoCarousel items={portfolioVertical} theme="amber" heading="Reels & Highlights" orientation="vertical" />
+            </ScrollReveal>
+          </div>
+
+          <div className="overflow-hidden h-full">
+            <ScrollReveal delay={0.1} className="h-full">
+              <VideoCarousel items={portfolioHorizontal} theme="amber" heading="Client Work" orientation="horizontal" />
+            </ScrollReveal>
+          </div>
+        </div>
 
       </div>
 
