@@ -423,14 +423,14 @@ function CylinderCard({
       )}
 
       {/* Text overlay */}
-      <div className="absolute bottom-0 left-0 right-0 p-3 pb-5 px-6 bg-gradient-to-t from-black/95 via-black/70 to-transparent">
+      <div className="absolute bottom-0 left-0 right-0 p-3 pb-5 px-6 bg-gradient-to-t from-black/95 via-black/70 to-transparent text-center">
         {item.client && (
-          <p className={`text-[10px] font-medium ${colors.accent} mb-0.5 truncate`}>
+          <p className={`text-[10px] font-medium ${colors.accent} mb-0.5 truncate text-center`}>
             {item.client}
           </p>
         )}
-        <p className="text-xs font-semibold text-white truncate leading-tight">{item.title}</p>
-        <p className="text-[10px] text-gray-400 truncate mt-0.5">{item.category}</p>
+        <p className="text-xs font-semibold text-white truncate leading-tight text-center">{item.title}</p>
+        <p className="text-[10px] text-gray-400 truncate mt-0.5 text-center">{item.category}</p>
       </div>
     </div>
   );
