@@ -1,12 +1,21 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import ScrollReveal from "./ScrollReveal";
-import { BarChart3, Brain, MessageSquare, ExternalLink } from "lucide-react";
+import {
+  BarChart3,
+  Brain,
+  MessageSquare,
+  ExternalLink,
+  PlayCircle,
+} from "lucide-react";
 import { MagicCard } from "./magicui/magic-card";
 import { BorderBeam } from "./magicui/border-beam";
 
 const R2 = "https://pub-626d1637ca4c4f34a7916019aaa3efce.r2.dev";
+
+const spring = { type: "spring" as const, stiffness: 300, damping: 30 };
 
 const products = [
   {
@@ -15,8 +24,17 @@ const products = [
     tagline: "Competition Management Platform",
     description:
       "The all-in-one platform for dance competitions. Registration, scheduling, scoring, and live results in one place.",
+    brief:
+      "CompSync streamlines every aspect of running a dance competition — from registration and scheduling to real-time scoring and instant results.",
+    features: [
+      "Online registration & payments",
+      "Automated scheduling engine",
+      "Real-time scoring & results",
+      "Judge management & tabulation",
+    ],
     href: "https://compsync.net",
-    demoVideo: null,
+    cta: "Visit Site",
+    demoVideo: null as string | null,
   },
   {
     icon: Brain,
@@ -24,8 +42,17 @@ const products = [
     tagline: "AI-Powered Studio Assistant",
     description:
       "AI assistant for dance studio owners. Answers parent questions, manages communication, and cuts admin work so you can teach.",
+    brief:
+      "StudioSage uses AI to handle the questions and communication that eat up your day — so you can focus on teaching, not typing.",
+    features: [
+      "Instant parent Q&A responses",
+      "Smart communication drafting",
+      "Policy & schedule lookups",
+      "Learns your studio's voice",
+    ],
     href: "#contact",
-    demoVideo: null,
+    cta: "Learn More",
+    demoVideo: null as string | null,
   },
   {
     icon: MessageSquare,
@@ -33,16 +60,28 @@ const products = [
     tagline: "Unified Studio Management Platform",
     description:
       "All-in-one studio management. Class scheduling, attendance, billing, and parent communication in one platform.",
+    brief:
+      "StudioBeat brings class management, billing, attendance, and parent communication into one unified platform built specifically for dance studios.",
+    features: [
+      "Class scheduling & attendance",
+      "Integrated billing & payments",
+      "Parent communication hub",
+      "Student progress tracking",
+    ],
     href: "#contact",
+    cta: "Learn More",
     demoVideo: `${R2}/streamstage/studiobeat-demo.mp4`,
   },
 ];
 
-function ProductCard({
+type Product = (typeof products)[number];
+
+/* ─── Mobile Card (unchanged behavior) ─── */
+function MobileProductCard({
   product,
   index,
 }: {
-  product: (typeof products)[0];
+  product: Product;
   index: number;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -88,8 +127,6 @@ function ProductCard({
               colorTo="#3BA3B0"
               borderWidth={1}
             />
-
-            {/* Icon */}
             <div className="w-14 h-14 rounded-xl bg-cyan-brand/10 flex items-center justify-center mb-6 group-hover:bg-cyan-brand/20 transition-colors duration-300">
               <product.icon
                 className="text-cyan-brand"
@@ -97,8 +134,6 @@ function ProductCard({
                 strokeWidth={1.5}
               />
             </div>
-
-            {/* Name */}
             <h3 className="font-heading text-xl font-bold text-white mb-1 flex items-center gap-2">
               {product.name}
               <ExternalLink
@@ -107,20 +142,14 @@ function ProductCard({
                 strokeWidth={1.5}
               />
             </h3>
-
-            {/* Tagline */}
             <p className="text-cyan-brand/70 text-sm font-medium mb-4">
               {product.tagline}
             </p>
-
-            {/* Description — hides on hover when video exists */}
             <p
               className={`text-gray-400 text-sm leading-relaxed ${product.demoVideo ? "group-hover:opacity-0 transition-opacity duration-300" : ""}`}
             >
               {product.description}
             </p>
-
-            {/* Demo video — fades in on hover */}
             {product.demoVideo && (
               <div className="absolute inset-x-4 bottom-4 top-[140px] rounded-lg overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <video
@@ -137,6 +166,220 @@ function ProductCard({
           </div>
         </MagicCard>
       </a>
+    </ScrollReveal>
+  );
+}
+
+/* ─── Desktop Interactive Layout ─── */
+function DesktopProducts() {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+
+  const handleHover = (index: number) => {
+    setHoveredIndex(index);
+    // Play video if this card has one
+    const product = products[index];
+    if (product.demoVideo && videoRefs.current[index]) {
+      videoRefs.current[index]!.currentTime = 0;
+      videoRefs.current[index]!.play();
+    }
+  };
+
+  const handleLeave = () => {
+    // Pause all videos
+    videoRefs.current.forEach((v) => v?.pause());
+    setHoveredIndex(null);
+  };
+
+  const isHovered = hoveredIndex !== null;
+  const hoveredProduct = isHovered ? products[hoveredIndex] : null;
+
+  return (
+    <ScrollReveal>
+      <div
+        className="flex gap-6 lg:gap-8 min-h-[380px]"
+        onMouseLeave={handleLeave}
+      >
+        {/* Product cards */}
+        {products.map((product, i) => {
+          const isThis = hoveredIndex === i;
+          const isOther = isHovered && !isThis;
+
+          return (
+            <motion.div
+              key={product.name}
+              className="overflow-hidden"
+              animate={{
+                width: isThis ? "40%" : isOther ? "0%" : "33.333%",
+                opacity: isOther ? 0 : 1,
+              }}
+              transition={spring}
+              style={{ flexShrink: 0 }}
+              onMouseEnter={() => handleHover(i)}
+            >
+              <a
+                href={product.href}
+                target={
+                  product.href.startsWith("http") ? "_blank" : undefined
+                }
+                rel={
+                  product.href.startsWith("http")
+                    ? "noopener noreferrer"
+                    : undefined
+                }
+                className="group cursor-pointer block h-full"
+              >
+                <MagicCard
+                  className="h-full rounded-2xl"
+                  gradientColor="rgba(78, 197, 212, 0.15)"
+                  gradientFrom="#4EC5D4"
+                  gradientTo="#3BA3B0"
+                  gradientSize={250}
+                  gradientOpacity={0.8}
+                >
+                  <div className="relative p-8 h-full min-w-[280px]">
+                    <BorderBeam
+                      size={80}
+                      duration={8}
+                      colorFrom="#4EC5D4"
+                      colorTo="#3BA3B0"
+                      borderWidth={1}
+                    />
+
+                    {/* Icon */}
+                    <div className="w-14 h-14 rounded-xl bg-cyan-brand/10 flex items-center justify-center mb-6 group-hover:bg-cyan-brand/20 transition-colors duration-300">
+                      <product.icon
+                        className="text-cyan-brand"
+                        size={28}
+                        strokeWidth={1.5}
+                      />
+                    </div>
+
+                    {/* Name */}
+                    <h3 className="font-heading text-xl font-bold text-white mb-1 flex items-center gap-2">
+                      {product.name}
+                      <ExternalLink
+                        className="text-gray-600 group-hover:text-cyan-brand transition-colors duration-200"
+                        size={16}
+                        strokeWidth={1.5}
+                      />
+                    </h3>
+
+                    {/* Tagline */}
+                    <p className="text-cyan-brand/70 text-sm font-medium mb-4">
+                      {product.tagline}
+                    </p>
+
+                    {/* Content: compact vs expanded */}
+                    <AnimatePresence mode="wait">
+                      {isThis ? (
+                        <motion.div
+                          key="expanded"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <p className="text-gray-300 text-sm leading-relaxed mb-4">
+                            {product.brief}
+                          </p>
+                          <ul className="space-y-2 mb-5">
+                            {product.features.map((f) => (
+                              <li
+                                key={f}
+                                className="text-gray-400 text-sm flex items-start gap-2"
+                              >
+                                <span className="text-cyan-brand mt-0.5">
+                                  ›
+                                </span>
+                                {f}
+                              </li>
+                            ))}
+                          </ul>
+                          <span className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-brand group-hover:text-white transition-colors">
+                            {product.cta}
+                            <ExternalLink size={14} strokeWidth={2} />
+                          </span>
+                        </motion.div>
+                      ) : (
+                        <motion.p
+                          key="compact"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="text-gray-400 text-sm leading-relaxed"
+                        >
+                          {product.description}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </MagicCard>
+              </a>
+            </motion.div>
+          );
+        })}
+
+        {/* Demo panel */}
+        <motion.div
+          className="overflow-hidden rounded-2xl"
+          animate={{
+            width: isHovered ? "55%" : "0%",
+            opacity: isHovered ? 1 : 0,
+          }}
+          transition={spring}
+          style={{ flexShrink: 0 }}
+        >
+          <div className="h-full w-full min-w-[400px] bg-gray-900/80 border border-white/5 rounded-2xl overflow-hidden flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              {hoveredProduct?.demoVideo ? (
+                <motion.video
+                  key={`video-${hoveredIndex}`}
+                  ref={(el) => {
+                    if (hoveredIndex !== null)
+                      videoRefs.current[hoveredIndex] = el;
+                  }}
+                  src={hoveredProduct.demoVideo}
+                  muted
+                  playsInline
+                  loop
+                  preload="metadata"
+                  className="w-full h-full object-cover object-top"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                />
+              ) : isHovered ? (
+                <motion.div
+                  key={`placeholder-${hoveredIndex}`}
+                  className="flex flex-col items-center gap-4 text-center p-8"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="w-16 h-16 rounded-full bg-cyan-brand/10 flex items-center justify-center">
+                    <PlayCircle
+                      className="text-cyan-brand/50"
+                      size={32}
+                      strokeWidth={1.5}
+                    />
+                  </div>
+                  <p className="text-gray-500 text-sm font-medium">
+                    Demo Coming Soon
+                  </p>
+                  <p className="text-gray-600 text-xs max-w-[200px]">
+                    A video walkthrough of {hoveredProduct?.name} will be
+                    available here soon.
+                  </p>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      </div>
     </ScrollReveal>
   );
 }
@@ -166,11 +409,20 @@ export default function Software() {
           </div>
         </ScrollReveal>
 
-        {/* Product cards */}
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+        {/* Mobile: stacked cards (unchanged) */}
+        <div className="grid gap-6 md:hidden">
           {products.map((product, i) => (
-            <ProductCard key={product.name} product={product} index={i} />
+            <MobileProductCard
+              key={product.name}
+              product={product}
+              index={i}
+            />
           ))}
+        </div>
+
+        {/* Desktop: interactive flex layout */}
+        <div className="hidden md:block">
+          <DesktopProducts />
         </div>
       </div>
 
