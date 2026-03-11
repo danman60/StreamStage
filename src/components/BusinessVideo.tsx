@@ -2,6 +2,7 @@
 
 import ScrollReveal from "./ScrollReveal";
 import VideoCarousel, { type CarouselItem } from "./VideoCarousel";
+import { TextAnimate } from "./magicui/text-animate";
 import {
   Monitor,
   Sparkles,
@@ -116,20 +117,31 @@ export default function BusinessVideo() {
     <section id="business-video" className="py-16 sm:py-20 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <ScrollReveal>
-          <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <ScrollReveal>
             <span className="inline-block text-amber-brand text-sm font-semibold tracking-widest uppercase mb-4">
               Business Video
             </span>
-            <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6">
-              Full-Stack Video for Your Business
-            </h2>
-            <p className="text-lg text-gray-400 leading-relaxed">
-              Professional video production that drives real results — from
-              events to social content.
-            </p>
-          </div>
-        </ScrollReveal>
+          </ScrollReveal>
+          <TextAnimate
+            animation="blurInUp"
+            by="word"
+            as="h2"
+            className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6"
+          >
+            Full-Stack Video for Your Business
+          </TextAnimate>
+          <TextAnimate
+            animation="fadeIn"
+            by="word"
+            as="p"
+            delay={0.2}
+            duration={1.5}
+            className="text-lg text-gray-400 leading-relaxed"
+          >
+            {"Professional video production that drives real results \u2014 from events to social content."}
+          </TextAnimate>
+        </div>
 
         {/* Services grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">

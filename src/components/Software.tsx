@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ScrollReveal from "./ScrollReveal";
+import { TextAnimate } from "./magicui/text-animate";
 import {
   BarChart3,
   Brain,
@@ -433,20 +434,31 @@ export default function Software() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <ScrollReveal>
-          <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <ScrollReveal>
             <span className="inline-block text-cyan-brand text-sm font-semibold tracking-widest uppercase mb-4">
               Dance Software
             </span>
-            <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6">
-              Software Built for Dance
-            </h2>
-            <p className="text-lg text-gray-400 leading-relaxed">
-              Purpose-built tools for the dance industry — because generic
-              software was never designed for what you do.
-            </p>
-          </div>
-        </ScrollReveal>
+          </ScrollReveal>
+          <TextAnimate
+            animation="blurInUp"
+            by="word"
+            as="h2"
+            className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6"
+          >
+            Software Built for Dance
+          </TextAnimate>
+          <TextAnimate
+            animation="fadeIn"
+            by="word"
+            as="p"
+            delay={0.2}
+            duration={1.5}
+            className="text-lg text-gray-400 leading-relaxed"
+          >
+            {"Purpose-built tools for the dance industry \u2014 because generic software was never designed for what you do."}
+          </TextAnimate>
+        </div>
 
         {/* Mobile: stacked cards (unchanged) */}
         <div className="grid gap-6 md:hidden">

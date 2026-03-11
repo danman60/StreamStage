@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { ShimmerButton } from "./magicui/shimmer-button";
+import { TextAnimate } from "./magicui/text-animate";
 
 export default function Hero() {
   const shouldReduceMotion = useReducedMotion();
@@ -14,35 +15,69 @@ export default function Hero() {
 
   return (
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Transparent — video shows through from layout */}
-
       {/* Content */}
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center">
-        <motion.h1
-          className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6"
-          initial={shouldReduceMotion ? {} : { opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          Where Stage Meets{" "}
-          <span className="text-gradient-cyan">Technology</span>
-        </motion.h1>
+        {/* Heading — word-by-word blur-in-up */}
+        <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
+          {shouldReduceMotion ? (
+            <>
+              Where Stage Meets{" "}
+              <span className="text-gradient-cyan">Technology</span>
+            </>
+          ) : (
+            <>
+              <TextAnimate
+                animation="blurInUp"
+                by="word"
+                as="span"
+                startOnView={false}
+                delay={0.2}
+                duration={0.8}
+                className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]"
+              >
+                Where Stage Meets
+              </TextAnimate>{" "}
+              <TextAnimate
+                animation="blurInUp"
+                by="character"
+                as="span"
+                startOnView={false}
+                delay={0.7}
+                duration={1.0}
+                className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-gradient-cyan"
+              >
+                Technology
+              </TextAnimate>
+            </>
+          )}
+        </h1>
 
-        <motion.p
-          className="text-lg sm:text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-10 leading-relaxed"
-          initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-        >
-          Canada&apos;s dance industry partner &mdash; media production,
-          software, and live broadcast
-        </motion.p>
+        {/* Subtitle — word-by-word fade in */}
+        {shouldReduceMotion ? (
+          <p className="text-lg sm:text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-10 leading-relaxed">
+            Canada&apos;s dance industry partner &mdash; media production,
+            software, and live broadcast
+          </p>
+        ) : (
+          <TextAnimate
+            animation="fadeIn"
+            by="word"
+            as="p"
+            startOnView={false}
+            delay={1.0}
+            duration={1.2}
+            className="text-lg sm:text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-10 leading-relaxed"
+          >
+            {"Canada\u2019s dance industry partner \u2014 media production, software, and live broadcast"}
+          </TextAnimate>
+        )}
 
+        {/* CTA buttons — slide up */}
         <motion.div
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
           initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
+          transition={{ duration: 0.8, delay: 1.6 }}
         >
           <ShimmerButton
             shimmerColor="#4EC5D4"
