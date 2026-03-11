@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getAllPosts } from "@/lib/blog";
 import { ArrowLeft, Calendar, Clock, Tag } from "lucide-react";
 
+export const revalidate = 43200; // 12 hours
+
 export const metadata: Metadata = {
   title: "Blog — StreamStage",
   description:

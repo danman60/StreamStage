@@ -21,6 +21,7 @@ const footerNav = [
   { label: "Software", href: "#software" },
   { label: "Team", href: "#team" },
   { label: "FAQ", href: "#faq" },
+  { label: "Blog", href: "/blog" },
   { label: "Contact", href: "#contact" },
 ];
 

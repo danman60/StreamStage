@@ -10,6 +10,7 @@ const navLinks = [
   { label: "Business", href: "#business-video" },
   { label: "Team", href: "#team" },
   { label: "FAQ", href: "#faq" },
+  { label: "Blog", href: "/blog" },
   { label: "Contact", href: "#contact" },
 ];
 
@@ -46,6 +47,10 @@ export default function Navbar() {
 
   const handleNavClick = (href: string) => {
     setMobileOpen(false);
+    if (href.startsWith("/")) {
+      window.location.href = href;
+      return;
+    }
     const el = document.querySelector(href);
     if (el) {
       el.scrollIntoView({ behavior: "smooth" });

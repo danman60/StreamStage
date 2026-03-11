@@ -27,6 +27,9 @@ export function getAllPosts(): BlogPostMeta[] {
     .readdirSync(BLOG_DIR)
     .filter((f) => f.endsWith(".mdx") && !f.startsWith("_"));
 
+  const now = new Date();
+  now.setHours(23, 59, 59, 999); // include posts dated today
+
   const posts = files
     .map((filename) => {
       const slug = filename.replace(/\.mdx$/, "");
@@ -47,6 +50,7 @@ export function getAllPosts(): BlogPostMeta[] {
         readingTime: stats.text,
       } satisfies BlogPostMeta;
     })
+    .filter((post) => new Date(post.date) <= now)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return posts;
@@ -59,6 +63,11 @@ export function getPostBySlug(slug: string): BlogPost | null {
   const source = fs.readFileSync(filePath, "utf-8");
   const { data, content } = matter(source);
   const stats = readingTime(source);
+
+  const postDate = new Date(data.date ?? new Date().toISOString());
+  const now = new Date();
+  now.setHours(23, 59, 59, 999);
+  if (postDate > now) return null;
 
   return {
     slug,
@@ -75,9 +84,5 @@ export function getPostBySlug(slug: string): BlogPost | null {
 }
 
 export function getPostSlugs(): string[] {
-  if (!fs.existsSync(BLOG_DIR)) return [];
-  return fs
-    .readdirSync(BLOG_DIR)
-    .filter((f) => f.endsWith(".mdx") && !f.startsWith("_"))
-    .map((f) => f.replace(/\.mdx$/, ""));
+  return getAllPosts().map((p) => p.slug);
 }

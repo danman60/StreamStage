@@ -5,6 +5,8 @@ import { getPostBySlug, getPostSlugs } from "@/lib/blog";
 import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
 import { MDXContent } from "@/components/mdx-content";
 
+export const revalidate = 43200; // 12 hours
+
 interface Props {
   params: Promise<{ slug: string }>;
 }
