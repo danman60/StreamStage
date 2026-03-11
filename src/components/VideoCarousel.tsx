@@ -151,7 +151,7 @@ export default function VideoCarousel({
     if (!container) return;
     const io = new IntersectionObserver(
       ([entry]) => setIsVisible(entry.isIntersecting),
-      { rootMargin: "200px" },
+      { rootMargin: "600px" },
     );
     io.observe(container);
     return () => io.disconnect();
@@ -354,7 +354,9 @@ function CylinderCard({
 
   const rawDist = Math.abs(index - activeIndex);
   const dist = Math.min(rawDist, count - rawDist);
-  const shouldPlay = isCarouselVisible && dist <= 4;
+  // Only load src when carousel is on screen, play active + 1 neighbor
+  const shouldLoad = isCarouselVisible;
+  const shouldPlay = isCarouselVisible && dist <= 1;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -422,9 +424,9 @@ function CylinderCard({
         <>
           <video
             ref={videoRef}
-            src={item.videoSrc}
+            src={shouldLoad ? item.videoSrc : undefined}
             poster={poster}
-            preload="auto"
+            preload={shouldLoad ? (dist <= 2 ? "auto" : "metadata") : "none"}
             muted
             loop
             playsInline
