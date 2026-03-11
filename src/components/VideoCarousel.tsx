@@ -75,6 +75,7 @@ export default function VideoCarousel({
   const [radius, setRadius] = useState(0);
   const [cardW, setCardW] = useState(0);
   const [unmutedIndex, setUnmutedIndex] = useState<number | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   // Continuous rotation angle (degrees)
   const angleRef = useRef(0);
@@ -142,6 +143,18 @@ export default function VideoCarousel({
     ro.observe(container);
     return () => ro.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // IntersectionObserver — track if carousel is on screen
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { rootMargin: "200px" },
+    );
+    io.observe(container);
+    return () => io.disconnect();
   }, []);
 
   // Snap to a specific card index (manual navigation)
@@ -255,6 +268,7 @@ export default function VideoCarousel({
                 isVertical={isVertical}
                 isUnmuted={unmutedIndex === i}
                 onToggleMute={handleToggleMute}
+                isCarouselVisible={isVisible}
               />
             ))}
           </div>
@@ -315,6 +329,7 @@ interface CylinderCardProps {
   isVertical: boolean;
   isUnmuted: boolean;
   onToggleMute: (index: number, videoEl: HTMLVideoElement) => void;
+  isCarouselVisible: boolean;
 }
 
 /** Generate poster URL from video URL */
@@ -332,24 +347,25 @@ function CylinderCard({
   count,
   isUnmuted,
   onToggleMute,
+  isCarouselVisible,
 }: CylinderCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const isActive = index === activeIndex;
 
   const rawDist = Math.abs(index - activeIndex);
   const dist = Math.min(rawDist, count - rawDist);
-  const shouldLoad = dist <= 4;
+  const shouldPlay = isCarouselVisible && dist <= 4;
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    if (shouldLoad) {
+    if (shouldPlay) {
       video.play().catch(() => {});
       if (!isActive && !video.muted) video.muted = true;
     } else {
       video.pause();
     }
-  }, [isActive, shouldLoad]);
+  }, [isActive, shouldPlay]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -389,7 +405,6 @@ function CylinderCard({
 
   const cardAngle = index * sliceAngle;
 
-  const videoSrc = item.videoSrc && shouldLoad ? item.videoSrc : undefined;
   const poster = item.posterSrc
     || (item.videoSrc ? posterFromVideo(item.videoSrc) : undefined);
 
@@ -407,9 +422,9 @@ function CylinderCard({
         <>
           <video
             ref={videoRef}
-            src={videoSrc}
+            src={item.videoSrc}
             poster={poster}
-            preload={dist <= 2 ? "auto" : "metadata"}
+            preload="auto"
             muted
             loop
             playsInline
