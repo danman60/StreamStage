@@ -66,7 +66,7 @@ function ClientLogo({ client }: { client: (typeof clients)[0] }) {
         alt={client.name}
         width={130}
         height={48}
-        className="max-h-12 max-w-[130px] object-contain opacity-50 hover:opacity-90 transition-opacity duration-300"
+        className="max-h-12 max-w-[130px] object-contain"
         loading="lazy"
       />
     </div>

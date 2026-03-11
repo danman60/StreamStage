@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ScrollReveal from "./ScrollReveal";
 import {
@@ -35,6 +35,7 @@ const products = [
     href: "https://compsync.net",
     cta: "Visit Site",
     demoVideo: null as string | null,
+    demoHref: null as string | null,
   },
   {
     icon: Brain,
@@ -53,6 +54,7 @@ const products = [
     href: "#contact",
     cta: "Learn More",
     demoVideo: null as string | null,
+    demoHref: null as string | null,
   },
   {
     icon: MessageSquare,
@@ -71,6 +73,7 @@ const products = [
     href: "#contact",
     cta: "Learn More",
     demoVideo: `${R2}/streamstage/studiobeat-demo.mp4`,
+    demoHref: null as string | null, // wire up later
   },
 ];
 
@@ -170,37 +173,105 @@ function MobileProductCard({
   );
 }
 
+/* ─── Demo Panel ─── */
+function DemoPanel({
+  product,
+  direction,
+  videoRef,
+}: {
+  product: Product;
+  direction: "left" | "right";
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+}) {
+  const slideFrom = direction === "right" ? 60 : -60;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: slideFrom }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: slideFrom }}
+      transition={spring}
+      className="h-full"
+    >
+      {product.demoVideo ? (
+        <a
+          href={product.demoHref || "#"}
+          className="block h-full rounded-2xl overflow-hidden border border-white/10 bg-gray-900/80 cursor-pointer hover:border-cyan-brand/30 transition-colors"
+          onClick={(e) => {
+            if (!product.demoHref) e.preventDefault();
+          }}
+        >
+          <video
+            ref={videoRef}
+            src={product.demoVideo}
+            muted
+            playsInline
+            loop
+            preload="metadata"
+            className="w-full h-full object-contain bg-black rounded-2xl"
+          />
+        </a>
+      ) : (
+        <div className="h-full rounded-2xl overflow-hidden border border-white/10 bg-gray-900/80 flex flex-col items-center justify-center gap-4 p-8">
+          <div className="w-16 h-16 rounded-full bg-cyan-brand/10 flex items-center justify-center">
+            <PlayCircle
+              className="text-cyan-brand/50"
+              size={32}
+              strokeWidth={1.5}
+            />
+          </div>
+          <p className="text-gray-500 text-sm font-medium">Demo Coming Soon</p>
+          <p className="text-gray-600 text-xs max-w-[200px] text-center">
+            A video walkthrough of {product.name} will be available here soon.
+          </p>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
 /* ─── Desktop Interactive Layout ─── */
 function DesktopProducts() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleHover = (index: number) => {
     setHoveredIndex(index);
-    // Play video if this card has one
-    const product = products[index];
-    if (product.demoVideo && videoRefs.current[index]) {
-      videoRefs.current[index]!.currentTime = 0;
-      videoRefs.current[index]!.play();
-    }
   };
 
   const handleLeave = () => {
-    // Pause all videos
-    videoRefs.current.forEach((v) => v?.pause());
+    if (videoRef.current) videoRef.current.pause();
     setHoveredIndex(null);
   };
 
+  // Autoplay video when panel appears
+  useEffect(() => {
+    if (hoveredIndex !== null && products[hoveredIndex].demoVideo) {
+      // Small delay to let the ref attach
+      const t = setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.currentTime = 0;
+          videoRef.current.play().catch(() => {});
+        }
+      }, 50);
+      return () => clearTimeout(t);
+    }
+  }, [hoveredIndex]);
+
   const isHovered = hoveredIndex !== null;
-  const hoveredProduct = isHovered ? products[hoveredIndex] : null;
+
+  // Panel placement: left card → cols 2-3, center → col 3, right → cols 1-2
+  // Direction panel slides from
+  const panelDirection =
+    hoveredIndex === 2 ? "left" : ("right" as "left" | "right");
 
   return (
     <ScrollReveal>
       <div
-        className="flex gap-6 lg:gap-8 min-h-[380px]"
+        className="grid grid-cols-3 gap-6 lg:gap-8 min-h-[380px] relative"
         onMouseLeave={handleLeave}
       >
-        {/* Product cards */}
+        {/* Product cards — always in their grid column */}
         {products.map((product, i) => {
           const isThis = hoveredIndex === i;
           const isOther = isHovered && !isThis;
@@ -208,13 +279,12 @@ function DesktopProducts() {
           return (
             <motion.div
               key={product.name}
-              className="overflow-hidden"
-              animate={{
-                width: isThis ? "40%" : isOther ? "0%" : "33.333%",
-                opacity: isOther ? 0 : 1,
-              }}
+              className="relative z-10"
+              animate={{ opacity: isOther ? 0 : 1 }}
               transition={spring}
-              style={{ flexShrink: 0 }}
+              style={{
+                pointerEvents: isOther ? "none" : "auto",
+              }}
               onMouseEnter={() => handleHover(i)}
             >
               <a
@@ -237,7 +307,7 @@ function DesktopProducts() {
                   gradientSize={250}
                   gradientOpacity={0.8}
                 >
-                  <div className="relative p-8 h-full min-w-[280px]">
+                  <div className="relative p-8 h-full">
                     <BorderBeam
                       size={80}
                       duration={8}
@@ -321,64 +391,38 @@ function DesktopProducts() {
           );
         })}
 
-        {/* Demo panel */}
-        <motion.div
-          className="overflow-hidden rounded-2xl"
-          animate={{
-            width: isHovered ? "55%" : "0%",
-            opacity: isHovered ? 1 : 0,
-          }}
-          transition={spring}
-          style={{ flexShrink: 0 }}
-        >
-          <div className="h-full w-full min-w-[400px] bg-gray-900/80 border border-white/5 rounded-2xl overflow-hidden flex items-center justify-center">
-            <AnimatePresence mode="wait">
-              {hoveredProduct?.demoVideo ? (
-                <motion.video
-                  key={`video-${hoveredIndex}`}
-                  ref={(el) => {
-                    if (hoveredIndex !== null)
-                      videoRefs.current[hoveredIndex] = el;
-                  }}
-                  src={hoveredProduct.demoVideo}
-                  muted
-                  playsInline
-                  loop
-                  preload="metadata"
-                  className="w-full h-full object-cover object-top"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                />
-              ) : isHovered ? (
-                <motion.div
-                  key={`placeholder-${hoveredIndex}`}
-                  className="flex flex-col items-center gap-4 text-center p-8"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="w-16 h-16 rounded-full bg-cyan-brand/10 flex items-center justify-center">
-                    <PlayCircle
-                      className="text-cyan-brand/50"
-                      size={32}
-                      strokeWidth={1.5}
-                    />
-                  </div>
-                  <p className="text-gray-500 text-sm font-medium">
-                    Demo Coming Soon
-                  </p>
-                  <p className="text-gray-600 text-xs max-w-[200px]">
-                    A video walkthrough of {hoveredProduct?.name} will be
-                    available here soon.
-                  </p>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-          </div>
-        </motion.div>
+        {/* Demo panel — positioned absolutely over the empty card columns */}
+        <AnimatePresence>
+          {isHovered && (
+            <div
+              className="absolute top-0 bottom-0 z-20"
+              style={{
+                // Left card (0): panel in cols 2-3
+                // Center card (1): panel in col 3
+                // Right card (2): panel in cols 1-2
+                ...(hoveredIndex === 0 && {
+                  left: "calc(33.333% + 12px)",
+                  right: "0",
+                }),
+                ...(hoveredIndex === 1 && {
+                  left: "calc(66.666% + 12px)",
+                  right: "0",
+                }),
+                ...(hoveredIndex === 2 && {
+                  left: "0",
+                  right: "calc(33.333% + 12px)",
+                }),
+              }}
+            >
+              <DemoPanel
+                key={hoveredIndex}
+                product={products[hoveredIndex!]}
+                direction={panelDirection}
+                videoRef={videoRef}
+              />
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </ScrollReveal>
   );
@@ -420,7 +464,7 @@ export default function Software() {
           ))}
         </div>
 
-        {/* Desktop: interactive flex layout */}
+        {/* Desktop: interactive grid layout */}
         <div className="hidden md:block">
           <DesktopProducts />
         </div>

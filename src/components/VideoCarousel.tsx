@@ -343,13 +343,13 @@ function CylinderCard({
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    if (isActive) {
+    if (shouldLoad) {
       video.play().catch(() => {});
+      if (!isActive && !video.muted) video.muted = true;
     } else {
       video.pause();
-      if (!video.muted) video.muted = true;
     }
-  }, [isActive]);
+  }, [isActive, shouldLoad]);
 
   useEffect(() => {
     const video = videoRef.current;
