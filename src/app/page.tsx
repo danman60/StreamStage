@@ -1,6 +1,5 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
-import ScrollStatement from "@/components/ScrollStatement";
 import About from "@/components/About";
 import DanceMedia from "@/components/DanceMedia";
 import BusinessVideo from "@/components/BusinessVideo";
@@ -189,7 +188,6 @@ export default function Home() {
       <main>
         <Navbar />
         <Hero />
-        <ScrollStatement />
         <About />
         <DanceMedia />
         <Software />

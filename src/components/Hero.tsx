@@ -18,39 +18,33 @@ export default function Hero() {
       {/* Content */}
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center">
         {/* Heading — word-by-word blur-in-up */}
-        <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
-          {shouldReduceMotion ? (
-            <>
-              Where Stage Meets{" "}
-              <span className="text-gradient-cyan">Technology</span>
-            </>
-          ) : (
-            <>
-              <TextAnimate
-                animation="blurInUp"
-                by="word"
-                as="span"
-                startOnView={false}
-                delay={0.2}
-                duration={0.8}
-                className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]"
-              >
-                Where Stage Meets
-              </TextAnimate>{" "}
-              <TextAnimate
-                animation="blurInUp"
-                by="character"
-                as="span"
-                startOnView={false}
-                delay={0.7}
-                duration={1.0}
-                className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-gradient-cyan"
-              >
-                Technology
-              </TextAnimate>
-            </>
-          )}
-        </h1>
+        {shouldReduceMotion ? (
+          <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
+            Where Stage Meets{" "}
+            <span className="text-gradient-cyan">Technology</span>
+          </h1>
+        ) : (
+          <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
+            <TextAnimate
+              animation="blurInUp"
+              by="word"
+              as="span"
+              startOnView={false}
+              delay={0.2}
+              duration={0.8}
+            >
+              Where Stage Meets
+            </TextAnimate>{" "}
+            <motion.span
+              className="text-gradient-cyan inline-block"
+              initial={{ opacity: 0, filter: "blur(10px)", y: 20 }}
+              animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+            >
+              Technology
+            </motion.span>
+          </h1>
+        )}
 
         {/* Subtitle — word-by-word fade in */}
         {shouldReduceMotion ? (
