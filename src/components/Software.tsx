@@ -80,97 +80,215 @@ const products = [
 
 type Product = (typeof products)[number];
 
-/* ─── Mobile Card (unchanged behavior) ─── */
-function MobileProductCard({
-  product,
-  index,
-}: {
-  product: Product;
-  index: number;
-}) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+/* ─── Mobile Interactive Layout ─── */
+function MobileProducts() {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
-  const handleMouseEnter = () => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.play();
-    }
+  const handleTap = (index: number) => {
+    // Toggle: tap same card to collapse, tap different to switch
+    const next = activeIndex === index ? null : index;
+    // Pause all videos
+    videoRefs.current.forEach((v) => v?.pause());
+    setActiveIndex(next);
   };
 
-  const handleMouseLeave = () => {
-    if (videoRef.current) {
-      videoRef.current.pause();
+  // Play video when card becomes active
+  useEffect(() => {
+    if (activeIndex !== null) {
+      const video = videoRefs.current[activeIndex];
+      if (video) {
+        video.currentTime = 0;
+        video.play().catch(() => {});
+      }
     }
-  };
+  }, [activeIndex]);
 
   return (
-    <ScrollReveal delay={index * 0.15}>
-      <a
-        href={product.href}
-        target={product.href.startsWith("http") ? "_blank" : undefined}
-        rel={
-          product.href.startsWith("http") ? "noopener noreferrer" : undefined
-        }
-        className="group cursor-pointer block h-full"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
-        <MagicCard
-          className="h-full rounded-2xl"
-          gradientColor="rgba(78, 197, 212, 0.15)"
-          gradientFrom="#4EC5D4"
-          gradientTo="#3BA3B0"
-          gradientSize={250}
-          gradientOpacity={0.8}
-        >
-          <div className="relative p-8 h-full">
-            <BorderBeam
-              size={80}
-              duration={8}
-              colorFrom="#4EC5D4"
-              colorTo="#3BA3B0"
-              borderWidth={1}
-            />
-            <div className="w-14 h-14 rounded-xl bg-cyan-brand/10 flex items-center justify-center mb-6 group-hover:bg-cyan-brand/20 transition-colors duration-300">
-              <product.icon
-                className="text-cyan-brand"
-                size={28}
-                strokeWidth={1.5}
-              />
-            </div>
-            <h3 className="font-heading text-xl font-bold text-white mb-1 flex items-center gap-2">
-              {product.name}
-              <ExternalLink
-                className="text-gray-600 group-hover:text-cyan-brand transition-colors duration-200"
-                size={16}
-                strokeWidth={1.5}
-              />
-            </h3>
-            <p className="text-cyan-brand/70 text-sm font-medium mb-4">
-              {product.tagline}
-            </p>
-            <p
-              className={`text-gray-400 text-sm leading-relaxed ${product.demoVideo ? "group-hover:opacity-0 transition-opacity duration-300" : ""}`}
+    <div className="space-y-3">
+      {/* Persistent hidden videos for pre-buffering */}
+      {products.map((product, i) =>
+        product.demoVideo ? (
+          <video
+            key={`mv-${i}`}
+            ref={(el) => { videoRefs.current[i] = el; }}
+            src={product.demoVideo}
+            muted
+            playsInline
+            loop
+            preload="auto"
+            className="hidden"
+          />
+        ) : null,
+      )}
+
+      {products.map((product, i) => {
+        const isActive = activeIndex === i;
+        const isCollapsed = activeIndex !== null && !isActive;
+
+        return (
+          <div key={product.name}>
+            {/* Card — full when default/active, pill when collapsed */}
+            <motion.div
+              layout
+              transition={spring}
+              onClick={() => handleTap(i)}
+              className="cursor-pointer"
             >
-              {product.description}
-            </p>
-            {product.demoVideo && (
-              <div className="absolute inset-x-4 bottom-4 top-[140px] rounded-lg overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <video
-                  ref={videoRef}
-                  src={product.demoVideo}
-                  muted
-                  playsInline
-                  loop
-                  preload="auto"
-                  className="w-full h-full object-cover object-top rounded-lg"
-                />
-              </div>
-            )}
+              {isCollapsed ? (
+                /* ─ Collapsed pill ─ */
+                <motion.div
+                  layout="position"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-charcoal-dark/50 border border-white/5"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-cyan-brand/10 flex items-center justify-center flex-shrink-0">
+                    <product.icon className="text-cyan-brand" size={16} strokeWidth={1.5} />
+                  </div>
+                  <span className="font-heading text-sm font-semibold text-gray-400">
+                    {product.name}
+                  </span>
+                  <span className="text-gray-600 text-xs ml-auto">
+                    {product.tagline}
+                  </span>
+                </motion.div>
+              ) : (
+                /* ─ Default or Active card ─ */
+                <MagicCard
+                  className="rounded-2xl"
+                  gradientColor="rgba(78, 197, 212, 0.15)"
+                  gradientFrom="#4EC5D4"
+                  gradientTo="#3BA3B0"
+                  gradientSize={250}
+                  gradientOpacity={0.8}
+                >
+                  <div className="relative p-6">
+                    <BorderBeam
+                      size={80}
+                      duration={8}
+                      colorFrom="#4EC5D4"
+                      colorTo="#3BA3B0"
+                      borderWidth={1}
+                    />
+
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-cyan-brand/10 flex items-center justify-center flex-shrink-0">
+                        <product.icon className="text-cyan-brand" size={24} strokeWidth={1.5} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-heading text-lg font-bold text-white flex items-center gap-2">
+                          {product.name}
+                          {isActive && (
+                            <span className="text-gray-600 text-xs font-normal">tap to close</span>
+                          )}
+                        </h3>
+                        <p className="text-cyan-brand/70 text-sm font-medium">
+                          {product.tagline}
+                        </p>
+                      </div>
+                    </div>
+
+                    <AnimatePresence mode="wait">
+                      {isActive ? (
+                        <motion.div
+                          key="expanded"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="mt-4">
+                            <p className="text-gray-300 text-sm leading-relaxed mb-4">
+                              {product.brief}
+                            </p>
+                            <ul className="space-y-2 mb-4">
+                              {product.features.map((f) => (
+                                <li key={f} className="text-gray-400 text-sm flex items-start gap-2">
+                                  <span className="text-cyan-brand mt-0.5">›</span>
+                                  {f}
+                                </li>
+                              ))}
+                            </ul>
+                            <a
+                              href={product.href}
+                              target={product.href.startsWith("http") ? "_blank" : undefined}
+                              rel={product.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                              className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-brand"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {product.cta}
+                              <ExternalLink size={14} strokeWidth={2} />
+                            </a>
+                          </div>
+                        </motion.div>
+                      ) : (
+                        <motion.p
+                          key="compact"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.15 }}
+                          className="text-gray-400 text-sm leading-relaxed mt-4"
+                        >
+                          {product.description}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </MagicCard>
+              )}
+            </motion.div>
+
+            {/* Demo panel — slides below active card */}
+            <AnimatePresence>
+              {isActive && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={spring}
+                  className="overflow-hidden"
+                >
+                  <div className="mt-3">
+                    {product.demoVideo ? (
+                      <a
+                        href={product.demoHref || "#"}
+                        className="block rounded-2xl overflow-hidden border border-white/10 bg-gray-900/80"
+                        onClick={(e) => {
+                          if (!product.demoHref) e.preventDefault();
+                        }}
+                      >
+                        <video
+                          src={product.demoVideo}
+                          ref={(el) => {
+                            if (el) {
+                              el.currentTime = 0;
+                              el.play().catch(() => {});
+                            }
+                          }}
+                          muted
+                          playsInline
+                          loop
+                          preload="auto"
+                          className="w-full aspect-video object-contain bg-black rounded-2xl"
+                        />
+                      </a>
+                    ) : (
+                      <div className="rounded-2xl border border-white/10 bg-gray-900/80 flex flex-col items-center justify-center gap-3 py-10">
+                        <div className="w-12 h-12 rounded-full bg-cyan-brand/10 flex items-center justify-center">
+                          <PlayCircle className="text-cyan-brand/50" size={24} strokeWidth={1.5} />
+                        </div>
+                        <p className="text-gray-500 text-sm font-medium">Demo Coming Soon</p>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        </MagicCard>
-      </a>
-    </ScrollReveal>
+        );
+      })}
+    </div>
   );
 }
 
@@ -460,15 +578,9 @@ export default function Software() {
           </TextAnimate>
         </div>
 
-        {/* Mobile: stacked cards (unchanged) */}
-        <div className="grid gap-6 md:hidden">
-          {products.map((product, i) => (
-            <MobileProductCard
-              key={product.name}
-              product={product}
-              index={i}
-            />
-          ))}
+        {/* Mobile: interactive tap-to-expand */}
+        <div className="md:hidden">
+          <MobileProducts />
         </div>
 
         {/* Desktop: interactive grid layout */}
