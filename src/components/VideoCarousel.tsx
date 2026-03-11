@@ -97,13 +97,17 @@ export default function VideoCarousel({
     const cw = containerW * ratio;
     setCardW(cw);
     const gap = containerW < 640 ? 10 : 20;
+    // Use minimum effective item count so carousels with fewer items
+    // have the same visual spread as larger ones
+    const minVertical = 10;
+    const minHorizontal = 8;
     if (isVertical) {
-      // Vertical: original formula (works well)
-      const r = Math.max((count * (cw + gap)) / (2 * Math.PI), cw * 0.8);
+      const effective = Math.max(count, minVertical);
+      const r = Math.max((effective * (cw + gap)) / (2 * Math.PI), cw * 0.8);
       setRadius(r);
     } else {
-      // Landscape: scale radius with item count so spacing is consistent
-      const circumference = count * (cw + gap);
+      const effective = Math.max(count, minHorizontal);
+      const circumference = effective * (cw + gap);
       const r = Math.max(circumference / (2 * Math.PI), cw * 1.0);
       setRadius(r);
     }

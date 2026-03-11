@@ -322,18 +322,81 @@ function DesktopProducts() {
 
   const isHovered = hoveredIndex !== null;
 
-  // Panel placement: left card → cols 2-3, center → col 3, right → cols 1-2
-  // Direction panel slides from
-  const panelDirection =
-    hoveredIndex === 2 ? "left" : ("right" as "left" | "right");
-
   return (
     <ScrollReveal>
       <div
         className="grid grid-cols-3 gap-6 lg:gap-8 min-h-[380px] relative"
         onMouseLeave={handleLeave}
       >
-        {/* Product cards — always in their grid column */}
+        {/* Demo panel — z-0, renders BEHIND cards */}
+        <AnimatePresence>
+          {isHovered && (
+            <motion.div
+              key={hoveredIndex}
+              className="absolute top-0 bottom-0 z-0"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={spring}
+              style={{
+                ...(hoveredIndex === 0 && {
+                  left: "calc(33.333% + 12px)",
+                  right: "0",
+                }),
+                ...(hoveredIndex === 1 && {
+                  left: "calc(66.666% + 12px)",
+                  right: "0",
+                }),
+                ...(hoveredIndex === 2 && {
+                  left: "0",
+                  right: "calc(33.333% + 12px)",
+                }),
+              }}
+            >
+              {products[hoveredIndex!].demoVideo ? (
+                <a
+                  href={products[hoveredIndex!].demoHref || "#"}
+                  className="block h-full rounded-2xl overflow-hidden border border-white/10 bg-gray-900/80 cursor-pointer hover:border-cyan-brand/30 transition-colors"
+                  onClick={(e) => {
+                    if (!products[hoveredIndex!].demoHref) e.preventDefault();
+                  }}
+                >
+                  <video
+                    src={products[hoveredIndex!].demoVideo!}
+                    ref={(el) => {
+                      if (el) {
+                        el.currentTime = 0;
+                        el.play().catch(() => {});
+                      }
+                    }}
+                    muted
+                    playsInline
+                    loop
+                    preload="auto"
+                    className="w-full h-full object-contain bg-black rounded-2xl"
+                  />
+                </a>
+              ) : (
+                <div className="h-full rounded-2xl overflow-hidden border border-white/10 bg-gray-900/80 flex flex-col items-center justify-center gap-4 p-8">
+                  <div className="w-16 h-16 rounded-full bg-cyan-brand/10 flex items-center justify-center">
+                    <PlayCircle
+                      className="text-cyan-brand/50"
+                      size={32}
+                      strokeWidth={1.5}
+                    />
+                  </div>
+                  <p className="text-gray-500 text-sm font-medium">Demo Coming Soon</p>
+                  <p className="text-gray-600 text-xs max-w-[200px] text-center">
+                    A video walkthrough of {products[hoveredIndex!].name} will be
+                    available here soon.
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Product cards — z-10, always in their grid column */}
         {products.map((product, i) => {
           const isThis = hoveredIndex === i;
           const isOther = isHovered && !isThis;
@@ -468,75 +531,6 @@ function DesktopProducts() {
             />
           ) : null,
         )}
-
-        {/* Demo panel — positioned absolutely over the empty card columns */}
-        <AnimatePresence>
-          {isHovered && (
-            <motion.div
-              key={hoveredIndex}
-              className="absolute top-0 bottom-0 z-20"
-              initial={{ opacity: 0, x: panelDirection === "right" ? 60 : -60 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: panelDirection === "right" ? 60 : -60 }}
-              transition={spring}
-              style={{
-                ...(hoveredIndex === 0 && {
-                  left: "calc(33.333% + 12px)",
-                  right: "0",
-                }),
-                ...(hoveredIndex === 1 && {
-                  left: "calc(66.666% + 12px)",
-                  right: "0",
-                }),
-                ...(hoveredIndex === 2 && {
-                  left: "0",
-                  right: "calc(33.333% + 12px)",
-                }),
-              }}
-            >
-              {products[hoveredIndex!].demoVideo ? (
-                <a
-                  href={products[hoveredIndex!].demoHref || "#"}
-                  className="block h-full rounded-2xl overflow-hidden border border-white/10 bg-gray-900/80 cursor-pointer hover:border-cyan-brand/30 transition-colors"
-                  onClick={(e) => {
-                    if (!products[hoveredIndex!].demoHref) e.preventDefault();
-                  }}
-                >
-                  <video
-                    src={products[hoveredIndex!].demoVideo!}
-                    ref={(el) => {
-                      if (el && videoRefs.current[hoveredIndex!]) {
-                        // Clone the buffered time from the hidden video
-                        el.currentTime = 0;
-                        el.play().catch(() => {});
-                      }
-                    }}
-                    muted
-                    playsInline
-                    loop
-                    preload="auto"
-                    className="w-full h-full object-contain bg-black rounded-2xl"
-                  />
-                </a>
-              ) : (
-                <div className="h-full rounded-2xl overflow-hidden border border-white/10 bg-gray-900/80 flex flex-col items-center justify-center gap-4 p-8">
-                  <div className="w-16 h-16 rounded-full bg-cyan-brand/10 flex items-center justify-center">
-                    <PlayCircle
-                      className="text-cyan-brand/50"
-                      size={32}
-                      strokeWidth={1.5}
-                    />
-                  </div>
-                  <p className="text-gray-500 text-sm font-medium">Demo Coming Soon</p>
-                  <p className="text-gray-600 text-xs max-w-[200px] text-center">
-                    A video walkthrough of {products[hoveredIndex!].name} will be
-                    available here soon.
-                  </p>
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </ScrollReveal>
   );
