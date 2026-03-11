@@ -338,7 +338,7 @@ function CylinderCard({
 
   const rawDist = Math.abs(index - activeIndex);
   const dist = Math.min(rawDist, count - rawDist);
-  const shouldLoad = dist <= 2;
+  const shouldLoad = dist <= 4;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -409,7 +409,7 @@ function CylinderCard({
             ref={videoRef}
             src={videoSrc}
             poster={poster}
-            preload={isActive ? "auto" : dist <= 1 ? "metadata" : "none"}
+            preload={dist <= 2 ? "auto" : "metadata"}
             muted
             loop
             playsInline

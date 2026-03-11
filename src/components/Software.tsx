@@ -161,7 +161,7 @@ function MobileProductCard({
                   muted
                   playsInline
                   loop
-                  preload="metadata"
+                  preload="auto"
                   className="w-full h-full object-cover object-top rounded-lg"
                 />
               </div>
@@ -207,7 +207,7 @@ function DemoPanel({
             muted
             playsInline
             loop
-            preload="metadata"
+            preload="auto"
             className="w-full h-full object-contain bg-black rounded-2xl"
           />
         </a>
