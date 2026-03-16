@@ -17,14 +17,14 @@ import fs from 'fs';
 import path from 'path';
 
 // ── R2 Config ──
-const R2_ACCOUNT_ID = '186f898742315ca57c73b8cf3f9d6917';
+const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
 const R2_BUCKET = 'compsyncmedia';
 const s3 = new S3Client({
   region: 'auto',
   endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
   credentials: {
-    accessKeyId: 'd1d5db3249b970644b60a2ccf6f7e1b4',
-    secretAccessKey: 'a080ed4356883fd62bc677abbe080ecb18fc1092e59a41b9a4b60b323e9cac62',
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
   },
 });
 
