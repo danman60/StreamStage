@@ -116,7 +116,7 @@ function MobileProducts() {
             muted
             playsInline
             loop
-            preload="auto"
+            preload="metadata"
             className="hidden"
           />
         ) : null,
@@ -269,7 +269,7 @@ function MobileProducts() {
                           muted
                           playsInline
                           loop
-                          preload="auto"
+                          preload="metadata"
                           className="w-full aspect-video object-contain bg-black rounded-2xl"
                         />
                       </a>
@@ -372,7 +372,7 @@ function DesktopProducts() {
                     muted
                     playsInline
                     loop
-                    preload="auto"
+                    preload="metadata"
                     className="w-full h-full object-contain bg-black rounded-2xl"
                   />
                 </a>
@@ -526,7 +526,7 @@ function DesktopProducts() {
               muted
               playsInline
               loop
-              preload="auto"
+              preload="metadata"
               className="hidden"
             />
           ) : null,

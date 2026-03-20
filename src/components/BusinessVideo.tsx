@@ -48,12 +48,6 @@ const portfolioVertical: CarouselItem[] = [
     category: "Social Reel",
   },
   {
-    videoSrc: `${R2}/streamstage/sgc-reel-2.mp4`,
-    title: "No Limits, All Gains",
-    client: "SGC Fitness",
-    category: "Social Reel",
-  },
-  {
     videoSrc: `${R2}/streamstage/embro-reel-1.mp4`,
     title: "Horsepower & Heart",
     client: "Embro Tractor Pull",
@@ -66,15 +60,33 @@ const portfolioVertical: CarouselItem[] = [
     category: "Event Reel",
   },
   {
-    videoSrc: `${R2}/streamstage/embro-reel-4.mp4`,
-    title: "Full Throttle Friday",
+    videoSrc: `${R2}/streamstage/embro-reel-5.mp4`,
+    title: "Pull for the Win",
     client: "Embro Tractor Pull",
     category: "Event Reel",
   },
   {
-    videoSrc: `${R2}/streamstage/embro-reel-5.mp4`,
-    title: "Pull for the Win",
-    client: "Embro Tractor Pull",
+    videoSrc: `${R2}/streamstage/realty-podcast-reel.mp4`,
+    title: "Behind the Listing",
+    client: "Realty Firm Podcast",
+    category: "Social Reel",
+  },
+  {
+    videoSrc: `${R2}/streamstage/suremesur-measurements.mp4`,
+    title: "Measure Twice, Cut Never",
+    client: "Suremesur",
+    category: "Brand",
+  },
+  {
+    videoSrc: `${R2}/streamstage/cnoy-2024.mp4`,
+    title: "Coldest Night of the Year",
+    client: "United Way",
+    category: "Event Reel",
+  },
+  {
+    videoSrc: `${R2}/streamstage/racing-xp.mp4`,
+    title: "Full Speed Ahead",
+    client: "Racing XP",
     category: "Event Reel",
   },
 ];
@@ -93,12 +105,6 @@ const portfolioHorizontal: CarouselItem[] = [
     category: "Event",
   },
   {
-    videoSrc: `${R2}/streamstage/csod-1min.mp4`,
-    title: "One Minute, One Studio",
-    client: "Caledonia Dance",
-    category: "Promo",
-  },
-  {
     videoSrc: `${R2}/streamstage/burger-battle.mp4`,
     title: "Burger Battle Showdown",
     client: "United Way Oxford",
@@ -109,6 +115,36 @@ const portfolioHorizontal: CarouselItem[] = [
     title: "Local Love Stories",
     client: "United Way Oxford",
     category: "Campaign",
+  },
+  {
+    videoSrc: `${R2}/streamstage/timberland-cable-scrapper.mp4`,
+    title: "Cable Scrapper",
+    client: "Timberland",
+    category: "Product",
+  },
+  {
+    videoSrc: `${R2}/streamstage/trevino-aloha-30s.mp4`,
+    title: "Aloha in 30 Seconds",
+    client: "Trevino",
+    category: "Commercial",
+  },
+  {
+    videoSrc: `${R2}/streamstage/jcs-tw-final.mp4`,
+    title: "Jesus Christ Superstar",
+    client: "Theatre Woodstock",
+    category: "Show Film",
+  },
+  {
+    videoSrc: `${R2}/streamstage/dolly-promo.mp4`,
+    title: "Backwoods Barbie Takes the Stage",
+    client: "Backwoods Barbie",
+    category: "Promo",
+  },
+  {
+    videoSrc: `${R2}/streamstage/hfn-2025.mp4`,
+    title: "Hope for Nicole 2025",
+    client: "HFN",
+    category: "Event Film",
   },
 ];
 

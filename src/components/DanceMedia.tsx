@@ -97,12 +97,6 @@ const portfolioVertical: CarouselItem[] = [
     category: "Recital Highlight",
   },
   {
-    videoSrc: `${R2}/streamstage/lds-show-ab.mp4`,
-    title: "Double Feature, Double Energy",
-    client: "Lindsay Dance Studio",
-    category: "Recital Highlight",
-  },
-  {
     videoSrc: `${R2}/streamstage/jj-showcase-hilite.mp4`,
     title: "Showcase Showstopper",
     client: "JJ Dance Arts",
@@ -111,12 +105,6 @@ const portfolioVertical: CarouselItem[] = [
 ];
 
 const portfolioHorizontal: CarouselItem[] = [
-  {
-    videoSrc: `${R2}/streamstage/trevino-aloha-30s.mp4`,
-    title: "Aloha in 30 Seconds",
-    client: "Trevino",
-    category: "Commercial",
-  },
   {
     videoSrc: `${R2}/streamstage/udc-synergy.mp4`,
     title: "Synergy in Motion",
@@ -130,27 +118,9 @@ const portfolioHorizontal: CarouselItem[] = [
     category: "Promo",
   },
   {
-    videoSrc: `${R2}/streamstage/bruno-epk.mp4`,
-    title: "Bruno: Behind the Curtain",
-    client: "Bruno",
-    category: "EPK",
-  },
-  {
-    videoSrc: `${R2}/streamstage/jcs-tw-final.mp4`,
-    title: "Jesus Christ Superstar",
-    client: "Theatre Woodstock",
-    category: "Show Film",
-  },
-  {
-    videoSrc: `${R2}/streamstage/jcs-trailer.mp4`,
-    title: "Superstar — The Trailer",
-    client: "Theatre Woodstock",
-    category: "Trailer",
-  },
-  {
-    videoSrc: `${R2}/streamstage/dolly-promo.mp4`,
-    title: "Backwoods Barbie Takes the Stage",
-    client: "Backwoods Barbie",
+    videoSrc: `${R2}/streamstage/csod-1min.mp4`,
+    title: "One Minute, One Studio",
+    client: "Caledonia Dance",
     category: "Promo",
   },
   {
@@ -164,12 +134,6 @@ const portfolioHorizontal: CarouselItem[] = [
     title: "Where Stars Dance Young",
     client: "WSDY",
     category: "Showcase",
-  },
-  {
-    videoSrc: `${R2}/streamstage/hfn-2025.mp4`,
-    title: "Hope for Nicole 2025",
-    client: "HFN",
-    category: "Event Film",
   },
 ];
 
