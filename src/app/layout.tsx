@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Outfit, DM_Sans } from "next/font/google";
 import "./globals.css";
+
+const GA_ID = "G-5VM40W2G4Q";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -88,6 +91,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en-CA" className={`${outfit.variable} ${dmSans.variable}`}>
+      <head>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`}
+        </Script>
+      </head>
       <body className="font-body antialiased">
         {/* Fixed fullscreen background video */}
         <div className="fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
