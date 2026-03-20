@@ -126,9 +126,102 @@ const testimonials = [
   },
 ];
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Service",
+      name: "Dance Recital Media Services",
+      provider: { "@id": "https://streamstage.live/#organization" },
+      description:
+        "Professional multi-camera video, livestreaming, and photography for dance recitals. Transparent per-dancer pricing. Studio keeps 100% of the revenue.",
+      serviceType: "Video Production",
+      areaServed: { "@type": "Country", name: "Canada" },
+      url: "https://streamstage.live/dance",
+      hasOfferCatalog: {
+        "@type": "OfferCatalog",
+        name: "Recital Media Packages",
+        itemListElement: [
+          {
+            "@type": "Offer",
+            name: "Small Recital (1–100 dancers)",
+            priceSpecification: {
+              "@type": "UnitPriceSpecification",
+              price: "25",
+              priceCurrency: "CAD",
+              unitText: "per dancer",
+              description: "Video only. Bundle all 3 for $35/dancer.",
+            },
+          },
+          {
+            "@type": "Offer",
+            name: "Medium Recital (101–150 dancers)",
+            priceSpecification: {
+              "@type": "UnitPriceSpecification",
+              price: "25",
+              priceCurrency: "CAD",
+              unitText: "per dancer",
+              description: "Video only. Bundle all 3 for $30/dancer.",
+            },
+          },
+          {
+            "@type": "Offer",
+            name: "Large Recital (151+ dancers)",
+            priceSpecification: {
+              "@type": "UnitPriceSpecification",
+              price: "18",
+              priceCurrency: "CAD",
+              unitText: "per dancer",
+              description: "Video only. Bundle all 3 for $22/dancer.",
+            },
+          },
+        ],
+      },
+    },
+    {
+      "@type": "Service",
+      name: "Dance Studio Promotional Videos",
+      provider: { "@id": "https://streamstage.live/#organization" },
+      description:
+        "Cinematic promos, brand stories, and social media content for dance studios. Enrollment campaigns, season announcements, and behind-the-scenes content.",
+      serviceType: "Video Production",
+      areaServed: { "@type": "Country", name: "Canada" },
+      url: "https://streamstage.live/dancepromo",
+    },
+    {
+      "@type": "Review",
+      author: { "@type": "Person", name: "Kiri Lyn Muir" },
+      reviewBody:
+        "Daniel and StreamStage reinvented the dance competition video model. Multi camera angles, backstage glimpses, tight close ups, and crisp graphics give teachers, dancers, and parents a high quality twist on recital media.",
+      itemReviewed: {
+        "@type": "Service",
+        name: "Dance Recital Media Services",
+        provider: { "@id": "https://streamstage.live/#organization" },
+      },
+      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
+    },
+    {
+      "@type": "Review",
+      author: { "@type": "Person", name: "Lainy Zimmer" },
+      reviewBody:
+        "Working with StreamStage was a dream. Dan and Kayla understood the dance world, and the content showcased our brand and studio values beautifully.",
+      itemReviewed: {
+        "@type": "Service",
+        name: "Dance Studio Promotional Videos",
+        provider: { "@id": "https://streamstage.live/#organization" },
+      },
+      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
+    },
+  ],
+};
+
 export default function DancePage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <RecitalNav ctaHref="/dancerecital" ctaLabel="Build Your Proposal" />
       <main className="min-h-screen">
         {/* ───── Hero ───── */}

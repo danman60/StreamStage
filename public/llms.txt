@@ -9,8 +9,22 @@ StreamStage provides professional livestreaming, videography, and video producti
 ### Dance & Stage Media
 - Multi-camera livestreaming for competitions, recitals, and showcases
 - Videography and editing (highlight reels, performance archives, promotional content)
-- Cinematic promotional videos
+- Cinematic promotional videos for dance studios
 - Short-form social content (Instagram, TikTok, YouTube)
+
+### Recital Media
+- Professional multi-camera recital recording with 1-week turnaround
+- Live streaming for remote families with unlimited viewers
+- Professional photography (10-15 stills per routine)
+- Transparent per-dancer pricing — studio keeps 100% of revenue
+- Interactive proposal builder at /dancerecital
+
+### Dance Studio Promos
+- Gimbal-operated movement cameras for dynamic b-roll
+- Interview setups with professional lighting and audio
+- 30-second social reels, 1-minute brand stories, 10-second teasers
+- Volume discounts up to 20%
+- Interactive package builder at /dancepromo
 
 ### Business Video
 - Hybrid event production (live + virtual)
@@ -44,8 +58,13 @@ StreamStage provides professional livestreaming, videography, and video producti
 Ontario, Canada (serving clients across Canada)
 
 ## Links
-- [Dance & Stage Media](https://streamstage.live/#dance-media): Multi-camera livestreaming, videography, and promotional content for dance events
-- [Dance Software](https://streamstage.live/#software): CompSync, StudioSage, and StudioBeat — purpose-built tools for dance studios and competitions
-- [CompSync](https://compsync.net): Free dance competition management platform — registration, scheduling, scoring, livestream integration
-- [Business Video](https://streamstage.live/#business-video): Professional video production for businesses — hybrid events, social content, promos
+- [Home](https://streamstage.live): Full-service dance media, business video, and software
+- [Dance Media Services](https://streamstage.live/dance): Recital coverage, promotional videos, and social content for dance studios
+- [Recital Proposal Builder](https://streamstage.live/dancerecital): Build a custom recital media proposal with transparent per-dancer pricing
+- [Promo Package Builder](https://streamstage.live/dancepromo): Build a custom promo video package for your dance studio
+- [Blog](https://streamstage.live/blog): Tips, guides, and insights for dance studios and performing arts professionals
+- [Dance & Stage Media](https://streamstage.live/#dance-media): Multi-camera livestreaming, videography, and promotional content
+- [Dance Software](https://streamstage.live/#software): CompSync, StudioSage, and StudioBeat
+- [CompSync](https://compsync.net): Free dance competition management platform
+- [Business Video](https://streamstage.live/#business-video): Professional video production for businesses
 - [Contact](https://streamstage.live/#contact): Get in touch with StreamStage

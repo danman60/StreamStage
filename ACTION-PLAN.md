@@ -1,105 +1,82 @@
 # SEO Action Plan — StreamStage
 
-**Date:** 2026-03-09
-**Current Score: 79/100 (Good)**
+**Date:** 2026-03-20
+**Current Score: 62/100**
 **Target Score: 85+/100**
 
 ---
 
-## Quick Wins (High Impact, Low Effort)
+## Critical — Fix Before Cutover
 
-### 1. Add links to llms.txt
-**Impact:** AI search discoverability | **Effort:** 5 min | **Priority:** P1
+### 1. Add metadata to `/dancerecital` and `/dancepromo`
+**Impact:** High | **Effort:** Low (15 min)
+Create `layout.tsx` files with metadata exports in each directory.
 
-Add key page/section links to `public/llms.txt`:
-```
-## Links
-- [Dance & Stage Media](https://streamstage.live/#dance-media): Multi-camera livestreaming, videography, and promotional content for dance events
-- [Dance Software](https://streamstage.live/#software): CompSync, StudioSage, and StudioBeat
-- [CompSync](https://compsync.net): Free dance competition management software
-- [Business Video](https://streamstage.live/#business-video): Professional video production for businesses
-- [Contact](https://streamstage.live/#contact): Get in touch with StreamStage
-```
+### 2. Add schema markup to `/dance`, `/dancerecital`, `/dancepromo`
+**Impact:** High | **Effort:** Medium (30 min)
+Service + AggregateOffer + Review JSON-LD on each page.
 
-### 2. Add twitter:site meta tag
-**Impact:** Social attribution | **Effort:** 2 min | **Priority:** P3
+### 3. Update `llms.txt` with new pages
+**Impact:** Medium | **Effort:** Low (5 min)
+Add /dance, /dancerecital, /dancepromo, /blog links.
 
-If StreamStage has an X/Twitter handle, add to the metadata in `layout.tsx`:
-```tsx
-twitter: {
-  site: '@streamstage',
-  creator: '@streamstage',
-}
-```
+### 4. Create `/privacy-policy` page
+**Impact:** Medium | **Effort:** Low (15 min)
+Basic privacy policy. Link from footer.
+
+### 5. Create custom 404 page
+**Impact:** Medium | **Effort:** Low (10 min)
+Branded not-found.tsx with links to homepage, /dance, /blog.
 
 ---
 
-## Strategic (High Impact, Higher Effort)
+## High — Fix Within First Week
 
-### 3. Add Content-Security-Policy header
-**Impact:** Security trust signal | **Effort:** 30 min | **Priority:** P2
+### 6. Add GA4 tracking
+**Impact:** High | **Effort:** Low (10 min)
+Awaiting measurement ID. Add to layout.tsx with conversion events for proposal submissions.
 
-Add CSP to `next.config.ts` security headers. Start with report-only mode:
-```
-Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https:;
-```
+### 7. Fix internal linking: blog → conversion pages
+**Impact:** High | **Effort:** Medium (30 min)
+Add contextual links from relevant blog posts to /dance, /dancerecital, /dancepromo.
 
-Note: CSP can break functionality if too restrictive. Test thoroughly before enforcing.
+### 8. Update footer for sub-page navigation
+**Impact:** Medium | **Effort:** Low (15 min)
+Add /dance and /blog as proper links. Fix hash links to use `/#section` format.
 
-### 4. Improve content readability
-**Impact:** User engagement, dwell time | **Effort:** 1-2 hours | **Priority:** P3
-
-Current Flesch score: 38.3 (Very Difficult). Target: 50+ (Fairly Difficult).
-- Shorten sentences over 20 words
-- Replace multi-syllable words where simpler alternatives exist
-- Break up long descriptive paragraphs
-- Low priority — service sites naturally have technical vocabulary
-
-### 5. Run Core Web Vitals audit
-**Impact:** Performance ranking signal | **Effort:** 15 min | **Priority:** P2
-
-PageSpeed API was rate-limited. Re-run later:
-```bash
-python3 ~/.claude/skills/seo/scripts/pagespeed.py https://stream-stage-kappa.vercel.app/ --strategy mobile
-```
-Or use Chrome DevTools > Lighthouse > Performance.
-
-### 6. Create llms-full.txt
-**Impact:** Extended AI search optimization | **Effort:** 20 min | **Priority:** P3
-
-Create `public/llms-full.txt` with comprehensive service descriptions, pricing info, and detailed FAQ answers for AI engines.
+### 9. Investigate Vercel security headers
+**Impact:** Low | **Effort:** Medium (20 min)
+Verify CSP, Referrer-Policy, Permissions-Policy, X-Content-Type-Options are being served. May need vercel.json.
 
 ---
 
-## Maintenance (Lower Priority)
+## Medium — Within First Month
 
-### 7. Verify sitemap after domain migration
-**Effort:** 5 min | **Priority:** When domain is pointed to Vercel
+### 10. Write targeted blog posts
+**Impact:** High | **Effort:** High (2-3 hours per post)
+Topics: "How to Choose a Recital Videographer", "Why Livestream Your Recital", "Dance Studio Promo Video Guide"
+Internal links to /dancerecital and /dancepromo.
 
-robots.txt references `https://streamstage.live/sitemap.xml`. Ensure this resolves after DNS migration.
+### 11. Core Web Vitals audit (post-cutover)
+**Impact:** Medium | **Effort:** Low (15 min)
+Run PageSpeed Insights on all pages after DNS cutover. Fix any issues.
 
-### 8. Add PriceSpecification to software schemas
-**Effort:** 10 min | **Priority:** P4
-
-StudioSage and StudioBeat SoftwareApplication schemas lack pricing info. Add `offers` with pricing when pricing is finalized.
+### 12. Add breadcrumbs to sub-pages
+**Impact:** Low | **Effort:** Low (15 min)
+Breadcrumb schema + visual breadcrumbs on /dance, /dancerecital, /dancepromo.
 
 ---
 
-## Completed (No Action Needed)
+## Estimated Score Impact
 
-- [x] Title tag optimized (46 chars)
-- [x] Meta description optimized (156 chars)
-- [x] Canonical URL set
-- [x] robots.txt with AI crawler management (11 bots)
-- [x] JSON-LD structured data (7 types)
-- [x] Open Graph tags (7/7)
-- [x] Twitter Card tags (4/6)
-- [x] Image alt text on all images
-- [x] Lazy loading on below-fold images
-- [x] HSTS with preload
-- [x] Security headers (5/6)
-- [x] llms.txt present
-- [x] FAQ section (no restricted FAQPage schema)
-- [x] Proper heading hierarchy
-- [x] lang="en-CA" set
-- [x] Googlebot max preview directives
+| Fix | Score Gain |
+|-----|-----------|
+| #1 Metadata on proposal pages | +8 |
+| #2 Schema markup on new pages | +10 |
+| #3 Update llms.txt | +2 |
+| #4 Privacy policy | +2 |
+| #5 Custom 404 | +1 |
+| #6 GA4 tracking | +0 (not scored, but essential) |
+| #7 Internal linking | +5 |
+| #8 Footer nav | +2 |
+| **Total potential** | **~92/100** |

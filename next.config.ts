@@ -41,7 +41,7 @@ const nextConfig: NextConfig = {
       { source: "/media-homepage-template", destination: "/", permanent: true },
       { source: "/live-page-template-1", destination: "/", permanent: true },
       { source: "/store", destination: "/#contact", permanent: false },
-      { source: "/privacy-policy", destination: "/", permanent: false },
+      // /privacy-policy now has its own page — no redirect needed
       // Old /recitals path (if anyone bookmarked during brief period it was live)
       { source: "/recitals", destination: "/dance", permanent: true },
       { source: "/recitals/proposal", destination: "/dancerecital", permanent: true },
