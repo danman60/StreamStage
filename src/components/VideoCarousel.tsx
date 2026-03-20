@@ -100,7 +100,7 @@ export default function VideoCarousel({
     // Use minimum effective item count so carousels with fewer items
     // have the same visual spread as larger ones
     const minVertical = 10;
-    const minHorizontal = 8;
+    const minHorizontal = 5;
     if (isVertical) {
       const effective = Math.max(count, minVertical);
       const r = Math.max((effective * (cw + gap)) / (2 * Math.PI), cw * 0.8);

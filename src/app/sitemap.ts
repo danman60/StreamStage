@@ -17,13 +17,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: "https://streamstage.live/recitals",
+      url: "https://streamstage.live/dance",
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.9,
     },
     {
-      url: "https://streamstage.live/recitals/proposal",
+      url: "https://streamstage.live/dance/proposal",
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,

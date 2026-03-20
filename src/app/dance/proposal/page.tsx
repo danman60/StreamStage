@@ -237,14 +237,14 @@ export default function RecitalProposal() {
 
   return (
     <>
-      <RecitalNav ctaHref="/recitals" ctaLabel="Overview" />
+      <RecitalNav ctaHref="/dance" ctaLabel="Overview" />
 
       <main className="min-h-screen pt-24 pb-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           {/* ── Header ── */}
           <section className="mb-12">
             <Link
-              href="/recitals"
+              href="/dance"
               className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-cyan-brand transition-colors mb-6"
             >
               <ArrowLeft size={16} /> Recital Overview
@@ -640,7 +640,7 @@ export default function RecitalProposal() {
                   </p>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <Link
-                      href="/recitals"
+                      href="/dance"
                       className="text-sm text-cyan-brand hover:underline"
                     >
                       View recital services

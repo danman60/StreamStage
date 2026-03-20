@@ -180,7 +180,7 @@ export async function POST(request: Request) {
     }
 
     await transporter.sendMail({
-      from: `"StreamStage" <claude@compsync.net>`,
+      from: `"StreamStage" <bot@compsync.net>`,
       to: "danieljohnabrahamson@gmail.com",
       replyTo: email,
       subject: `New inquiry from ${name}${projectType ? ` — ${projectType}` : ""}`,
@@ -189,7 +189,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Contact form error:", error);
+    console.error("Contact form error:", error instanceof Error ? error.message : error);
     return NextResponse.json(
       { error: "Failed to send message. Please try again." },
       { status: 500 }

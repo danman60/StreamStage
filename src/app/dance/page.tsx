@@ -1,24 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Video, Radio, Camera, ArrowRight, ArrowDown, Quote } from "lucide-react";
+import { Video, Radio, Camera, Film, Share2, ArrowRight, ArrowDown, Quote } from "lucide-react";
 import RecitalNav from "@/components/RecitalNav";
 import ScrollReveal from "@/components/ScrollReveal";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Recital Media — Professional Video, Streaming & Photography | StreamStage",
+  title: "Dance Media Services — Recitals, Promos & Social Content | StreamStage",
   description:
-    "Professional multi-camera video, livestreaming, and photography for your dance recital. Transparent per-dancer pricing. You keep 100% of the revenue. Ontario, Canada.",
-  alternates: { canonical: "/recitals" },
+    "Professional multi-camera recital video, livestreaming, photography, promotional videos, and social content for dance studios. Transparent per-dancer pricing. You keep 100% of the revenue. Ontario, Canada.",
+  alternates: { canonical: "/dance" },
   openGraph: {
-    title: "Dance Recital Media Services | StreamStage",
+    title: "Dance Media Services | StreamStage",
     description:
-      "Multi-camera video, livestreaming, and photography for dance recitals. You keep all the revenue.",
-    url: "https://streamstage.live/recitals",
+      "Recital media, promotional videos, and social content for dance studios. You keep all the revenue.",
+    url: "https://streamstage.live/dance",
   },
 };
 
-const services = [
+const recitalServices = [
   {
     icon: Video,
     title: "Video",
@@ -50,6 +50,33 @@ const services = [
       "Professional editing & colour correction",
       "Digital download delivery",
       "High-resolution images for printing",
+    ],
+  },
+];
+
+const promoServices = [
+  {
+    icon: Film,
+    title: "Promotional Videos",
+    description:
+      "Cinematic promos that capture the energy of your studio, company, or production. Perfect for your website, enrollment campaigns, and open house events.",
+    features: [
+      "Studio & brand promos",
+      "Enrollment campaign videos",
+      "Season announcement reels",
+      "Open house & event teasers",
+    ],
+  },
+  {
+    icon: Share2,
+    title: "Social Content",
+    description:
+      "Short-form, platform-optimized content built to drive engagement and enrollment. Delivered ready to post.",
+    features: [
+      "Instagram Reels & Stories",
+      "TikTok & YouTube Shorts",
+      "Routine & rehearsal highlights",
+      "Behind-the-scenes content",
     ],
   },
 ];
@@ -99,41 +126,46 @@ const testimonials = [
   },
 ];
 
-export default function RecitalsPage() {
+export default function DancePage() {
   return (
     <>
-      <RecitalNav />
+      <RecitalNav ctaHref="/dance/proposal" ctaLabel="Build Your Proposal" />
       <main className="min-h-screen">
         {/* ───── Hero ───── */}
         <section className="pt-32 sm:pt-40 pb-20 sm:pb-28 text-center px-4 sm:px-6">
           <div className="max-w-3xl mx-auto">
             <ScrollReveal>
               <span className="inline-block text-cyan-brand text-sm font-semibold tracking-widest uppercase mb-4">
-                Recital Media Services
+                Dance Media Services
               </span>
             </ScrollReveal>
             <ScrollReveal delay={0.05}>
               <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
-                Give Every Dancer Their Moment
+                Your Performance, Elevated
               </h1>
             </ScrollReveal>
             <ScrollReveal delay={0.1}>
               <p className="text-lg sm:text-xl text-gray-400 leading-relaxed mb-10 max-w-2xl mx-auto">
-                Professional multi-camera video, livestreaming, and photography
-                for your dance recital. We handle the media&nbsp;&mdash; you keep
-                the revenue.
+                From recital day coverage to year-round promo content, we help
+                dance studios look incredible on every screen.
               </p>
             </ScrollReveal>
             <ScrollReveal delay={0.15}>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a
-                  href="#pricing"
+                  href="#recitals"
                   className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-lg border border-cyan-brand/30 text-cyan-brand hover:bg-cyan-brand/10 transition-all duration-200"
                 >
-                  See Pricing <ArrowDown size={16} />
+                  Recital Media <ArrowDown size={16} />
+                </a>
+                <a
+                  href="#promos"
+                  className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-lg border border-white/10 text-gray-300 hover:bg-white/5 transition-all duration-200"
+                >
+                  Promos & Social <ArrowDown size={16} />
                 </a>
                 <Link
-                  href="/recitals/proposal"
+                  href="/dance/proposal"
                   className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-lg bg-cyan-brand text-charcoal-deep hover:bg-cyan-brand/90 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-brand/20"
                 >
                   Build Your Proposal <ArrowRight size={16} />
@@ -165,22 +197,26 @@ export default function RecitalsPage() {
 
         <div className="section-divider max-w-4xl mx-auto" />
 
-        {/* ───── Services ───── */}
-        <section className="py-20 px-4 sm:px-6">
+        {/* ───── Recital Services ───── */}
+        <section id="recitals" className="py-20 px-4 sm:px-6 scroll-mt-24">
           <div className="max-w-6xl mx-auto">
             <ScrollReveal>
               <div className="text-center mb-14">
                 <span className="inline-block text-cyan-brand text-sm font-semibold tracking-widest uppercase mb-3">
-                  What You Get
+                  Recital Media
                 </span>
-                <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white">
+                <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-3">
                   Complete Recital Coverage
                 </h2>
+                <p className="text-gray-400 max-w-2xl mx-auto">
+                  Everything your recital needs&nbsp;&mdash; multi-camera video,
+                  livestreaming for remote families, and professional photography.
+                </p>
               </div>
             </ScrollReveal>
 
             <div className="grid md:grid-cols-3 gap-6">
-              {services.map((svc, i) => (
+              {recitalServices.map((svc, i) => (
                 <ScrollReveal key={svc.title} delay={i * 0.1}>
                   <div className="p-6 rounded-xl bg-charcoal-dark/60 border border-white/5 h-full">
                     <div className="w-12 h-12 rounded-lg bg-cyan-brand/10 flex items-center justify-center mb-4">
@@ -283,6 +319,79 @@ export default function RecitalsPage() {
 
         <div className="section-divider max-w-4xl mx-auto" />
 
+        {/* ───── Promos & Social ───── */}
+        <section id="promos" className="py-20 px-4 sm:px-6 scroll-mt-24">
+          <div className="max-w-5xl mx-auto">
+            <ScrollReveal>
+              <div className="text-center mb-14">
+                <span className="inline-block text-cyan-brand text-sm font-semibold tracking-widest uppercase mb-3">
+                  Year-Round Content
+                </span>
+                <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-3">
+                  Promos & Social Content
+                </h2>
+                <p className="text-gray-400 max-w-2xl mx-auto">
+                  Your studio deserves content that works as hard as you do.
+                  Promotional videos and social media content that drive
+                  enrollment and showcase your brand.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {promoServices.map((svc, i) => (
+                <ScrollReveal key={svc.title} delay={i * 0.1}>
+                  <div className="p-6 sm:p-8 rounded-xl bg-charcoal-dark/60 border border-white/5 h-full">
+                    <div className="w-12 h-12 rounded-lg bg-cyan-brand/10 flex items-center justify-center mb-4">
+                      <svc.icon
+                        className="text-cyan-brand"
+                        size={24}
+                        strokeWidth={1.5}
+                      />
+                    </div>
+                    <h3 className="font-heading text-lg font-semibold text-white mb-2">
+                      {svc.title}
+                    </h3>
+                    <p className="text-sm text-gray-400 mb-4 leading-relaxed">
+                      {svc.description}
+                    </p>
+                    <ul className="space-y-2">
+                      {svc.features.map((f) => (
+                        <li
+                          key={f}
+                          className="flex items-start gap-2 text-sm text-gray-400"
+                        >
+                          <span className="text-cyan-brand mt-0.5 shrink-0">
+                            &#10003;
+                          </span>
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+
+            <ScrollReveal delay={0.2}>
+              <div className="text-center mt-10">
+                <a
+                  href="/#contact"
+                  className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-lg border border-cyan-brand/30 text-cyan-brand hover:bg-cyan-brand/10 transition-all duration-200"
+                >
+                  Get a Custom Quote <ArrowRight size={16} />
+                </a>
+                <p className="text-xs text-gray-500 mt-3">
+                  Promo and social content projects are quoted individually based
+                  on scope.
+                </p>
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+
+        <div className="section-divider max-w-4xl mx-auto" />
+
         {/* ───── Testimonials ───── */}
         <section className="py-20 px-4 sm:px-6">
           <div className="max-w-5xl mx-auto">
@@ -323,7 +432,7 @@ export default function RecitalsPage() {
             <ScrollReveal>
               <div className="text-center mb-14">
                 <span className="inline-block text-cyan-brand text-sm font-semibold tracking-widest uppercase mb-3">
-                  Transparent Pricing
+                  Recital Pricing
                 </span>
                 <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-4">
                   Simple Per-Dancer Pricing
@@ -398,13 +507,20 @@ export default function RecitalsPage() {
                 it&rsquo;s gone.
               </p>
               <Link
-                href="/recitals/proposal"
+                href="/dance/proposal"
                 className="inline-flex items-center gap-2 px-8 py-4 text-base font-semibold rounded-lg bg-cyan-brand text-charcoal-deep hover:bg-cyan-brand/90 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-brand/20"
               >
                 Build Your Custom Proposal <ArrowRight size={18} />
               </Link>
               <p className="text-sm text-gray-500 mt-6">
-                Questions?{" "}
+                For promo and social content,{" "}
+                <a
+                  href="/#contact"
+                  className="text-cyan-brand hover:underline"
+                >
+                  reach out for a custom quote
+                </a>
+                . Questions?{" "}
                 <a
                   href="mailto:daniel@streamstage.live"
                   className="text-cyan-brand hover:underline"

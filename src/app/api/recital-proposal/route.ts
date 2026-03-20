@@ -152,7 +152,7 @@ function buildHtml(d: ProposalData) {
 
         <!-- Footer -->
         <tr><td style="padding:16px 40px 20px;border-top:1px solid #1A1A1A;">
-          <p style="margin:0;font-size:12px;color:#555;">Submitted from streamstage.live/recitals/proposal</p>
+          <p style="margin:0;font-size:12px;color:#555;">Submitted from streamstage.live/dance/proposal</p>
         </td></tr>
 
       </table>

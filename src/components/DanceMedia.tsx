@@ -2,7 +2,8 @@
 
 import ScrollReveal from "./ScrollReveal";
 import VideoCarousel, { type CarouselItem } from "./VideoCarousel";
-import { Radio, Film, Share2, Video } from "lucide-react";
+import { Radio, Film, Share2, Video, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { BorderBeam } from "./magicui/border-beam";
 import { TextAnimate } from "./magicui/text-animate";
 
@@ -166,6 +167,14 @@ export default function DanceMedia() {
           >
             {"From multi-camera livestreams to cinematic highlight reels, we bring the stage to every screen."}
           </TextAnimate>
+          <ScrollReveal delay={0.3}>
+            <Link
+              href="/dance"
+              className="inline-flex items-center gap-2 mt-6 px-6 py-3 text-sm font-semibold rounded-lg border border-cyan-brand/30 text-cyan-brand hover:bg-cyan-brand/10 transition-all duration-200"
+            >
+              Explore Our Dance Services <ArrowRight size={16} />
+            </Link>
+          </ScrollReveal>
         </div>
 
         {/* Services grid */}
