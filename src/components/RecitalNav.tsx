@@ -10,7 +10,7 @@ interface RecitalNavProps {
 
 export default function RecitalNav({
   ctaLabel = "Build Your Proposal",
-  ctaHref = "/dance/proposal",
+  ctaHref = "/dancerecital",
 }: RecitalNavProps) {
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 bg-charcoal-deep/80 backdrop-blur-xl border-b border-white/5">

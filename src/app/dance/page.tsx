@@ -129,7 +129,7 @@ const testimonials = [
 export default function DancePage() {
   return (
     <>
-      <RecitalNav ctaHref="/dance/proposal" ctaLabel="Build Your Proposal" />
+      <RecitalNav ctaHref="/dancerecital" ctaLabel="Build Your Proposal" />
       <main className="min-h-screen">
         {/* ───── Hero ───── */}
         <section className="pt-32 sm:pt-40 pb-20 sm:pb-28 text-center px-4 sm:px-6">
@@ -165,7 +165,7 @@ export default function DancePage() {
                   Promos & Social <ArrowDown size={16} />
                 </a>
                 <Link
-                  href="/dance/proposal"
+                  href="/dancerecital"
                   className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-lg bg-cyan-brand text-charcoal-deep hover:bg-cyan-brand/90 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-brand/20"
                 >
                   Build Your Proposal <ArrowRight size={16} />
@@ -375,15 +375,15 @@ export default function DancePage() {
 
             <ScrollReveal delay={0.2}>
               <div className="text-center mt-10">
-                <a
-                  href="/#contact"
-                  className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-lg border border-cyan-brand/30 text-cyan-brand hover:bg-cyan-brand/10 transition-all duration-200"
+                <Link
+                  href="/dancepromo"
+                  className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-lg bg-cyan-brand text-charcoal-deep hover:bg-cyan-brand/90 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-brand/20"
                 >
-                  Get a Custom Quote <ArrowRight size={16} />
-                </a>
+                  Build Your Promo Package <ArrowRight size={16} />
+                </Link>
                 <p className="text-xs text-gray-500 mt-3">
-                  Promo and social content projects are quoted individually based
-                  on scope.
+                  Select production elements and deliverables. Dynamic pricing
+                  with automatic volume discounts.
                 </p>
               </div>
             </ScrollReveal>
@@ -500,27 +500,28 @@ export default function DancePage() {
           <div className="max-w-2xl mx-auto">
             <ScrollReveal>
               <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mb-4">
-                Ready to Book Your Recital?
+                Ready to Get Started?
               </h2>
               <p className="text-gray-400 mb-8">
-                Peak recital season fills quickly. Secure your date before
-                it&rsquo;s gone.
+                Peak recital season fills quickly, and promo shoots book
+                weeks in advance. Secure your spot.
               </p>
-              <Link
-                href="/dance/proposal"
-                className="inline-flex items-center gap-2 px-8 py-4 text-base font-semibold rounded-lg bg-cyan-brand text-charcoal-deep hover:bg-cyan-brand/90 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-brand/20"
-              >
-                Build Your Custom Proposal <ArrowRight size={18} />
-              </Link>
-              <p className="text-sm text-gray-500 mt-6">
-                For promo and social content,{" "}
-                <a
-                  href="/#contact"
-                  className="text-cyan-brand hover:underline"
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+                <Link
+                  href="/dancerecital"
+                  className="inline-flex items-center gap-2 px-8 py-4 text-base font-semibold rounded-lg bg-cyan-brand text-charcoal-deep hover:bg-cyan-brand/90 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-brand/20"
                 >
-                  reach out for a custom quote
-                </a>
-                . Questions?{" "}
+                  Book Your Recital <ArrowRight size={18} />
+                </Link>
+                <Link
+                  href="/dancepromo"
+                  className="inline-flex items-center gap-2 px-8 py-4 text-base font-semibold rounded-lg border border-cyan-brand/30 text-cyan-brand hover:bg-cyan-brand/10 transition-all duration-200"
+                >
+                  Build a Promo Package <ArrowRight size={18} />
+                </Link>
+              </div>
+              <p className="text-sm text-gray-500">
+                Questions?{" "}
                 <a
                   href="mailto:daniel@streamstage.live"
                   className="text-cyan-brand hover:underline"

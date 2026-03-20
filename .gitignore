@@ -25,3 +25,7 @@ npm-debug.log*
 *.tsbuildinfo
 next-env.d.ts
 .env.local
+
+# Playwright CLI artifacts
+.playwright-cli/
+public/.playwright-cli/
