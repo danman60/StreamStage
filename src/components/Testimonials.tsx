@@ -7,39 +7,51 @@ import { Quote } from "lucide-react";
 const testimonials = [
   {
     quote:
-      "StreamStage captured the magic of our show in a way that truly honored the performers and the music.",
+      "Daniel and StreamStage reinvented the dance competition video model. Multiple camera angles, backstage glimpses, tight close ups, and crisp graphics give teachers, dancers, and parents a high quality twist.",
+    name: "Kiri-Lyn Muir",
+    role: "Director, Ultimate Dance Connection",
+  },
+  {
+    quote:
+      "Working with Kayla and Dan was a dream. Their artistic eyes capture the creative nuances and performance that audience members would receive if they were seeing the show live. Hands down the best experience we've ever had with a videographer.",
+    name: "Christina Canella",
+    role: "Founder, Artistic Movement Dance Studio",
+  },
+  {
+    quote:
+      "Working with Stream Stage was a very enjoyable experience. They are great communicators, highly skilled at audio and video production, and deliver on deadline.",
     name: "Amy Sky",
     role: "Juno-nominated Singer-Songwriter & Performer",
   },
   {
     quote:
-      "Daniel and the team at Stream Stage have been remarkable collaborators, hence us going back to them again and again.",
+      "Daniel and the team have been remarkable collaborators, hence us going back to them again and again. Warmth, genuine enthusiasm and a spirit of innovation paired with top notch professionalism.",
     name: "Andrea Donaldson",
-    role: "Artistic Director, Nightwood Theatre (Toronto)",
+    role: "Artistic Director, Nightwood Theatre",
   },
   {
     quote:
-      "Our families love being able to watch the performances live. The quality is outstanding every time.",
+      "StreamStage captured our show beautifully. They were prepared, organized, and had a keen eye and attention to detail! Our families will treasure it for years to come.",
     name: "Andrew Tribe",
-    role: "Director, Original Kids Theatre Company (London, ON)",
+    role: "Artistic Director, Original Kids Theatre Company",
   },
   {
     quote:
-      "Wow, just amazing! We had our wedding last fall and with the help of Stream Stage, our families from overseas were able to celebrate it with us.",
-    name: "Alexis C.",
-    role: "Happy Bride",
-  },
-  {
-    quote:
-      "StreamStage understood our brand instantly and delivered video content that exceeded our expectations.",
+      "Dan and Kayla are an amazing team! Everything was planned out, and they took all of the stress off. The final product is absolutely gorgeous. Husband and wife team for the win!",
     name: "Sarah Higgins",
-    role: "Founder, Cedar Nook Creative",
+    role: "Founder, Cedar Nook",
   },
   {
     quote:
-      "They made the whole process seamless. From planning through final delivery, everything was professional and on time.",
+      "Stream Stage has been an anchor collaborator for Holt XChange. End-to-end services with skill and passion for live broadcasting combined with unique artistic creativity that has elevated our show well beyond other events.",
     name: "Jan Arp",
-    role: "Director, Holt Xchange",
+    role: "Founding Managing Partner, Holt Xchange",
+  },
+  {
+    quote:
+      "If you ever need an amazing livestream with awesome sound, great angles, and a pro who knows how to pull it all together, get Stream Stage. They've got the tools, they've got the talent!",
+    name: "Donovan Lenabat",
+    role: "Choir Director, Alt Vox Rock Choir",
   },
 ];
 

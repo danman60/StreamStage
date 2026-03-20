@@ -124,6 +124,12 @@ const testimonials = [
     name: "Lainy Zimmer",
     title: "Owner, Footprints Dance Centre",
   },
+  {
+    quote:
+      "Working with Kayla and Dan was a dream. Their artistic eyes provide a unique perspective that captures the creative nuances and performance. Hands down the best experience we have ever had with a videographer.",
+    name: "Christina Canella",
+    title: "Founder, Artistic Movement Dance Studio",
+  },
 ];
 
 const jsonLd = {
