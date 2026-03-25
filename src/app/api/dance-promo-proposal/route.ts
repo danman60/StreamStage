@@ -134,6 +134,34 @@ export async function POST(request: Request) {
       html: buildHtml(body),
     });
 
+    // Bridge to CommandCentered CRM (non-blocking)
+    try {
+      const ccUrl = process.env.CC_WEBHOOK_URL;
+      const ccSecret = process.env.CC_WEBHOOK_SECRET;
+      if (ccUrl && ccSecret) {
+        await fetch(`${ccUrl}/api/webhook/lead-intake`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Webhook-Secret': ccSecret },
+          body: JSON.stringify({
+            organization: body.studio,
+            contactName: body.studio,
+            email: body.email,
+            source: 'streamstage-proposal',
+            sourceDetails: JSON.stringify({
+              type: 'dance-promo',
+              date: body.date,
+              shootLength: body.shootLength,
+              cameras: body.cameras,
+              deliverables: body.deliverables,
+              total: body.total,
+            }),
+          }),
+        });
+      }
+    } catch (e) {
+      console.error('CC webhook failed (non-blocking):', e);
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Dance promo proposal error:", error instanceof Error ? error.message : error);
