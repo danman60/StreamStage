@@ -20,18 +20,12 @@ import RecitalNav from "@/components/RecitalNav";
 import ScrollReveal from "@/components/ScrollReveal";
 import Footer from "@/components/Footer";
 
-const PRIMARY_OPERATOR_DAY_RATE = 750;
-const SECOND_OPERATOR_DAY_RATE = 250;
+const PRIMARY_FIRST_DAY_RATE = 1250;
+const PRIMARY_ADDITIONAL_DAY_RATE = 750;
+const SECOND_OPERATOR_DAY_RATE = 499;
+const DRONE_PRICE = 250;
 
 const DELIVERABLES = [
-  {
-    id: "drone",
-    title: "Drone Video",
-    description: "Aerial establishing footage and dynamic movement shots",
-    price: 250,
-    quantityLabel: "flat",
-    hasQuantity: false,
-  },
   {
     id: "oneMinuteReel",
     title: "1-Minute Social Reel",
@@ -60,7 +54,7 @@ const DELIVERABLES = [
     id: "rawVideo",
     title: "All Raw Video Footage",
     description: "Source video files delivered for internal reuse",
-    price: 100,
+    price: 500,
     quantityLabel: "flat",
     hasQuantity: false,
   },
@@ -68,7 +62,7 @@ const DELIVERABLES = [
     id: "rawImages",
     title: "All Raw Images",
     description: "Unedited image archive from the shoot",
-    price: 100,
+    price: 500,
     quantityLabel: "flat",
     hasQuantity: false,
   },
@@ -83,6 +77,7 @@ function money(n: number) {
 export default function VideoProductionProposal() {
   const [shootDays, setShootDays] = useState(2);
   const [secondOperatorDays, setSecondOperatorDays] = useState(0);
+  const [droneIncluded, setDroneIncluded] = useState(true);
   const [quantities, setQuantities] = useState<Record<string, number>>({
     oneMinuteReel: 1,
     stillImages: 0,
@@ -91,7 +86,6 @@ export default function VideoProductionProposal() {
   const [selectedDeliverables, setSelectedDeliverables] = useState<
     Record<DeliverableId, boolean>
   >({
-    drone: true,
     oneMinuteReel: true,
     stillImages: false,
     fifteenSecondReels: false,
@@ -113,8 +107,13 @@ export default function VideoProductionProposal() {
   const [submitError, setSubmitError] = useState("");
 
   const calc = useMemo(() => {
-    const primaryOperatorCost = shootDays * PRIMARY_OPERATOR_DAY_RATE;
+    const primaryOperatorCost =
+      shootDays > 0
+        ? PRIMARY_FIRST_DAY_RATE +
+          Math.max(0, shootDays - 1) * PRIMARY_ADDITIONAL_DAY_RATE
+        : 0;
     const secondOperatorCost = secondOperatorDays * SECOND_OPERATOR_DAY_RATE;
+    const droneCost = droneIncluded ? DRONE_PRICE : 0;
 
     const deliverableLineItems = DELIVERABLES.filter(
       (item) => selectedDeliverables[item.id]
@@ -135,16 +134,24 @@ export default function VideoProductionProposal() {
       (sum, item) => sum + item.total,
       0
     );
-    const total = primaryOperatorCost + secondOperatorCost + deliverablesCost;
+    const total =
+      primaryOperatorCost + secondOperatorCost + droneCost + deliverablesCost;
 
     return {
       primaryOperatorCost,
       secondOperatorCost,
+      droneCost,
       deliverablesCost,
       deliverableLineItems,
       total,
     };
-  }, [quantities, secondOperatorDays, selectedDeliverables, shootDays]);
+  }, [
+    droneIncluded,
+    quantities,
+    secondOperatorDays,
+    selectedDeliverables,
+    shootDays,
+  ]);
 
   const updateForm = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -206,11 +213,15 @@ export default function VideoProductionProposal() {
           ...form,
           shootDays,
           secondOperatorDays,
-          primaryOperatorDayRate: PRIMARY_OPERATOR_DAY_RATE,
+          droneIncluded,
+          primaryFirstDayRate: PRIMARY_FIRST_DAY_RATE,
+          primaryAdditionalDayRate: PRIMARY_ADDITIONAL_DAY_RATE,
           secondOperatorDayRate: SECOND_OPERATOR_DAY_RATE,
+          dronePrice: DRONE_PRICE,
           deliverables: calc.deliverableLineItems,
           primaryOperatorCost: calc.primaryOperatorCost,
           secondOperatorCost: calc.secondOperatorCost,
+          droneCost: calc.droneCost,
           deliverablesCost: calc.deliverablesCost,
           total: calc.total,
         }),
@@ -295,7 +306,6 @@ export default function VideoProductionProposal() {
                       "Operator(s) for event duration",
                       "All camera equipment",
                       "Up to 4 hours consultation and coordination",
-                      "Client retains all ticket revenue",
                     ].map((item) => (
                       <div
                         key={item}
@@ -317,16 +327,16 @@ export default function VideoProductionProposal() {
                     </div>
                     <div>
                       <h2 className="font-heading text-2xl font-bold text-white">
-                        Production Days
+                        Production Options
                       </h2>
                       <p className="text-gray-400 mt-2">
-                        Primary operator pricing adds {money(PRIMARY_OPERATOR_DAY_RATE)} per
-                        day.
+                        First shoot day is {money(PRIMARY_FIRST_DAY_RATE)}; each
+                        additional day adds {money(PRIMARY_ADDITIONAL_DAY_RATE)}.
                       </p>
                     </div>
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-5">
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     <div className="bg-charcoal-dark/60 border border-white/5 rounded-2xl p-6">
                       <p className="text-sm uppercase tracking-[0.18em] text-cyan-brand mb-2">
                         Shoot Days
@@ -355,6 +365,10 @@ export default function VideoProductionProposal() {
                           <Plus size={18} />
                         </button>
                       </div>
+                      <p className="text-sm text-gray-400 mb-1">
+                        {money(PRIMARY_FIRST_DAY_RATE)} first day, then{" "}
+                        {money(PRIMARY_ADDITIONAL_DAY_RATE)} each
+                      </p>
                       <p className="text-lg font-semibold text-white">
                         {money(calc.primaryOperatorCost)}
                       </p>
@@ -409,101 +423,45 @@ export default function VideoProductionProposal() {
                         {money(calc.secondOperatorCost)}
                       </p>
                     </div>
-                  </div>
-                </section>
-              </ScrollReveal>
 
-              <ScrollReveal delay={0.1}>
-                <section className="bg-charcoal-dark/50 border border-white/5 rounded-3xl p-6 sm:p-8">
-                  <div className="flex items-start gap-4 mb-6">
-                    <div className="p-3 rounded-xl bg-cyan-brand/10 text-cyan-brand">
-                      <Camera size={24} />
-                    </div>
-                    <div>
-                      <h2 className="font-heading text-2xl font-bold text-white">
-                        Deliverables
-                      </h2>
-                      <p className="text-gray-400 mt-2">
-                        Toggle the assets you want included and increase any
-                        repeatable deliverables as needed.
+                    <div
+                      className={`rounded-2xl p-6 border transition-all duration-200 cursor-pointer select-none ${
+                        droneIncluded
+                          ? "bg-cyan-brand/10 border-cyan-brand/30 ring-1 ring-cyan-brand/20"
+                          : "bg-charcoal-dark/60 border-white/5 hover:border-white/10"
+                      }`}
+                      onClick={() => setDroneIncluded((v) => !v)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setDroneIncluded((v) => !v);
+                        }
+                      }}
+                    >
+                      <p className="text-sm uppercase tracking-[0.18em] text-cyan-brand mb-2">
+                        Drone Video
+                      </p>
+                      <div className="flex items-center justify-between gap-4 mb-4">
+                        <div className="text-center flex-1">
+                          <p className="font-heading text-4xl font-bold text-white">
+                            {droneIncluded ? "On" : "Off"}
+                          </p>
+                          <p className="text-sm text-gray-400">aerial footage</p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-400 mb-1">
+                        {money(DRONE_PRICE)} flat
+                      </p>
+                      <p className="text-lg font-semibold text-white">
+                        {money(calc.droneCost)}
                       </p>
                     </div>
                   </div>
-
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {DELIVERABLES.map((item) => {
-                      const active = selectedDeliverables[item.id];
-                      const quantity = quantities[item.id] || 1;
-                      return (
-                        <div
-                          key={item.id}
-                          className={`${cardBase} ${active ? cardOn : cardOff}`}
-                          onClick={() => toggleDeliverable(item.id)}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              toggleDeliverable(item.id);
-                            }
-                          }}
-                        >
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <p className="font-heading text-xl font-bold text-white mb-2">
-                                {item.title}
-                              </p>
-                              <p className="text-gray-400 text-sm">
-                                {item.description}
-                              </p>
-                            </div>
-                            <div className="shrink-0 text-right">
-                              <p className="text-white font-semibold">
-                                {money(item.price)}
-                              </p>
-                              <p className="text-xs text-gray-400 mt-1">
-                                / {item.quantityLabel}
-                              </p>
-                            </div>
-                          </div>
-
-                          {active && item.hasQuantity ? (
-                            <div
-                              className="mt-5 flex items-center justify-between gap-4"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <button
-                                type="button"
-                                onClick={() => setQuantity(item.id, -1)}
-                                className="p-2 rounded-lg border border-white/10 text-gray-300 hover:text-white hover:border-white/20 transition-colors"
-                                aria-label={`Decrease ${item.title}`}
-                              >
-                                <Minus size={16} />
-                              </button>
-                              <div className="text-center">
-                                <p className="font-heading text-2xl text-white">
-                                  {quantity}
-                                </p>
-                                <p className="text-xs text-gray-400 uppercase tracking-[0.15em]">
-                                  Qty
-                                </p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => setQuantity(item.id, 1)}
-                                className="p-2 rounded-lg border border-white/10 text-gray-300 hover:text-white hover:border-white/20 transition-colors"
-                                aria-label={`Increase ${item.title}`}
-                              >
-                                <Plus size={16} />
-                              </button>
-                            </div>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  </div>
                 </section>
               </ScrollReveal>
+
             </div>
 
             <ScrollReveal delay={0.05} direction="left">
@@ -544,6 +502,15 @@ export default function VideoProductionProposal() {
                     </div>
                   ) : null}
 
+                  {droneIncluded ? (
+                    <div className="flex justify-between gap-4 text-sm">
+                      <span className="text-gray-400">Drone Video</span>
+                      <span className="text-white font-medium">
+                        {money(calc.droneCost)}
+                      </span>
+                    </div>
+                  ) : null}
+
                   {calc.deliverableLineItems.map((item) => (
                     <div
                       key={item.id}
@@ -572,20 +539,104 @@ export default function VideoProductionProposal() {
                 <div className="mt-8 pt-6 border-t border-white/10 space-y-3 text-sm text-gray-400">
                   <div className="flex items-start gap-3">
                     <Check size={16} className="text-cyan-brand mt-0.5 shrink-0" />
-                    <span>2-day builds can roughly mirror the old Bronze, Silver, and Gold totals depending on your selections.</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Check size={16} className="text-cyan-brand mt-0.5 shrink-0" />
-                    <span>Every added shoot day increases the package by {money(PRIMARY_OPERATOR_DAY_RATE)} before optional add-ons.</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Check size={16} className="text-cyan-brand mt-0.5 shrink-0" />
                     <span>All prices in CAD + HST.</span>
                   </div>
                 </div>
               </aside>
             </ScrollReveal>
           </div>
+
+          <ScrollReveal delay={0.1}>
+            <section className="mt-8 bg-charcoal-dark/50 border border-white/5 rounded-3xl p-6 sm:p-8">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="p-3 rounded-xl bg-cyan-brand/10 text-cyan-brand">
+                  <Camera size={24} />
+                </div>
+                <div>
+                  <h2 className="font-heading text-2xl font-bold text-white">
+                    Deliverables
+                  </h2>
+                  <p className="text-gray-400 mt-2">
+                    Toggle the assets you want included and increase any
+                    repeatable deliverables as needed.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {DELIVERABLES.map((item) => {
+                  const active = selectedDeliverables[item.id];
+                  const quantity = quantities[item.id] || 1;
+                  return (
+                    <div
+                      key={item.id}
+                      className={`${cardBase} ${active ? cardOn : cardOff}`}
+                      onClick={() => toggleDeliverable(item.id)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          toggleDeliverable(item.id);
+                        }
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="font-heading text-xl font-bold text-white mb-2">
+                            {item.title}
+                          </p>
+                          <p className="text-gray-400 text-sm">
+                            {item.description}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <p className="text-white font-semibold">
+                            {money(item.price)}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            / {item.quantityLabel}
+                          </p>
+                        </div>
+                      </div>
+
+                      {active && item.hasQuantity ? (
+                        <div
+                          className="mt-5 flex items-center justify-between gap-4"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setQuantity(item.id, -1)}
+                            className="p-2 rounded-lg border border-white/10 text-gray-300 hover:text-white hover:border-white/20 transition-colors"
+                            aria-label={`Decrease ${item.title}`}
+                          >
+                            <Minus size={16} />
+                          </button>
+                          <div className="text-center">
+                            <p className="font-heading text-2xl text-white">
+                              {quantity}
+                            </p>
+                            <p className="text-xs text-gray-400 uppercase tracking-[0.15em]">
+                              Qty
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setQuantity(item.id, 1)}
+                            className="p-2 rounded-lg border border-white/10 text-gray-300 hover:text-white hover:border-white/20 transition-colors"
+                            aria-label={`Increase ${item.title}`}
+                          >
+                            <Plus size={16} />
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          </ScrollReveal>
         </div>
 
         <section

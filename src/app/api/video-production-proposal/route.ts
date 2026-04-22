@@ -38,11 +38,15 @@ interface ProposalData {
   notes: string;
   shootDays: number;
   secondOperatorDays: number;
-  primaryOperatorDayRate: number;
+  droneIncluded: boolean;
+  primaryFirstDayRate: number;
+  primaryAdditionalDayRate: number;
   secondOperatorDayRate: number;
+  dronePrice: number;
   deliverables: DeliverableLineItem[];
   primaryOperatorCost: number;
   secondOperatorCost: number;
+  droneCost: number;
   deliverablesCost: number;
   total: number;
 }
@@ -74,6 +78,11 @@ function buildHtml(d: ProposalData) {
           .map((item) => `${item.title}${item.quantity > 1 ? ` x${item.quantity}` : ""}`)
           .join(", ")
       : "None selected";
+
+  const primaryBreakdown =
+    d.shootDays <= 1
+      ? `${money(d.primaryFirstDayRate)} x 1 = ${money(d.primaryOperatorCost)}`
+      : `${money(d.primaryFirstDayRate)} + ${d.shootDays - 1} x ${money(d.primaryAdditionalDayRate)} = ${money(d.primaryOperatorCost)}`;
 
   return `
 <!DOCTYPE html>
@@ -113,8 +122,9 @@ function buildHtml(d: ProposalData) {
           <p style="margin:0 0 4px;font-size:11px;font-weight:600;color:#4EC5D4;text-transform:uppercase;letter-spacing:1.5px;">Proposal Summary</p>
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;">
             ${row("Deliverables", esc(deliverablesList))}
-            ${row("Primary Operator", `${money(d.primaryOperatorDayRate)} x ${d.shootDays} = ${money(d.primaryOperatorCost)}`)}
+            ${row("Primary Operator", primaryBreakdown)}
             ${row("2nd Operator", `${money(d.secondOperatorDayRate)} x ${d.secondOperatorDays} = ${money(d.secondOperatorCost)}`)}
+            ${row("Drone Video", d.droneIncluded ? `${money(d.dronePrice)} flat` : "Not included")}
             ${row("Deliverables Total", money(d.deliverablesCost))}
             ${row("Total Investment", `${money(d.total)} +HST`, true)}
           </table>
@@ -198,6 +208,7 @@ export async function POST(request: Request) {
               location: body.location,
               shootDays: body.shootDays,
               secondOperatorDays: body.secondOperatorDays,
+              droneIncluded: body.droneIncluded,
               total: body.total,
               deliverables: body.deliverables,
             }),
