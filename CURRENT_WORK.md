@@ -1,9 +1,13 @@
 # Current Work - StreamStage
 
 ## Active Task
-Session wrapped. All major features implemented and pushed.
+Video production proposal builder implemented and verified locally. Ready for deploy via git push.
 
 ## Recent Changes (Session 2026-03-10/11)
+- Video production proposal builder added at `/videoproduction`
+- Legacy `/proposal-builder-videoproduction` now redirects to `/videoproduction`
+- New submission endpoint added at `/api/video-production-proposal`
+- Local verification: production build passed, `/videoproduction` returned 200, redirect returned 308
 - `7fa6ae2` fix: landscape carousel spacing + mute on fullscreen exit
 - `076c125` Revert full-width single carousel (BS-style)
 - `d4abe28` feat: auto-rotating 3D carousel like Bending Spoons
@@ -22,16 +26,19 @@ Session wrapped. All major features implemented and pushed.
 - **Carousel panel sizes**: User noted Business Video carousels are noticeably smaller than Dance Media. Min effective item count fix helped radius but user clarified "the panels themselves" — may need further width/aspect-ratio tuning
 - **Blog posts**: Content plan ready, delegated to ChatGPT agent. Posts not yet written.
 - **StudioBeat demo link**: `demoHref` prop exists but user will wire up later
-4. Set Vercel env vars (SMTP_USER, SMTP_PASS) and test contact form
+- Production email/webhook delivery still depends on deployed env vars (`SMTP_USER`, `SMTP_PASS`, optional `CC_WEBHOOK_URL`, `CC_WEBHOOK_SECRET`)
 
 ## Next Steps
-1. Investigate carousel panel size mismatch (the container/card dimensions, not radius)
-2. Blog posts — user writing via ChatGPT, drop MDX files into `content/blog/`
-3. Wire up StudioBeat demo click-through when ready
-4. Set Vercel env vars and test contact form
-5. Consider adding demo videos for CompSync and StudioSage
+1. Push/deploy video production proposal builder and verify live route
+2. Submit a live test proposal after deploy to verify email + CRM bridge
+3. Investigate carousel panel size mismatch (the container/card dimensions, not radius)
+4. Blog posts — user writing via ChatGPT, drop MDX files into `content/blog/`
+5. Wire up StudioBeat demo click-through when ready
+6. Consider adding demo videos for CompSync and StudioSage
 
 ## Context for Next Session
+- New files: `src/app/videoproduction/page.tsx`, `src/app/videoproduction/layout.tsx`, `src/app/api/video-production-proposal/route.ts`
+- Pricing model mirrors archived proposal spec: $1,250 base package, optional +3/+5/+10 video tiers, social/newsletter marketing support, volume discounts at 10/15/20%
 - Software.tsx: DesktopProducts uses CSS grid + absolute overlay panel (z-0 behind cards, z-10 cards). MobileProducts uses tap-to-expand with AnimatePresence
 - VideoCarousel.tsx: 3D cylinder carousel, auto-rotating at 6°/s, IntersectionObserver controls loading
 - TextAnimate component at `src/components/magicui/text-animate.tsx` — don't use on gradient text (breaks background-clip), use motion.span instead

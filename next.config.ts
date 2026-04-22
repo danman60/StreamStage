@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
       { source: "/proposal-builder-concert", destination: "/#contact", permanent: false },
       { source: "/proposal-builder-theatrical", destination: "/#contact", permanent: false },
       { source: "/proposal-builder-tribute", destination: "/#contact", permanent: false },
-      { source: "/proposal-builder-videoproduction", destination: "/#contact", permanent: false },
+      { source: "/proposal-builder-videoproduction", destination: "/videoproduction", permanent: true },
       // Old main pages → new sections or pages
       { source: "/home", destination: "/", permanent: true },
       { source: "/dance", destination: "/dance", permanent: true },
