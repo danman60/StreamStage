@@ -1,13 +1,16 @@
 # Current Work - StreamStage
 
 ## Active Task
-Video production proposal builder implemented and verified locally. Ready for deploy via git push.
+Video production proposal builder recalibrated to custom day + deliverable pricing. Local build passes; ready for push and redeploy.
 
 ## Recent Changes (Session 2026-03-10/11)
 - Video production proposal builder added at `/videoproduction`
 - Legacy `/proposal-builder-videoproduction` now redirects to `/videoproduction`
 - New submission endpoint added at `/api/video-production-proposal`
 - Local verification: production build passed, `/videoproduction` returned 200, redirect returned 308
+- Video production pricing updated to custom days, second-operator days, and deliverables instead of marketing support
+- Submit proposal section widened to a full-width band below the calculator
+- Video production email route now mirrors recital-builder validation and send flow more closely
 - `7fa6ae2` fix: landscape carousel spacing + mute on fullscreen exit
 - `076c125` Revert full-width single carousel (BS-style)
 - `d4abe28` feat: auto-rotating 3D carousel like Bending Spoons
@@ -29,7 +32,7 @@ Video production proposal builder implemented and verified locally. Ready for de
 - Production email/webhook delivery still depends on deployed env vars (`SMTP_USER`, `SMTP_PASS`, optional `CC_WEBHOOK_URL`, `CC_WEBHOOK_SECRET`)
 
 ## Next Steps
-1. Push/deploy video production proposal builder and verify live route
+1. Push/deploy updated video production pricing model and verify live route
 2. Submit a live test proposal after deploy to verify email + CRM bridge
 3. Investigate carousel panel size mismatch (the container/card dimensions, not radius)
 4. Blog posts — user writing via ChatGPT, drop MDX files into `content/blog/`
@@ -38,7 +41,7 @@ Video production proposal builder implemented and verified locally. Ready for de
 
 ## Context for Next Session
 - New files: `src/app/videoproduction/page.tsx`, `src/app/videoproduction/layout.tsx`, `src/app/api/video-production-proposal/route.ts`
-- Pricing model mirrors archived proposal spec: $1,250 base package, optional +3/+5/+10 video tiers, social/newsletter marketing support, volume discounts at 10/15/20%
+- Video production pricing now uses $750 per primary shoot day, optional second-operator days, and deliverable toggles calibrated to legacy Bronze/Silver/Gold totals
 - Software.tsx: DesktopProducts uses CSS grid + absolute overlay panel (z-0 behind cards, z-10 cards). MobileProducts uses tap-to-expand with AnimatePresence
 - VideoCarousel.tsx: 3D cylinder carousel, auto-rotating at 6°/s, IntersectionObserver controls loading
 - TextAnimate component at `src/components/magicui/text-animate.tsx` — don't use on gradient text (breaks background-clip), use motion.span instead

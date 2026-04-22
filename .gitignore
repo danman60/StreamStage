@@ -29,3 +29,9 @@ next-env.d.ts
 # Playwright CLI artifacts
 .playwright-cli/
 public/.playwright-cli/
+.gitnexus
+
+# Claude Code / Codex local artifacts
+.claude/
+AGENTS.md
+*.codex-bak
