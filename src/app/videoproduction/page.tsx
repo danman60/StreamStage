@@ -25,6 +25,22 @@ const PRIMARY_ADDITIONAL_DAY_RATE = 750;
 const SECOND_OPERATOR_DAY_RATE = 499;
 const DRONE_PRICE = 250;
 
+const DISCOUNT_TIERS = [
+  { threshold: 4000, rate: 0.15 },
+  { threshold: 2500, rate: 0.1 },
+  { threshold: 1500, rate: 0.05 },
+] as const;
+
+function getDiscount(subtotal: number) {
+  const tier = DISCOUNT_TIERS.find((t) => subtotal >= t.threshold);
+  return tier ? { rate: tier.rate, threshold: tier.threshold } : { rate: 0, threshold: 0 };
+}
+
+function getNextTier(subtotal: number) {
+  const sorted = [...DISCOUNT_TIERS].sort((a, b) => a.threshold - b.threshold);
+  return sorted.find((t) => subtotal < t.threshold);
+}
+
 const DELIVERABLES = [
   {
     id: "oneMinuteReel",
@@ -134,8 +150,15 @@ export default function VideoProductionProposal() {
       (sum, item) => sum + item.total,
       0
     );
-    const total =
+    const subtotal =
       primaryOperatorCost + secondOperatorCost + droneCost + deliverablesCost;
+
+    const { rate: discountRate, threshold: discountThreshold } =
+      getDiscount(subtotal);
+    const discountAmount = subtotal * discountRate;
+    const nextTier = getNextTier(subtotal);
+    const amountToNextTier = nextTier ? nextTier.threshold - subtotal : 0;
+    const total = subtotal - discountAmount;
 
     return {
       primaryOperatorCost,
@@ -143,6 +166,12 @@ export default function VideoProductionProposal() {
       droneCost,
       deliverablesCost,
       deliverableLineItems,
+      subtotal,
+      discountRate,
+      discountThreshold,
+      discountAmount,
+      nextTier,
+      amountToNextTier,
       total,
     };
   }, [
@@ -223,6 +252,10 @@ export default function VideoProductionProposal() {
           secondOperatorCost: calc.secondOperatorCost,
           droneCost: calc.droneCost,
           deliverablesCost: calc.deliverablesCost,
+          subtotal: calc.subtotal,
+          discountRate: calc.discountRate,
+          discountThreshold: calc.discountThreshold,
+          discountAmount: calc.discountAmount,
           total: calc.total,
         }),
       });
@@ -526,17 +559,70 @@ export default function VideoProductionProposal() {
                     </div>
                   ))}
 
-                  <div className="border-t border-white/10 pt-4 flex justify-between gap-4">
-                    <span className="text-white font-semibold">Total Investment</span>
-                    <span className="font-heading text-3xl text-white">
-                      {money(calc.total)}
-                    </span>
-                  </div>
+                  {calc.discountRate > 0 ? (
+                    <>
+                      <div className="border-t border-white/10 pt-4 flex justify-between gap-4 text-sm">
+                        <span className="text-gray-400">Subtotal</span>
+                        <span className="text-white font-medium">
+                          {money(calc.subtotal)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between gap-4 text-sm">
+                        <span className="text-cyan-brand">
+                          Volume discount ({Math.round(calc.discountRate * 100)}% off at{" "}
+                          {money(calc.discountThreshold)}+)
+                        </span>
+                        <span className="text-cyan-brand font-medium">
+                          -{money(calc.discountAmount)}
+                        </span>
+                      </div>
+                      <div className="border-t border-white/10 pt-4 flex justify-between gap-4">
+                        <span className="text-white font-semibold">
+                          Total Investment
+                        </span>
+                        <span className="font-heading text-3xl text-white">
+                          {money(calc.total)}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="border-t border-white/10 pt-4 flex justify-between gap-4">
+                      <span className="text-white font-semibold">
+                        Total Investment
+                      </span>
+                      <span className="font-heading text-3xl text-white">
+                        {money(calc.total)}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <p className="text-sm text-gray-400 mt-3">+HST</p>
 
+                {calc.nextTier ? (
+                  <div className="mt-4 rounded-xl border border-cyan-brand/20 bg-cyan-brand/5 p-4 text-sm text-gray-300">
+                    <p>
+                      Add{" "}
+                      <span className="text-cyan-brand font-semibold">
+                        {money(calc.amountToNextTier)}
+                      </span>{" "}
+                      more to unlock{" "}
+                      <span className="text-cyan-brand font-semibold">
+                        {Math.round(calc.nextTier.rate * 100)}% off
+                      </span>{" "}
+                      at {money(calc.nextTier.threshold)}+.
+                    </p>
+                  </div>
+                ) : null}
+
                 <div className="mt-8 pt-6 border-t border-white/10 space-y-3 text-sm text-gray-400">
+                  <div className="flex items-start gap-3">
+                    <Check size={16} className="text-cyan-brand mt-0.5 shrink-0" />
+                    <span>
+                      Volume discounts: 5% off at {money(1500)}, 10% at{" "}
+                      {money(2500)}, 15% at {money(4000)}.
+                    </span>
+                  </div>
                   <div className="flex items-start gap-3">
                     <Check size={16} className="text-cyan-brand mt-0.5 shrink-0" />
                     <span>All prices in CAD + HST.</span>

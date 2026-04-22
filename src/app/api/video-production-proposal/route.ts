@@ -48,6 +48,10 @@ interface ProposalData {
   secondOperatorCost: number;
   droneCost: number;
   deliverablesCost: number;
+  subtotal: number;
+  discountRate: number;
+  discountThreshold: number;
+  discountAmount: number;
   total: number;
 }
 
@@ -126,6 +130,15 @@ function buildHtml(d: ProposalData) {
             ${row("2nd Operator", `${money(d.secondOperatorDayRate)} x ${d.secondOperatorDays} = ${money(d.secondOperatorCost)}`)}
             ${row("Drone Video", d.droneIncluded ? `${money(d.dronePrice)} flat` : "Not included")}
             ${row("Deliverables Total", money(d.deliverablesCost))}
+            ${row("Subtotal", money(d.subtotal))}
+            ${
+              d.discountRate > 0
+                ? row(
+                    `Volume Discount (${Math.round(d.discountRate * 100)}% at ${money(d.discountThreshold)}+)`,
+                    `-${money(d.discountAmount)}`
+                  )
+                : ""
+            }
             ${row("Total Investment", `${money(d.total)} +HST`, true)}
           </table>
         </td></tr>
