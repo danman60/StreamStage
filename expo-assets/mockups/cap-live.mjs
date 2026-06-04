@@ -1,0 +1,11 @@
+import { chromium } from 'playwright';
+const b = await chromium.launch();
+const p = await b.newPage({ viewport:{width:1920,height:1080} });
+const errs=[]; p.on('console',m=>{if(m.type()==='error')errs.push(m.text());});
+p.on('pageerror',e=>errs.push('PAGEERR '+e.message));
+await p.goto('file:///home/danman60/projects/StudioSage/public/live/index.html',{waitUntil:'load'});
+await p.waitForTimeout(1500); await p.screenshot({path:'/tmp/live-0-intro.png'});
+await p.waitForTimeout(5200); await p.screenshot({path:'/tmp/live-1-build.png'});
+await p.waitForTimeout(7000); await p.screenshot({path:'/tmp/live-2-ask.png'});
+await b.close();
+console.log('errs:', errs.slice(0,6).join(' | ')||'none');

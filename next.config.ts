@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   output: "standalone",
   async redirects() {
     return [
+      // Client demo moved to dedicated demo host
+      { source: "/dance-attack", destination: "https://dance-attack.demos.streamstage.live", permanent: true },
+      { source: "/dance-attack/:path*", destination: "https://dance-attack.demos.streamstage.live/:path*", permanent: true },
       // Old proposal builders → new pages
       { source: "/recital-media", destination: "/dancerecital", permanent: true },
       { source: "/proposal-builder-dance", destination: "/dancepromo", permanent: true },

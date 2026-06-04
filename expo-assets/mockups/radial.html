@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"/>
+<style>
+  :root{--cyan:#34d8ff;--cyan2:#7fe9ff}
+  html,body{margin:0;height:100%;background:#04070d;overflow:hidden;
+    font-family:Inter,'Segoe UI',sans-serif;color:#eaf6ff}
+  #stage{position:fixed;inset:0;background:
+    radial-gradient(ellipse at 50% 55%, rgba(20,60,90,.20), transparent 62%),
+    radial-gradient(circle, rgba(120,160,200,.05) 1px, transparent 1px) 0 0/34px 34px,#04070d}
+  .vignette{position:fixed;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 55%,transparent 55%,rgba(0,0,0,.72))}
+  #title{position:fixed;top:28px;left:42px;font-weight:800;font-size:26px;color:var(--cyan2);
+    text-shadow:0 0 22px rgba(0,200,255,.55)}
+  .livechip{position:fixed;top:30px;right:42px;display:flex;align-items:center;gap:11px;
+    background:rgba(10,20,30,.7);border:1px solid rgba(80,220,255,.35);border-radius:30px;
+    padding:10px 20px;font-size:17px;font-weight:600;backdrop-filter:blur(8px)}
+  .pulse{width:11px;height:11px;border-radius:50%;background:#36e07a;box-shadow:0 0 12px #36e07a;
+    animation:pp 1.2s infinite}@keyframes pp{0%,100%{opacity:1}50%{opacity:.3}}
+
+  /* step headers */
+  .steps{position:fixed;top:96px;left:0;right:0;display:flex;justify-content:space-around;
+    padding:0 60px;z-index:6}
+  .step{display:flex;align-items:center;gap:10px;color:#9fb3c8;font-size:17px;font-weight:700;letter-spacing:.4px}
+  .step .num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+    background:rgba(120,225,255,.15);border:1px solid rgba(120,225,255,.5);color:var(--cyan2);font-size:15px}
+
+  svg{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+  .wire{fill:none;stroke:rgba(90,150,185,.32);stroke-width:2}
+  .wire.live{stroke:rgba(120,225,255,.7);stroke-width:2.5;stroke-dasharray:2 10;
+    animation:dash 1.1s linear infinite}@keyframes dash{to{stroke-dashoffset:-24}}
+  .pkt{fill:#cffaff;filter:drop-shadow(0 0 6px #7fe9ff)}
+
+  .node{position:fixed;transform:translate(-50%,-50%)}
+  .bubble{width:360px;padding:16px 20px;border-radius:20px;font-size:23px;line-height:1.3;
+    box-shadow:0 10px 40px rgba(0,0,0,.5);animation:rise .5s ease both}
+  .bubble small{display:block;font-size:13px;opacity:.6;margin-bottom:5px;font-weight:700;letter-spacing:.3px}
+  .q{background:#20242e;border:1px solid #313947;border-bottom-left-radius:6px}
+  .a{color:#04121a;border-bottom-right-radius:6px;
+     background:linear-gradient(135deg,#8aecff,#34c0ff);box-shadow:0 10px 46px rgba(40,200,255,.5)}
+  @keyframes rise{from{opacity:0;transform:translate(-50%,-38%) scale(.95)}}
+
+  /* KB centre node */
+  .kb{position:fixed;left:960px;top:566px;transform:translate(-50%,-50%);width:440px;
+    background:rgba(10,26,38,.78);border:1px solid rgba(80,220,255,.45);border-radius:22px;
+    padding:22px 26px;backdrop-filter:blur(12px);
+    box-shadow:0 0 80px 6px rgba(40,200,255,.4), inset 0 0 50px rgba(40,160,220,.12)}
+  .kb h3{margin:0 0 4px;font-size:21px;color:var(--cyan2)}
+  .kb .meta{font-size:13px;color:#7fa6c0;margin-bottom:14px}
+  .kb ul{list-style:none;margin:0;padding:0}
+  .kb li{font-size:19px;color:#dfeefb;padding:9px 0 9px 26px;position:relative;
+    border-top:1px solid rgba(120,160,200,.12)}
+  .kb li:before{content:'';position:absolute;left:4px;top:16px;width:9px;height:9px;border-radius:50%;
+    background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+  .kb li.new{color:#fff;animation:flash 1.4s ease both}
+  .kb li.new:before{background:#9dffc6;box-shadow:0 0 12px #9dffc6}
+  @keyframes flash{0%{background:rgba(60,216,255,.35);transform:translateX(-8px);opacity:0}
+    40%{opacity:1}100%{background:transparent;transform:none}}
+
+  /* incoming email populating the KB */
+  .email{position:fixed;left:960px;top:175px;transform:translate(-50%,-50%);width:360px;
+    background:rgba(14,18,26,.9);border:1px solid rgba(120,160,200,.32);border-radius:14px;
+    padding:16px 20px;backdrop-filter:blur(10px);box-shadow:0 12px 50px rgba(0,0,0,.6);
+    animation:drop 1.6s ease both}
+  @keyframes drop{0%{opacity:0;transform:translate(-50%,-120%) scale(.9)}
+    35%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:1;transform:translate(-50%,-50%)}}
+  .email .tag{color:var(--cyan2);font-size:12px;font-weight:800;letter-spacing:.6px;margin-bottom:7px}
+  .email .hdr{font-size:15px;color:#cfe0ee;line-height:1.5}.email .hdr b{color:#fff}
+</style></head>
+<body>
+<div id="stage"></div><div class="vignette"></div>
+<div id="title">StudioSage — Live</div>
+<div class="livechip"><span class="pulse"></span>18 texting now · 132 answered</div>
+
+<div class="steps">
+  <div class="step"><span class="num">1</span>PARENTS TEXT</div>
+  <div class="step"><span class="num">2</span>KNOWLEDGE BASE</div>
+  <div class="step"><span class="num">3</span>STUDIOSAGE ANSWERS</div>
+</div>
+
+<svg id="wires" viewBox="0 0 1920 1080" preserveAspectRatio="none"></svg>
+
+<!-- COL 1 — parent questions -->
+<div class="node bubble q" style="left:250px;top:330px;animation-delay:.1s"><small>PARENT · IN THE ROOM</small>What time is Saturday rehearsal?</div>
+<div class="node bubble q" style="left:250px;top:560px;animation-delay:.3s"><small>PARENT · IN THE ROOM</small>Classes during March break?</div>
+<div class="node bubble q" style="left:250px;top:790px;animation-delay:.5s"><small>PARENT · IN THE ROOM</small>When’s the spring recital?</div>
+
+<!-- COL 2 — KB centre + arriving email -->
+<div class="email">
+  <div class="tag">✉ FORWARDED EMAIL → POPULATING</div>
+  <div class="hdr"><b>Subject:</b> Spring Recital — Key Dates<br>Sat June 14, Sanderson Centre…</div>
+</div>
+<div class="kb">
+  <h3>Knowledge Base</h3>
+  <div class="meta">Dans Dancers · 42 facts · live</div>
+  <ul>
+    <li>Saturday rehearsal — 9:00am, doors 8:45</li>
+    <li>March break — closed Mar 10–14</li>
+    <li>Picture day — May 24, full uniform</li>
+    <li>Tuition — due the 1st of each month</li>
+    <li class="new">Spring recital — Sat June 14, Sanderson Centre</li>
+  </ul>
+</div>
+
+<!-- COL 3 — StudioSage answers -->
+<div class="node bubble a" style="left:1670px;top:330px;animation-delay:.7s"><small>STUDIOSAGE</small>9:00am — doors open 8:45. See you there! 💜</div>
+<div class="node bubble a" style="left:1670px;top:560px;animation-delay:.9s"><small>STUDIOSAGE</small>Closed Mar 10–14, back Mon the 17th!</div>
+<div class="node bubble a" style="left:1670px;top:790px;animation-delay:1.1s"><small>STUDIOSAGE</small>Spring recital is Sat June 14 at the Sanderson Centre 🎭</div>
+
+<script>
+const wires=document.getElementById('wires');
+function wire(x1,y1,x2,y2,live,pkts){
+  const mx=(x1+x2)/2;
+  const d=`M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
+  const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+  p.setAttribute('d',d);p.setAttribute('class','wire'+(live?' live':''));wires.appendChild(p);
+  if(pkts){const len=p.getTotalLength();for(let i=0;i<pkts;i++){
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('r','3.6');c.setAttribute('class','pkt');
+    const pt=p.getPointAtLength(len*(i+1)/(pkts+1));
+    c.setAttribute('cx',pt.x);c.setAttribute('cy',pt.y);wires.appendChild(c);}}
+}
+const KBL=740, KBR=1180;            // KB card left/right edges (approx)
+const rows=[330,560,790];
+// email -> KB (populate, vertical)
+wire(960,250, 960,400, true,3);
+// questions(col1 right ~430) -> KB left
+rows.forEach(y=>wire(430,y, KBL,520+ (y-560)*0.25, true,3));
+// KB right -> answers(col3 left ~1490)
+rows.forEach(y=>wire(KBR,520+(y-560)*0.25, 1490,y, true,2));
+window.__ready=true;
+</script>
+</body></html>

@@ -1,0 +1,1247 @@
+{
+  "/home/danman60/projects/StreamStage/tsconfig.json": {
+    "mtime": 1773019715.0,
+    "ast_hash": "77cde76abc2f77404a39eb82c83f93f2",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/next.config.ts": {
+    "mtime": 1776860120.8444242,
+    "ast_hash": "268cdbb87979a70c547504a8bfea6c26",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/tailwind.config.ts": {
+    "mtime": 1773200242.0,
+    "ast_hash": "92a90fbdb60f5f18f5035aa6838793e8",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/vercel.json": {
+    "mtime": 1773262427.0,
+    "ast_hash": "7c9481e23d9d0ed45b04480205a07b9b",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/package.json": {
+    "mtime": 1773200177.0,
+    "ast_hash": "b001efc6e16a1cd2c11e4ba8cf044761",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/postcss.config.mjs": {
+    "mtime": 1773019715.0,
+    "ast_hash": "3507368dae6e94b0070b0a10efa15a05",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/cap4.mjs": {
+    "mtime": 1780411901.7341714,
+    "ast_hash": "c67a0fa149f9d2bd34b557d7fe6f05fb",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/cap2.mjs": {
+    "mtime": 1780411076.754366,
+    "ast_hash": "7d41b56258edb5a8584408f8b05d8c0e",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/cap-live.mjs": {
+    "mtime": 1780409966.1439958,
+    "ast_hash": "eaa497f5b6513b7242ec53c36f734371",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/shoot.mjs": {
+    "mtime": 1780406983.0084178,
+    "ast_hash": "50f8dd9e6a1c0b6524bbcd484e68caa9",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/cap3.mjs": {
+    "mtime": 1780411693.6531398,
+    "ast_hash": "9c8ced676b951fa91789845d31069b43",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/capnav.mjs": {
+    "mtime": 1780415391.7461324,
+    "ast_hash": "6e608c6453d59f0418a21546b12b6d85",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/brand.mjs": {
+    "mtime": 1780411401.828434,
+    "ast_hash": "5c08b4d49ef20a99be155eb3e4db184a",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/capdeck2.mjs": {
+    "mtime": 1780412196.1203253,
+    "ast_hash": "f065dac259c34128e749605636bd5a8e",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/capdeck.mjs": {
+    "mtime": 1780412141.8953342,
+    "ast_hash": "1f691405ab85104cb58e6f9b4aaa5558",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/scripts/copy-to-new-bucket.mjs": {
+    "mtime": 1773670027.0,
+    "ast_hash": "a291384c2294820cccbdb114cd036bb3",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/scripts/upload-videos.mjs": {
+    "mtime": 1773019715.0,
+    "ast_hash": "dda3d873162f452afc2f401eb16ee2c4",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/scripts/migrate-to-r2.mjs": {
+    "mtime": 1773670025.0,
+    "ast_hash": "55e0bfcf6c2985d45628dd1096387fc9",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/scripts/compress-r2-videos.mjs": {
+    "mtime": 1773670030.0,
+    "ast_hash": "d6a87b172697e23e47cbbe271c2b63b3",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/sitemap.ts": {
+    "mtime": 1774021850.4496765,
+    "ast_hash": "97cb158cb4c4726551e5b8669f57e1e9",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/layout.tsx": {
+    "mtime": 1774022054.6068008,
+    "ast_hash": "4dc393bb22f553c13eecc9fc8284c606",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/not-found.tsx": {
+    "mtime": 1774021836.5298734,
+    "ast_hash": "fba79e93be8be22b33a63bd2664897e6",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/page.tsx": {
+    "mtime": 1773233732.0,
+    "ast_hash": "15994564ba252618915142bca0fa6e4e",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/dancerecital/layout.tsx": {
+    "mtime": 1774021725.8613777,
+    "ast_hash": "84388de568e8cff9c491511fb324e839",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/dancerecital/page.tsx": {
+    "mtime": 1774018791.355181,
+    "ast_hash": "d10a92e87baa59ef824db5473701a001",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/blog/page.tsx": {
+    "mtime": 1773262408.0,
+    "ast_hash": "2ddbf8a5a631fbda07cbc0431bc007d7",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/blog/[slug]/page.tsx": {
+    "mtime": 1773262413.0,
+    "ast_hash": "8d9569850bdee7ec34a385fb888393cc",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/api/cron/publish-blog/route.ts": {
+    "mtime": 1773262423.0,
+    "ast_hash": "ae2bc48a083af262c4ae04e289d6e105",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/api/contact/route.ts": {
+    "mtime": 1773238763.0,
+    "ast_hash": "210df684bf64ff01954bbc3b4d838cda",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/api/recital-proposal/route.ts": {
+    "mtime": 1774406473.637755,
+    "ast_hash": "5912725acb562015e1c3524190731216",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/api/video-production-proposal/route.ts": {
+    "mtime": 1776883596.9406178,
+    "ast_hash": "72bcc630a18997317773e8e38be1293c",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/api/dance-promo-proposal/route.ts": {
+    "mtime": 1774406478.1907647,
+    "ast_hash": "a0a4cd78f0def0771ff38c77e10d8759",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/videoproduction/layout.tsx": {
+    "mtime": 1776860120.8434243,
+    "ast_hash": "43d087eb363d673b88940c6d49068d59",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/videoproduction/page.tsx": {
+    "mtime": 1776883577.3364935,
+    "ast_hash": "e209d26a66a9f8df7fb73dd580b95bcd",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/privacy-policy/page.tsx": {
+    "mtime": 1774021826.2611709,
+    "ast_hash": "df55bf13b57a0d9888de37354ecff85a",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/dancepromo/layout.tsx": {
+    "mtime": 1774021736.0750618,
+    "ast_hash": "03e9305a0ecc9a8ece68eb9eef40d97d",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/dancepromo/page.tsx": {
+    "mtime": 1774019644.6172829,
+    "ast_hash": "a63df15f5a1039bb20c9c9f0e1514106",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/app/dance/page.tsx": {
+    "mtime": 1774024882.8230288,
+    "ast_hash": "d9b08cceae7ebf2a558b7bdcb252df6f",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/lib/utils.ts": {
+    "mtime": 1773076255.0,
+    "ast_hash": "e3f848f1b39f863e6164cf58b5a8e752",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/lib/blog.ts": {
+    "mtime": 1773262326.0,
+    "ast_hash": "4658738a2463efa75b7751bd26bd82ef",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/FAQ.tsx": {
+    "mtime": 1773076746.0,
+    "ast_hash": "d9ab25eabcf9f4d5344ccd11251ccbac",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/Testimonials.tsx": {
+    "mtime": 1774024858.2283466,
+    "ast_hash": "242d95fc377c8f172afaaf69907adb46",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/Team.tsx": {
+    "mtime": 1773082204.0,
+    "ast_hash": "e701965fb4fb4c7efa8f6ac54caf1b3f",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/RecitalNav.tsx": {
+    "mtime": 1774019468.344421,
+    "ast_hash": "76977b7306d90992cad22a52c4213cb4",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/BusinessVideo.tsx": {
+    "mtime": 1774015036.694011,
+    "ast_hash": "5437a13f062a5adb75f875f9fc0a328c",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/VideoCarousel.backup.tsx": {
+    "mtime": 1773172108.0,
+    "ast_hash": "a98be31477511608a4a41e8766354dc2",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/mdx-content.tsx": {
+    "mtime": 1773200233.0,
+    "ast_hash": "7d59f0829d5320a6967c47cb01d94c0a",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/DanceMedia.tsx": {
+    "mtime": 1774016840.837623,
+    "ast_hash": "015c6c7fe12b56eff64bf43cd6d314b7",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/Contact.tsx": {
+    "mtime": 1773078346.0,
+    "ast_hash": "6875cbe955c6cfa0b524255257696cea",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/ScrollReveal.tsx": {
+    "mtime": 1773019715.0,
+    "ast_hash": "527d5918997b392948a912d6c206e5dd",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/Footer.tsx": {
+    "mtime": 1773262346.0,
+    "ast_hash": "de2520d08892cbd70154b10311377d82",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/Navbar.tsx": {
+    "mtime": 1773262340.0,
+    "ast_hash": "1c3c5cba1646125b276271104a51b860",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/ScrollStatement.tsx": {
+    "mtime": 1773233102.0,
+    "ast_hash": "f07387a36e6b21ba19e40063ddcafb2e",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/Clients.tsx": {
+    "mtime": 1773199147.0,
+    "ast_hash": "ed7426d98c84d78f77c6beaccc3995e9",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/Hero.tsx": {
+    "mtime": 1773233697.0,
+    "ast_hash": "dd8b738f3c6c34d0b82b84a5cd80227d",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/VideoCarousel.tsx": {
+    "mtime": 1774016824.2780564,
+    "ast_hash": "65ac372694a08663f372c9672d5a1ecd",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/Software.tsx": {
+    "mtime": 1774015134.181714,
+    "ast_hash": "adb5f40a63734f79263481d88d4d8a65",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/About.tsx": {
+    "mtime": 1773233123.0,
+    "ast_hash": "b45eeeac199217dc3e62e4cc122f0185",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/magicui/magic-card.tsx": {
+    "mtime": 1773076288.0,
+    "ast_hash": "e7cb2d9bb2f4cc060a0c907dfab39213",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/magicui/border-beam.tsx": {
+    "mtime": 1773077995.0,
+    "ast_hash": "58aec490c315a3fb7bd72204328d9bf8",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/magicui/text-animate.tsx": {
+    "mtime": 1773233057.0,
+    "ast_hash": "6076cbb719c211622d57ec4ed57bcd9e",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/magicui/text-reveal.tsx": {
+    "mtime": 1773233059.0,
+    "ast_hash": "120e8f780b336266a2ee6aa73f7a92df",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/magicui/marquee.tsx": {
+    "mtime": 1773076301.0,
+    "ast_hash": "39697f2ad8822d90f3d2c4493176d5fb",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/magicui/shimmer-button.tsx": {
+    "mtime": 1773076274.0,
+    "ast_hash": "da390fdb175fca965ac0b36d7ac5649c",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/magicui/neon-gradient-card.tsx": {
+    "mtime": 1773076313.0,
+    "ast_hash": "3fea3ef525e08865300dcd0e0c1c9692",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/magicui/number-ticker.tsx": {
+    "mtime": 1773080777.0,
+    "ast_hash": "db94135bd4d2d00166db099fab3e0fde",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/src/components/magicui/safari.tsx": {
+    "mtime": 1773077828.0,
+    "ast_hash": "e89c6828b649ed307bd9e33b056053f1",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/FULL-AUDIT-REPORT.md": {
+    "mtime": 1774021659.2669663,
+    "ast_hash": "e7486ef833bc3517875b606da7371b81",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/CLAUDE.md": {
+    "mtime": 1776526611.9884481,
+    "ast_hash": "3d7b54f17607f1a3f393d6728fc7a400",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/ACTION-PLAN.md": {
+    "mtime": 1774021693.9212508,
+    "ast_hash": "7990b0c575f6863a67c4ada37fab17e2",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/CURRENT_WORK.md": {
+    "mtime": 1776860880.541807,
+    "ast_hash": "ba180168e65f724bf10ca7330ef581ad",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/seminar-slides.md": {
+    "mtime": 1780371252.9818187,
+    "ast_hash": "afcf588514cc3332f04768041876e4f0",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/seminar-kb-animation-spec.md": {
+    "mtime": 1780371359.7977579,
+    "ast_hash": "c84beadd08353cdd6ee576f7a97adbde",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/seminar-leavebehind.md": {
+    "mtime": 1780371657.8432071,
+    "ast_hash": "990f244cb97000ff4cc9b9987a03691f",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/seminar-script.md": {
+    "mtime": 1780371008.598484,
+    "ast_hash": "d459717ea802ebd5d766961c5746f4bb",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/seminar-qa-appendix.md": {
+    "mtime": 1780371420.5772758,
+    "ast_hash": "b84c98ded4b27ecbbb14251fa1bf69c0",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/graph.html": {
+    "mtime": 1780408086.2073872,
+    "ast_hash": "59be2ace074869fc871ccbe511059be6",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/radial.html": {
+    "mtime": 1780408783.5421183,
+    "ast_hash": "9c80bf79d98552c61ff2eca6ae19e49b",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/e2e/video-hunt.md": {
+    "mtime": 1773019715.0,
+    "ast_hash": "be457ce29ab44a3fe4d616082b0c15d8",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/llms-full.txt": {
+    "mtime": 1773143027.0,
+    "ast_hash": "c0c4e546cc289560bafbccc41f4e5ca5",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/llms.txt": {
+    "mtime": 1774021803.0935907,
+    "ast_hash": "23cae6934d907d742cd973ed2ba2bca5",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/robots.txt": {
+    "mtime": 1773110324.0,
+    "ast_hash": "33b4bcfad42d811dcd12d773d31d1fa2",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/revive-redesign.html": {
+    "mtime": 1773019715.0,
+    "ast_hash": "5c1ae599ec33c372e1eb086e81ab4b00",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/dance-attack/index.html": {
+    "mtime": 1780578239.5323577,
+    "ast_hash": "32599651fcabad282306ef797afa1432",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/docs/plans/2026-03-20-marketing-seo-pass.md": {
+    "mtime": 1774021342.562022,
+    "ast_hash": "44fd0c9de9f8414f9131c372cc872523",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/docs/plans/2026-03-20-recital-landing-page.md": {
+    "mtime": 1774015658.1513796,
+    "ast_hash": "cb0a9a2295ba82b071478f429fb5e740",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/docs/plans/recital-proposal-spec.md": {
+    "mtime": 1774015838.5655706,
+    "ast_hash": "3d1f27d14c81373084d8294562d20f4f",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/docs/plans/proposal-spec-dance-promo.md": {
+    "mtime": 1774019237.2439578,
+    "ast_hash": "ade7eda4e99a751dafe564e1c990ac98",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/docs/plans/testimonials-archive.md": {
+    "mtime": 1774024159.1928756,
+    "ast_hash": "d9ae8b025a9323cbb74578678ef69e50",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/docs/plans/chatgpt-blog-writer-prompt.md": {
+    "mtime": 1773200362.0,
+    "ast_hash": "208e6665c4f961731f538781005c77fe",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/docs/plans/proposal-spec-theatrical.md": {
+    "mtime": 1774019287.6116173,
+    "ast_hash": "981b51e991f03553060d56ee16d1574f",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/docs/plans/proposal-spec-concert.md": {
+    "mtime": 1774019267.2507546,
+    "ast_hash": "bb37e535f5a65aaffcb69ff3ffaf06a0",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/docs/plans/proposal-spec-tribute.md": {
+    "mtime": 1774019294.195573,
+    "ast_hash": "04852ec676ec69ecd4d23b0f062633d5",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/docs/plans/proposal-spec-videoproduction.md": {
+    "mtime": 1774019301.6715229,
+    "ast_hash": "6b33284b2ed3eebb48bc895acd3775b0",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/docs/plans/2026-03-10-blog-content-plan.md": {
+    "mtime": 1773200327.0,
+    "ast_hash": "a1ae6ce97ddfc09f7446ad46825452cf",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/archive/old-site-content.md": {
+    "mtime": 1773076502.0,
+    "ast_hash": "ff2159e5a8ba355f38a32857b07b73b4",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/archive/streamstage.live/index.html": {
+    "mtime": 1773076466.0,
+    "ast_hash": "e9f51f16b838d86b5b62022363ff3e3a",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/how-to-run-dance-competition.mdx": {
+    "mtime": 1774022685.7902803,
+    "ast_hash": "fd641ce084c5d9b310c2e922a8ecd1e3",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/livestream-mistakes-dance-events.mdx": {
+    "mtime": 1774022673.3649752,
+    "ast_hash": "a63fb7e0e6e6bce1c097e886f40b26c0",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/dance-studio-promo-video-guide.mdx": {
+    "mtime": 1774022697.7345798,
+    "ast_hash": "682535e08a77a30f79dc2f89eb02aa4f",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/dance-studio-software-features.mdx": {
+    "mtime": 1774022737.1306074,
+    "ast_hash": "8d9441243f46fb6416a344ef1cb7d3eb",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/dance-studio-communication-mistakes.mdx": {
+    "mtime": 1774022751.343992,
+    "ast_hash": "c1df560f14e9ab1dc9df6db94ab26fca",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/dance-studio-management-software-guide.mdx": {
+    "mtime": 1774022732.2624774,
+    "ast_hash": "0fad93072cd072edc24018ddbc48c1be",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/diy-vs-professional-dance-video.mdx": {
+    "mtime": 1774022706.7038085,
+    "ast_hash": "78f41df123fb409e724e31cfc58316c3",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/dance-competition-scoring-software.mdx": {
+    "mtime": 1774022693.1734648,
+    "ast_hash": "12f945815ffe92de9292562fc91395c4",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/dance-competition-livestream-results.mdx": {
+    "mtime": 1774022680.1781416,
+    "ast_hash": "f9a88093164854d7c12135a4cf58bf8e",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/dance-studio-video-types.mdx": {
+    "mtime": 1774022701.944687,
+    "ast_hash": "4ab85bfb9e25b07639f888a51efdc892",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/tiktok-reels-dance-studio.mdx": {
+    "mtime": 1774022717.493088,
+    "ast_hash": "372b548d260f9757409e54087d6f4e6c",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/multi-camera-livestream-setup-dance.mdx": {
+    "mtime": 1774022668.4448562,
+    "ast_hash": "f638bfc9b206f4cd8a2b4b28beb41b30",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/automate-dance-studio-communication.mdx": {
+    "mtime": 1774022757.1431508,
+    "ast_hash": "d98a6a093de04cdc99b493c794c17a9c",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/recital-videography-cost.mdx": {
+    "mtime": 1774024912.5468552,
+    "ast_hash": "a37651aa90503b21cbc09b716eb9397d",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/how-to-livestream-dance-recital.mdx": {
+    "mtime": 1774022645.2543106,
+    "ast_hash": "5dd0326c486b623e6f61e85219f89b5f",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/video-campaigns-enrollment-season.mdx": {
+    "mtime": 1774022725.6713026,
+    "ast_hash": "262753dbad3ef6daac916568629b7b92",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/social-media-strategy-dance-studios.mdx": {
+    "mtime": 1774022712.648962,
+    "ast_hash": "e94459c681b826edb0c00d7fe8befaca",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/dance-studio-parent-communication.mdx": {
+    "mtime": 1774022747.0048738,
+    "ast_hash": "93fc5d4e8474c7fb356efa9773c8d175",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/how-to-choose-recital-videographer.mdx": {
+    "mtime": 1774024981.71593,
+    "ast_hash": "23907b5ef182ad442c297e7cdaf226b9",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/spreadsheet-to-software-dance-studio.mdx": {
+    "mtime": 1774022742.0697403,
+    "ast_hash": "f3d0a82b82663c6ac18f7fe86463912d",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/content/blog/_template.mdx": {
+    "mtime": 1773261956.0,
+    "ast_hash": "9fa2e0063d56b7aa6ccfbdf23704418a",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/clients-fixed.png": {
+    "mtime": 1773083013.0,
+    "ast_hash": "5d1bfba86552f6c5e3cebf8cefd9d972",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/clients-logos.png": {
+    "mtime": 1773082819.0,
+    "ast_hash": "4c68611f34066b154ec21a9ea5385bb6",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/clients-section.png": {
+    "mtime": 1773082806.0,
+    "ast_hash": "563bc255a800fff939254bfa41ad399d",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/headshot-maybe.png": {
+    "mtime": 1780330188.1608346,
+    "ast_hash": "c05b7d0cf1c0a55650608503d449f3b4",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/StreamStage-Logo-Color.png": {
+    "mtime": 1780330220.1059844,
+    "ast_hash": "f3d275d2e7f20b33674ad1f073b2c91d",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/logo-05.png": {
+    "mtime": 1780330187.7218325,
+    "ast_hash": "ba07c74c064cda4b9c65f75a14ec8cc3",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/StreamStage-Logo-White.png": {
+    "mtime": 1780330220.1069844,
+    "ast_hash": "ba07c74c064cda4b9c65f75a14ec8cc3",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/logo-06.png": {
+    "mtime": 1780330187.9378335,
+    "ast_hash": "f3d275d2e7f20b33674ad1f073b2c91d",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/Daniel-Abrahamson-Headshot.png": {
+    "mtime": 1780330220.1079843,
+    "ast_hash": "c05b7d0cf1c0a55650608503d449f3b4",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/mock-radial-content.png": {
+    "mtime": 1780408105.6715214,
+    "ast_hash": "d1959ecfd4a828a526ddc0a89aeb8195",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/mock-radial-bubbles.png": {
+    "mtime": 1780408582.6997685,
+    "ast_hash": "3a0ac3a6ba6136d54248eef4e33ce424",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/mock-pipeline.png": {
+    "mtime": 1780407789.323306,
+    "ast_hash": "3b679216ff1b1f237c1a5202d8bfef1e",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/mock-radial.png": {
+    "mtime": 1780407794.5763435,
+    "ast_hash": "091750e5d2e0ed7b5ba0e63f078b1c07",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/mock-pipeline-content.png": {
+    "mtime": 1780408111.1145592,
+    "ast_hash": "589fc5317b6b88ed1776366b944da61c",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/mock-constellation.png": {
+    "mtime": 1780407783.9752681,
+    "ast_hash": "fcf956045129db9f6be5e6b44f6d741f",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/expo-assets/mockups/mock-3col.png": {
+    "mtime": 1780408807.64728,
+    "ast_hash": "7c572a108295171b61e933c3c435f518",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/hero-poster.jpg": {
+    "mtime": 1774022983.1163547,
+    "ast_hash": "4d7f3e3992f50fddebf7c5520808fc8a",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/team-daniel.jpg": {
+    "mtime": 1773110279.0,
+    "ast_hash": "f665ac7387cd6c46832343b8c6a4ebc6",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/icon-512.png": {
+    "mtime": 1773019715.0,
+    "ast_hash": "1e588b458dadff78df7cc91dd6e0ab10",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logo-icon.png": {
+    "mtime": 1773019715.0,
+    "ast_hash": "98121d5a1bc38f45a724ad743f15aa5a",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logo-white.png": {
+    "mtime": 1773019715.0,
+    "ast_hash": "6e7f0233fa1f3d5ed9454b21f0efd8ca",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logo-color.png": {
+    "mtime": 1773019715.0,
+    "ast_hash": "adeb6b863a5a017186a0576bc3db87e9",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/icon-192.png": {
+    "mtime": 1773019715.0,
+    "ast_hash": "106ab34a676857db45cf1157eabbec3d",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/team-kayla.jpg": {
+    "mtime": 1773110279.0,
+    "ast_hash": "27093839a862e422b7c065f2a9996633",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logo-icon-white.png": {
+    "mtime": 1773019715.0,
+    "ast_hash": "20830524c249e4bb7d0ee04b860cdeed",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/og-image.png": {
+    "mtime": 1773019715.0,
+    "ast_hash": "d2d7325f36bbf99f380ca537206b4582",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/dance-attack/assets/hero-poster.jpg": {
+    "mtime": 1780545630.219158,
+    "ast_hash": "8b3fa36f70ee9e53cacce89c72b19a85",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/dance-attack/assets/team-jt.png": {
+    "mtime": 1780545630.219158,
+    "ast_hash": "70e5e144cbc6d1989031b926c7ae58ee",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/dance-attack/assets/logo-white.png": {
+    "mtime": 1780545630.219158,
+    "ast_hash": "a0d007feded847d99e2c29dba71caa77",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/dance-attack/assets/team-kent.png": {
+    "mtime": 1780545630.219158,
+    "ast_hash": "0b5031c6cb55732983cf321192299ce8",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/dance-attack/assets/da-icon.png": {
+    "mtime": 1780545630.219158,
+    "ast_hash": "acab4cea738e57d10108b8ce51e22e32",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/dance-attack/assets/team-penny.jpg": {
+    "mtime": 1780545630.219158,
+    "ast_hash": "5a4fce704b13033adb362f0e5982a781",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/dance-attack/assets/logo-color.png": {
+    "mtime": 1780545630.219158,
+    "ast_hash": "552e89b940042cf2d72b7097504a9b54",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/toronto-dance-teacher-expo.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "a03abea73d090f8dca9aa01d75204229",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/theatre-woodstock.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "6ecbcf86df85bfd1e73240342cd17350",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/coeur-dalene-summer-theatre.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "3bc079b2506a867cee330a625ddce948",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/cbc-sports.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "afc775669794d2a823de2a9beb3f0071",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/jewish-federation.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "c0c5381bb60dcf4ff6673c91efe3bc07",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/centre-segal.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "68c4634731510a2779a5520b4e12e313",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/footprints-dance-centre.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "276750547c3311add90a7e1bd58d070a",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/randolph-college.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "27de70d7e6004dc3220b96f86e45c927",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/embro-tractor-pull.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "95b37d90cd3fd56b773611078d7efc39",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/wellington-winds-symphony.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "92d07f5a7bcf65d14c66ce746fab82eb",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/wavestage-theatre-co.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "f1e3c5e5a94280c463c54317cfa83b42",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/bravo-academy.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "d09328b67fe4472adf87dcd630a291f0",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/k2k.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "d3dc53024d77d27ed79c74370528224d",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/surmesur.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "cd7ed0902bea7575ef824e1baf7604e3",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/raw-rock-shop.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "5868c12c90db624794dbb7b1a832d745",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/the-disability-collective.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "dc2035ca73799620ab6b355b0307e2fb",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/sheridan-alumni.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "8e01dac1a65274b34704a56650704a47",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/united-way-oxford.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "00e4d9b2173f7d72affb69dbc7a57bc2",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/holt-fintech.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "cbab04e0cbcff671487afefc6fc3ec83",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/musical-stage-co.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "a774a77239169f18a3d31bc610a6d21d",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/st-albert.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "22df25740719d5c284be350377521de7",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/yare.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "85691c06238bcb7e938f20e1de6dd541",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/stagecoach-canada.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "182e56857317413bd7f28eb09c881593",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/uvalux.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "c3c668e6171da7c84564d85190bdf163",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/norwich-tnt-pull.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "9d55d5a4fb7cba5e57c2cc541fe2125b",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/tweed-and-co.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "89a2346556f0a2b65c46c026c5be1a43",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/the-dance-class.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "59bb046bcd57dce6a01b8301bb74b103",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/nightwood-theatre.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "c9480d3705482439aa78cb49f8d90a0b",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/artistic-movement.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "6661bbd3058d6521a36307f271b2ab39",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/bump-baby-toddler-expo.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "03ec85a42d510d5ac1c9d2be8002fd7c",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/all-thats-dance.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "6ea25bb8e004b4135fdef31b63da5f52",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/stagecoach.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "6fcc1361c92c81a8687c60489ebbad06",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/canadian-dance-awards.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "7ece73c6657c11b474767f36179b4275",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/bloor-street-united-church.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "0b6a831fb3e21b67a8140181b9b782d1",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/harold-green-theatre.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "4ffaaf8197ace6963b76ad8bd976b94c",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/elite-dance.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "31dc31f18444f23b46ecf1b2ce60e6aa",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/woodstock-chamber-of-commerce.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "861f1001aec8532ed0cf0f557c9f0ce2",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/sodastream.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "ba48a7e9ea9b6a4494605f2e25fc175b",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/alt-vox.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "4fda5719dd011fbb5725d92547509f4c",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/theatre-now.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "c0da02e37bb3843b57592211741d88a5",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/st-lawrence-college.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "88047c54ec035fb046f36e97e02ada47",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/here-for-now-theatre.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "7826fb72ef645aa15333b93377d4dde7",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/impact-dance-complex.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "8c8b43783e8c2f821c0f6f768d53a907",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/ultimate-dance-connection.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "ed425bd81da1d48d7e44542625f9d1d0",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/cfl.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "740fa0d0baf48eff6818bb4b5478be02",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/soundcrowd.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "41c364c8605f011eb4b50b7d76f64059",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/cameco-capitol.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "b6f8c1460382b6f1c2fd87b981a0cbea",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos-white/little-hobby-hill-farm.png": {
+    "mtime": 1773083992.0,
+    "ast_hash": "929913fde553e010fe6232aa3a8400f5",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/coeur-dalene-summer-theatre.jpg": {
+    "mtime": 1773082289.0,
+    "ast_hash": "192b961498cdcd5805468b6c7bf09572",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/toronto-dance-teacher-expo.png": {
+    "mtime": 1773082706.0,
+    "ast_hash": "d0f67ffca471ae82deb033644e357719",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/cbc-sports.png": {
+    "mtime": 1773082281.0,
+    "ast_hash": "1fe1798956fea4e52ccfecdd2950fd27",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/theatre-now.jpg": {
+    "mtime": 1773082292.0,
+    "ast_hash": "1f9e2942ebc3007f930dfd35d40a6c74",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/footprints-dance-centre.png": {
+    "mtime": 1773082328.0,
+    "ast_hash": "cfbb6dfd36c0acc07418b753db3450fe",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/tweed-and-co.jpg": {
+    "mtime": 1773082290.0,
+    "ast_hash": "c15861561a2c312adf97640780914d34",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/embro-tractor-pull.png": {
+    "mtime": 1773082936.0,
+    "ast_hash": "4fed844be562e242fe73a67de7b9f723",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/sheridan-alumni.jpg": {
+    "mtime": 1773082292.0,
+    "ast_hash": "c31a84617f645b4d1f6f01b4c4b573a8",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/wellington-winds-symphony.png": {
+    "mtime": 1773082706.0,
+    "ast_hash": "14c99c4e8c898e3a0f97fe09d802e377",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/cameco-capitol.jpg": {
+    "mtime": 1773082288.0,
+    "ast_hash": "8fc50b4b1c647794088a4b9c39cbb5e0",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/bravo-academy.jpg": {
+    "mtime": 1773082289.0,
+    "ast_hash": "3b91c3bee8d5d1412ed90cd6504d1f20",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/k2k.png": {
+    "mtime": 1773082328.0,
+    "ast_hash": "89b20217060bb0e0a711274094acefae",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/surmesur.png": {
+    "mtime": 1773082331.0,
+    "ast_hash": "bfd42e7ce4f5fcfda8e0815efd002d81",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/woodstock-chamber-of-commerce.webp": {
+    "mtime": 1773082706.0,
+    "ast_hash": "ca0467abc3cec1b1352abec14a1db13a",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/theatre-woodstock.jpg": {
+    "mtime": 1773082291.0,
+    "ast_hash": "418d82494783c86fbd898434818d8912",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/raw-rock-shop.png": {
+    "mtime": 1773082329.0,
+    "ast_hash": "92afe7b05def4a4249f8ab8cd36fcfdc",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/jewish-federation.jpg": {
+    "mtime": 1773082287.0,
+    "ast_hash": "f2b6235d47b0c65ba3800e57d34320c3",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/the-disability-collective.png": {
+    "mtime": 1773082330.0,
+    "ast_hash": "429b13ec101298a6f9ca1512f920a84b",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/wavestage-theatre-co.webp": {
+    "mtime": 1773082706.0,
+    "ast_hash": "976132f359e70514ec8d13430e852c28",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/united-way-oxford.png": {
+    "mtime": 1773082902.0,
+    "ast_hash": "fbe6ad54c59f7a2fc20525025db1b2ac",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/yare.png": {
+    "mtime": 1773082289.0,
+    "ast_hash": "3543fc4f76e793362c18a4ac89a394fe",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/stagecoach-canada.png": {
+    "mtime": 1773082706.0,
+    "ast_hash": "5e69c8489a673e9ed8858e63cbbb85b5",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/harold-green-theatre.jpg": {
+    "mtime": 1773082292.0,
+    "ast_hash": "dfde8baf1a94c7ad8e7a6aee29233145",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/uvalux.png": {
+    "mtime": 1773082331.0,
+    "ast_hash": "35c36112de6bdf489bad660910b10228",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/norwich-tnt-pull.png": {
+    "mtime": 1773082971.0,
+    "ast_hash": "0ea4c1709d88f727ced52111945f6f1e",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/the-dance-class.png": {
+    "mtime": 1773082327.0,
+    "ast_hash": "f27f30cc612c657b310f0fc934d3c686",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/centre-segal.jpg": {
+    "mtime": 1773082287.0,
+    "ast_hash": "b02d2328022e8552e1f49e672e94ce5c",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/sodastream.jpg": {
+    "mtime": 1773082286.0,
+    "ast_hash": "5ca41ada5eca256c63f8a52260ca3d13",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/st-albert.jpg": {
+    "mtime": 1773082290.0,
+    "ast_hash": "0ed48b1a63285e0782038dda8581467b",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/artistic-movement.png": {
+    "mtime": 1773082333.0,
+    "ast_hash": "9f2e8aeacde47c4051903c626594a9f4",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/st-lawrence-college.jpg": {
+    "mtime": 1773082291.0,
+    "ast_hash": "0ca7324b21509d14a2bb24d19690308d",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/bump-baby-toddler-expo.png": {
+    "mtime": 1773082325.0,
+    "ast_hash": "db4c1e9d80239cb399d1880cd884293f",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/all-thats-dance.png": {
+    "mtime": 1773082325.0,
+    "ast_hash": "1ff82e96ed3386622a4b658ce7a1331f",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/stagecoach.png": {
+    "mtime": 1773082329.0,
+    "ast_hash": "e7c81855442f14cc15f8714786a8e05e",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/canadian-dance-awards.png": {
+    "mtime": 1773082326.0,
+    "ast_hash": "f02b26e41de3262a36d7e8171791a6cb",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/bloor-street-united-church.png": {
+    "mtime": 1773082326.0,
+    "ast_hash": "a298ca91ebb7a8b5dcf898eb921f7523",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/elite-dance.png": {
+    "mtime": 1773082334.0,
+    "ast_hash": "e2d48d1ec1e2fc78bfd5643c3170a446",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/alt-vox.png": {
+    "mtime": 1773082332.0,
+    "ast_hash": "9bf76d99eedcda2973f157f0201b7ede",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/randolph-college.jpg": {
+    "mtime": 1773082290.0,
+    "ast_hash": "3e6642c19a279d9be2bfaf5c674e5ab1",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/cfl.jpg": {
+    "mtime": 1773082287.0,
+    "ast_hash": "a4f74e11a04753a0947f4835b836ed02",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/here-for-now-theatre.png": {
+    "mtime": 1773082327.0,
+    "ast_hash": "8f6108d730a826a1f10a6078fc0fcd5a",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/impact-dance-complex.png": {
+    "mtime": 1773082328.0,
+    "ast_hash": "212b01b14a63c3c8016bd74ed9d478c1",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/nightwood-theatre.jpg": {
+    "mtime": 1773082291.0,
+    "ast_hash": "a194402246aaf100e33571e4fe1c29c2",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/ultimate-dance-connection.png": {
+    "mtime": 1773082332.0,
+    "ast_hash": "28ff680f938aae19583ee8922335b777",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/musical-stage-co.jpg": {
+    "mtime": 1773082281.0,
+    "ast_hash": "4dc8123dace34808945686e55db28403",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/holt-fintech.jpg": {
+    "mtime": 1773082288.0,
+    "ast_hash": "764b68a98ebeb00dbc83b14e38144f5b",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/soundcrowd.png": {
+    "mtime": 1773082330.0,
+    "ast_hash": "19c34cf0f7bd481bb2fd59c99296511a",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/logos/little-hobby-hill-farm.png": {
+    "mtime": 1773082329.0,
+    "ast_hash": "b3534ae043b3685282d7d58904d54429",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/hero-bg.mp4": {
+    "mtime": 1774017956.825917,
+    "ast_hash": "25dd038233eaf0c75703c3e4095fbc4d",
+    "semantic_hash": ""
+  },
+  "/home/danman60/projects/StreamStage/public/dance-attack/assets/hero-bg.mp4": {
+    "mtime": 1780545630.219158,
+    "ast_hash": "0dc89b4a72c6d9da4fd853d7c688d42d",
+    "semantic_hash": ""
+  }
+}

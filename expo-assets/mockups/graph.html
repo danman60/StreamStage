@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  html,body{margin:0;height:100%;background:#04070d;overflow:hidden;font-family:Inter,Segoe UI,sans-serif}
+  #graph{width:100vw;height:100vh}
+  #title{position:fixed;top:30px;left:40px;z-index:5;color:#7fe9ff;
+    font-weight:700;font-size:26px;letter-spacing:.5px;text-shadow:0 0 18px rgba(0,200,255,.5)}
+  #sub{position:fixed;top:66px;left:40px;z-index:5;color:#9fb3c8;font-size:14px;font-weight:400}
+  #legend{position:fixed;bottom:28px;left:40px;z-index:5;color:#cfe;font-size:13px;line-height:1.7}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle}
+  .vignette{position:fixed;inset:0;pointer-events:none;z-index:3;
+    background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.65) 100%)}
+
+  /* ---- live content layer ---- */
+  .livechip{position:fixed;top:30px;right:40px;z-index:8;display:flex;align-items:center;gap:10px;
+    background:rgba(10,20,30,.7);border:1px solid rgba(80,220,255,.35);border-radius:30px;
+    padding:10px 20px;color:#dff;font-size:18px;font-weight:600;backdrop-filter:blur(8px)}
+  .livechip .pulse{width:11px;height:11px;border-radius:50%;background:#36e07a;
+    box-shadow:0 0 12px #36e07a;animation:pp 1.2s infinite}
+  @keyframes pp{0%,100%{opacity:1}50%{opacity:.3}}
+
+  .chatwrap{position:fixed;right:40px;top:90px;width:560px;z-index:7;
+    display:flex;flex-direction:column;gap:18px;pointer-events:none}
+  .bubble{max-width:90%;padding:18px 24px;border-radius:22px;font-size:27px;line-height:1.32;
+    box-shadow:0 8px 40px rgba(0,0,0,.5);animation:rise .5s ease both}
+  .bubble small{display:block;font-size:15px;opacity:.6;margin-bottom:4px;font-weight:600}
+  .in{align-self:flex-start;background:#20242e;color:#eef4fa;border-bottom-left-radius:6px;
+    border:1px solid #2e3440}
+  .bot{align-self:flex-end;color:#04121a;border-bottom-right-radius:6px;
+    background:linear-gradient(135deg,#7fe9ff,#34c0ff);
+    box-shadow:0 8px 44px rgba(40,200,255,.45)}
+  @keyframes rise{from{opacity:0;transform:translateY(22px) scale(.96)}to{opacity:1;transform:none}}
+
+  .emailcard{position:fixed;left:40px;bottom:110px;width:520px;z-index:7;
+    background:rgba(14,18,26,.82);border:1px solid rgba(120,160,200,.3);border-radius:16px;
+    padding:22px 26px;backdrop-filter:blur(10px);box-shadow:0 12px 50px rgba(0,0,0,.6);
+    animation:rise .6s ease both}
+  .emailcard .tag{color:#7fe9ff;font-size:14px;font-weight:700;letter-spacing:.6px;margin-bottom:10px}
+  .emailcard .hdr{color:#cfe0ee;font-size:18px;line-height:1.5}
+  .emailcard .hdr b{color:#fff}
+  .emailcard .body{color:#9fb3c8;font-size:17px;line-height:1.5;margin-top:12px;
+    border-top:1px solid rgba(120,160,200,.18);padding-top:12px}
+  .emailcard .arrow{position:absolute;right:-46px;top:50%;color:#7fe9ff;font-size:30px;opacity:.7}
+</style>
+<script src="https://unpkg.com/three@0.150.1/build/three.min.js"></script>
+<script src="https://unpkg.com/3d-force-graph@1.73.4/dist/3d-force-graph.min.js"></script>
+</head>
+<body>
+<div id="title">StudioSage — Live</div>
+<div id="sub" data-sub>Email → Knowledge Base → Answer · in real time</div>
+<div id="legend">
+  <div><span class="dot" style="background:#34d8ff;box-shadow:0 0 10px #34d8ff"></span>Knowledge</div>
+  <div><span class="dot" style="background:#b388ff;box-shadow:0 0 10px #b388ff"></span>Engine (embed · search · LLM)</div>
+  <div><span class="dot" style="background:#7CFFB2;box-shadow:0 0 10px #7CFFB2"></span>Inbound (email · text)</div>
+  <div><span class="dot" style="background:#ffb020;box-shadow:0 0 10px #ffb020"></span>Flagged → digest</div>
+</div>
+<div class="vignette"></div>
+<div id="graph"></div>
+
+<!-- live content layer -->
+<div class="livechip" data-content><span class="pulse"></span><span id="chiptxt">18 parents texting now · 132 answered</span></div>
+<div class="chatwrap" data-content id="chatwrap"></div>
+<div class="emailcard" data-content id="emailcard">
+  <div class="tag">✉ FORWARDED EMAIL → KNOWLEDGE</div>
+  <div class="hdr"><b>From:</b> info@dansdancers.ca<br><b>Subject:</b> Spring Recital — Key Dates</div>
+  <div class="body">Recital is Saturday June 14 at the Sanderson Centre. Doors 6:00, show 6:30. Costume deposits due May 1. Picture day is May 24…</div>
+  <div class="arrow">➜</div>
+</div>
+<script>
+const params = new URLSearchParams(location.search);
+const STYLE = params.get('style') || 'constellation';
+const SHOW_CONTENT = params.get('content') !== '0';
+
+// ---- live chat content layer ----
+const CHAT=[
+  ['in','Parent · +1 519…','What time is Saturday rehearsal?'],
+  ['bot','StudioSage','Saturday rehearsal is 9:00am — doors open 8:45. See you there! 💜'],
+  ['in','Parent · +1 226…','Are classes on during March break?'],
+  ['bot','StudioSage','We’re closed Mar 10–14 for March Break. Regular classes resume Mon the 17th!'],
+];
+function paintChat(){
+  if(!SHOW_CONTENT){document.querySelectorAll('[data-content]').forEach(e=>e.style.display='none');return;}
+  const w=document.getElementById('chatwrap');
+  CHAT.forEach(([who,name,msg],i)=>{
+    const b=document.createElement('div');
+    b.className='bubble '+(who==='bot'?'bot':'in');
+    b.style.animationDelay=(i*0.18)+'s';
+    b.innerHTML='<small>'+name+'</small>'+msg;
+    w.appendChild(b);
+  });
+}
+paintChat();
+
+// ---- glow sprite ----
+function glowTexture(){
+  const c=document.createElement('canvas');c.width=c.height=128;
+  const g=c.getContext('2d');const grd=g.createRadialGradient(64,64,0,64,64,64);
+  grd.addColorStop(0,'rgba(255,255,255,1)');grd.addColorStop(.25,'rgba(255,255,255,.9)');
+  grd.addColorStop(.5,'rgba(160,230,255,.45)');grd.addColorStop(1,'rgba(0,0,0,0)');
+  g.fillStyle=grd;g.fillRect(0,0,128,128);return new THREE.CanvasTexture(c);
+}
+const GLOW=glowTexture();
+function node3(color,size,label){
+  const grp=new THREE.Group();
+  const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:color,
+    blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));
+  spr.scale.set(size,size,1);grp.add(spr);
+  const core=new THREE.Mesh(new THREE.SphereGeometry(size*0.18,16,16),
+    new THREE.MeshBasicMaterial({color:color}));grp.add(core);
+  if(label){
+    const cc=document.createElement('canvas');cc.width=256;cc.height=64;
+    const x=cc.getContext('2d');x.fillStyle='rgba(220,245,255,.92)';
+    x.font='600 26px Inter,Segoe UI,sans-serif';x.textAlign='center';
+    x.fillText(label,128,40);
+    const ls=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cc),
+      depthWrite:false,transparent:true}));
+    ls.scale.set(26,6.5,1);ls.position.set(0,size*0.5+4,0);grp.add(ls);
+  }
+  return grp;
+}
+
+const C={kb:0x34d8ff,engine:0xb388ff,in:0x7CFFB2,flag:0xffb020,out:0xffffff};
+
+// ---- shared architecture data ----
+const KB_LABELS=['Saturday rehearsal','March break','Picture-day dress code','Tuition due',
+ 'Recital date','Costume deposit','Studio address','Make-up class','Summer intensive',
+ 'Drop-off policy','Photo order','Snow-day closures'];
+
+function buildData(){
+  const nodes=[],links=[];
+  const add=(id,type,label,size,x,y,z)=>{nodes.push({id,type,label,size,fx:x,fy:y,fz:z||0});};
+  const anchors=[
+    ['email','in','Forwarded email',15],
+    ['ingest','engine','Ingest + embed',13],
+    ['search','engine','Vector search',13],
+    ['llm','engine','LLM',16],
+    ['text','in','Parent text',15],
+    ['answer','out','Answer → SMS',14],
+    ['flag','flag','Flagged → digest',11],
+  ];
+  // ---- per-style anchor placement (this is what makes them LOOK different) ----
+  const pos={};
+  if(STYLE==='pipeline'){
+    // flat horizontal lanes, left→right by stage, z=0
+    pos.email=[-46,20,0]; pos.text=[-46,-20,0];
+    pos.ingest=[-24,18,0]; pos.search=[-20,-16,0];
+    pos.llm=[16,-6,0]; pos.answer=[46,-14,0]; pos.flag=[22,26,0];
+  }else if(STYLE==='radial'){
+    // anchors evenly on an OUTER RING, KB will be a dense core at origin
+    const ring={email:150,ingest:100,search:250,llm:15,text:205,answer:325,flag:55};
+    Object.entries(ring).forEach(([id,deg])=>{const a=deg*Math.PI/180;
+      pos[id]=[Math.cos(a)*42,Math.sin(a)*42,Math.sin(a*2)*7];});
+  }else{ // constellation — organic 3D scatter, no lanes
+    const order=['email','ingest','search','llm','text','answer','flag'];
+    order.forEach((id,i)=>{const a=i*2.39996+0.6; const r=24+(i%3)*11;
+      pos[id]=[Math.cos(a)*r, Math.sin(a)*r*0.9, Math.sin(i*1.7)*24];});
+  }
+  anchors.forEach(([id,type,label,size])=>{const p=pos[id]; add(id,type,label,size,p[0],p[1],p[2]);});
+
+  // ---- KB nodes per style ----
+  KB_LABELS.forEach((l,i)=>{
+    let x,y,z, sz=9+(i%3)*2.5;
+    if(STYLE==='pipeline'){               // vertical column between engine + search
+      x=-2+(i%2?4:-4); y=28-i*(56/(KB_LABELS.length-1)); z=0;
+    }else if(STYLE==='radial'){           // tight glowing CORE at the centre
+      const a=i*2.39996; const r=3+(i%3)*2.3;
+      x=Math.cos(a)*r; y=Math.sin(a)*r; z=Math.cos(a*1.7)*2.6; sz=7+(i%3)*2;
+    }else{                                // big dispersed organic cloud
+      const a=i*2.39996; const r=12+i*1.9;
+      x=Math.cos(a)*r; y=3+Math.sin(a)*r*0.85; z=Math.sin(i*1.3)*16; sz=8+(i%3)*3;
+    }
+    add('kb'+i,'kb',l,sz,x,y,z);
+  });
+  // flows
+  links.push({source:'email',target:'ingest',f:1});
+  KB_LABELS.forEach((l,i)=>links.push({source:'ingest',target:'kb'+i,f:0}));
+  links.push({source:'text',target:'search',f:1});
+  KB_LABELS.forEach((l,i)=>{ if(i%3===0) links.push({source:'kb'+i,target:'search',f:1}); });
+  links.push({source:'search',target:'llm',f:1});
+  links.push({source:'llm',target:'answer',f:1});
+  links.push({source:'search',target:'flag',f:0});
+  return {nodes,links};
+}
+
+const data=buildData();
+const sub=document.querySelector('[data-sub]');
+if(STYLE==='pipeline') sub.textContent='Live pipeline — left to right, real database events';
+if(STYLE==='radial')   sub.textContent='Knowledge core — everything orbits what your studio knows';
+
+const Graph=ForceGraph3D()(document.getElementById('graph'))
+  .backgroundColor('#04070d')
+  .graphData(data)
+  .nodeThreeObject(n=>node3(C[n.type],n.size,
+      ['email','text','llm','answer','flag','search','ingest'].includes(n.id)?n.label:''))
+  .nodeThreeObjectExtend(false)
+  .linkColor(l=>l.f?'#7fe9ff':'#2c4a63')
+  .linkOpacity(0.7)
+  .linkWidth(l=>l.f?1.1:0.5)
+  .linkDirectionalParticles(l=>l.f?4:2)
+  .linkDirectionalParticleSpeed(0.012)
+  .linkDirectionalParticleWidth(l=>l.f?1.8:1.0)
+  .linkDirectionalParticleColor(l=>l.f?'#cffbff':'#5fbfe0')
+  .showNavInfo(false)
+  .width(window.innerWidth).height(window.innerHeight);
+
+// nodes are fixed-position (fx/fy/fz pin them). Kill charge+center so nothing
+// drifts, but KEEP the link force — it resolves link source/target to node
+// refs that the link geometry needs to draw lines.
+Graph.d3Force('charge',null);
+Graph.d3Force('center',null);
+Graph.d3Force('link').strength(0);
+
+// manual camera fit from real coords (custom sprites defeat zoomToFit)
+setTimeout(()=>{
+  const ns=Graph.graphData().nodes;
+  let maxR=1;
+  ns.forEach(n=>{maxR=Math.max(maxR,Math.hypot(n.x||0,n.y||0,n.z||0));});
+  const cam=Graph.camera();
+  const fov=(cam.fov||50)*Math.PI/180;
+  const dist=(maxR*1.18)/Math.tan(fov/2);
+  const offX = SHOW_CONTENT ? maxR*0.42 : 0;   // push graph left, clear right for chat
+  if(STYLE==='pipeline'){
+    Graph.cameraPosition({x:-20+offX,y:0,z:dist},{x:-20+offX,y:0,z:0},0);
+  }else if(STYLE==='radial'){
+    Graph.cameraPosition({x:dist*0.18+offX,y:-dist*0.10,z:dist*0.96},{x:offX,y:0,z:0},0);
+  }else{ // constellation — 3/4 angle for depth
+    Graph.cameraPosition({x:dist*0.30+offX,y:-dist*0.14,z:dist*0.92},{x:offX,y:0,z:0},0);
+  }
+  const xs=ns.map(n=>n.x),ys=ns.map(n=>n.y);
+  console.log('DIAG',STYLE,'maxR',maxR.toFixed(0),'dist',dist.toFixed(0),
+    'x',Math.min(...xs).toFixed(0),Math.max(...xs).toFixed(0),
+    'y',Math.min(...ys).toFixed(0),Math.max(...ys).toFixed(0));
+  window.__settled=true;
+}, 1500);
+// scene tint / fog
+const scene=Graph.scene();
+scene.fog=new THREE.FogExp2(0x04070d,0.0016);
+</script>
+</body>
+</html>
