@@ -1,3 +1,5 @@
+> **SUPERSEDED 2026-07-02** — combined talk split into two: `talk1-video-*.md` (Content Day) + `talk2-ai-*.md` (AI Front Desk). Use those. This file kept for reference.
+
 # Seminar Slides — From Content Day to AI Assistant
 **Daniel Abrahamson · StreamStage · Dance NYC Expo**
 Built off the final master script (`seminar-script.md`). 19 slides. ~20 min + Q&A.

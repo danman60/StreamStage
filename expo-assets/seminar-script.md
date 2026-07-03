@@ -1,3 +1,5 @@
+> **SUPERSEDED 2026-07-02** — combined talk split into two: `talk1-video-*.md` (Content Day) + `talk2-ai-*.md` (AI Front Desk). Use those. This file kept for reference.
+
 # Seminar Master Script
 **From Content Day to AI Assistant: Smarter Video and Automation for Your Dance Studio**
 Presenter: Daniel Abrahamson, StreamStage · Dance NYC Expo
