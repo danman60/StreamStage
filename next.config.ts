@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
   output: "standalone",
   async redirects() {
     return [
+      // Expo talk QR — printed on Talk 1 slides/handouts. Keep non-permanent so it can be repointed.
+      { source: "/book", destination: "/videoproduction", permanent: false },
       // Client demo moved to dedicated demo host
       { source: "/dance-attack", destination: "https://dance-attack.demos.streamstage.live", permanent: true },
       { source: "/dance-attack/:path*", destination: "https://dance-attack.demos.streamstage.live/:path*", permanent: true },
