@@ -2,7 +2,8 @@
 **Trade-show takeaway · Dance NYC Expo · StreamStage**
 
 Print spec: single sheet, two sides (FRONT / BACK). Brand: StreamStage video + StudioSage AI.
-Guardrails honored: no exact StudioSage price stated, no beta-client names, no saved-hours stat. URL = studiosage.ai. Booking QR = streamstage.live/book. Pricing CORRECTED to live-site à la carte (primary-source: videoproduction page) — $1,250 first day / $750 addl / $499 2nd op / $250 drone / $150–500 per deliverable, CAD+HST. The context-doc fixed tiers were stale/unverified and removed. QR -> /videoproduction (no /book route exists). Daniel picks final pricing format before print.
+Guardrails honored: no exact StudioSage price stated, no beta-client names, no saved-hours stat. URL = studiosage.ai. Booking QR = streamstage.live/book (LIVE as of 2026-07-07 — redirects to /videoproduction, repointable). Pricing CORRECTED to live-site à la carte (primary-source: videoproduction page) — $1,250 first day / $750 addl / $499 2nd op / $250 drone / $150–500 per deliverable, CAD+HST. The context-doc fixed tiers were stale/unverified and removed. Daniel picks final pricing format before print.
+2026-07-07 NOTE: per-talk print handouts now exist — `handout-5-free-ai-moves.html` (Talk 2) + `handout-content-day-planner.html` (Talk 1). This combined one-pager remains the BOOTH leave-behind.
 
 ---
 
@@ -45,9 +46,9 @@ One morning. Everybody in — hair, makeup, costumes, lights. We shoot it ALL at
 > ⚠️ **[Daniel — business call before print]** These are the LIVE à la carte rates from the videoproduction page (primary-source verified). The earlier fixed "Essential/Impactful/Full-Stack $1,499/$2,299/$3,999" tiers were NOT on the live site — removed. Pick: (A) print à la carte above, (B) drop the table + drive to the proposal builder, or (C) define real expo tiers.
 
 ### Book a content day
-**[QR: streamstage.live/videoproduction]** — the proposal builder.
+**[QR: streamstage.live/book]** — the proposal builder.
 Scan to start a quote. Or come bug me at the booth — grab a card.
-*[confirm QR target — /videoproduction is the live route; no /book route exists.]*
+*(Verified live 2026-07-07: /book 307-redirects to /videoproduction.)*
 
 ### Free tip — do it Monday, no vendor required
 Open **free ChatGPT**. Two rules: **talk, don't type** (hit the mic, ramble like you're telling a friend), and **feed it your last 50 newsletters → "make me a template in this voice."** Then each month you *speak* the updates and it writes the newsletter. You read it, hit send. Ten minutes instead of two hours.

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Talk 1 — The Content Day · StreamStage</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --bg:#0A0A0A; --panel:#111722; --panel2:#151b26;
+    --ink:#ffffff; --dim:#a8b6c4; --faint:#5c6a78;
+    --cyan:#4EC5D4; --amber:#F59E0B;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#000;overflow:hidden}
+  body{font-family:var(--sans);color:var(--ink)}
+
+  #stage{position:fixed;left:50%;top:50%;width:1920px;height:1080px;
+    transform:translate(-50%,-50%) scale(1);transform-origin:center;background:var(--bg)}
+
+  .slide{position:absolute;inset:0;display:none;overflow:hidden;background:var(--bg)}
+  .slide.active{display:block}
+  .note{display:none}
+
+  /* ---------- chrome ---------- */
+  #counter{position:fixed;right:22px;bottom:16px;z-index:60;font:700 15px/1 var(--mono);
+    color:#8fa0ad;background:rgba(8,10,14,.75);border:1px solid #26313c;border-radius:8px;padding:8px 12px}
+  #hint{position:fixed;left:22px;bottom:16px;z-index:60;font:600 12px/1 var(--mono);color:#54636f}
+  #notes{position:fixed;left:0;right:0;bottom:0;z-index:70;display:none;
+    background:rgba(6,9,13,.96);border-top:2px solid var(--cyan);padding:26px 44px 30px;max-height:44vh;overflow:auto}
+  body.show-notes #notes{display:block}
+  #notes-title{font:800 15px/1 var(--mono);color:var(--cyan);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+  #notes-body{font:400 19px/1.55 var(--sans);color:#dbe4ec;max-width:1500px}
+  #notes-body b{color:var(--amber)}
+
+  /* ---------- shared bits ---------- */
+  .wm{font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+  .wm .tri{display:inline-block;width:0;height:0;border-top:.34em solid transparent;border-bottom:.34em solid transparent;
+    border-left:.52em solid var(--cyan);margin-right:.3em;transform:translateY(.02em)}
+  .wm i{font-style:normal;color:var(--cyan)}
+  .badge{position:absolute;top:44px;right:56px;font:800 22px/1 var(--mono);letter-spacing:.14em;
+    color:#0A0A0A;background:var(--amber);padding:12px 20px;border-radius:8px}
+  .badge.cy{background:var(--cyan);color:#0A0A0A}
+  .kicker{font:800 24px/1 var(--mono);letter-spacing:.22em;color:var(--cyan);text-transform:uppercase;margin-bottom:28px}
+  .foot{position:absolute;left:0;right:0;bottom:0;height:84px;display:flex;align-items:center;gap:26px;
+    padding:0 56px;background:rgba(5,8,12,.82);border-top:1px solid #1d2733;font:600 22px/1 var(--sans);color:var(--dim)}
+  .foot .wm{font-size:24px;color:#fff}
+
+  /* photo placeholder */
+  .ph{position:relative;overflow:hidden;border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+  .ph.bleed{border-radius:0;box-shadow:none}
+  .ph .cap{position:absolute;left:26px;bottom:22px;z-index:5;font:700 19px/1 var(--mono);letter-spacing:.05em;
+    color:rgba(255,255,255,.92);background:rgba(4,6,9,.62);border:1.5px dashed rgba(255,255,255,.55);
+    padding:11px 18px;border-radius:9px;backdrop-filter:blur(2px)}
+  .grain{position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background:repeating-linear-gradient(115deg,rgba(255,255,255,.028) 0 2px,transparent 2px 7px)}
+  .tx-stage{background:
+    radial-gradient(1300px 700px at 72% 12%, rgba(78,197,212,.38), transparent 62%),
+    radial-gradient(1000px 620px at 14% 88%, rgba(245,158,11,.30), transparent 60%),
+    radial-gradient(700px 500px at 45% 55%, rgba(178,102,255,.14), transparent 65%),
+    linear-gradient(158deg,#101a26 0%,#0A0A0A 58%,#140d03 100%)}
+  .tx-rig{background:
+    radial-gradient(900px 560px at 22% 30%, rgba(78,197,212,.30), transparent 60%),
+    radial-gradient(760px 520px at 84% 78%, rgba(245,158,11,.22), transparent 60%),
+    linear-gradient(200deg,#0e1722,#0A0A0A 70%)}
+  .beam{position:absolute;width:280px;height:150%;top:-25%;opacity:.16;filter:blur(6px);
+    background:linear-gradient(180deg,rgba(255,255,255,.9),transparent 75%)}
+  .beam.b1{left:56%;transform:rotate(18deg)}
+  .beam.b2{left:70%;transform:rotate(-14deg);opacity:.10}
+  .beam.b3{left:18%;transform:rotate(10deg);opacity:.08}
+  .silh{position:absolute;bottom:0;left:0;right:0;height:34%;opacity:.85;
+    background:linear-gradient(0deg,rgba(0,0,0,.92),transparent);z-index:2}
+
+  /* type scale */
+  .h-xxl{font-size:150px;font-weight:900;line-height:1.02;letter-spacing:-.015em}
+  .h-xl{font-size:118px;font-weight:900;line-height:1.04;letter-spacing:-.015em}
+  .h-lg{font-size:88px;font-weight:900;line-height:1.06;letter-spacing:-.01em}
+  .h-md{font-size:62px;font-weight:800;line-height:1.1}
+  .sub{font-size:42px;font-weight:600;color:var(--dim);line-height:1.3}
+  .cy{color:var(--cyan)} .am{color:var(--amber)}
+
+  /* =================== SLIDE 1 =================== */
+  .s1 .txt{position:absolute;left:96px;bottom:150px;z-index:6;max-width:1500px}
+  .s1 .credit{margin-top:44px;font-size:30px;font-weight:600;color:var(--dim);display:flex;align-items:center;gap:20px}
+  .s1 .credit .wm{font-size:30px;color:#fff}
+  .s1 .scrim{position:absolute;inset:0;z-index:3;background:linear-gradient(0deg,rgba(4,6,9,.86) 0%,rgba(4,6,9,.25) 45%,transparent 70%)}
+
+  /* =================== SLIDE 2 =================== */
+  .s2 .wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+  .jobs{display:flex;gap:120px;align-items:center;margin-bottom:70px}
+  .job{position:relative;width:560px;padding:70px 40px 60px;text-align:center;background:var(--panel);
+    border:1px solid #22303d;border-radius:24px}
+  .job .ic{margin:0 auto 34px}
+  .job .nm{font-size:64px;font-weight:900}
+  .job.circled .ring{position:absolute;inset:-30px -44px;border:7px solid var(--amber);border-radius:52% 48% 55% 45% / 46% 54% 46% 54%;
+    transform:rotate(-2.5deg);pointer-events:none}
+  .s2 .under{font-size:52px;font-weight:700;color:var(--dim)}
+  .s2 .under b{color:var(--amber)}
+
+  /* =================== SLIDE 3 =================== */
+  .split{position:absolute;inset:0;display:grid;grid-template-columns:880px 1fr}
+  .s3 .ph{margin:70px 0 70px 70px}
+  .s3 .txt{display:flex;flex-direction:column;justify-content:center;padding:0 110px}
+  .s3 .line{font-size:96px;font-weight:900;line-height:1.16}
+  .s3 .line.d{color:var(--dim);font-weight:700;font-size:66px;margin-top:14px}
+
+  /* =================== SLIDE 4 / 11 (dark question) =================== */
+  .qslide .wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 160px}
+  .qslide{background:radial-gradient(1100px 700px at 50% 42%,#0f1826,#070a0e 70%)}
+  .qslide .q{font-size:112px;font-weight:900;line-height:1.12;max-width:1560px}
+  .qslide .light{margin-top:56px;font-size:40px;font-weight:600;color:var(--faint)}
+
+  /* =================== SLIDE 5 =================== */
+  .s5 .wrap{position:absolute;inset:0;padding:90px 110px}
+  .posts{display:flex;gap:56px;justify-content:center;margin:64px 0 58px}
+  .post{width:330px;height:400px;border-radius:16px;padding:28px;display:flex;flex-direction:column;box-shadow:0 22px 50px rgba(0,0,0,.5)}
+  .post .tag{font:700 15px/1 var(--mono);opacity:.65;margin-bottom:auto}
+  .post.pA{background:linear-gradient(170deg,#ffd9e8,#ffb3cf);color:#8a2b55;font-family:Georgia,'Times New Roman',serif;font-style:italic}
+  .post.pA .big{font-size:52px;font-weight:700;line-height:1.15}
+  .post.pB{background:#0c0f0c;color:#7dff5e;border:2px solid #7dff5e;font-family:var(--mono)}
+  .post.pB .big{font-size:44px;font-weight:800;line-height:1.15;text-transform:uppercase;letter-spacing:.04em}
+  .post.pC{background:#efe9df;color:#6b6257;font-weight:300}
+  .post.pC .big{font-size:40px;line-height:1.3;letter-spacing:.12em;text-transform:lowercase}
+  .s5 .lines{text-align:center}
+
+  /* =================== SLIDE 6 =================== */
+  .s6 .scrim{position:absolute;inset:0;z-index:3;background:linear-gradient(0deg,rgba(4,6,9,.9) 0%,rgba(4,6,9,.3) 48%,transparent 75%)}
+  .s6 .txt{position:absolute;left:96px;bottom:120px;z-index:6}
+  .s6 .haz{position:absolute;right:56px;bottom:120px;z-index:6;font:700 21px/1.4 var(--mono);color:#ffd58a;
+    background:rgba(40,26,4,.75);border:1px solid #6b4a12;border-radius:10px;padding:14px 20px;max-width:360px}
+
+  /* =================== SLIDE 7 stations grid =================== */
+  .s7 .wrap{position:absolute;inset:0;padding:84px 110px}
+  .stations{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:34px;margin-top:50px;height:740px}
+  .st{background:var(--panel);border:1px solid #22303d;border-radius:22px;padding:44px 48px;display:flex;gap:38px;align-items:center}
+  .st .ic{flex:none;width:110px;height:110px;border-radius:24px;display:flex;align-items:center;justify-content:center;
+    background:rgba(78,197,212,.12);border:1px solid rgba(78,197,212,.35)}
+  .st:nth-child(2) .ic{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4)}
+  .st h3{font-size:46px;font-weight:900;margin-bottom:10px}
+  .st p{font-size:31px;color:var(--dim);font-weight:600;line-height:1.3}
+  .st .hl{color:var(--cyan)}
+
+  /* =================== SLIDE 8 fan =================== */
+  .s8 .wrap{position:absolute;inset:0;padding:84px 100px}
+  .s8 .row{display:flex;align-items:center;margin-top:8px}
+  .clip{width:560px;height:315px;border-radius:16px;position:relative;flex:none;
+    background:radial-gradient(400px 260px at 60% 30%,rgba(78,197,212,.45),transparent 65%),
+      radial-gradient(360px 240px at 25% 80%,rgba(245,158,11,.35),transparent 60%),linear-gradient(150deg,#15202e,#0b0f15);
+    box-shadow:0 26px 60px rgba(0,0,0,.55)}
+  .clip .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:96px;height:96px;border-radius:50%;
+    background:rgba(255,255,255,.14);border:3px solid rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center}
+  .clip .play i{width:0;height:0;border-top:20px solid transparent;border-bottom:20px solid transparent;border-left:32px solid #fff;margin-left:8px}
+  .clip .lbl{position:absolute;left:22px;bottom:18px;font:800 22px/1 var(--mono);letter-spacing:.1em;color:#fff;
+    background:rgba(0,0,0,.55);padding:10px 14px;border-radius:8px}
+  .arrow9{flex:none;margin:0 30px;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .arrow9 .shaft{width:150px;height:10px;background:var(--cyan);position:relative;border-radius:5px}
+  .arrow9 .shaft:after{content:"";position:absolute;right:-26px;top:-15px;border-top:20px solid transparent;border-bottom:20px solid transparent;border-left:30px solid var(--cyan)}
+  .arrow9 .x9{font-size:56px;font-weight:900;color:var(--amber)}
+  .fan{position:relative;flex:1;height:660px}
+  .fcard{position:absolute;left:50%;top:110px;width:150px;height:266px;margin-left:-75px;border-radius:14px;
+    transform-origin:50% 300%;border:2px solid rgba(255,255,255,.28);box-shadow:0 18px 44px rgba(0,0,0,.6)}
+  .fanlbl{position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);white-space:nowrap;
+    font:800 24px/1 var(--mono);letter-spacing:.08em;color:var(--dim);
+    background:rgba(10,14,20,.8);border:1px solid #263341;border-radius:10px;padding:14px 24px}
+
+  /* =================== SLIDE 9 funnel =================== */
+  .s9 .wrap{position:absolute;inset:0;padding:84px 120px}
+  .funnel{margin:52px auto 0;width:1250px;text-align:center}
+  .fun-top{height:170px;background:linear-gradient(160deg,#1b6b78,#0e3d48);clip-path:polygon(0 0,100% 0,80% 100%,20% 100%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:6px}
+  .fun-top b{font-size:52px;font-weight:900;letter-spacing:.04em}
+  .fun-top span{font-size:27px;color:#bfeef5;font-weight:600;margin-top:6px}
+  .fun-mid{width:62%;margin:-2px auto 0;height:96px;background:linear-gradient(160deg,#144b55,#0b2b33);
+    clip-path:polygon(0 0,100% 0,84% 100%,16% 100%);display:flex;align-items:center;justify-content:center;
+    font:700 30px/1 var(--mono);letter-spacing:.14em;color:#9fe2ec}
+  .fun-drop{display:flex;justify-content:center;gap:16px;margin-top:34px;flex-wrap:wrap;width:100%}
+  .ugc{padding:16px 24px;border-radius:12px;background:rgba(245,158,11,.14);border:1.5px solid rgba(245,158,11,.55);
+    font-size:26px;font-weight:800;color:#ffd58a}
+  .s9 .mathline{margin-top:44px;text-align:center;font-size:38px;font-weight:700;color:var(--dim)}
+  .s9 .mathline b{color:var(--amber)}
+
+  /* =================== SLIDE 10 demo =================== */
+  .s10 .frame{position:absolute;left:110px;right:110px;top:100px;height:760px;border-radius:22px;overflow:hidden;
+    background:radial-gradient(1000px 560px at 65% 25%,rgba(78,197,212,.4),transparent 62%),
+      radial-gradient(800px 520px at 18% 85%,rgba(245,158,11,.3),transparent 60%),linear-gradient(155deg,#131e2b,#090c11);
+    box-shadow:0 34px 90px rgba(0,0,0,.6)}
+  .s10 .play{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:150px;height:150px;border-radius:50%;
+    background:rgba(255,255,255,.12);border:4px solid rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center}
+  .s10 .play i{width:0;height:0;border-top:32px solid transparent;border-bottom:32px solid transparent;border-left:52px solid #fff;margin-left:12px}
+  .s10 .dcap{position:absolute;left:34px;top:30px;font:800 23px/1 var(--mono);letter-spacing:.08em;color:#fff;
+    background:rgba(0,0,0,.55);border:1.5px dashed rgba(255,255,255,.55);padding:12px 18px;border-radius:9px}
+  .third{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,rgba(3,5,8,.94),rgba(3,5,8,.55) 80%,transparent);
+    padding:60px 44px 34px;display:flex;gap:22px;flex-wrap:wrap}
+  .third .it{font-size:31px;font-weight:800;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);
+    border-radius:12px;padding:16px 26px}
+  .third .it b{color:var(--cyan)}
+  .s10 .land{position:absolute;left:0;right:0;bottom:56px;text-align:center;font-size:52px;font-weight:900}
+  .s10 .land b{color:var(--amber)}
+
+  /* =================== SLIDE 12 cliffhanger =================== */
+  .s12 .wrap{position:absolute;inset:0;padding:84px 110px}
+  .s12 .viz{position:relative;height:520px;margin-top:40px}
+  .folder{position:absolute;left:60px;top:130px;width:360px}
+  .folder .ftab{width:150px;height:36px;background:#c99b3f;border-radius:10px 10px 0 0}
+  .folder .fbody{width:360px;height:230px;background:linear-gradient(170deg,#f0b64e,#c98f2e);border-radius:0 14px 14px 14px;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 22px 50px rgba(0,0,0,.5)}
+  .folder .fbody span{font-size:30px;font-weight:900;color:#3d2a05;text-align:center;line-height:1.25}
+  .s12 svg.arr{position:absolute;left:430px;top:60px}
+  .bubbles{position:absolute;right:0;top:0;width:960px;height:520px}
+  .bub{position:absolute;padding:18px 26px;border-radius:22px;font-size:29px;font-weight:800;background:#1c2836;border:1px solid #2e3f52;color:#e9f1f8}
+  .bub.hot{background:rgba(78,197,212,.16);border-color:var(--cyan);color:#c9f2f8}
+  .bub:after{content:"";position:absolute;left:-10px;bottom:12px;border-top:10px solid transparent;border-bottom:10px solid transparent;border-right:14px solid #1c2836}
+  .s12 .tease{margin-top:56px;font-size:40px;font-weight:800;color:var(--amber)}
+  .s12 .tease span{font:700 26px/1 var(--mono);border:1.5px dashed var(--amber);border-radius:8px;padding:8px 14px;margin-left:18px;vertical-align:middle}
+
+  /* =================== SLIDE 13 CTA =================== */
+  .s13 .scrim{position:absolute;inset:0;z-index:2;background:rgba(5,8,12,.68)}
+  .s13 .wrap{position:absolute;inset:0;z-index:5;display:grid;grid-template-columns:1fr 640px;padding:100px 120px 140px;gap:60px;align-items:center}
+  .s13 .thesis{font-size:92px;font-weight:900;line-height:1.08}
+  .s13 .sub2{margin-top:44px;font-size:46px;font-weight:700;color:var(--dim)}
+  .s13 .sub2 b{color:var(--cyan)}
+  .s13 .book{margin-top:34px;font-size:46px;font-weight:900;color:var(--amber)}
+  .qrcard{background:#fff;border-radius:28px;padding:44px 44px 34px;text-align:center;box-shadow:0 36px 90px rgba(0,0,0,.65)}
+  .qrcard svg{width:480px;height:480px;display:block}
+  .qrcard .url{margin-top:22px;font:900 40px/1 var(--sans);color:#0A0A0A;letter-spacing:-.01em}
+  .qrcard .scan{margin-top:8px;font:700 22px/1 var(--mono);letter-spacing:.18em;color:#6a7682;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- ============ SLIDE 1 — TITLE ============ -->
+<section class="slide s1" data-title="Title / Open">
+  <div class="ph bleed tx-stage" style="position:absolute;inset:0">
+    <div class="beam b1"></div><div class="beam b2"></div><div class="beam b3"></div>
+    <div class="grain"></div>
+    <div class="silh"></div>
+    <div class="cap" style="bottom:auto;top:26px">[PHOTO: content-day hero — lights up, dancers, energy]</div>
+  </div>
+  <div class="scrim"></div>
+  <div class="txt">
+    <div class="h-xxl">Do the hard thing <span class="cy">ONCE.</span></div>
+    <div class="h-xl" style="margin-top:18px">Let it pay you back <span class="am">all year.</span></div>
+    <div class="credit">Daniel Abrahamson &nbsp;·&nbsp; <span class="wm"><span class="tri"></span>Stream<i>Stage</i></span></div>
+  </div>
+  <aside class="note"><b>0:00–0:30 · OPEN</b> — Thesis stated up front. Holds while Daniel does the show-of-hands open ("who shot, edited, posted a video last week… keep them up"). No clicks.</aside>
+</section>
+
+<!-- ============ SLIDE 2 — THE SECOND JOB ============ -->
+<section class="slide s2" data-title="The Second Job">
+  <div class="badge">[INTERACT]</div>
+  <div class="wrap">
+    <div class="jobs">
+      <div class="job">
+        <svg class="ic" width="110" height="110" viewBox="0 0 24 24" fill="none" stroke="#a8b6c4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/><path d="M22 10v6"/></svg>
+        <div class="nm">Teacher.</div>
+      </div>
+      <div class="job circled">
+        <div class="ring"></div>
+        <svg class="ic" width="110" height="110" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-3v10l-6-3"/></svg>
+        <div class="nm">Content creator.</div>
+      </div>
+    </div>
+    <div class="under">You&rsquo;re getting paid for <b>one.</b></div>
+  </div>
+  <aside class="note"><b>0:30–1:30 · OPEN · [INTERACT]</b> — Lands the "second job" bit after hands go up. Two jobs here, not three — the front-desk job is Talk 2's open.</aside>
+</section>
+
+<!-- ============ SLIDE 3 — WHO I AM ============ -->
+<section class="slide s3" data-title="Who I Am">
+  <div class="split">
+    <div class="ph tx-rig">
+      <div class="grain"></div>
+      <div class="beam b1" style="left:30%"></div>
+      <div class="cap">[PHOTO: Daniel on a real shoot — cameras / rig]</div>
+    </div>
+    <div class="txt">
+      <div class="line">Videographer.</div>
+      <div class="line d">Studios, recitals, competitions.</div>
+      <div class="line d cy" style="color:var(--cyan)">All year long.</div>
+    </div>
+  </div>
+  <aside class="note"><b>1:30–2:00 · OPEN</b> — Credibility beat. Keep short — persona jokes are budgeted to Talk 2.</aside>
+</section>
+
+<!-- ============ SLIDE 4 — HOW ARE YOU MAKING VIDEO NOW? ============ -->
+<section class="slide qslide" data-title="How Are You Making Video Now?">
+  <div class="badge">[INTERACT]</div>
+  <div class="wrap">
+    <div class="q">How are you making video <span class="cy">right now?</span></div>
+    <div class="light">Phone in the lobby? &nbsp;Hired for the gala? &nbsp;Niece with a ring light?</div>
+  </div>
+  <aside class="note"><b>2:00–3:00 · PROBLEM · [INTERACT]</b> — Take 3–4 answers, react by name. Seeds which examples to lean on next.</aside>
+</section>
+
+<!-- ============ SLIDE 5 — THE EXHAUSTING WAY ============ -->
+<section class="slide s5" data-title="The Exhausting Way">
+  <div class="wrap">
+    <div class="h-lg" style="text-align:center">Shoot. Edit. Post. <span class="am">Repeat.</span></div>
+    <div class="posts">
+      <div class="post pA"><div class="tag">@studio · mon</div><div class="big">Spring Recital!! ✿</div></div>
+      <div class="post pB"><div class="tag">@studio · wed</div><div class="big">COMP TEAM<br>WINS BIG&gt;&gt;&gt;</div></div>
+      <div class="post pC"><div class="tag">@studio · fri</div><div class="big">trial classes<br>now enrolling&nbsp;.&nbsp;.&nbsp;.</div></div>
+    </div>
+    <div class="lines">
+      <div class="sub" style="font-size:44px;font-weight:800;color:#fff">Piecemeal looks piecemeal.</div>
+      <div class="sub" style="margin-top:14px">Three studios. Three people. <span class="am" style="font-weight:800">Never met.</span></div>
+    </div>
+  </div>
+  <aside class="note"><b>3:00–4:00 · PROBLEM</b> — Names the pain: inconsistent brand from grind-it-out content.</aside>
+</section>
+
+<!-- ============ SLIDE 6 — THE CONTENT DAY ============ -->
+<section class="slide s6" data-title="The Content Day">
+  <div class="ph bleed tx-stage" style="position:absolute;inset:0">
+    <div class="beam b1"></div><div class="beam b2"></div><div class="beam b3"></div>
+    <div class="grain"></div><div class="silh"></div>
+    <div class="cap" style="bottom:auto;top:26px">[PHOTO: wide content-day setup hero]</div>
+  </div>
+  <div class="scrim"></div>
+  <div class="txt">
+    <div class="h-xl">One day. <span class="cy">Everybody in.</span></div>
+    <div class="sub" style="margin-top:28px;font-size:48px;color:#dbe4ec;font-weight:700">Hair, makeup, costumes, lights.</div>
+    <div class="h-md am" style="margin-top:22px">Shoot it ALL at once.</div>
+  </div>
+  <div class="haz">&#9888; warn the building re: hazer</div>
+  <aside class="note"><b>4:00–5:30 · FIX</b> — The fix. Hazer / smoke-alarm aside lives in Daniel's voice, not on slide.</aside>
+</section>
+
+<!-- ============ SLIDE 7 — STATIONS ============ -->
+<section class="slide s7" data-title="Stations">
+  <div class="wrap">
+    <div class="kicker">One 4-hour shoot · multiple setups</div>
+    <div class="h-lg">Stations</div>
+    <div class="stations">
+      <div class="st">
+        <div class="ic"><svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#4EC5D4" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 01-9 8.4 8.6 8.6 0 01-3.8-.9L3 21l2-4.2A8.4 8.4 0 013 11.5a8.4 8.4 0 019-8.4 8.4 8.4 0 019 8.4z"/></svg></div>
+        <div><h3>Interview / story</h3><p><span class="hl">the heart</span> — people doing people things</p></div>
+      </div>
+      <div class="st">
+        <div class="ic"><svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2.5"/><circle cx="12" cy="18.4" r="1"/><path d="M10 5h4"/></svg></div>
+        <div><h3>Selfie studio</h3><p>fast, shareable — dancers make their own</p></div>
+      </div>
+      <div class="st">
+        <div class="ic"><svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#4EC5D4" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 8.6 22 9.3 17 14 18.4 21 12 17.6 5.6 21 7 14 2 9.3 9 8.6"/></svg></div>
+        <div><h3>Routines</h3><p>the polished stuff — <span class="hl">the brand reel</span></p></div>
+      </div>
+      <div class="st">
+        <div class="ic"><svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#4EC5D4" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="5" r="2.6"/><circle cx="19" cy="5" r="2.6"/><circle cx="5" cy="19" r="2.6"/><circle cx="19" cy="19" r="2.6"/><rect x="9.4" y="9.4" width="5.2" height="5.2" rx="1.4"/><path d="M7 7l2.6 2.6M17 7l-2.6 2.6M7 17l2.6-2.6M17 17l-2.6-2.6"/></svg></div>
+        <div><h3>Extra angles</h3><p>every device = a focal length · drone · GoPro</p></div>
+      </div>
+    </div>
+  </div>
+  <aside class="note"><b>5:30–7:00 · FIX</b> — "People doing people things — the one thing AI can't generate." Drone wall-art aside in voice.</aside>
+</section>
+
+<!-- ============ SLIDE 8 — ONE CLIP, NINE POSTS ============ -->
+<section class="slide s8" data-title="One Clip, Nine Posts">
+  <div class="badge cy">[LIVE EXAMPLE]</div>
+  <div class="wrap">
+    <div class="h-lg">One recital clip. <span class="am">Nine posts.</span></div>
+    <div class="sub" style="margin-top:10px">Same footage.</div>
+    <div class="row">
+      <div class="clip">
+        <div class="play"><i></i></div>
+        <div class="lbl">ONE RECITAL CLIP</div>
+      </div>
+      <div class="arrow9"><div class="x9">&times;9</div><div class="shaft"></div></div>
+      <div class="fan" id="fan1"><div class="fanlbl">reels · teasers · quotes · stories · cuts</div></div>
+    </div>
+  </div>
+  <aside class="note"><b>7:00–8:00 · FIX · [LIVE EXAMPLE]</b> — Live-example beat: hold up phone alongside. Maximize assets while hair is done + lights are up.</aside>
+</section>
+
+<!-- ============ SLIDE 9 — PRO FEEDS UGC ============ -->
+<section class="slide s9" data-title="Pro Feeds UGC">
+  <div class="wrap">
+    <div class="h-lg" style="text-align:center">You need <span class="cy">both.</span></div>
+    <div class="funnel">
+      <div class="fun-top"><b>PRO FOOTAGE</b><span>the well you draw from all year</span></div>
+      <div class="fun-mid">CUT · CAPTION · REMIX</div>
+      <div class="fun-drop">
+        <div class="ugc">reel</div><div class="ugc">vertical</div><div class="ugc">teaser</div><div class="ugc">story</div>
+        <div class="ugc">quote</div><div class="ugc">promo</div><div class="ugc">recap</div><div class="ugc">UGC</div>
+      </div>
+    </div>
+    <div class="mathline">A 30-sec edit can eat <b>2–4 hrs</b> of your night.</div>
+  </div>
+  <aside class="note"><b>8:00–9:30 · FIX</b> — "Contractually obligated by my own mortgage… it is great though." + "hostage situation" editing math.</aside>
+</section>
+
+<!-- ============ SLIDE 10 — WHAT YOU WALK OUT WITH / DEMO ============ -->
+<section class="slide s10" data-title="What You Walk Out With / Demo">
+  <div class="badge">[DEMO]</div>
+  <div class="frame">
+    <div class="grain"></div>
+    <div class="dcap">[DEMO: roll real content-day reel · 30–45 sec · full-screen]</div>
+    <div class="play"><i></i></div>
+    <div class="third">
+      <div class="it"><b>&#9656;</b> Homepage story video</div>
+      <div class="it"><b>&#9656;</b> Living background video</div>
+      <div class="it"><b>&#9656;</b> Recital + competition reels</div>
+      <div class="it"><b>&#9656;</b> Dozens of social cuts, scheduled</div>
+    </div>
+  </div>
+  <div class="land">One morning in. <b>Twelve months of posts out.</b></div>
+  <aside class="note"><b>9:30–13:00 · FIX · [DEMO]</b> — Roll the real reel full-screen, list as lower-third. Land it: <b>One morning in. Twelve months of posts out.</b> With Q&amp;A budget, demo + reactions can breathe here.</aside>
+</section>
+
+<!-- ============ SLIDE 11 — THE VIDEO YOU NEVER MAKE ============ -->
+<section class="slide qslide" data-title="What's the Video You Never Make?">
+  <div class="badge">[INTERACT]</div>
+  <div class="wrap">
+    <div class="q">What&rsquo;s the video you keep meaning to make&hellip;</div>
+    <div class="q am" style="margin-top:34px">&hellip;and never do?</div>
+  </div>
+  <aside class="note"><b>13:00–15:00 · CLOSE · [INTERACT]</b> — Rapid-fire answers. Anything doable in a content day → answer in one line. Live wins, generous not salesy.</aside>
+</section>
+
+<!-- ============ SLIDE 12 — THE CLIFFHANGER ============ -->
+<section class="slide s12" data-title="The Cliffhanger">
+  <div class="wrap">
+    <div class="h-lg">A year of content in a folder.</div>
+    <div class="sub" style="margin-top:16px;font-size:46px;font-weight:800;color:#fff">Who sends it out? <span style="color:var(--dim);font-weight:700">Who answers the 40 parents who reply?</span></div>
+    <div class="viz">
+      <div class="folder">
+        <div class="ftab"></div>
+        <div class="fbody"><span>12 MONTHS<br>OF CONTENT</span></div>
+      </div>
+      <svg class="arr" width="330" height="420" viewBox="0 0 330 420" fill="none" stroke="#4EC5D4" stroke-width="7" stroke-linecap="round">
+        <path d="M10 210 C110 200 180 90 300 40"/>
+        <path d="M10 210 C120 205 200 160 305 140"/>
+        <path d="M10 210 L305 230"/>
+        <path d="M10 210 C120 215 200 270 305 320"/>
+        <path d="M10 210 C110 220 180 330 300 395"/>
+        <path d="M283 22 L305 38 L279 52" stroke-width="6"/>
+        <path d="M288 124 L308 139 L284 152" stroke-width="6"/>
+        <path d="M286 214 L308 230 L285 246" stroke-width="6"/>
+        <path d="M287 305 L308 320 L284 335" stroke-width="6"/>
+        <path d="M282 379 L304 394 L280 409" stroke-width="6"/>
+      </svg>
+      <div class="bubbles">
+        <div class="bub hot" style="left:20px;top:0">What time?</div>
+        <div class="bub" style="left:330px;top:14px">Which studio?</div>
+        <div class="bub hot" style="left:640px;top:2px">Where&rsquo;s the link?</div>
+        <div class="bub" style="left:80px;top:110px">Is that this Saturday?</div>
+        <div class="bub hot" style="left:470px;top:120px">Costumes due when?</div>
+        <div class="bub" style="left:10px;top:222px">Do we bring shoes?</div>
+        <div class="bub hot" style="left:340px;top:232px">What time again?</div>
+        <div class="bub" style="left:690px;top:222px">Which door?</div>
+        <div class="bub hot" style="left:120px;top:334px">Where do we park?</div>
+        <div class="bub" style="left:490px;top:344px">Is there a livestream?</div>
+        <div class="bub hot" style="left:230px;top:440px">Where&rsquo;s the link??</div>
+        <div class="bub" style="left:620px;top:436px">&hellip;what time?</div>
+      </div>
+    </div>
+    <div class="tease">That&rsquo;s my next session. <span>[confirm slot/time]</span></div>
+  </div>
+  <aside class="note"><b>15:00–16:30 · CLOSE (Talk 2 trailer)</b> — The old "seam" slide, repurposed as the trailer for Talk 2. Tease only — zero product content here.</aside>
+</section>
+
+<!-- ============ SLIDE 13 — CLOSE / CTA ============ -->
+<section class="slide s13" data-title="Close / CTA">
+  <div class="ph bleed tx-stage" style="position:absolute;inset:0">
+    <div class="beam b1"></div><div class="beam b3"></div><div class="grain"></div><div class="silh"></div>
+    <div class="cap" style="bottom:auto;top:26px;opacity:.75">[PHOTO: content-day hero, dimmed]</div>
+  </div>
+  <div class="scrim"></div>
+  <div class="wrap">
+    <div>
+      <div class="thesis">Do the hard thing <span class="cy">once.</span><br>Let it pay you back <span class="am">all year.</span></div>
+      <div class="sub2">One content day <b>&rarr;</b> twelve months of video.</div>
+      <div class="book">Book one &rarr; scan the code.</div>
+    </div>
+    <div class="qrcard">
+      <svg viewBox="0 0 31 31" shape-rendering="crispEdges" role="img" aria-label="QR code linking to streamstage.live/book"><path fill="#ffffff" d="M0 0h31v31H0z"/><path stroke="#0A0A0A" d="M1 1.5h7m2 0h1m1 0h1m2 0h1m4 0h1m2 0h7M1 2.5h1m5 0h1m3 0h1m1 0h1m3 0h1m1 0h1m1 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m4 0h2m1 0h2m3 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h1m2 0h1m2 0h1m1 0h1m3 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h1m1 0h1m6 0h1m3 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h4m3 0h2m1 0h3m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m1 0h1m1 0h1m1 0h4m1 0h1M1 9.5h1m2 0h1m1 0h2m1 0h2m1 0h1m2 0h1m1 0h1m1 0h2m1 0h1m1 0h1M3 10.5h1m1 0h2m3 0h1m2 0h2m1 0h2m3 0h3m2 0h1m2 0h1M1 11.5h1m1 0h1m3 0h1m1 0h1m1 0h1m2 0h3m1 0h1m1 0h2m2 0h5M3 12.5h1m1 0h2m2 0h3m1 0h2m2 0h1m1 0h1m4 0h1m2 0h2M1 13.5h1m2 0h2m1 0h2m1 0h2m3 0h2m1 0h1m1 0h4m2 0h1m1 0h2M3 14.5h1m1 0h1m2 0h3m3 0h5m1 0h1m1 0h1M1 15.5h1m2 0h2m1 0h2m1 0h2m2 0h2m3 0h1m1 0h2m1 0h1m1 0h4M1 16.5h1m3 0h2m3 0h1m1 0h1m3 0h1m1 0h1m1 0h2m2 0h1m1 0h1m1 0h1M1 17.5h5m1 0h3m1 0h2m1 0h1m3 0h1m1 0h3m1 0h1m3 0h1M2 18.5h2m1 0h2m2 0h1m1 0h1m1 0h6m4 0h2m1 0h1m2 0h1M1 19.5h1m2 0h2m1 0h1m1 0h1m5 0h4m4 0h1m1 0h1m2 0h2M5 20.5h1m2 0h6m1 0h1m2 0h4m6 0h2M1 21.5h1m1 0h1m3 0h1m3 0h1m1 0h1m2 0h1m4 0h5m1 0h1M9 22.5h1m2 0h1m2 0h2m3 0h2m3 0h1m1 0h3M1 23.5h7m4 0h2m3 0h2m2 0h1m1 0h1m1 0h1m2 0h1M1 24.5h1m5 0h1m1 0h1m1 0h1m3 0h2m2 0h1m1 0h1m3 0h3M1 25.5h1m1 0h3m1 0h1m2 0h2m1 0h1m3 0h2m2 0h5m2 0h1M1 26.5h1m1 0h3m1 0h1m1 0h3m1 0h2m1 0h1m3 0h1m2 0h1m1 0h3m1 0h1M1 27.5h1m1 0h3m1 0h1m2 0h4m2 0h2m1 0h1m2 0h1m2 0h3m1 0h1M1 28.5h1m5 0h1m2 0h2m3 0h1m1 0h5m3 0h1m2 0h1M1 29.5h7m1 0h1m1 0h3m2 0h1m2 0h1m1 0h1m3 0h1m2 0h1"/></svg>
+      <div class="url">streamstage.live/book</div>
+      <div class="scan">scan to book a content day</div>
+    </div>
+  </div>
+  <div class="foot" style="z-index:6">
+    <span class="wm"><span class="tri"></span>Stream<i>Stage</i></span>
+    <span>Daniel Abrahamson</span>
+    <span style="margin-left:auto;margin-right:150px;color:#8fa0ad">Grab a card. I genuinely love this stuff.</span>
+  </div>
+  <aside class="note"><b>16:30–20:00 · CLOSE + OPEN FLOOR</b> — "Start simple, see it work, scale. Partnership, not an invoice." End on thesis. Q&amp;A follows.</aside>
+</section>
+
+</div><!-- /stage -->
+
+<div id="counter">1 / 13</div>
+<div id="hint">&larr; &rarr; nav &nbsp;·&nbsp; P notes &nbsp;·&nbsp; #+Enter jump</div>
+<div id="notes"><div id="notes-title"></div><div id="notes-body"></div></div>
+
+<script>
+(function(){
+  // build slide-8 fan: 9 vertical cards
+  var fan=document.getElementById('fan1');
+  var hues=[[196,'78,197,212'],[210,'110,170,230'],[36,'245,158,11'],[196,'78,197,212'],[280,'178,120,255'],[36,'245,158,11'],[196,'78,197,212'],[210,'110,170,230'],[336,'240,110,160']];
+  for(var i=0;i<9;i++){
+    var d=document.createElement('div');d.className='fcard';
+    var rgb=hues[i][1];
+    d.style.background='radial-gradient(120px 140px at 50% 25%, rgba('+rgb+',.55), transparent 70%), linear-gradient(165deg,#182230,#0b0f15)';
+    d.style.transform='rotate('+((i-4)*8.5)+'deg)';
+    d.style.zIndex=String(10+ (i<5? i : 9-i));
+    fan.appendChild(d);
+  }
+  var slides=Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var cur=0, buf='';
+  var counter=document.getElementById('counter');
+  function show(i){
+    cur=Math.max(0,Math.min(slides.length-1,i));
+    slides.forEach(function(s,j){s.classList.toggle('active',j===cur);});
+    counter.textContent=(cur+1)+' / '+slides.length;
+    var s=slides[cur], n=s.querySelector('.note');
+    document.getElementById('notes-title').textContent='SLIDE '+(cur+1)+' — '+(s.getAttribute('data-title')||'');
+    document.getElementById('notes-body').innerHTML=n?n.innerHTML:'<em>No notes.</em>';
+  }
+  function fit(){
+    var sc=Math.min(window.innerWidth/1920, window.innerHeight/1080);
+    document.getElementById('stage').style.transform='translate(-50%,-50%) scale('+sc+')';
+  }
+  window.addEventListener('resize',fit);
+  window.addEventListener('keydown',function(e){
+    if(e.key>='0'&&e.key<='9'){buf+=e.key;return;}
+    if(e.key==='Enter'&&buf){show(parseInt(buf,10)-1);buf='';return;}
+    buf='';
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();show(cur+1);}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){show(cur-1);}
+    else if(e.key==='Home'){show(0);}
+    else if(e.key==='End'){show(slides.length-1);}
+    else if(e.key==='p'||e.key==='P'){document.body.classList.toggle('show-notes');}
+  });
+  fit(); show(0);
+})();
+</script>
+</body>
+</html>

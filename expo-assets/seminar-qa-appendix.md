@@ -5,7 +5,7 @@ Dance NYC Expo · StreamStage / StudioSage
 Voice: warm, dry, partnership-not-sales, technologist-who-makes-tech-just-work. Answers are written to be SPOKEN, not read off a card.
 Guardrails baked in: never state an exact StudioSage price (target ~$15–20/mo, billing not built — [confirm price] before naming a number), never name beta studios or the saved-hours stat without [confirm permission], URL = studiosage.ai. Don't invent client counts or stats.
 
-16 questions.
+17 questions.
 
 ---
 
@@ -56,3 +56,6 @@ Tell me what it is — genuinely, that's my favorite question. If it's something
 
 **16. How is this different from the chatbot widget on my website?**
 Honest answer — most parents never touch those website widgets. They're buried on a page nobody visits, and by the time a parent's looking, they've already given up and texted you directly. The unlock here isn't a smarter bot, it's the *channel*. Parents already live in their texts. So instead of asking them to come find a chat box on your site, the answer goes to where they already are: they text the studio number, they get an answer. No app, no login, no hunting. Pull, not push. That's the whole difference — and it's why it actually gets used instead of ignored.
+
+**17. Can I try it right now, on my phone?**
+Yes — and you don't even need to wait for the booth. Text **LIVE26** to **+1 226-796-6037**. It'll ask your name — it's polite like that — and then ask it anything a parent would: rehearsal times, costume fees, March break. That's a live demo studio, so it knows a demo studio's stuff; the version you'd run knows *yours*. That's the whole trick.

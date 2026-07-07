@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Talk 2 — The AI Front Desk · StreamStage &times; StudioSage</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --bg:#0A0A0A; --panel:#111722; --ink:#ffffff; --dim:#a8b6c4; --faint:#5c6a78;
+    --cyan:#4EC5D4; --amber:#F59E0B;
+    --sage:#5b7362; --sage-d:#2d3a30; --sage-l:#e8ede9; --cream:#faf8f5; --sage-m:#8aa392;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --serif:Georgia,"Times New Roman",serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#000;overflow:hidden}
+  body{font-family:var(--sans);color:var(--ink)}
+  #stage{position:fixed;left:50%;top:50%;width:1920px;height:1080px;
+    transform:translate(-50%,-50%) scale(1);transform-origin:center;background:var(--bg)}
+  .slide{position:absolute;inset:0;display:none;overflow:hidden;background:var(--bg)}
+  .slide.active{display:block}
+  .note{display:none}
+
+  /* chrome */
+  #counter{position:fixed;right:22px;bottom:16px;z-index:60;font:700 15px/1 var(--mono);
+    color:#8fa0ad;background:rgba(8,10,14,.75);border:1px solid #26313c;border-radius:8px;padding:8px 12px}
+  #hint{position:fixed;left:22px;bottom:16px;z-index:60;font:600 12px/1 var(--mono);color:#54636f}
+  #notes{position:fixed;left:0;right:0;bottom:0;z-index:70;display:none;
+    background:rgba(6,9,13,.96);border-top:2px solid var(--cyan);padding:26px 44px 30px;max-height:44vh;overflow:auto}
+  body.show-notes #notes{display:block}
+  #notes-title{font:800 15px/1 var(--mono);color:var(--cyan);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+  #notes-body{font:400 19px/1.55 var(--sans);color:#dbe4ec;max-width:1500px}
+  #notes-body b{color:var(--amber)}
+
+  /* shared */
+  .wm{font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+  .wm .tri{display:inline-block;width:0;height:0;border-top:.34em solid transparent;border-bottom:.34em solid transparent;
+    border-left:.52em solid var(--cyan);margin-right:.3em;transform:translateY(.02em)}
+  .wm i{font-style:normal;color:var(--cyan)}
+  .sagewm{font-family:var(--serif);font-weight:700;letter-spacing:.01em}
+  .sagewm .leaf{display:inline-block;width:.62em;height:.62em;border-radius:0 60% 0 60%;background:var(--sage);
+    transform:rotate(-8deg);margin-right:.22em}
+  .badge{position:absolute;top:44px;right:56px;font:800 22px/1 var(--mono);letter-spacing:.14em;
+    color:#0A0A0A;background:var(--amber);padding:12px 20px;border-radius:8px;z-index:9}
+  .badge.cy{background:var(--cyan);color:#0A0A0A}
+  .badge.sg{background:var(--sage);color:#fff}
+  .kicker{font:800 24px/1 var(--mono);letter-spacing:.22em;color:var(--cyan);text-transform:uppercase;margin-bottom:28px}
+  .h-xxl{font-size:150px;font-weight:900;line-height:1.02;letter-spacing:-.015em}
+  .h-xl{font-size:118px;font-weight:900;line-height:1.04;letter-spacing:-.015em}
+  .h-lg{font-size:86px;font-weight:900;line-height:1.06;letter-spacing:-.01em}
+  .h-md{font-size:60px;font-weight:800;line-height:1.12}
+  .sub{font-size:42px;font-weight:600;color:var(--dim);line-height:1.3}
+  .cy{color:var(--cyan)} .am{color:var(--amber)} .sg{color:var(--sage)}
+  .grain{position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background:repeating-linear-gradient(115deg,rgba(255,255,255,.028) 0 2px,transparent 2px 7px)}
+  .ph{position:relative;overflow:hidden;border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+  .ph.bleed{border-radius:0;box-shadow:none}
+  .ph .cap{position:absolute;left:26px;bottom:22px;z-index:5;font:700 19px/1 var(--mono);letter-spacing:.05em;
+    color:rgba(255,255,255,.92);background:rgba(4,6,9,.62);border:1.5px dashed rgba(255,255,255,.55);
+    padding:11px 18px;border-radius:9px}
+  .tx-night{background:
+    radial-gradient(760px 560px at 66% 46%, rgba(78,140,220,.34), transparent 62%),
+    radial-gradient(500px 380px at 68% 50%, rgba(210,230,255,.16), transparent 60%),
+    radial-gradient(900px 640px at 12% 90%, rgba(20,30,55,.9), transparent 70%),
+    linear-gradient(200deg,#0b1220,#060810 65%)}
+  .tx-rig{background:
+    radial-gradient(900px 560px at 22% 30%, rgba(78,197,212,.30), transparent 60%),
+    radial-gradient(760px 520px at 84% 78%, rgba(245,158,11,.22), transparent 60%),
+    linear-gradient(200deg,#0e1722,#0A0A0A 70%)}
+  .qslide{background:radial-gradient(1100px 700px at 50% 42%,#0f1826,#070a0e 70%)}
+  .qslide .wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 160px}
+  .qslide .q{font-size:110px;font-weight:900;line-height:1.14;max-width:1600px}
+  .foot{position:absolute;left:0;right:0;bottom:0;height:84px;display:flex;align-items:center;gap:26px;
+    padding:0 56px;background:rgba(5,8,12,.82);border-top:1px solid #1d2733;font:600 22px/1 var(--sans);color:var(--dim);z-index:8}
+  .foot .wm{font-size:24px;color:#fff}
+
+  /* phone glow for slide 1 */
+  .phone1{position:absolute;right:340px;top:300px;width:250px;height:510px;border-radius:38px;background:#0d1119;
+    border:3px solid #232c3a;box-shadow:0 0 140px 30px rgba(120,170,255,.22);transform:rotate(7deg);z-index:2}
+  .phone1 .scr{position:absolute;inset:12px;border-radius:28px;background:linear-gradient(190deg,#16202f,#0a0e16);overflow:hidden}
+  .phone1 .b{position:absolute;left:14px;right:44px;padding:10px 12px;border-radius:12px;background:#1e2a3a;font:600 13px/1.3 var(--sans);color:#c9d6e4}
+  .phone1 .b.me{left:44px;right:14px;background:#2b4a66;color:#e8f2fb}
+  .clock11{position:absolute;right:250px;top:220px;font:800 40px/1 var(--mono);color:#9db8dd;z-index:3;letter-spacing:.06em}
+
+  /* slide 2 jobs */
+  .s2 .wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .jobs{display:flex;gap:120px;align-items:center;margin-bottom:70px}
+  .job{position:relative;width:580px;padding:70px 40px 60px;text-align:center;background:var(--panel);
+    border:1px solid #22303d;border-radius:24px}
+  .job .ic{margin:0 auto 34px}
+  .job .nm{font-size:62px;font-weight:900}
+  .job.circled .ring{position:absolute;inset:-30px -44px;border:7px solid var(--amber);
+    border-radius:52% 48% 55% 45% / 46% 54% 46% 54%;transform:rotate(-2.5deg);pointer-events:none}
+  .s2 .under{font-size:52px;font-weight:700;color:var(--dim)}
+  .s2 .under b{color:var(--amber)}
+
+  /* slide 3 */
+  .split{position:absolute;inset:0;display:grid;grid-template-columns:880px 1fr}
+  .s3 .ph{margin:70px 0 70px 70px}
+  .s3 .txt{display:flex;flex-direction:column;justify-content:center;padding:0 100px}
+  .scrpanel{position:absolute;inset:0}
+  .scrpanel .win{position:absolute;border-radius:10px;background:rgba(78,197,212,.10);border:1px solid rgba(78,197,212,.35)}
+
+  /* slide 4 chips */
+  .s4 .wrap{position:absolute;inset:0;padding:100px 120px}
+  .chiprow{display:flex;gap:34px;margin-top:70px;align-items:center}
+  .chip{width:150px;height:150px;border-radius:26px;background:var(--panel);border:2px solid #2b3a49;
+    display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:900;color:var(--cyan)}
+  .chip.six{background:rgba(245,158,11,.14);border-color:var(--amber);color:var(--amber);
+    box-shadow:0 0 60px 8px rgba(245,158,11,.35)}
+  .chip.sagelit{background:rgba(91,115,98,.22);border-color:var(--sage-m);color:#cfe0d4;
+    box-shadow:0 0 60px 10px rgba(138,163,146,.5)}
+  .s4 .plus{font-size:56px;font-weight:900;color:var(--faint)}
+  .multicam{position:absolute;right:90px;bottom:130px;width:340px;opacity:.45}
+  .multicam .g{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .multicam .c{height:56px;border-radius:6px;background:linear-gradient(150deg,#1a2634,#0d1119);border:1px solid #263242}
+  .multicam .lbl{margin-top:10px;font:700 16px/1 var(--mono);color:#5c6a78;letter-spacing:.12em;text-align:center}
+
+  /* TIP template */
+  .tip .wrap{position:absolute;inset:0;padding:80px 110px 120px;display:grid;grid-template-columns:1fr 640px;gap:80px}
+  .tiptag{display:inline-block;font:900 30px/1 var(--mono);letter-spacing:.16em;color:#0A0A0A;
+    background:var(--amber);padding:16px 26px;border-radius:10px;margin-bottom:52px}
+  .tip .pain{font-size:76px;font-weight:900;line-height:1.1}
+  .tip .move{margin-top:36px;font-size:48px;font-weight:700;color:var(--dim);line-height:1.32}
+  .tip .move b{color:var(--cyan);font-weight:800}
+  .monday{position:absolute;left:110px;bottom:70px;right:820px;border:3px solid var(--cyan);border-radius:16px;
+    padding:26px 34px;font-size:38px;font-weight:800;background:rgba(78,197,212,.07)}
+  .monday b{color:var(--cyan);font-family:var(--mono);letter-spacing:.1em;margin-right:16px}
+  .tip .viz{display:flex;align-items:center;justify-content:center}
+
+  /* tip visuals */
+  .phone5{width:340px;height:660px;border-radius:44px;background:#0d1119;border:3px solid #26303f;position:relative;box-shadow:0 30px 70px rgba(0,0,0,.55)}
+  .phone5 .scr{position:absolute;inset:14px;border-radius:32px;background:linear-gradient(190deg,#141c28,#0a0e16);overflow:hidden}
+  .phone5 .micwrap{position:absolute;left:50%;bottom:46px;transform:translateX(-50%);width:150px;height:150px;border-radius:50%;
+    background:radial-gradient(circle at 50% 38%,#63d3e0,#2e94a3);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 70px 12px rgba(78,197,212,.45)}
+  .ripple{position:absolute;left:50%;bottom:46px;transform:translateX(-50%);width:150px;height:150px;border-radius:50%;
+    border:3px solid rgba(78,197,212,.5)}
+  .ripple.r2{width:210px;height:210px;bottom:16px;border-color:rgba(78,197,212,.28)}
+  .speech{position:absolute;left:-390px;top:310px;width:330px;background:#1c2836;border:1px solid #2e3f52;border-radius:18px;
+    padding:22px 24px;font:600 22px/1.45 var(--sans);color:#cfdae5;font-style:italic;z-index:5}
+  .speech:after{content:"";position:absolute;right:-13px;top:110px;border-top:11px solid transparent;border-bottom:11px solid transparent;border-left:14px solid #1c2836}
+
+  .stackviz{position:relative;width:560px;height:640px}
+  .nl{position:absolute;width:280px;height:180px;border-radius:10px;background:#e9e2d4;box-shadow:0 12px 30px rgba(0,0,0,.5);padding:16px}
+  .nl .l{height:9px;border-radius:5px;background:#b9ae97;margin-bottom:9px}
+  .tmpl{position:absolute;right:0;top:120px;width:300px;height:420px;border-radius:14px;background:#f4f7f5;
+    box-shadow:0 22px 54px rgba(0,0,0,.6);padding:26px}
+  .tmpl .hd{height:44px;border-radius:8px;background:var(--cyan);margin-bottom:18px;display:flex;align-items:center;justify-content:center;
+    font:800 18px/1 var(--mono);color:#04303a;letter-spacing:.1em}
+  .tmpl .l{height:11px;border-radius:6px;background:#c5d2cb;margin-bottom:11px}
+  .tmpl .voice{margin-top:20px;font:900 24px/1.15 var(--sans);color:#0A0A0A}
+  .tmpl .voice b{color:var(--amber)}
+  .flowarrow{position:absolute;left:250px;top:290px;width:0}
+
+  .board{position:relative;width:600px;height:640px}
+  .wb{position:absolute;left:0;top:40px;width:300px;height:340px;background:#f2efe6;border-radius:10px;
+    box-shadow:0 16px 40px rgba(0,0,0,.5);padding:18px;transform:rotate(-3deg)}
+  .wb .scr1{position:absolute;font:700 19px/1.2 var(--sans)}
+  .grid7{position:absolute;right:0;bottom:40px;width:330px;background:#fff;border-radius:12px;box-shadow:0 22px 54px rgba(0,0,0,.6);padding:20px}
+  .grid7 table{width:100%;border-collapse:collapse}
+  .grid7 td,.grid7 th{border:1.5px solid #d7e0da;padding:9px 6px;font:700 16px/1 var(--sans);color:#33413a;text-align:center}
+  .grid7 th{background:var(--cyan);color:#052e35;font-weight:900}
+  .grid7 .ok{background:#e2f2e8}
+
+  .mailmock{width:620px;background:#f6f8f7;border-radius:16px;box-shadow:0 26px 60px rgba(0,0,0,.6);padding:34px;position:relative;color:#22303a}
+  .mailmock .from{font:700 21px/1 var(--sans);color:#5a6a75;margin-bottom:14px}
+  .mailmock .subj{font:900 30px/1.2 var(--sans);color:#141c22;margin-bottom:22px}
+  .mailmock .l{height:12px;border-radius:6px;background:#d5dcd9;margin-bottom:12px}
+  .mailmock .tone{position:absolute;top:-24px;right:30px;background:var(--amber);color:#231402;
+    font:900 22px/1 var(--mono);letter-spacing:.08em;padding:13px 20px;border-radius:10px;box-shadow:0 10px 26px rgba(0,0,0,.4)}
+  .mailmock .clk{position:absolute;bottom:22px;right:28px;font:800 26px/1 var(--mono);color:#8695a0}
+
+  .hbviz{position:relative;width:620px;height:640px}
+  .pdfcard{position:absolute;left:0;top:60px;width:220px;height:320px;border-radius:12px;background:#fff;
+    box-shadow:0 20px 50px rgba(0,0,0,.6);padding:22px;color:#28343c}
+  .pdfcard .pdf{display:inline-block;background:#d64545;color:#fff;font:900 18px/1 var(--mono);padding:8px 12px;border-radius:6px;margin-bottom:16px}
+  .pdfcard h4{font:900 24px/1.2 var(--sans);margin-bottom:14px}
+  .pdfcard .l{height:9px;border-radius:5px;background:#d8dee2;margin-bottom:9px}
+  .chatcard{position:absolute;right:0;top:0;width:300px}
+  .cb{padding:18px 22px;border-radius:18px;font:700 24px/1.35 var(--sans);margin-bottom:18px;max-width:320px}
+  .cb.q{background:#1c2836;border:1px solid #2e3f52;color:#dfe9f2}
+  .cb.a{background:rgba(78,197,212,.16);border:1.5px solid var(--cyan);color:#d7f4f9;margin-left:0}
+
+  /* slide 10 pattern */
+  .s10 .wrap{position:absolute;inset:0;padding:84px 110px}
+  .collapse{display:flex;align-items:center;gap:40px;margin-top:60px;justify-content:center}
+  .minichips{display:flex;gap:20px}
+  .mc{width:96px;height:96px;border-radius:20px;background:var(--panel);border:2px solid #2b3a49;
+    display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:900;color:var(--cyan)}
+  .bigarrow{display:flex;flex-direction:column;align-items:center}
+  .bigarrow .shaft{width:200px;height:10px;background:var(--amber);border-radius:5px;position:relative}
+  .bigarrow .shaft:after{content:"";position:absolute;right:-26px;top:-15px;border-top:20px solid transparent;border-bottom:20px solid transparent;border-left:30px solid var(--amber)}
+  .bigarrow .lb{margin-top:18px;font:800 26px/1 var(--mono);color:var(--amber);letter-spacing:.08em}
+  .oncebox{padding:34px 50px;border:3px solid var(--amber);border-radius:20px;font-size:44px;font-weight:900;background:rgba(245,158,11,.08)}
+  .painboard{margin:70px auto 0;width:1400px;border:2.5px dashed #3a4a5c;border-radius:18px;padding:34px 40px;display:flex;gap:26px;flex-wrap:wrap;justify-content:center}
+  .pb{font-size:34px;font-weight:800;color:#6f8296;background:#131b26;border:1px solid #263341;border-radius:12px;padding:16px 28px}
+  .painboard .lbl{width:100%;text-align:center;font:700 20px/1 var(--mono);letter-spacing:.2em;color:#54636f;margin-bottom:6px}
+
+  /* slide 11 livestream */
+  .s11 .wrap{position:absolute;inset:0;padding:80px 110px;display:grid;grid-template-columns:1fr 660px;gap:70px}
+  .camgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:44px}
+  .cam{height:150px;border-radius:10px;position:relative;background:linear-gradient(155deg,#1a2634,#0c1017);border:1px solid #28374a;overflow:hidden}
+  .cam .rec{position:absolute;left:10px;top:8px;font:800 14px/1 var(--mono);color:#ff5d5d}
+  .cam .nm2{position:absolute;right:10px;bottom:8px;font:700 14px/1 var(--mono);color:#5f7186}
+  .cam .glow{position:absolute;inset:0;background:radial-gradient(120px 80px at 60% 40%,rgba(78,197,212,.3),transparent 70%)}
+  .replycard{background:#f6f8f7;border-radius:16px;box-shadow:0 26px 60px rgba(0,0,0,.6);padding:34px;position:relative;color:#22303a;align-self:center}
+  .replycard .from{font:700 20px/1 var(--sans);color:#5a6a75;margin-bottom:12px}
+  .replycard .subj{font:900 28px/1.2 var(--sans);color:#141c22;margin-bottom:20px}
+  .replycard .bodyl{font:600 24px/1.5 var(--sans);color:#33414b}
+  .replycard .conf{position:absolute;top:-26px;right:28px;background:#1f9d57;color:#fff;
+    font:900 24px/1 var(--mono);letter-spacing:.05em;padding:14px 22px;border-radius:12px;box-shadow:0 12px 28px rgba(0,0,0,.4)}
+  .replycard .auto{margin-top:22px;font:800 19px/1 var(--mono);color:#7a8992;letter-spacing:.1em}
+
+  /* slide 12 push/pull */
+  .s12 .wrap{position:absolute;inset:0;padding:80px 100px}
+  .pp{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:54px;height:640px}
+  .ppcol{border-radius:22px;padding:44px;position:relative}
+  .ppcol h3{font-size:46px;font-weight:900;margin-bottom:30px}
+  .ppcol.push{background:#151b26;border:1px solid #26313c}
+  .ppcol.pull{background:rgba(78,197,212,.07);border:2px solid var(--cyan)}
+  .pushpile{position:relative;height:420px}
+  .pnote{position:absolute;padding:16px 22px;border-radius:12px;font:800 26px/1 var(--sans);color:#c8d3de;background:#212d3c;border:1px solid #33445a;box-shadow:0 10px 26px rgba(0,0,0,.4)}
+  .pullex{margin-top:30px}
+  .pullex .cb{font-size:30px;padding:22px 28px}
+  .buried{position:absolute;left:44px;bottom:36px;font-size:30px;font-weight:800;color:#7c8b9b}
+  .pulled{position:absolute;left:44px;bottom:36px;font-size:30px;font-weight:900;color:var(--cyan)}
+
+  /* ===== SAGE product slides (13–15) ===== */
+  .sage{background:var(--cream);color:var(--sage-d)}
+  .sage .h-xl,.sage .h-lg{color:var(--sage-d)}
+  .sage .kicker{color:var(--sage)}
+  .sage .sub{color:#5f6f64}
+  .s13p .wrap{position:absolute;inset:0;padding:100px 130px;display:grid;grid-template-columns:1fr 560px;gap:90px;align-items:center}
+  .s13p .brand{font-size:120px;color:var(--sage-d)}
+  .s13p .tag2{font-size:52px;font-weight:800;color:var(--sage);margin-top:16px;font-family:var(--serif);font-style:italic}
+  .s13p .li{margin-top:44px;font-size:44px;font-weight:700;color:#41504a;line-height:1.45}
+  .s13p .li b{color:var(--sage)}
+  .s13p .url{position:absolute;right:70px;bottom:56px;font-size:56px;font-weight:900;color:var(--sage-d)}
+  .s13p .url i{font-style:normal;color:var(--sage)}
+  .phoneS{width:420px;height:800px;border-radius:52px;background:#20281f;border:4px solid #33413a;position:relative;
+    box-shadow:0 40px 90px rgba(45,58,48,.35)}
+  .phoneS .scr{position:absolute;inset:16px;border-radius:38px;background:#f4f6f3;overflow:hidden;padding:66px 22px 22px}
+  .phoneS .hd{position:absolute;left:16px;right:16px;top:16px;height:52px;border-radius:38px 38px 0 0;background:var(--sage);
+    display:flex;align-items:center;justify-content:center;font:800 20px/1 var(--sans);color:#fff;letter-spacing:.04em}
+  .sb{padding:16px 20px;border-radius:18px;font:600 22px/1.4 var(--sans);margin-bottom:16px;max-width:88%}
+  .sb.q2{background:#dfe6e0;color:#2f3a33;margin-left:auto;border-bottom-right-radius:6px}
+  .sb.a2{background:var(--sage);color:#f4f7f4;border-bottom-left-radius:6px}
+  .sb .cf{display:block;margin-top:8px;font:700 15px/1 var(--mono);color:#cfe0d4;letter-spacing:.06em}
+
+  /* slide 14 switch */
+  .s14 .wrap{position:absolute;inset:60px;border:6px dashed var(--sage);border-radius:34px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:linear-gradient(170deg,#f6f4ef,#e8ede9)}
+  .s14 .big{font-size:112px;font-weight:900;color:var(--sage-d);line-height:1.06}
+  .s14 .path{margin-top:44px;font:800 40px/1 var(--mono);color:var(--sage);background:#fff;border:2.5px solid var(--sage);
+    border-radius:14px;padding:22px 36px}
+  .s14 .cue{margin-top:64px;display:flex;align-items:center;gap:28px;font-size:44px;font-weight:800;color:#5f6f64}
+  .keycap{display:inline-block;background:#2d3a30;color:#e8ede9;border-radius:12px;padding:18px 30px;
+    font:900 40px/1 var(--mono);box-shadow:0 6px 0 #1a231d}
+  .s14 .anim{margin-top:56px;font-size:33px;font-weight:700;color:#7d8b81;max-width:1250px;line-height:1.5}
+
+  /* slide 15 */
+  .s15 .wrap{position:absolute;inset:0;padding:80px 110px 120px;display:grid;grid-template-columns:760px 1fr;gap:80px}
+  .digest{background:#fff;border-radius:20px;box-shadow:0 30px 70px rgba(45,58,48,.25);padding:40px;align-self:center}
+  .digest .dh{font:900 26px/1 var(--sans);color:var(--sage-d);margin-bottom:8px}
+  .digest .ds{font:600 19px/1 var(--sans);color:#8c988f;margin-bottom:28px}
+  .flag{border:2px solid #e3e9e4;border-radius:14px;padding:22px 24px;margin-bottom:18px}
+  .flag .fq{font:800 25px/1.35 var(--sans);color:#2f3a33;margin-bottom:16px}
+  .flag .row2{display:flex;gap:14px;align-items:center}
+  .tapbtn{background:var(--sage);color:#fff;border-radius:10px;padding:13px 22px;font:800 21px/1 var(--sans)}
+  .tapbtn.ghost{background:#eef2ee;color:var(--sage-d)}
+  .flag.done{background:#eef4ef;border-color:var(--sage-m)}
+  .flag.done .fq{color:#5f6f64}
+  .learned{font:800 19px/1 var(--mono);color:var(--sage);letter-spacing:.06em}
+  .s15 .right2{display:flex;flex-direction:column;justify-content:center}
+  .s15 .noguess{font-size:72px;font-weight:900;color:var(--sage-d);line-height:1.12}
+  .s15 .noguess b{color:#b0483c}
+  .s15 .mech{margin-top:30px;font-size:38px;font-weight:700;color:#5f6f64;line-height:1.4}
+  .s15 .mech b{color:var(--sage)}
+  .textnow{margin-top:56px;background:var(--sage-d);border-radius:22px;padding:40px 46px;color:#fff}
+  .textnow .t1{font-size:42px;font-weight:800}
+  .textnow .num{margin-top:18px;font:900 96px/1 var(--sans);letter-spacing:.02em;color:#fff}
+  .textnow .num span{border:3px dashed var(--sage-m);border-radius:16px;padding:6px 28px;color:#cfe0d4}
+
+  /* slide 17 close */
+  .s17 .wrap{position:absolute;inset:0;padding:90px 120px 130px}
+  .s17 .thesis{font-size:96px;font-weight:900;line-height:1.08}
+  .s17 .row3{display:flex;align-items:center;gap:60px;margin-top:64px}
+  .s17 .moves{font-size:46px;font-weight:800;color:var(--dim)}
+  .s17 .moves b{color:var(--cyan)}
+  .s17 .urlbig{margin-top:56px;font-size:100px;font-weight:900}
+  .s17 .urlbig i{font-style:normal;color:var(--sage-m)}
+  .s17 .printer{margin-top:34px;font-size:32px;font-weight:600;color:var(--faint)}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- ============ SLIDE 1 — TITLE ============ -->
+<section class="slide" data-title="Title / Open">
+  <div class="ph bleed tx-night" style="position:absolute;inset:0">
+    <div class="grain"></div>
+    <div class="cap" style="bottom:auto;top:26px">[PHOTO: phone mid-text / inbox at 11pm — moody]</div>
+  </div>
+  <div class="clock11">11:04 PM</div>
+  <div class="phone1"><div class="scr">
+    <div class="b" style="top:26px">What time is Saturday rehearsal?</div>
+    <div class="b me" style="top:110px">Hi! It's 9am — doors at 8:40</div>
+    <div class="b" style="top:196px">Is that the same for juniors?</div>
+    <div class="b" style="top:282px">And where's the link??</div>
+  </div></div>
+  <div style="position:absolute;inset:0;z-index:3;background:linear-gradient(0deg,rgba(4,6,10,.88) 0%,rgba(4,6,10,.28) 46%,transparent 70%)"></div>
+  <div style="position:absolute;left:96px;bottom:150px;z-index:6;max-width:1500px">
+    <div class="h-xxl">Do the hard thing <span class="cy">ONCE.</span></div>
+    <div class="h-xl" style="margin-top:18px">Let it pay you back <span class="am">all year.</span></div>
+    <div style="margin-top:44px;font-size:30px;font-weight:600;color:var(--dim);display:flex;align-items:center;gap:20px">
+      Daniel Abrahamson &nbsp;·&nbsp; <span class="wm" style="font-size:30px;color:#fff"><span class="tri"></span>Stream<i>Stage</i></span>
+    </div>
+  </div>
+  <aside class="note"><b>0:00–0:30 · OPEN</b> — Same thesis as Talk 1 on purpose — returning audience hears the echo. Holds through show-of-hands ("answered the same parent question three times this week?"). No clicks.</aside>
+</section>
+
+<!-- ============ SLIDE 2 — THE FRONT DESK JOB ============ -->
+<section class="slide s2" data-title="The Front Desk Job">
+  <div class="badge">[INTERACT]</div>
+  <div class="wrap">
+    <div class="jobs">
+      <div class="job">
+        <svg class="ic" width="110" height="110" viewBox="0 0 24 24" fill="none" stroke="#a8b6c4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/><path d="M22 10v6"/></svg>
+        <div class="nm">Teacher.</div>
+      </div>
+      <div class="job circled">
+        <div class="ring"></div>
+        <svg class="ic" width="110" height="110" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-3a3 3 0 013-3h12a3 3 0 013 3v3"/><path d="M2 18h20"/><path d="M8 12V8a4 4 0 118 0v4"/><circle cx="12" cy="5" r="1"/></svg>
+        <div class="nm">Full-time front desk.</div>
+      </div>
+    </div>
+    <div class="under">You&rsquo;re getting paid for <b>one.</b></div>
+  </div>
+  <aside class="note"><b>0:30–1:15 · OPEN · [INTERACT]</b> — Lands after "answered the same question three times this week" hands. Front-desk job here; content-creator job was Talk 1's open.</aside>
+</section>
+
+<!-- ============ SLIDE 3 — WHO I AM ============ -->
+<section class="slide s3" data-title="Who I Am">
+  <div class="split">
+    <div class="ph tx-rig">
+      <div class="grain"></div>
+      <div class="scrpanel">
+        <div class="win" style="left:8%;top:12%;width:34%;height:26%"></div>
+        <div class="win" style="left:48%;top:8%;width:44%;height:34%;border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.08)"></div>
+        <div class="win" style="left:14%;top:46%;width:52%;height:30%"></div>
+        <div class="win" style="left:70%;top:50%;width:22%;height:22%"></div>
+      </div>
+      <div class="cap">[PHOTO: Daniel at a rig / surrounded by screens]</div>
+    </div>
+    <div class="txt">
+      <div style="font-size:104px;font-weight:900;line-height:1.1">Technologist <span class="cy">first.</span></div>
+      <div class="sub" style="margin-top:44px;font-size:44px">I fix the printer at every family gathering.</div>
+    </div>
+  </div>
+  <aside class="note"><b>1:15–2:00 · OPEN</b> — Persona beat — printer joke lives HERE (not Talk 1). "As big a shift as the internet" honesty line in voice.</aside>
+</section>
+
+<!-- ============ SLIDE 4 — THE PROMISE ============ -->
+<section class="slide s4" data-title="The Promise">
+  <div class="wrap">
+    <div class="h-lg">5 free AI moves. <span class="cy">Monday morning.</span> No vendor.</div>
+    <div class="h-md" style="margin-top:26px;color:var(--dim)">Then: the one I <span class="am">productized.</span></div>
+    <div class="chiprow">
+      <div class="chip">1</div><div class="chip">2</div><div class="chip">3</div><div class="chip">4</div><div class="chip">5</div>
+      <div class="s4 plus" style="font-size:56px;font-weight:900;color:var(--faint)">+</div>
+      <div class="chip six">6</div>
+    </div>
+    <div class="sub" style="margin-top:70px;font-size:38px">And one email I answered mid-livestream <b style="color:#fff">without typing.</b></div>
+  </div>
+  <div class="multicam">
+    <div class="g"><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div></div>
+    <div class="lbl">8 CAMS · LIVE</div>
+  </div>
+  <aside class="note"><b>2:00–2:30 · OPEN (loop tease)</b> — Sets the 50/50 contract with the room AND plants the open loop (pays off Slide 11).</aside>
+</section>
+
+<!-- ============ SLIDE 5 — TIP 1 ============ -->
+<section class="slide tip" data-title="Tip 1: Talk, Don't Type">
+  <div class="wrap">
+    <div>
+      <div class="tiptag">FREE MOVE #1</div>
+      <div class="pain">Stop typing.<br>Hit the mic. <span class="cy">Ramble.</span></div>
+      <div class="move">The second you type, <b>it&rsquo;s homework.</b></div>
+    </div>
+    <div class="viz">
+      <div style="position:relative">
+        <div class="speech">&ldquo;okay so costume payments are late again and I need to remind parents without sounding annoyed for the third time&hellip;&rdquo;</div>
+        <div class="phone5"><div class="scr"></div>
+          <div class="ripple r2"></div><div class="ripple"></div>
+          <div class="micwrap">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#04303a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0"/><path d="M12 19v3"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="monday"><b>MONDAY:</b> app on first screen &nbsp;·&nbsp; mic, always</div>
+  <aside class="note"><b>2:30–4:00 · TIPS</b> — "The second you type, it's homework." Biggest adoption unlock — sell the habit, not the tool.</aside>
+</section>
+
+<!-- ============ SLIDE 6 — TIP 2 ============ -->
+<section class="slide tip" data-title="Tip 2: The Newsletter Writes Itself">
+  <div class="wrap">
+    <div>
+      <div class="tiptag">FREE MOVE #2</div>
+      <div class="pain">Feed it 50 old newsletters &rarr; template in <span class="am">YOUR voice.</span></div>
+      <div class="move"><b>Speak</b> the updates. Read. Send.</div>
+    </div>
+    <div class="viz">
+      <div class="stackviz">
+        <div class="nl" style="left:0;top:40px;transform:rotate(-7deg)"><div class="l" style="width:70%"></div><div class="l"></div><div class="l" style="width:85%"></div><div class="l" style="width:60%"></div><div class="l" style="width:90%"></div></div>
+        <div class="nl" style="left:26px;top:210px;transform:rotate(4deg)"><div class="l" style="width:80%"></div><div class="l" style="width:55%"></div><div class="l"></div><div class="l" style="width:75%"></div><div class="l" style="width:65%"></div></div>
+        <div class="nl" style="left:8px;top:390px;transform:rotate(-3deg)"><div class="l" style="width:65%"></div><div class="l" style="width:90%"></div><div class="l" style="width:70%"></div><div class="l"></div><div class="l" style="width:50%"></div></div>
+        <svg class="flowarrow" width="130" height="70" viewBox="0 0 130 70" style="position:absolute;left:270px;top:290px" fill="none" stroke="#4EC5D4" stroke-width="8" stroke-linecap="round"><path d="M8 35h95"/><path d="M85 12l26 23-26 23"/></svg>
+        <div class="tmpl">
+          <div class="hd">TEMPLATE</div>
+          <div class="l" style="width:85%"></div><div class="l"></div><div class="l" style="width:70%"></div><div class="l" style="width:90%"></div><div class="l" style="width:60%"></div>
+          <div class="voice">in <b>YOUR</b> voice</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="monday"><b>MONDAY:</b> 10 minutes, not 2 hours</div>
+  <aside class="note"><b>4:00–5:45 · TIPS</b> — First "teach it your stuff ONCE" beat — say the thesis out loud here ("hear the theme yet?").</aside>
+</section>
+
+<!-- ============ SLIDE 7 — TIP 3 ============ -->
+<section class="slide tip" data-title="Tip 3: The Schedule Detangler">
+  <div class="wrap">
+    <div>
+      <div class="tiptag">FREE MOVE #3</div>
+      <div class="pain">Paste the ugly mess: <span class="cy">teachers, rooms, dates.</span></div>
+      <div class="move">&ldquo;Find conflicts. <b>Propose 3 schedules.</b>&rdquo;</div>
+    </div>
+    <div class="viz">
+      <div class="board">
+        <div class="wb">
+          <div class="scr1" style="left:14px;top:16px;color:#b04a3c;transform:rotate(-4deg)">Miss Emma — NO TUES!!</div>
+          <div class="scr1" style="left:30px;top:64px;color:#3b5b8c;transform:rotate(2deg)">Rm 2 = ballet?? or jazz</div>
+          <div class="scr1" style="left:12px;top:112px;color:#4a7a4f;transform:rotate(-2deg)">hip hop moved &rarr; thu?</div>
+          <div class="scr1" style="left:36px;top:158px;color:#b04a3c;transform:rotate(3deg)">DOUBLE BOOKED 5pm</div>
+          <div class="scr1" style="left:16px;top:206px;color:#6a5a8c;transform:rotate(-3deg)">recital week = ???</div>
+          <div class="scr1" style="left:40px;top:252px;color:#3b5b8c;transform:rotate(1deg)">9 teachers / 3 rooms</div>
+        </div>
+        <svg width="150" height="150" viewBox="0 0 150 150" style="position:absolute;left:250px;top:280px" fill="none" stroke="#4EC5D4" stroke-width="9" stroke-linecap="round"><path d="M20 25c60 5 90 45 100 95"/><path d="M96 92l26 30-40 6"/></svg>
+        <div class="grid7">
+          <table>
+            <tr><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th></tr>
+            <tr><td class="ok">Ballet 1<br>Rm 1</td><td>Jazz 2<br>Rm 2</td><td class="ok">Hip Hop<br>Rm 1</td><td>Acro<br>Rm 3</td></tr>
+            <tr><td>Tap 1<br>Rm 3</td><td class="ok">Ballet 2<br>Rm 1</td><td>Lyrical<br>Rm 2</td><td class="ok">Comp<br>Rm 1</td></tr>
+            <tr><td class="ok">Jazz 1<br>Rm 2</td><td>Acro 2<br>Rm 3</td><td class="ok">Tap 2<br>Rm 3</td><td>Ballet 3<br>Rm 2</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="monday"><b>MONDAY:</b> 90 seconds to a draft</div>
+  <aside class="note"><b>5:45–7:15 · TIPS</b> — Set expectation honestly: draft not perfect — "fixing is faster than staring."</aside>
+</section>
+
+<!-- ============ SLIDE 8 — TIP 4 ============ -->
+<section class="slide tip" data-title="Tip 4: Hard Replies, Your Voice">
+  <div class="wrap">
+    <div>
+      <div class="tiptag">FREE MOVE #4</div>
+      <div class="pain">Paste the email <span class="cy">+ 2 of your past replies.</span></div>
+      <div class="move">&ldquo;Draft mine. <b>Same tone.</b>&rdquo;</div>
+    </div>
+    <div class="viz">
+      <div class="mailmock">
+        <div class="tone">TONE: YOURS</div>
+        <div class="from">Draft reply — to: parent</div>
+        <div class="subj">Re: Costume fee question</div>
+        <div class="l" style="width:92%"></div><div class="l" style="width:100%"></div><div class="l" style="width:84%"></div>
+        <div class="l" style="width:95%"></div><div class="l" style="width:60%"></div>
+        <div style="height:34px"></div>
+        <div class="clk">11:00 PM</div>
+      </div>
+    </div>
+  </div>
+  <div class="monday"><b>MONDAY:</b> save one &ldquo;hard email&rdquo; example</div>
+  <aside class="note"><b>7:15–8:45 · TIPS</b> — "You edit draft one instead of staring at a blank box." Never-passive-aggressive line in voice.</aside>
+</section>
+
+<!-- ============ SLIDE 9 — TIP 5 ★ ============ -->
+<section class="slide tip" data-title="Tip 5: Ask Your Own Handbook ★">
+  <div class="badge cy">&#9733; THE SLEEPER</div>
+  <div class="wrap">
+    <div>
+      <div class="tiptag">FREE MOVE #5</div>
+      <div class="pain">Upload the handbook PDF. <span class="cy">Ask it questions.</span></div>
+      <div class="move">It answers from <b>YOUR document.</b></div>
+    </div>
+    <div class="viz">
+      <div class="hbviz">
+        <div class="pdfcard">
+          <span class="pdf">PDF</span>
+          <h4>Parent Handbook</h4>
+          <div class="l" style="width:90%"></div><div class="l"></div><div class="l" style="width:75%"></div>
+          <div class="l" style="width:85%"></div><div class="l" style="width:60%"></div><div class="l" style="width:80%"></div>
+        </div>
+        <svg width="88" height="52" viewBox="0 0 88 52" style="position:absolute;left:226px;top:196px" fill="none" stroke="#4EC5D4" stroke-width="7" stroke-linecap="round"><path d="M6 26h56"/><path d="M52 8l26 18-26 18"/></svg>
+        <div class="chatcard" style="top:60px">
+          <div class="cb q">When are costume fees due?</div>
+          <div class="cb a">Costume fees are due <b>March 1st</b> — per your handbook, page 4.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="monday"><b>MONDAY:</b> try the 3 questions parents ask most</div>
+  <aside class="note"><b>8:45–10:15 · TIPS (StudioSage seed)</b> — ★ The sleeper — this IS the StudioSage concept in free-tool form. "Keep that move in your head." Do not rush it.</aside>
+</section>
+
+<!-- ============ SLIDE 10 — THE PATTERN ============ -->
+<section class="slide s10" data-title="The Pattern">
+  <div class="badge">[INTERACT]</div>
+  <div class="wrap">
+    <div class="h-lg">None of that made AI smart <span style="color:var(--faint)">in general.</span></div>
+    <div class="h-md" style="margin-top:20px">You made it smart about <span class="am">YOUR studio.</span> Once.</div>
+    <div class="collapse">
+      <div class="minichips"><div class="mc">1</div><div class="mc">2</div><div class="mc">3</div><div class="mc">4</div><div class="mc">5</div></div>
+      <div class="bigarrow"><div class="shaft"></div><div class="lb">YOUR STUFF, ONCE</div></div>
+      <div class="oncebox">Teach it <span class="am">once.</span></div>
+    </div>
+    <div class="painboard">
+      <div class="lbl">— THE PAIN-POINT BOARD · FILLS LIVE —</div>
+      <div class="pb">Parent emails</div><div class="pb">Newsletter</div><div class="pb">Scheduling</div><div class="pb">Lobby TV</div>
+    </div>
+  </div>
+  <aside class="note"><b>10:15–11:00 · TIPS → BRIDGE · [INTERACT]</b> — Say the pattern, then run the pain-point round on this slide. Board gets pointed at again on Slide 15.</aside>
+</section>
+
+<!-- ============ SLIDE 11 — PAY OFF THE LOOP ============ -->
+<section class="slide s11" data-title="Pay Off the Loop">
+  <div class="wrap">
+    <div>
+      <div class="h-lg">Mid-competition. <span class="cy">8 cameras.</span></div>
+      <div class="h-md" style="margin-top:18px;color:var(--dim)">&ldquo;I never got the link.&rdquo;</div>
+      <div class="camgrid">
+        <div class="cam"><div class="glow"></div><div class="rec">&#9679; REC</div><div class="nm2">CAM 1</div></div>
+        <div class="cam"><div class="glow"></div><div class="rec">&#9679; REC</div><div class="nm2">CAM 2</div></div>
+        <div class="cam"><div class="glow"></div><div class="rec">&#9679; REC</div><div class="nm2">CAM 3</div></div>
+        <div class="cam"><div class="glow"></div><div class="rec">&#9679; REC</div><div class="nm2">CAM 4</div></div>
+        <div class="cam"><div class="glow"></div><div class="rec">&#9679; REC</div><div class="nm2">CAM 5</div></div>
+        <div class="cam"><div class="glow"></div><div class="rec">&#9679; REC</div><div class="nm2">CAM 6</div></div>
+        <div class="cam"><div class="glow"></div><div class="rec">&#9679; REC</div><div class="nm2">TRACK</div></div>
+        <div class="cam"><div class="glow"></div><div class="rec">&#9679; REC</div><div class="nm2">WIDE</div></div>
+      </div>
+      <div class="sub" style="margin-top:40px;font-size:36px">Read &rarr; check calendar &rarr; draft &rarr; <b style="color:#fff">score confidence</b> &rarr; fire &rarr; ping me.</div>
+      <div style="margin-top:26px;font-size:46px;font-weight:900;color:var(--amber)">I never touched my keyboard.</div>
+    </div>
+    <div style="display:flex;align-items:center">
+      <div class="replycard">
+        <div class="conf">90% CONFIDENT</div>
+        <div class="from">Auto-drafted reply — to: parent</div>
+        <div class="subj">Re: I never got the link</div>
+        <div class="bodyl">Hi! Here&rsquo;s today&rsquo;s stream link for the event you&rsquo;re attending — it&rsquo;s live now. See you in the chat!</div>
+        <div class="auto">SENT · OWNER PINGED · 0 KEYSTROKES</div>
+      </div>
+    </div>
+  </div>
+  <aside class="note"><b>11:00–12:15 · BRIDGE (loop payoff)</b> — Closes Slide 4's loop. "They did get the link. They did, though." — "I built it for my own pain first." Confidence/flag mechanic seeds Slide 14.</aside>
+</section>
+
+<!-- ============ SLIDE 12 — PULL, DON'T PUSH ============ -->
+<section class="slide s12" data-title="Pull, Don't Push">
+  <div class="wrap">
+    <div class="h-lg">People want to <span class="cy">PULL.</span></div>
+    <div class="pp">
+      <div class="ppcol push">
+        <h3 style="color:#8797a8">PUSH — parents still buried</h3>
+        <div class="pushpile">
+          <div class="pnote" style="left:6%;top:4%;transform:rotate(-5deg)">EMAIL blast</div>
+          <div class="pnote" style="left:44%;top:10%;transform:rotate(3deg)">TEXT reminder</div>
+          <div class="pnote" style="left:16%;top:28%;transform:rotate(2deg)">BAND post</div>
+          <div class="pnote" style="left:52%;top:34%;transform:rotate(-4deg)">Website update</div>
+          <div class="pnote" style="left:8%;top:52%;transform:rotate(4deg)">EMAIL (again)</div>
+          <div class="pnote" style="left:46%;top:58%;transform:rotate(-2deg)">Group chat</div>
+          <div class="pnote" style="left:24%;top:76%;transform:rotate(-6deg)">Flyer&hellip;</div>
+        </div>
+        <div class="buried">4 channels. Still buried.</div>
+      </div>
+      <div class="ppcol pull">
+        <h3 class="cy">PULL — ask once, get the answer</h3>
+        <div class="pullex">
+          <div class="cb q" style="margin-left:auto;max-width:86%">What time is Saturday rehearsal?</div>
+          <div class="cb a" style="max-width:86%">9am — doors open 8:40. See you there!</div>
+        </div>
+        <div class="pulled">One ask. One answer. Now.</div>
+      </div>
+    </div>
+  </div>
+  <aside class="note"><b>12:15–13:15 · BRIDGE</b> — Wife-texting-the-owner story in voice. Callback: "Tip 5 — what if parents could TEXT that handbook?" That question IS the segue.</aside>
+</section>
+
+<!-- ============ SLIDE 13 — STUDIOSAGE ============ -->
+<section class="slide sage s13p" data-title="StudioSage">
+  <div class="wrap">
+    <div>
+      <div class="sagewm brand"><span class="leaf"></span>Studio<span style="color:var(--sage)">Sage</span></div>
+      <div class="tag2">The AI front desk for your dance studio.</div>
+      <div class="li">Parents <b>text a number.</b> No app, no login.</div>
+      <div class="li">Answers from <b>YOUR stuff.</b> It doesn&rsquo;t make things up.</div>
+    </div>
+    <div style="display:flex;justify-content:center">
+      <div class="phoneS">
+        <div class="hd">StudioSage &nbsp;·&nbsp; your studio</div>
+        <div class="scr">
+          <div class="sb q2">What time is Saturday rehearsal?</div>
+          <div class="sb a2">Saturday rehearsal is 9:00 am — doors open at 8:40. Juniors go first!</div>
+          <div class="sb q2">Is the studio open March break?</div>
+          <div class="sb a2">We&rsquo;re closed March 16–20 — classes resume Monday the 23rd.<span class="cf">FROM YOUR HANDBOOK</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="url" style="position:absolute;right:70px;bottom:56px;font-size:56px;font-weight:900;color:var(--sage-d)">studiosage<i style="font-style:normal;color:var(--sage)">.ai</i></div>
+  <aside class="note"><b>13:15–14:00 · PRODUCT</b> — Product reveal, framed as "tip 5, all grown up." SMS parent-FAQ bot ONLY. No price. No client names.</aside>
+</section>
+
+<!-- ============ SLIDE 14 — LIVE ANIMATED DEMO ★ ============ -->
+<section class="slide sage s14" data-title="Live Animated Demo ★">
+  <div class="badge sg">&#9733; [LIVE ANIMATED DEMO]</div>
+  <div class="wrap">
+    <div class="big">SWITCH TO<br>LIVE DEMO</div>
+    <div class="path">kb-demo/index.html</div>
+    <div class="cue"><span class="keycap">Alt</span><span style="font-size:56px;font-weight:900;color:var(--sage)">+</span><span class="keycap">Tab</span><span>&rarr; browser tab, full screen</span></div>
+    <div class="anim">Empty knowledge base &rarr; emails fly in &rarr; connect website &rarr; drop handbook PDF &rarr; counter ticks &rarr; parent text &rarr; instant in-voice answer.</div>
+  </div>
+  <aside class="note"><b>14:00–15:30 · PRODUCT · [LIVE ANIMATED DEMO]</b> — ★ THE MARQUEE SLIDE — KB builds in front of the room. Faithful animated MOCK, not pre-beta real UI. Primary = live HTML/CSS/JS in a browser tab (wifi-independent, re-runnable). Alt = Remotion MP4. "Setup is about ten minutes — one class period."</aside>
+</section>
+
+<!-- ============ SLIDE 15 — HUMAN IN THE LOOP ============ -->
+<section class="slide sage s15" data-title="Human in the Loop + Get Them Texting">
+  <div class="badge sg">[DEMO]</div>
+  <div class="wrap">
+    <div class="digest">
+      <div class="dh">Morning digest</div>
+      <div class="ds">2 questions flagged overnight</div>
+      <div class="flag">
+        <div class="fq">&ldquo;Can my daughter switch to the Tuesday acro class?&rdquo;</div>
+        <div class="row2"><span class="tapbtn">Tap to answer</span><span class="tapbtn ghost">Skip</span></div>
+      </div>
+      <div class="flag done">
+        <div class="fq">&ldquo;Do you offer sibling discounts?&rdquo;</div>
+        <div class="row2"><span class="learned">ANSWERED &rarr; LEARNED FOREVER</span></div>
+      </div>
+    </div>
+    <div class="right2">
+      <div class="noguess">Not confident? It does <b>NOT</b> guess.</div>
+      <div class="mech">Flags it in your morning digest &rarr; you <b>one-tap</b> &rarr; it learns forever.</div>
+      <div class="textnow">
+        <div class="t1">Text this number right now &rarr;</div>
+        <div class="num"><span>[NUMBER]</span></div>
+      </div>
+    </div>
+  </div>
+  <aside class="note"><b>15:30–17:00 · PRODUCT · [DEMO]</b> — "Same confidence-and-flag mechanic as my email spider." Audience texts, replies hit the screen. If one flags live — "see, it didn't fake it." Point back at Slide 10 board (lobby TV = "where this goes," NOT a shipped feature).</aside>
+</section>
+
+<!-- ============ SLIDE 16 — NEVER AGAIN ============ -->
+<section class="slide qslide" data-title="What Would You Never Do Again?">
+  <div class="badge">[INTERACT]</div>
+  <div class="wrap">
+    <div class="q">What&rsquo;s the one task you&rsquo;d <span class="am">never</span> want to do again?</div>
+  </div>
+  <aside class="note"><b>17:00–18:30 · CLOSE · [INTERACT]</b> — Rapid-fire. Doable with a free tip → say which, one line. Great idea → "write that down, that's my next build." Generous, not salesy.</aside>
+</section>
+
+<!-- ============ SLIDE 17 — CLOSE ============ -->
+<section class="slide s17" data-title="Close: One Pain, One Step">
+  <div class="wrap">
+    <div class="thesis">Do the hard thing <span class="cy">once.</span><br>Let it pay you back <span class="am">all year.</span></div>
+    <div class="row3">
+      <div class="minichips"><div class="mc">1</div><div class="mc">2</div><div class="mc">3</div><div class="mc">4</div><div class="mc">5</div><div class="mc chip sagelit" style="width:96px;height:96px;border-radius:20px;font-size:42px">6</div></div>
+      <div class="moves"><b>5 free moves</b> &rarr; Monday morning. &nbsp;The front desk &rarr; below.</div>
+    </div>
+    <div class="urlbig sagewm"><span class="leaf" style="width:.5em;height:.5em"></span>studiosage<i>.ai</i></div>
+    <div class="printer">Grab a card. Worst case, I fix your printer.</div>
+  </div>
+  <div class="foot">
+    <span class="wm"><span class="tri"></span>Stream<i>Stage</i></span>
+    <span>Daniel Abrahamson</span>
+    <span style="margin-left:auto;margin-right:150px;color:#8fa0ad">I genuinely love this stuff.</span>
+  </div>
+  <aside class="note"><b>18:30–20:00 · CLOSE</b> — Recital line in voice ("AI doesn't make a single second of your recital — it buys you back the hours so you're in the room for it"). Optional Talk 1 wink [confirm slot/time]. End on thesis + printer button.</aside>
+</section>
+
+</div><!-- /stage -->
+
+<div id="counter">1 / 17</div>
+<div id="hint">&larr; &rarr; nav &nbsp;·&nbsp; P notes &nbsp;·&nbsp; #+Enter jump</div>
+<div id="notes"><div id="notes-title"></div><div id="notes-body"></div></div>
+
+<script>
+(function(){
+  var slides=Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var cur=0, buf='';
+  var counter=document.getElementById('counter');
+  function show(i){
+    cur=Math.max(0,Math.min(slides.length-1,i));
+    slides.forEach(function(s,j){s.classList.toggle('active',j===cur);});
+    counter.textContent=(cur+1)+' / '+slides.length;
+    var s=slides[cur], n=s.querySelector('.note');
+    document.getElementById('notes-title').textContent='SLIDE '+(cur+1)+' — '+(s.getAttribute('data-title')||'');
+    document.getElementById('notes-body').innerHTML=n?n.innerHTML:'<em>No notes.</em>';
+  }
+  function fit(){
+    var sc=Math.min(window.innerWidth/1920, window.innerHeight/1080);
+    document.getElementById('stage').style.transform='translate(-50%,-50%) scale('+sc+')';
+  }
+  window.addEventListener('resize',fit);
+  window.addEventListener('keydown',function(e){
+    if(e.key>='0'&&e.key<='9'){buf+=e.key;return;}
+    if(e.key==='Enter'&&buf){show(parseInt(buf,10)-1);buf='';return;}
+    buf='';
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();show(cur+1);}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){show(cur-1);}
+    else if(e.key==='Home'){show(0);}
+    else if(e.key==='End'){show(slides.length-1);}
+    else if(e.key==='p'||e.key==='P'){document.body.classList.toggle('show-notes');}
+  });
+  fit(); show(0);
+})();
+</script>
+</body>
+</html>
