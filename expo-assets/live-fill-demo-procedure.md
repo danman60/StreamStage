@@ -4,11 +4,11 @@
 This is the procedure for filling StudioSage's knowledge base live from a genuinely forwarded studio email — proven end-to-end on 2026-07-08 (forward → parsed → embedded → answerable in ~5–15s).
 
 ## The one-line version
-Forward a studio email to **demo@ingest.studiosage.ai** from **daniel@streamstageproductions.com** → wait ~10s → text a question only that email answers to **+1 226-796-6037** → the answer lands on the wall.
+Forward a studio email to **demo@ingest.studiosage.ai** from **any of your registered addresses** (daniel@streamstageproductions.com, danieljohnabrahamson@gmail.com, or daniel@streamstage.live) → wait ~10s → text a question only that email answers to **+1 226-796-6037** → the answer lands on the wall.
 
 ## Why this works without any toggle
-`daniel@streamstageproductions.com` is a registered sender for the demo studio (StudioSage Live Demo / LIVE26 / studio_0012). Any email forwarded from that address routes straight into the demo KB — no "demo mode" flag, no per-email lock. Forward as many as you like; each one appends.
-(An unregistered sender would be rejected unless `STUDIOSAGE_DEMO_MODE=true` is set — it is NOT set, by choice. Stick to forwarding from your own address.)
+Three of your addresses are registered senders for the demo studio (StudioSage Live Demo / LIVE26 / studio_0012): **daniel@streamstageproductions.com**, **danieljohnabrahamson@gmail.com**, **daniel@streamstage.live**. An email forwarded from any of them routes straight into the demo KB — no "demo mode" flag, no per-email lock. Forward as many as you like; each one appends. So whichever inbox you happen to read the studio email in, forwarding works.
+(An unregistered sender would be rejected unless `STUDIOSAGE_DEMO_MODE=true` is set — it is NOT set, by choice. Stick to forwarding from one of your three addresses.)
 
 ## Design decision baked in (option 1)
 The demo studio keeps its **15 hand-seeded facts** so the audience-texting portion always works. The live email should cover a **new topic the seed doesn't** — e.g. "picture day moved to the gym", "guest workshop Saturday", "parking change for recital" — so the forwarded email doesn't contradict a seeded fact. Then text a question ONLY that email can answer. That's the clean "it just learned that, live" moment.
