@@ -30,12 +30,22 @@ Forward emails where the content is in the **body text**. PDF/image attachment e
 - **Full reset** button: also clears the wall (the on-screen SMS thread).
 - The token is a Vercel env secret (`DEMO_RESET_TOKEN`). Ask Daniel / pull from Vercel; don't print it on any slide.
 
+## Live KB projector view — the REAL "watch it learn"
+**studiosage.ai/demo/kb?code=LIVE26**
+
+A back-of-room-readable grid of everything StudioSage knows for this studio, newest first, refreshing every 3 seconds. When your forwarded email lands, its new card **flies in at the top with a ★ JUST LEARNED badge** (held for 3 minutes). This is the real product — it replaces the animated mock (`kb-demo/index.html`) with genuine data. The mock stays as the wifi-independent fallback.
+
 ## On-stage sequence (maps to Talk 2, Slides 14–15)
 1. Before the talk: open the operator page, hit **Re-arm** (status shows ARMED, 15 seed / 0 ingested).
-2. Slide 14: run the animated mock (`kb-demo/index.html`) as the visual OR go straight to the real forward — your call. The mock is the safe fallback if wifi/email is flaky (see `demo-failure-playbook.md`).
-3. For the real fill: forward your chosen studio email from your phone. Narrate while it lands (~10s). Operator page "Ingested" ticks up.
+2. Slide 14: put the **live KB view** (`/demo/kb?code=LIVE26`) on the projector — "here's what it already knows." (Or run the animated mock if wifi's dead — that's the fallback, see `demo-failure-playbook.md`.)
+3. For the real fill: forward your chosen studio email from your phone. Narrate while it lands (~10s). The new card flies in on the KB view with **JUST LEARNED** — that's the money moment.
 4. Slide 15: switch to the wall (`studiosage.ai/demo/wall?code=LIVE26`). Text the question only that email answers. Answer appears in the studio's voice.
 5. Between sessions: **Re-arm** again.
+
+## The three demo URLs (bookmark all)
+- **Operator** (private, has token): `studiosage.ai/demo/operator?token=…` — arm/reset, watch the counter.
+- **KB view** (projector): `studiosage.ai/demo/kb?code=LIVE26` — the knowledge filling live.
+- **Wall** (projector): `studiosage.ai/demo/wall?code=LIVE26` — the SMS question/answer.
 
 ## If it doesn't land in ~20s
 Don't wait on stage. Cut to the animated mock (it's local, wifi-independent) and say the line: "trade-show wifi, everyone's favorite sponsor." Debug at the booth — check the operator page later; a forward that arrived late will show up there.
