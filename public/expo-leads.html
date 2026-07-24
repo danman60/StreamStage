@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StreamStage | Dance Teacher Expo</title>
+  <style>
+    :root { --ink:#10243a; --blue:#1976d2; --sky:#eaf5ff; --gold:#f6b546; --muted:#617083; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; color:var(--ink); font-family:Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; background:linear-gradient(150deg,#f7fbff 0%,#dfeefd 100%); }
+    main { width:min(700px,100%); margin:auto; padding:clamp(24px,5vw,58px) 20px; }
+    .brand { font-weight:800; letter-spacing:.12em; font-size:.82rem; color:var(--blue); text-align:center; }
+    h1 { font-size:clamp(2rem,6vw,3.8rem); line-height:1; letter-spacing:-.055em; text-align:center; max-width:620px; margin:16px auto 14px; }
+    .intro { max-width:510px; color:var(--muted); text-align:center; font-size:1.05rem; line-height:1.5; margin:0 auto 31px; }
+    .card { background:#fff; padding:clamp(23px,4vw,38px); border-radius:26px; box-shadow:0 18px 60px rgba(23,75,126,.14); }
+    label { display:block; font-weight:750; margin:20px 0 9px; font-size:.95rem; }
+    input { width:100%; font:inherit; border:1.5px solid #ccd9e6; border-radius:12px; padding:15px 14px; color:var(--ink); background:white; }
+    input:focus { outline:3px solid #cce7ff; border-color:var(--blue); }
+    .options { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .choice { border:1.5px solid #cedbe7; border-radius:14px; padding:14px 12px; display:flex; align-items:flex-start; gap:9px; min-height:72px; cursor:pointer; font-weight:650; line-height:1.2; }
+    .choice:has(input:checked) { border-color:var(--blue); background:var(--sky); }
+    .choice input { width:20px; height:20px; margin:0; accent-color:var(--blue); flex:0 0 auto; }
+    button { width:100%; border:0; background:var(--blue); color:white; border-radius:14px; padding:17px; margin-top:28px; font:800 1.05rem/1 inherit; cursor:pointer; box-shadow:0 7px 18px rgba(25,118,210,.24); }
+    button:hover { background:#1066bb; }
+    button[disabled] { opacity:.6; cursor:default; }
+    .privacy { color:var(--muted); font-size:.78rem; line-height:1.4; text-align:center; margin:16px 0 0; }
+    .err { color:#c62828; font-size:.85rem; text-align:center; margin:14px 0 0; min-height:1.1em; }
+    #thanks { text-align:center; padding:27px 5px 8px; }
+    #thanks h2 { font-size:2rem; margin:0 0 11px; letter-spacing:-.04em; }
+    #thanks p { color:var(--muted); line-height:1.5; }
+    .hidden { display:none!important; }
+    .admin { width:auto; background:transparent; color:var(--muted); box-shadow:none; padding:9px; font-size:.8rem; font-weight:600; margin:32px auto 0; display:block; }
+    dialog { border:0; border-radius:18px; padding:25px; width:min(440px,92vw); box-shadow:0 20px 80px rgba(0,0,0,.3); }
+    dialog::backdrop { background:rgba(16,36,58,.42); }
+    .admin-actions { display:flex; gap:8px; margin-top:18px; }
+    .admin-actions button { margin:0; padding:12px; font-size:.88rem; }
+    .admin-actions button.secondary { background:#e8eef5; color:var(--ink); box-shadow:none; }
+    @media(max-width:480px){ .options{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">STREAMSTAGE</div>
+    <h1>Make every dance moment count.</h1>
+    <p class="intro">Get the Dance Studio Video Plan, practical ideas for recital films, studio stories, and social content that families will want to share.</p>
+    <section class="card" id="form-card">
+      <form id="lead-form">
+        <label for="name">Your name</label>
+        <input id="name" name="name" autocomplete="name" required placeholder="First and last name" />
+        <label for="studio">Studio name</label>
+        <input id="studio" name="studio" required placeholder="Your dance studio" />
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@studio.com" />
+        <label for="phone">Mobile number <span style="font-weight:500;color:var(--muted)">(optional)</span></label>
+        <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="For a quick follow-up" />
+        <label>What would be most useful right now?</label>
+        <div class="options">
+          <label class="choice"><input type="checkbox" name="interest" value="Recital capture" /> Recital capture</label>
+          <label class="choice"><input type="checkbox" name="interest" value="Studio promo film" /> Studio promo film</label>
+          <label class="choice"><input type="checkbox" name="interest" value="Social content" /> Social content</label>
+          <label class="choice"><input type="checkbox" name="interest" value="StudioSage AI assistant" /> StudioSage AI assistant</label>
+          <label class="choice"><input type="checkbox" name="interest" value="Video plan only" /> Send me the video plan</label>
+          <label class="choice"><input type="checkbox" name="interest" value="15-minute call" /> I&rsquo;d like a 15-minute call</label>
+        </div>
+        <button type="submit" id="submit">Send me the plan</button>
+        <p class="err" id="err"></p>
+        <p class="privacy">By submitting, you agree that StreamStage may follow up about the selections above. No spam, no list-selling.</p>
+      </form>
+      <div id="thanks" class="hidden">
+        <h2>You&rsquo;re on the list.</h2>
+        <p>Thanks for stopping by. We&rsquo;ll send the Dance Studio Video Plan shortly. Enjoy the expo!</p>
+        <button type="button" id="next">Capture another lead</button>
+      </div>
+    </section>
+    <button type="button" class="admin" id="admin">Staff: export leads</button>
+  </main>
+  <dialog id="admin-dialog">
+    <strong>Expo lead manager</strong>
+    <p id="count" style="color:#617083"></p>
+    <label for="passcode">Passcode</label>
+    <input id="passcode" type="password" placeholder="Set your own in the code" />
+    <div class="admin-actions">
+      <button type="button" id="export">Download CSV</button>
+      <button type="button" class="secondary" id="close">Close</button>
+    </div>
+  </dialog>
+  <script>
+    // Protects the CSV export only, not the kiosk itself.
+    const ADMIN_PASSCODE = 'change-me';
+    const STORAGE_KEY = 'streamstage-dance-teacher-expo-leads-v1';
+    const API = '/api/expo-leads';
+    const form = document.querySelector('#lead-form');
+    const thanks = document.querySelector('#thanks');
+    const dialog = document.querySelector('#admin-dialog');
+    const errEl = document.querySelector('#err');
+    const submitBtn = document.querySelector('#submit');
+    const getLeads = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    const esc = value => '"' + String(value ?? '').replaceAll('"', '""') + '"';
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      errEl.textContent = '';
+      const data = new FormData(form);
+      const lead = {
+        timestamp: new Date().toISOString(),
+        name: data.get('name'),
+        studio: data.get('studio'),
+        email: data.get('email'),
+        phone: data.get('phone'),
+        interests: data.getAll('interest'),
+        source: 'Dance Teacher Expo kiosk',
+      };
+      // Always keep a local copy (offline-safe kiosk backup + CSV export).
+      const leads = getLeads();
+      leads.push({ ...lead, interests: lead.interests.join(' | ') });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+      try {
+        const res = await fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(lead),
+        });
+        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Submit failed');
+      } catch (e) {
+        // Saved locally already — don't block the kiosk visitor, just log.
+        console.warn('Lead email failed, kept local copy:', e);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send me the plan';
+        form.classList.add('hidden');
+        thanks.classList.remove('hidden');
+      }
+    });
+
+    document.querySelector('#next').onclick = () => { form.reset(); thanks.classList.add('hidden'); form.classList.remove('hidden'); document.querySelector('#name').focus(); };
+    document.querySelector('#admin').onclick = () => { document.querySelector('#count').textContent = `${getLeads().length} lead(s) saved on this device.`; dialog.showModal(); };
+    document.querySelector('#close').onclick = () => dialog.close();
+    document.querySelector('#export').onclick = () => {
+      if (document.querySelector('#passcode').value !== ADMIN_PASSCODE) return alert('Incorrect passcode.');
+      const rows = getLeads();
+      const csv = ['Timestamp,Name,Studio,Email,Phone,Interests', ...rows.map(r => [r.timestamp,r.name,r.studio,r.email,r.phone,r.interests].map(esc).join(','))].join('\n');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download = `streamstage-expo-leads-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(a.href);
+    };
+  </script>
+</body>
+</html>
