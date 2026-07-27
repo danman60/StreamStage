@@ -296,7 +296,12 @@
   /* slide 12 push/pull */
   .s12 .wrap{position:absolute;inset:0;padding:80px 100px}
   .s12 .dadshot{transition:width .85s var(--ease-expo),height .85s var(--ease-expo),right .85s var(--ease-expo),bottom .85s var(--ease-expo)}
-  .s12:has(.blowcue.show) .dadshot{width:690px;right:615px;bottom:56px;z-index:40;box-shadow:0 50px 120px rgba(0,0,0,.75)}
+  /* Notes 2026-07-26: the small version of the family shot should not exist. The
+     picture is absent until the reveal click, then it arrives already big — it was
+     also sitting on top of the copy at the bottom right while small. */
+  .s12 .dadshot{opacity:0;visibility:hidden;transform:scale(.96);
+    transition:opacity .5s var(--ease-expo),transform .6s var(--ease-expo),width .85s var(--ease-expo),right .85s var(--ease-expo),bottom .85s var(--ease-expo)}
+  .s12:has(.blowcue.show) .dadshot{opacity:1;visibility:visible;transform:none;width:690px;right:615px;bottom:56px;z-index:40;box-shadow:0 50px 120px rgba(0,0,0,.75)}
   .s12:has(.blowcue.show) .dadshot .cap2{font-size:30px;padding:26px 28px}
   .s12:has(.blowcue.show) .wrap>*:not(.h-lg){opacity:.12;transition:opacity .6s ease}
   .pp{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:54px;height:640px}
