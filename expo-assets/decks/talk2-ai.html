@@ -205,7 +205,8 @@
   .ripple{position:absolute;left:50%;bottom:46px;transform:translateX(-50%);width:150px;height:150px;border-radius:50%;
     border:3px solid rgba(78,197,212,.5)}
   .ripple.r2{width:210px;height:210px;bottom:16px;border-color:rgba(78,197,212,.28)}
-  .speech{position:absolute;left:-390px;top:310px;width:330px;background:#1c2836;border:1px solid #2e3f52;border-radius:18px;
+  /* top:310px put the bubble over the copy behind it — moved straight up. (Notes 2026-07-26.) */
+  .speech{position:absolute;left:-390px;top:-150px;width:330px;background:#1c2836;border:1px solid #2e3f52;border-radius:18px;
     padding:22px 24px;font:600 22px/1.45 var(--sans);color:#cfdae5;font-style:italic;z-index:5}
   .speech:after{content:"";position:absolute;right:-13px;top:110px;border-top:11px solid transparent;border-bottom:11px solid transparent;border-left:14px solid #1c2836}
 
@@ -492,7 +493,9 @@
     padding:11px 20px;font:800 19px/1 var(--sans);cursor:pointer}
   .revealbar .rb-fb:hover{background:#30402f}
   .revealbar .rb-offer{margin-left:auto;color:#e6c9a8;font-weight:800}
-  .demopanel{position:absolute;left:26px;top:26px;z-index:74;width:400px;background:rgba(8,14,11,.9);
+  /* Was left:26px;top:26px — it sat on top of the wall's own heading. Moved to the
+     bottom-left, which is dead space, so nothing is covered. (Notes 2026-07-26.) */
+  .demopanel{position:absolute;left:26px;bottom:26px;top:auto;z-index:74;width:400px;background:rgba(8,14,11,.9);
     border:1px solid #46564c;border-radius:18px;padding:20px 22px;color:#dbe8df}
   .demopanel .dp-qr{width:190px;height:190px;margin:0 auto 14px;border-radius:10px;overflow:hidden;background:#fff}
   .demopanel .dp-num{text-align:center;font:900 40px/1 var(--sans);color:#fff;letter-spacing:.01em}
@@ -1465,11 +1468,13 @@
 </section>
 
 <!-- ============ SLIDE 15 — LIVE DEMO ★ (real, wifi) — PRIMARY ============ -->
-<section class="slide wall-slide s16wall" data-title="Live Demo &#9733; (real)" data-beats="!!IF THIS SLIDE IS BLANK OR STUCK: PRESS O. That is the whole recovery — the deck never does it for you.|..The amber bar bottom-right says the same thing. Trust it and move on; do not debug on stage.|!!ASK THE ROOM FIRST: does anyone have a studio email on their phone right now?|..Walk to them. Look at it. Say what it is out loud.|&gt;&gt;&#39;Forward that to bot@studiosage.ai.&#39;|..Watch it arrive on the wall — then watch it get parsed into the knowledge base|!!THE PANEL STAYS UP: number, QR, and five facts it already knows|Tell them the QR opens their messages already addressed — that is the real product experience|..Point at the WALL — their message lands there, masked. Narrate what it&#39;s doing while they watch.|!!THE MAGIC IS BOTH HALVES: it answers what it knows —|&gt;&gt;&#39;and when it doesn&#39;t: I don&#39;t have that information yet, please contact your studio director.&#39;|!!A flag is a WIN, not a failure. Say that when it happens.|!!Any doubt at all — press O. The animated version tells the same story and nobody knows.">
+<section class="slide wall-slide s16wall" data-title="Live Demo &#9733; (real)" data-beats="!!IF THE WALL IS DEAD: press O for the animated rescue. (This cue is no longer on screen.)|!!IF THIS SLIDE IS BLANK OR STUCK: PRESS O. That is the whole recovery — the deck never does it for you.|..The amber bar bottom-right says the same thing. Trust it and move on; do not debug on stage.|!!ASK THE ROOM FIRST: does anyone have a studio email on their phone right now?|..Walk to them. Look at it. Say what it is out loud.|&gt;&gt;&#39;Forward that to bot@studiosage.ai.&#39;|..Watch it arrive on the wall — then watch it get parsed into the knowledge base|!!THE PANEL STAYS UP: number, QR, and five facts it already knows|Tell them the QR opens their messages already addressed — that is the real product experience|..Point at the WALL — their message lands there, masked. Narrate what it&#39;s doing while they watch.|!!THE MAGIC IS BOTH HALVES: it answers what it knows —|&gt;&gt;&#39;and when it doesn&#39;t: I don&#39;t have that information yet, please contact your studio director.&#39;|!!A flag is a WIN, not a failure. Say that when it happens.|!!Any doubt at all — press O. The animated version tells the same story and nobody knows.">
   <iframe class="demoframe" src="https://www.studiosage.ai/demo/live?code=LIVE26" title="StudioSage — live demo"></iframe>
   <div class="demobar">
     <span>&#128241; Text <b>+1 226-796-6037</b> &nbsp;&middot;&nbsp; your text + the KB animate here LIVE</span>
-    <span class="rescue">NOTHING HAPPENING? PRESS <b>O</b></span>
+    <!-- On-screen operator cue removed 2026-07-26 — it was a note to himself, on the
+         projector. The O key still triggers the animated rescue; the reminder now
+         lives in this slide's presenter beats instead. -->
     <button class="demoanim" type="button">&#9656; Animated version</button>
     <button class="demonext" type="button">Continue &#9656;</button>
   </div>

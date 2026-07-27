@@ -39,7 +39,7 @@ Regenerate with `python3 expo-assets/regen-slides.py`. **38 slides.**
 | 31 | Inside the Dashboard | 1:17–1:19 · PRODUCT | 8 | 0 |
 | 32 | Human in the Loop | 1:19–1:21 · PRODUCT | 7 | 1 |
 | 33 | How It Actually Works | 1:21–1:24 · PRODUCT | 10 | 6 |
-| 34 | Live Demo ★ (real) | 1:24–1:29 · PRODUCT · [LIVE DEMO] | 13 | 0 |
+| 34 | Live Demo ★ (real) | 1:24–1:29 · PRODUCT · [LIVE DEMO] | 14 | 0 |
 | 35 | Animated Fallback (offline) ★ | FALLBACK ONLY · not in the running order | 9 | 0 |
 | 36 | ★ The Facelift Reveal | 1:29–1:31 · CLOSE · [REVEAL] | 12 | 1 |
 | 37 | What’s Your Time Worth? | 1:31–1:33 · CLOSE | 8 | 3 |
