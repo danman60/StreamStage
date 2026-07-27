@@ -254,6 +254,34 @@ def start_facelift(url):
     return True, "started on %s (tmux %s)" % (FACELIFT_REMOTE, session)
 
 
+def resume_facelift_poll():
+    """Re-attach to a run that was still going when this server last stopped.
+
+    status.json is deliberately the source of truth so a restart mid-talk doesn't lose the
+    run — but the thread that mirrors the remote build and scp's the site back only ever
+    started inside start_facelift(). So before this, restarting the server (or losing the
+    console it was launched from) orphaned the build: it kept running on the build host and
+    finished fine, and the laptop never pulled it. Verified 2026-07-27 when the FIRMAMENT
+    session dropped 15 minutes into a real grandriverdance.com run.
+    """
+    if FACELIFT_LOCAL:
+        return
+    try:
+        with open(FACELIFT_STATUS) as fh:
+            st = json.load(fh)
+    except Exception:
+        return
+    if st.get("status") not in ("queued", "running"):
+        return
+    if os.path.exists(os.path.join(FACELIFT_SITE, "index.html")):
+        return                                  # already pulled; nothing to resume
+    url = st.get("url") or ""
+    session = st.get("session") or ""
+    started = int(st.get("started_at") or time.time())
+    print(" facelift: resuming poll for %s (tmux %s)" % (url or "?", session or "?"))
+    threading.Thread(target=_remote_poll, args=(url, session, started), daemon=True).start()
+
+
 def local_ips():
     ips = []
     try:
@@ -556,6 +584,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                         PENDING.append("goto:%d" % int(data.get("i", 0)))
                 except Exception:
                     pass
+            elif a == "facelift":
+                # talk1 keeps the rebuild on an overlay rather than a slide, so the phone
+                # needs a way to pop it. talk2 ignores this command harmlessly.
+                with _lock:
+                    PENDING.append("facelift")
             return self._json({"ok": True})
         return self._json({"error": "unknown"}, 404)
 
@@ -574,7 +607,8 @@ if __name__ == "__main__":
     print("=" * 58)
     print(" PRESENTER REMOTE")
     print("=" * 58)
-    print(" laptop :  http://localhost:%d/%s" % (PORT, decks[0] if decks else ""))
+    for d in sorted(decks):                       # both talks live in this folder now
+        print(" laptop :  http://localhost:%d/%s" % (PORT, d))
     here = os.path.dirname(os.path.abspath(__file__))
     shown = False
     for ip in local_ips():
@@ -588,6 +622,7 @@ if __name__ == "__main__":
         print("  to add one, ask Claude for QR-remote-<ip>.png)")
     print("\n Phone must be on the same wifi / the laptop's hotspot.")
     print(" Ctrl-C to stop.\n")
+    resume_facelift_poll()
     try:
         Server(("0.0.0.0", PORT), Handler).serve_forever()
     except KeyboardInterrupt:
