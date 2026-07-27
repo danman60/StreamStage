@@ -1,43 +1,44 @@
 # Current Work - StreamStage
 
 ## Active Task
-**Talk 2 expo deck (Dance Teacher Expo, Wed Jul 29 2026, 4:10–5:10 PM EDT, Adapt Stage).**
-Run-through #2 notes executed end to end, plus three mid-session directives from Daniel.
-Deck is **38 slides**, audit-green, mirrored to FIRMAMENT. Nothing deployed.
+**Expo decks (Dance Teacher Expo, Wed Jul 29 2026, 4:10-5:10 PM EDT).** Two talks:
+Talk 2 "The AI Front Desk" (38 slides, owned by Daniel's session) and Talk 1 "The Content Day"
+(14 slides, `StudioSage/live-demo/talk1-deck.html`).
 
-## Recent Changes (Session 2026-07-26 evening)
-- **Five moves rebuilt:** 1 talk-don't-type · 2 studio-in-two-files (voice + brand + the folder) ·
-  3 make-it-write-the-prompt · 4 make-the-poster · 5 handbook. Connectors and cowork/crons moved out
-  of the tips and into the agentic ladder as rungs 2 and 3.
-- New slides: push-lands-early, audience gauge, one-folder, perfect-unison (moved out of the open),
-  rung 2, rung 3, philosophy, dashboard walkthrough video, what's-your-time-worth.
-- Cut: old tip 4, old close slide, stale pain-point board (lobby TV), number pops, mid-livestream
-  tease, "text this number" on the StudioSage slide.
-- CTA rebuilt: two generated QRs, freebie **email-gated**, first-five + $20/yr hosting, "Big love."
-- All 38 slides carry hand-written `data-beats` with `!!`/`>>`/`..` markers; varied transitions on
-  every content slide; "dancer" never "kid" swept through.
-- Live-demo slide: persistent SMS-intent QR + number + 5 known facts. Reveal slide: real curtain,
-  URL bar, one-click pre-baked fallback. Dashboard video autoplays on its slide.
-- `rehearsal/COVERAGE.md` written — every item from BOTH transcripts, status + location + a
-  NEEDS DANIEL list at the top.
-- Docs regenerated: `talk2-ai-script.md`, `talk2-runofshow.md` (38-row cue sheet),
-  `talk2-ai-slides.md` + `talk2.html` tabs (now via `regen-slides.py` / `regen-notes.py`).
-- `handout-5-free-ai-moves.html` (the freebie PDF source) rebuilt — it still had the old moves and
-  Talk 1's banned thesis.
+## Overnight session 2026-07-26/27 - facelift live path + Talk 1
+Plan + full deviation log: `docs/plans/2026-07-26-overnight-talk1-and-facelift.md`.
+Phase 2 (Talk 2 note fixes) was pulled from this session's scope mid-run - Daniel executed it
+in a parallel session. This session did NOT write to talk2-ai.html / talk2.html / talk2-ai-slides.md.
+
+### Facelift live path - DONE, signed off
+- **Root cause of the poll hang was Windows OpenSSH + python pipes**, not stdin/`-n`/the abandoned
+  dispatch child. `ssh.exe` never closes the pipe write end, so CPython's Windows reader thread
+  blocks forever. Measured, table in the plan file. Fix: `run_capture()` uses real temp file
+  handles (0.08s vs 30s timeout) for dispatch, poll and scp. `a27b29f`
+- **Second defect, hit for real:** the poller only started inside `start_facelift()`, so a server
+  restart orphaned an in-flight build. `resume_facelift_poll()` re-attaches at boot. `d0a7bf6`
+- Verified end to end from FIRMAMENT: stub in ~5s, and one real `grandriverdance.com` run
+  (03:16 -> 03:40, 24 min) pulled back and served at `/facelift-site/index.html`.
+
+### Talk 1 - DONE
+Lives in the StudioSage repo; see `StudioSage/CURRENT_WORK.md` for detail. Summary: committed as a
+safety net first, then wired to the phone remote (`/state` + `/cmd`, beats on all 14 slides), given
+a facelift overlay on `L`, reel wall de-scrubbered and cut from 7 clicks to 2, four `[PHOTO: ...]`
+placeholder plates replaced with real footage, five unusable posters regenerated.
+Audit: 14 slides, 0 layout findings, 0 JS errors, both fonts loaded. Mirrored to FIRMAMENT, 12/12
+md5 match.
 
 ## Blockers / NEEDS DANIEL
-1. **Timing:** cue sheet holds ~93 min of material for a 60-min slot. Cut list is at the top of
-   `talk2-runofshow.md`. His call — nothing cut unilaterally.
-2. `studiosage.ai/moves` must exist, be email-gated, and serve the PDF (CTA QR points at it).
-3. Live-demo routing `?rt=<token>` + tenancy check (StudioSage repo — other session owns it).
-4. Real multicam stills for the loop-payoff slide (four styled frames stand in).
+1. Talk 1 slide 13 carries `[confirm slot/time]` for the Talk 2 tease - his to fill.
+2. Which machine presents (FIRMAMENT vs DART). DART still offline and unverified.
+3. Talk 2 timing (~93 min of material in a 60 min slot) - his call, cut list in `talk2-runofshow.md`.
+4. Rotate `DEMO_RESET_TOKEN` after the talk - it ships in a tracked file.
 
 ## Next Steps
-- Daniel rehearses from the FIRMAMENT copy (`talk2-deck.html`) and rules on timing.
-- After ANY deck change: `scp` to FIRMAMENT, then run `regen-slides.py` and `regen-notes.py`.
-- Verify harness: `PRESENTER_PORT=8081 python3 expo-assets/decks/presenter-server.py` +
-  `deck2-all.mjs` (session scratchpad) — checks JS errors, fonts, overflow at 1920×1080.
-- Nothing committed this session; deck work is uncommitted in `expo-assets/`.
+- Daniel rehearses Talk 1 from the FIRMAMENT copy: `cd Desktop\StudioSage-Live-Demo`, run
+  `presenter-server.py`, open `talk1-deck.html`, phone at `http://<laptop-ip>:8080/remote`.
+- Keys: arrows/space nav, digits+Enter jump, `P` notes, `F` reveal all, **`L` facelift overlay**, Esc closes it.
+- After ANY Talk 1 deck change: re-run the audit harness, then scp to FIRMAMENT and md5 both sides.
 
 ---
 

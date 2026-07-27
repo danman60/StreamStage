@@ -188,18 +188,26 @@ repeat **until clean**. DM the contact sheets as you go — do not save them all
 
 ## Acceptance checks (all must pass before declaring done)
 
-- [ ] Facelift: POST a URL from FIRMAMENT → reveal renders the rebuilt site locally, `status: ready`,
-      non-empty `local_url`. Stub-verified AND one real run verified.
-- [ ] Talk 2 deck: 38 slides, 0 overflow, both fonts `loaded`, no JS errors beyond the known
-      presenter-endpoint 404/501 (`/cmd`, `/facelift`, `POST /state`).
-- [ ] Talk 2: every Phase 2 row done or explicitly logged as blocked with the reason.
-- [ ] `talk2.html` slide numbers match the deck; `talk2-ai-slides.md` regenerated.
-- [ ] Talk 1 deck: audits clean at 1920×1080, fonts embedded and `loaded`, no clipping, no overflow.
-- [ ] Talk 1: phone remote advances slides and shows beats. Verified against a running presenter-server.
-- [ ] Talk 1: can trigger a facelift from the phone.
-- [ ] FIRMAMENT mirror md5-matches for every changed file.
-- [ ] Screenshots DM'd at every stage boundary.
-- [ ] All work committed and pushed. `CURRENT_WORK.md` updated.
+- [x] Facelift: POST a URL from FIRMAMENT -> reveal renders the rebuilt site locally, `status: ready`,
+      non-empty `local_url`. **Stub-verified** (~5s, 2026-07-27 03:14) **AND one real run verified**
+      (grandriverdance.com, dispatched 03:16, ready 03:40, site served off the laptop). Supervisor
+      independently signed Phase 1 off against `a27b29f`.
+- [~] Talk 2 deck: OUT OF SCOPE this session (Daniel executed Phase 2 in a parallel session).
+- [~] Talk 2 Phase 2 rows: OUT OF SCOPE. Supervisor reports 12/12 done in `talk2-ai.html`.
+- [~] `talk2.html` / `talk2-ai-slides.md`: OUT OF SCOPE (same owner).
+- [x] Talk 1 deck: audits clean at 1920x1080 - 14 slides, **0 layout findings, 0 JS errors**, both
+      fonts `loaded` (already base64 woff2, zero `src:local` - that class was closed before tonight).
+- [x] Talk 1: phone remote advances slides and shows beats. Verified twice against a running
+      presenter-server: locally on 8097, and **on FIRMAMENT itself in the real stage folder** (8096).
+      Phone Next advances, `goto:10` lands on slide 11 with its beats, 14 titles reported.
+- [x] Talk 1: can trigger a facelift. `L` (or phone `action:facelift`) opens an overlay that reads
+      `GET /facelift` and POSTs a url to the same endpoint talk2 uses; reveal embeds the same
+      local build. Verified on FIRMAMENT - fell back to the pre-baked fallback with no run active.
+- [x] FIRMAMENT mirror md5-matches for every changed file: `talk1-deck.html`, all 10 posters,
+      `presenter-server.py` - 12/12 hashes identical both sides.
+- [x] Screenshots DM'd at every stage boundary (7 DMs: stub reveal, reel wall + orphan, facelift
+      overlay, bookend slides, real grandriverdance reveal, final contact sheet).
+- [x] All work committed and pushed. `CURRENT_WORK.md` updated.
 
 ## Known-and-left (do not "fix" without reading why)
 
@@ -232,3 +240,53 @@ in a parallel session. This session must NOT write to `expo-assets/decks/talk2-a
 `expo-assets/talk2.html`, or `expo-assets/talk2-ai-slides.md` — read-only, for mining patterns to
 port into Talk 1. Scope is PHASE 1 (facelift live path / `presenter-server.py`) + PHASE 3 (Talk 1
 video deck, phone wiring, staged screenshot review).
+
+### 2026-07-27 03:14 - PHASE 1 root cause (measured, not guessed)
+`_remote_poll()`'s ssh timing out from Windows python was **not** any of the four suspects listed
+in 1.1. Measured on FIRMAMENT (python 3.10.11), same host, same command, 30s budget:
+
+| variant | result |
+|---|---|
+| `run(capture_output=True)` | TIMEOUT 30.02s |
+| `run(+stdin=DEVNULL)` | TIMEOUT 30.01s |
+| `run(no -n)` | TIMEOUT 30.01s |
+| `run(inside a daemon thread)` | TIMEOUT 30.02s |
+| after an abandoned dispatch ssh | TIMEOUT 30.00s (same as baseline - not the cause) |
+| **`Popen(stdout=real file handle)`** | **0.08s rc=0, 218 bytes** |
+
+`ssh.exe` hands the pipe write end to its posix-emulation layer and never closes it, so CPython's
+Windows reader thread blocks on `read()` and `communicate()` can never return. Fix: `run_capture()`
+over real temp file handles for the dispatch ssh, the poll ssh and the site scp (`a27b29f`).
+
+### 2026-07-27 03:35 - PHASE 1 second defect, found by accident, fixed
+The FIRMAMENT ssh session dropped ~15 min into the real grandriverdance.com run. The build kept
+going in tmux (as designed) but the **poller only ever started inside `start_facelift()`** - so a
+server restart, or losing the console it was launched from, orphaned the build: it would finish on
+the build host and the laptop would never collect it. This contradicted the file-based-status
+comment already in the file. Added `resume_facelift_poll()` at startup (`d0a7bf6`), and verified it
+against that same in-flight run: after the restart, `status.json` mtime advanced every 5s and the
+finished site was pulled down and served. Also: the startup banner now prints every deck in the
+folder rather than `decks[0]`, since talk1 and talk2 both live there.
+
+### 2026-07-27 - PHASE 3 notes
+- Talk 1 was committed untracked-first as a safety net (`b0cbb7d`) before any edit. `videos/` (179MB)
+  is gitignored; posters are tracked.
+- Defect classes from 3.1 checked against Talk 1: fonts CLOSED (embedded woff2, no `src:local`);
+  overflow 0; clipping 0; orphans - one found and fixed on the close slide; over-clicking - one
+  found and fixed (reel wall 7 steps -> 2); `#stage` was `overflow:visible` so the ambient beams
+  painted ~270px past the frame, now `hidden` to match talk2.
+- The audit harness needed two corrections of its own before it was trustworthy: it counted glyph
+  line-box overflow on `overflow:visible` headings as clipping (51 false positives), and it walked
+  by fragment *element* count rather than distinct click steps, which over-advanced the deck and
+  shot the wrong slides. Both fixed; `.beam` bleed is excluded, per the supervisor's note.
+- Four full-bleed plates were projecting their own `[PHOTO: ...]` placeholder captions. All four now
+  carry real clips from `videos/`. Five posters were unusable frame-0 grabs (a white logo card, a
+  fade-from-black); regenerated from the most legible frame, and the demo-slide poster was then
+  re-picked by eye because the automatic pass chose an aerial of the building's parking lot.
+
+### Left for Daniel (not decided here)
+- Talk 1 slide 13 still carries `[confirm slot/time]` for the Talk 2 tease - that is his to fill.
+- Which machine presents (FIRMAMENT vs DART) - untouched, DART still offline.
+- `decks/facelift-out/` on SPYBALLOON still holds the Alisa rehearsal build plus a `failed` status
+  from a 02:56 run that predates this session (`claude rc=127`). Left exactly as found; the real
+  run tonight was deliberately routed to an isolated dir so nothing on the stage path moved.
