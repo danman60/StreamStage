@@ -14,7 +14,7 @@ Regenerate with `python3 expo-assets/regen-slides.py`. **38 slides.**
 | 6 | The Promise | 0:10–0:11 · OPEN | 6 | 0 |
 | 7 | ★ Website Facelift — the ask | 0:11–0:14 · OPEN · [PLANT] | 8 | 0 |
 | 8 | A Very Short History | 0:14–0:16 · OPEN | 8 | 2 |
-| 9 | 101: What Is This Thing? | 0:16–0:19 · 101 | 13 | 2 |
+| 9 | 101: What Is This Thing? | 0:16–0:19 · 101 | 13 | 3 |
 | 10 | 101: What Do I Use It For? | 0:19–0:22 · 101 | 11 | 0 |
 | 11 | 101: The Only 7 Words You Need | 0:22–0:25 · 101 | 11 | 4 |
 | 12 | Tip 1: Talk, Don’t Type | 0:25–0:30 · MOVE 1 | 12 | 6 |

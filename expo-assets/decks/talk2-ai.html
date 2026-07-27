@@ -333,6 +333,34 @@
     0%{opacity:0;transform:translateY(-50%) scaleX(0)}
     40%{opacity:.85}
     100%{opacity:0;transform:translateY(-50%) scaleX(1)}}
+
+  /* Notes 2026-07-26: the car-wash joke was two cards and an arrow, revealed in one
+     click. It now reads as an actual chat, and the question and the answer are
+     separate clicks so the room gets a beat to think before the punchline. */
+  .cgpt{margin-top:4px;background:#0f1720;border:1px solid #263443;border-radius:20px;overflow:hidden;
+    box-shadow:0 26px 70px rgba(0,0,0,.5)}
+  .cgpt-bar{display:flex;align-items:center;gap:9px;padding:10px 18px;background:#141f2b;border-bottom:1px solid #243242}
+  .cgpt-bar .dot{width:12px;height:12px;border-radius:50%;background:#33465a;display:inline-block}
+  .cgpt-ttl{margin-left:12px;font:700 18px/1 var(--mono);letter-spacing:.1em;color:var(--faint)}
+  .cgpt-body{padding:18px 26px;display:flex;flex-direction:column;gap:14px}
+  .cgpt-row{display:flex;gap:16px;align-items:flex-start}
+  .cgpt-row.you{justify-content:flex-end}
+  .cgpt-av{flex:0 0 40px;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font:800 20px/1 var(--sans)}
+  .cgpt-av.you{background:#2b3a4a;color:#cfe0ee}
+  .cgpt-av.bot{background:#10A37F;color:#fff;font-size:15px}
+  .cgpt-msg{max-width:74%;background:#1e2b38;border-radius:18px;padding:15px 20px;font:600 26px/1.35 var(--sans);color:#e8f0f7}
+  .cgpt-msg.bot{background:#152a25;border:1px solid #1f6f5a;color:#dff3ec}
+  .cgpt-input{display:flex;align-items:center;justify-content:space-between;margin:0 26px 18px;padding:12px 20px;
+    background:#141f2b;border:1px solid #2a3a4a;border-radius:999px;font:600 24px/1 var(--sans);color:#55697c}
+  .cgpt-send{width:38px;height:38px;border-radius:50%;background:#2a3a4a;color:#9fb4c6;display:flex;
+    align-items:center;justify-content:center;font-size:20px}
+
+  /* The kicker on this slide ran under the chapter nav, and the payoff line sat on
+     the footer hint. Both scoped to this slide only. */
+  #s101what .kick{font-size:17px;letter-spacing:.10em;max-width:520px}
+  #s101what .cgpt{margin-bottom:6px}
+  #s101what .med{margin-bottom:26px}
   .s12 .dadshot{opacity:0;visibility:hidden;transform:scale(.96);
     transition:opacity .5s var(--ease-expo),transform .6s var(--ease-expo),width .85s var(--ease-expo),right .85s var(--ease-expo),bottom .85s var(--ease-expo)}
   .s12:has(.blowcue.show) .dadshot{opacity:1;visibility:visible;transform:none;width:690px;right:615px;bottom:56px;z-index:40;box-shadow:0 50px 120px rgba(0,0,0,.75)}
@@ -838,7 +866,7 @@
 </section>
 
 <!-- ============ SLIDE — 101: WHAT IS THIS THING ============ -->
-<section class="slide t-push" data-title="101: What Is This Thing?" data-beats="LLM = Large Language Model|It read an enormous amount of writing and predicts what words come next|It does NOT look anything up. It has no idea what's true.|That one fact explains BOTH the magic and the danger|Magic: anything made of language — write, rewrite, summarise, sort|Danger: it can be confidently wrong. You are the editor.|..Click: THE CAR WASH JOKE — his pick over the strawberry one|&gt;&gt;&#39;Should I walk to the car wash or drive? It&#39;s only ten minutes away.&#39;|&gt;&gt;&#39;Just walk — it&#39;s so close!&#39;|..Let them laugh. Then land it.|!!TRUST BUT VERIFY. Check it before you hit send.|(backup joke if the room is flat: how many R&#39;s in strawberry)|Callback later: that's exactly why StudioSage FLAGS instead of guessing">
+<section class="slide t-push" id="s101what" data-title="101: What Is This Thing?" data-beats="LLM = Large Language Model|It read an enormous amount of writing and predicts what words come next|It does NOT look anything up. It has no idea what's true.|That one fact explains BOTH the magic and the danger|Magic: anything made of language — write, rewrite, summarise, sort|Danger: it can be confidently wrong. You are the editor.|..Click: THE CAR WASH JOKE — his pick over the strawberry one|&gt;&gt;&#39;Should I walk to the car wash or drive? It&#39;s only ten minutes away.&#39;|&gt;&gt;&#39;Just walk — it&#39;s so close!&#39;|..Let them laugh. Then land it.|!!TRUST BUT VERIFY. Check it before you hit send.|(backup joke if the room is flat: how many R&#39;s in strawberry)|Callback later: that's exactly why StudioSage FLAGS instead of guessing">
   <div class="ns">
     <div class="kick">Quick 101 &mdash; no jargon, I promise</div>
     <div class="big">It read almost everything ever written,<br>and it predicts <span class="cy">what comes next.</span></div>
@@ -848,18 +876,22 @@
       <div class="rung"><div class="n">THE CATCH</div><h4>It can be confidently wrong.</h4>
         <p>Then it learned to search the web &mdash; which helps, and doesn&rsquo;t fix it. <b>You&rsquo;re the editor</b>, always.</p></div>
     </div>
-    <div class="frag f-fly" data-frag="1" style="display:flex;gap:26px;align-items:center;margin-top:6px">
-      <div style="flex:1;background:#111a23;border:1px solid #22303d;border-radius:18px;padding:24px 28px">
-        <div style="font:800 19px/1 var(--mono);letter-spacing:.12em;color:var(--dim);margin-bottom:12px">YOU</div>
-        <div style="font:700 30px/1.35 var(--sans)">&ldquo;Should I walk to the car wash or drive? It&rsquo;s only ten minutes away.&rdquo;</div>
+    <div class="cgpt">
+      <div class="cgpt-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="cgpt-ttl">New chat</span></div>
+      <div class="cgpt-body">
+        <div class="cgpt-row you frag f-up" data-frag="1">
+          <div class="cgpt-msg">Should I walk to the car wash or drive? It&rsquo;s only ten minutes away.</div>
+          <div class="cgpt-av you">D</div>
+        </div>
+        <div class="cgpt-row bot frag f-up" data-frag="2">
+          <div class="cgpt-av bot">&#9679;</div>
+          <div class="cgpt-msg bot">Just walk &mdash; it&rsquo;s so close!</div>
+        </div>
       </div>
-      <div style="font:900 40px/1 var(--sans);color:var(--faint)">&rarr;</div>
-      <div style="flex:1;background:#1d1a12;border:1px solid var(--amber);border-radius:18px;padding:24px 28px">
-        <div style="font:800 19px/1 var(--mono);letter-spacing:.12em;color:var(--amber);margin-bottom:12px">IT</div>
-        <div style="font:700 30px/1.35 var(--sans)">&ldquo;Just walk &mdash; it&rsquo;s so close!&rdquo;</div>
-      </div>
+      <div class="cgpt-input"><span>Ask anything</span><span class="cgpt-send">&#8593;</span></div>
     </div>
-    <div class="med frag f-up" data-frag="2" style="font-size:46px">Trust, <span class="am">but verify.</span> <span class="dim" style="font-size:40px">Check it before you hit send.</span></div>
+    <div class="med frag f-up" data-frag="3" style="font-size:46px">Trust, <span class="am">but verify.</span> <span class="dim" style="font-size:40px">Check it before you hit send.</span></div>
   </div>
   <aside class="note"><b>0:16–0:19 &middot; 101</b> &mdash; One sentence they can hold: it predicts the next words. That single fact explains the magic AND the danger, and it pre-loads the StudioSage trust beat ("when it isn't confident it does NOT guess"). Don't say "neural network." Don't say "training data."</aside>
 </section>
