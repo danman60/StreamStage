@@ -1598,12 +1598,18 @@
   function isWall(){return slides[cur].classList.contains('wall-slide');}
 
   /* ---- presence heartbeat (arm SMS routing only while LIVE slide shows) ---- */
+  /* Built-in arm token: the deck arms itself with no ?rt= in the URL, so a fresh tab
+     at the podium is armed. ?rt= still overrides it if the token is ever rotated.
+     Slide-zone gating below is unchanged — it still only arms on the wall/mechanic
+     slide and disarms ~20s after leaving. Rotate DEMO_RESET_TOKEN after the talk. */
+  var RT_BUILTIN='a7cb85563ad52b460b26ffe236554b41';
   var RT=null;
   try{
     var m=(location.search.match(/[?&]rt=([^&]+)/));
     if(m){RT=decodeURIComponent(m[1]);sessionStorage.setItem('ss_rt',RT);}
     else{RT=sessionStorage.getItem('ss_rt');}
   }catch(e){}
+  if(!RT)RT=RT_BUILTIN;
   if(!RT)document.body.classList.add('rt-unarmed');
   var beatTimer=null;
   function routeBeat(action){
