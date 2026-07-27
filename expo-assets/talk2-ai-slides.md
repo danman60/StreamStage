@@ -36,7 +36,7 @@ Regenerate with `python3 expo-assets/regen-slides.py`. **38 slides.**
 | 28 | Pay Off the Loop | 1:09–1:12 · HOW IT WORKS (loop payoff) | 9 | 3 |
 | 29 | Pull, Don't Push | 1:12–1:15 · HOW IT WORKS | 12 | 2 |
 | 30 | StudioSage | 1:15–1:17 · PRODUCT | 9 | 3 |
-| 31 | Inside the Dashboard | 1:17–1:19 · PRODUCT | 9 | 0 |
+| 31 | Inside the Dashboard | 1:17–1:19 · PRODUCT | 8 | 0 |
 | 32 | Human in the Loop | 1:19–1:21 · PRODUCT | 7 | 1 |
 | 33 | How It Actually Works | 1:21–1:24 · PRODUCT | 10 | 6 |
 | 34 | Live Demo ★ (real) | 1:24–1:29 · PRODUCT · [LIVE DEMO] | 13 | 0 |

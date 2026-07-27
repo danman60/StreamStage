@@ -1391,18 +1391,23 @@
 </section>
 
 <!-- ============ SLIDE — THE DASHBOARD (recorded walkthrough) ============ -->
-<section class="slide sage s26vid t-fade" data-title="Inside the Dashboard" data-beats="!!THE VIDEO AUTOPLAYS when you land here. Talk over it — do not narrate every click.|..It opens on the sign-in screen for a second. That&#39;s normal — keep talking.|&gt;&gt;&#39;This is the actual thing, not a mockup.&#39;|Point at: the knowledge base — everything it knows, from your own emails|Point at: personality settings — how chatty, how formal, how it signs off|Point at: the threads — every parent conversation, readable, yours|!!&#39;You are never locked out of what it said on your behalf.&#39;|..86 seconds. If you&#39;re running long, talk over the first 30 and move on.|..Space/click advances the deck as normal — the video does not hold you here.">
+<section class="slide sage s26vid t-fade" data-title="Inside the Dashboard" data-beats="!!THE VIDEO AUTOPLAYS when you land here. Talk over it — do not narrate every click.|&gt;&gt;&#39;This is the actual thing, not a mockup.&#39;|Point at: the knowledge base — everything it knows, from your own emails|Point at: personality settings — how chatty, how formal, how it signs off|Point at: the threads — every parent conversation, readable, yours|!!&#39;You are never locked out of what it said on your behalf.&#39;|..40 seconds, sped up. If you&#39;re running long, talk over the first 20 and move on.|..Space/click advances the deck as normal — the video does not hold you here.">
   <div class="wrap" style="position:absolute;inset:0;padding:64px 90px 40px;display:flex;flex-direction:column;gap:22px">
     <div>
       <div class="kicker" style="color:var(--sage);margin-bottom:12px">The actual product</div>
       <div class="big" style="color:var(--sage-d);font-size:56px">Your dashboard. <span style="color:var(--sage)">Knowledge base, personality, every thread.</span></div>
     </div>
-    <div style="flex:1;border-radius:20px;overflow:hidden;background:#20281f;box-shadow:0 34px 80px rgba(45,58,48,.35);display:flex">
-      <video data-auto muted playsinline preload="auto" style="width:100%;height:100%;object-fit:contain;background:#20281f"
+    <!-- The box used to be object-fit:contain on a non-16:9 flex child with a dark
+         background, which letterboxed the 1920x1080 capture — that was the "black
+         bars left and right". The frame now hugs the video's own aspect ratio, so
+         there is nothing to letterbox. -->
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;min-height:0">
+      <video data-auto muted playsinline preload="auto"
+        style="height:100%;width:auto;max-width:100%;aspect-ratio:16/9;display:block;border-radius:20px;box-shadow:0 34px 80px rgba(45,58,48,.35)"
         src="studiosage-dashboard-walkthrough.mp4"></video>
     </div>
   </div>
-  <aside class="note"><b>1:17–1:19 &middot; PRODUCT</b> &mdash; The recorded walkthrough he asked for (run-through #2: "I'm just talking about it &mdash; we need to show it"). Autoplays muted on arrival, 86 seconds. Talk over it: knowledge base, personality settings, email threads. If you're behind the clock, take 30 seconds of it and move &mdash; the deck advances normally, the video never blocks you.</aside>
+  <aside class="note"><b>1:17–1:19 &middot; PRODUCT</b> &mdash; The recorded walkthrough he asked for (run-through #2: "I'm just talking about it &mdash; we need to show it"). Autoplays muted on arrival, 40 seconds (login screen trimmed, timelapse sped up 1.6&times;). Talk over it: knowledge base, personality settings, email threads. If you're behind the clock, take 30 seconds of it and move &mdash; the deck advances normally, the video never blocks you.</aside>
 </section>
 
 <!-- ============ SLIDE 14 — HUMAN IN THE LOOP (mechanic) ============ -->
