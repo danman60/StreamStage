@@ -8,7 +8,7 @@ Regenerate with `python3 expo-assets/regen-slides.py`. **38 slides.**
 |---|---|---|---|---|
 | 1 | Title / Open | 0:00–0:03 · OPEN | 9 | 0 |
 | 2 | Who I Am | 0:07–0:09 · OPEN | 12 | 4 |
-| 3 | The Front Desk Job | 0:03–0:05 · OPEN · [INTERACT] | 8 | 11 |
+| 3 | The Front Desk Job | 0:03–0:05 · OPEN · [INTERACT] | 8 | 9 |
 | 4 | You Pushed It. Nobody Saw It. | 0:05–0:07 · OPEN | 6 | 3 |
 | 5 | Who’s Already Using It? | 0:09–0:10 · OPEN · [INTERACT] | 9 | 5 |
 | 6 | The Promise | 0:10–0:11 · OPEN | 6 | 0 |
