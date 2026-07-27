@@ -316,18 +316,22 @@ header{padding:10px 14px;background:var(--panel);display:flex;align-items:center
 #dot.bad{background:#ef4444}
 #pos{font-variant-numeric:tabular-nums;font-weight:800;color:var(--cy)}
 #title{font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-main{flex:1;overflow-y:auto;padding:16px 16px 8px;-webkit-overflow-scrolling:touch}
-h2{margin:0 0 14px;font-size:26px;line-height:1.15;letter-spacing:-.02em}
+/* Every size below is em-relative to main's font-size, so fitNotes() can shrink the whole
+   notes page with one variable until the slide's beats fit on ONE phone screen. No scrolling
+   on stage: a beat you have to swipe to is a beat you will not read. */
+main{flex:1;overflow:hidden;padding:16px 16px 8px;-webkit-overflow-scrolling:touch;font-size:var(--nfs,20px)}
+main.spill{overflow-y:auto}
+h2{margin:0 0 .55em;font-size:1.3em;line-height:1.15;letter-spacing:-.02em}
 ul{margin:0;padding:0;list-style:none}
-li{padding:13px 0;border-bottom:1px solid #1c2733;font-size:20px;line-height:1.4}
-li:before{content:"\\25B8";color:var(--am);margin-right:10px}
-li.hot{background:#2a1d05;border-left:6px solid var(--am);border-bottom:none;margin:10px 0;
-  padding:16px 14px;border-radius:10px;font-size:24px;font-weight:800;color:#ffd894}
+li{padding:.62em 0;border-bottom:1px solid #1c2733;font-size:1em;line-height:1.35}
+li:before{content:"\\25B8";color:var(--am);margin-right:.5em}
+li.hot{background:#2a1d05;border-left:6px solid var(--am);border-bottom:none;margin:.45em 0;
+  padding:.68em .6em;border-radius:10px;font-size:1.2em;font-weight:800;color:#ffd894}
 li.hot:before{content:"\\26A0";color:var(--am)}
-li.say{background:#0d1c22;border-left:6px solid var(--cy);border-bottom:none;margin:10px 0;
-  padding:16px 14px;border-radius:10px;font-size:23px;font-style:italic;color:#cdeef3}
-li.say:before{content:"\\201C";color:var(--cy);font-size:26px}
-li.beat{color:var(--dim);font-size:18px;text-transform:uppercase;letter-spacing:.08em;font-weight:800}
+li.say{background:#0d1c22;border-left:6px solid var(--cy);border-bottom:none;margin:.45em 0;
+  padding:.68em .6em;border-radius:10px;font-size:1.15em;font-style:italic;color:#cdeef3}
+li.say:before{content:"\\201C";color:var(--cy);font-size:1.15em}
+li.beat{color:var(--dim);font-size:.9em;text-transform:uppercase;letter-spacing:.08em;font-weight:800}
 li.beat:before{content:"\\23F8";color:var(--dim)}
 .empty{color:var(--dim);font-style:italic}
 nav{display:flex;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--panel);
@@ -437,8 +441,23 @@ function paint(s){
     });
   }
   document.querySelector('main').scrollTop=0;
+  fitNotes();
   paintJump(s);
 }
+/* Shrink the notes until they fit the screen. 20px is the comfortable size; we only go down
+   from there, and only as far as 12px — below that it stops being readable at arm's length,
+   so the page is allowed to scroll instead (and says so by getting a scrollbar back). */
+function fitNotes(){
+  var m=document.querySelector('main');
+  m.classList.remove('spill');
+  for(var px=20; px>=12; px-=0.5){
+    m.style.setProperty('--nfs', px+'px');
+    if(m.scrollHeight<=m.clientHeight) return;
+  }
+  m.classList.add('spill');
+}
+window.addEventListener('resize',fitNotes);
+window.addEventListener('orientationchange',function(){setTimeout(fitNotes,250);});
 /* ---- facelift panel ---- */
 var fl=document.getElementById('fl');
 document.getElementById('flbtn').onclick=function(){fl.classList.toggle('open')};
