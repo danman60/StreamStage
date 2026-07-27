@@ -1943,5 +1943,37 @@
   fit(); show(0);
 })();
 </script>
+
+<script>
+/* Facelift page scrolling (notes 2026-07-26): on the plant slide and the reveal,
+   ArrowDown/ArrowUp walk the embedded page in checkpoints instead of advancing
+   the deck. Capture phase + stopPropagation so the deck's own handler never sees
+   these keys while a frame is on screen.
+   LIMIT: #plantframe loads THEIR site (cross-origin) — the browser forbids
+   scripted scrolling of it, so checkpoints only apply to the same-origin reveal.
+   Falls back silently rather than trapping the key. */
+(function(){
+  function activeFrame(){
+    var s=document.querySelector('.slide.active'); if(!s) return null;
+    var f=s.querySelector('#revealframe, #plantframe'); if(!f) return null;
+    if(!f.getClientRects().length) return null;
+    try{
+      var d=f.contentDocument; if(!d||!d.scrollingElement) return null;   // cross-origin -> null
+      return d.scrollingElement;
+    }catch(e){ return null; }                                             // cross-origin -> null
+  }
+  document.addEventListener('keydown', function(ev){
+    if(ev.key!=='ArrowDown' && ev.key!=='ArrowUp') return;
+    var el=activeFrame(); if(!el) return;            // nothing scrollable: let the deck have the key
+    var step=Math.round(el.clientHeight*0.72);       // checkpoint = ~a screenful, with overlap
+    var max=el.scrollHeight-el.clientHeight;
+    if(max<=2) return;
+    var to=ev.key==='ArrowDown' ? Math.min(el.scrollTop+step, max)
+                                : Math.max(el.scrollTop-step, 0);
+    el.scrollTo({top:to, behavior:'smooth'});
+    ev.preventDefault(); ev.stopPropagation();
+  }, true);
+})();
+</script>
 </body>
 </html>
