@@ -90,6 +90,37 @@ export async function POST(request: Request) {
       html: buildHtml({ name, studio, email, phone, interests, source }),
     });
 
+    // Mirror into StudioSage's unified `leads` table. StreamStage has no database
+    // of its own and is deliberately not being given service-role credentials, so
+    // StudioSage owns the table and this is a server-to-server forward.
+    //
+    // Best-effort ONLY: the email above is what actually reaches Daniel, so a
+    // failure here must never turn a captured lead into an error for the person
+    // standing at the booth.
+    try {
+      const ingest = process.env.LEADS_INGEST_URL || "https://www.studiosage.ai/api/leads";
+      const token = process.env.LEADS_INGEST_TOKEN || "";
+      if (token) {
+        await fetch(ingest, {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-leads-token": token },
+          body: JSON.stringify({
+            source: "expo_form",
+            name,
+            studio,
+            email,
+            phone,
+            interests: Array.isArray(body.interests) ? body.interests : [],
+            consent: "form_submitted",
+            notes: source,
+          }),
+          signal: AbortSignal.timeout(4000),
+        });
+      }
+    } catch (e) {
+      console.error("expo-leads: unified lead forward failed", e instanceof Error ? e.message : e);
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("expo-leads error:", error instanceof Error ? error.message : error);
