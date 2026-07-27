@@ -1,0 +1,541 @@
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The AI Front Desk — StudioSage Live Demo</title>
+<style>
+:root{--sage:#65806D;--forest:#2b3a30;--cream:#f7f5ef;--ink:#252b26;--line:#e2ddd0;--accent:#3b5bdb}
+*{box-sizing:border-box}body{margin:0;font:16px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:var(--ink);background:var(--cream)}
+.top{background:var(--forest);color:#fff;padding:14px 22px}
+.top .wrap{max-width:900px;margin:0 auto}
+.top a{color:#cfe0d4;text-decoration:none;font-weight:600;font-size:14px}
+.top .tag{display:inline-block;background:var(--accent);color:#fff;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 10px;border-radius:999px;margin-left:8px}
+.top h1{margin:.25em 0 .1em;font-size:24px}
+.top .th{opacity:.8;font-size:14px;margin:0}
+.top .sib{opacity:.6;font-size:12.5px;margin:.5em 0 0}
+.tabs{position:sticky;top:0;z-index:9;background:#fff;border-bottom:1px solid var(--line);display:flex;gap:2px;overflow-x:auto;padding:0 12px}
+.tab{flex:0 0 auto;background:none;border:0;border-bottom:3px solid transparent;padding:13px 16px;font:inherit;font-weight:600;font-size:14px;color:#6b7a70;cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--forest)}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+main{max-width:900px;margin:0 auto;padding:26px 22px 90px}
+.panel{display:none}.panel.on{display:block}
+h2{font-size:21px;margin:1.4em 0 .4em;color:var(--forest);border-bottom:2px solid var(--line);padding-bottom:.2em}
+h2:first-child{margin-top:.2em}
+h3{font-size:17px;margin:1.2em 0 .3em;color:var(--sage)}
+h4{font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:#6b7a70;margin:1.1em 0 .2em}
+a{color:var(--accent)}code{background:#eceae1;padding:.12em .4em;border-radius:5px;font-size:.9em;font-family:ui-monospace,Menlo,Consolas,monospace}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--accent);background:#fff;border-radius:0 8px 8px 0;color:#555}
+hr{border:0;border-top:1px solid var(--line);margin:1.8em 0}ul,ol{padding-left:1.4em}li{margin:.25em 0}
+.tw{overflow-x:auto;margin:1.2em 0}table{border-collapse:collapse;width:100%;font-size:14px;background:#fff}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#eef1ec}
+.frame{width:100%;height:82vh;border:1px solid var(--line);border-radius:10px;background:#fff}
+.framebar{margin:0 0 10px}.framebar a{font-weight:600}
+.deckcta{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;padding:11px 20px;border-radius:10px;margin:2px 0 6px}
+@media print{.tabs,.top a{display:none}.panel{display:block!important}.top{color:#000;background:#fff}}
+</style>
+<div class="top"><div class="wrap">
+  <a href="index.html">← All talks</a><span class="tag">Talk 2</span>
+  <h1>The AI Front Desk</h1><p class="th">“Why AI? Save Your Studio Time, Money, and Stress.” Five free moves → the agentic ladder → StudioSage reveal + live KB demo → the facelift reveal. 37 slides, Wed Jul 29 2026 4:10–5:10 PM EDT.</p>
+  <p class="sib">Sibling: Talk 1 — The Content Day. Keep signature bits separate (printer/technologist persona / “they did get the link” / pull-don’t-push live here only). Guardrails: “dancer” never “kid” · never say “markdown” on stage · $20/month product vs $20/year hosting · the freebie IS email-gated.</p>
+  <a class="deckcta" href="talk2-deck.html">▶ Open the clickable deck</a>
+</div></div>
+<nav class="tabs"><button class="tab on" data-p="p0">Script</button><button class="tab" data-p="p1">Run of Show</button><button class="tab" data-p="p2">Slide Notes</button><button class="tab" data-p="p3">Live Demo</button><button class="tab" data-p="p4">Handout</button><button class="tab" data-p="p5">Booth & Backup</button></nav>
+<main><section class="panel on" id="p0">
+<h1>Talk 2 Master Script — AI</h1>
+<p><strong>Why AI? Save Your Studio Time, Money, and Stress</strong> Presenter: Daniel Abrahamson, StreamStage · Dance Teacher Expo · Adapt Stage, Business Track Wed Jul 29 2026 · 4:10–5:10 PM EDT · Deck = <strong>38 slides</strong> Rebuilt 2026-07-26 (evening) from both run-through transcripts + the moves / brand-kit directives.</p>
+<blockquote><strong>SPINE — say it, pay it off, price it:</strong> <em>"I'm going to take an hour of your time, and I'm going to give you back a lot more than that."</em> <strong>⚠ "Do the hard thing once, let it pay you back all year" is TALK 1's thesis and Talk 1's closing slide. It does not appear here as a thesis.</strong> "Teach it once" survives only as a <em>mechanic</em> inside the moves — never as the promise, never on the close.</blockquote>
+<p><strong>Shape:</strong> open → history → 101 → <strong>five free moves</strong> (no vendor, not even me) → how this stuff actually works → StudioSage as the one I productized → the website-refresh reveal → CTA that stays up.</p>
+<p><strong>The five moves (rebuilt 2026-07-26):</strong> 1 talk don't type · 2 your studio in two files · 3 make it write the prompt · 4 make the poster · 5 ask your own handbook. <strong>Connectors and cowork/crons are no longer moves</strong> — they are the concrete rungs of the agentic ladder in the second half.</p>
+<p><strong>Persona:</strong> technologist first — the guy who fixes the printer at every family gathering. Warm, partnership not sales. Humour is dry, self-aware, specific ("they did get the link. They did, though").</p>
+<p><strong>Markers:</strong> <strong>[INTERACT]</strong> audience participation · <strong>[LIVE]</strong> run it live · <strong>[CLICK]</strong> a beat on the slide · <strong>[LOOP]</strong> open/close a loop.</p>
+<p><strong>Guardrails:</strong> no Talk 1 material · <strong>"dancer", never "kid"</strong> · never say "markdown" or ".md" on stage · no beta-client names · lobby TV is gone entirely · $20/<strong>month</strong> for the product, $20/<strong>year</strong> for hosting after year one — don't blur them · the freebie <strong>is</strong> email-gated, say so.</p>
+<p><strong>⚠ TIMING:</strong> this script carries ~93 minutes of material into a 60-minute slot. Nothing has been cut for time — that call is Daniel's. The six cheapest cuts are listed at the top of <code>talk2-runofshow.md</code>.</p>
+<hr>
+<h2>OPEN (0:00–0:03) · Slide 1</h2>
+<p>Hi, it's me, Daniel. If you've come here to learn about AI — the latest of it, and how to keep from getting conquered when the robot overlords arrive — you're in the right place. I think before they take over, we're going to get much smoother logistics and operations out of them. Let's do that part.</p>
+<p>You will <strong>not</strong> see me dance today. Although: Sheridan grad, three years of jazz, ballet and tap. So if you're really nice to me, maybe at the end you get the grand jeté.</p>
+<p><strong>[INTERACT]</strong> Hands up — who has answered a parent text after nine at night this season? <em>(hands)</em> Who got one at <strong>eleven o'clock on the Sunday before recital</strong> asking how we do the hair for this number? <em>(hands)</em> Now <strong>keep your hand up</strong> if the answer was already in the email you sent out. <em>(beat — let them look around at each other)</em></p>
+<p>Right. They don't read it. And here's the thing: these are your clients. Your customers. Your bread and butter. We love them. They just don't read the emails.</p>
+<p>I'm going to give you back some of that time today.</p>
+<hr>
+<h2>THE FRONT DESK JOB (0:03–0:05) · Slide 2 · [INTERACT]</h2>
+<p>You started as a <strong>teacher</strong>. That's the thing on the sign. Then you became a <strong>business owner</strong> — which quietly made you five more people. <strong>Marketer</strong>, full-time apparently. <strong>Customer support</strong>, nights and weekends. <strong>Bookkeeper</strong>, and HR, and legal. <strong>Janitor</strong>, because somebody has to. And the <strong>front desk</strong> — the same questions, forever. <em>(circle it)</em></p>
+<p>You're getting paid for <strong>one</strong> of those jobs. This is the one we fix today.</p>
+<p>And let's be honest: even if you're not the one sitting <em>at</em> the front desk — <strong>we all know who's getting those texts.</strong></p>
+<hr>
+<h2>YOU PUSHED IT. NOBODY SAW IT. (0:05–0:07) · Slide 3</h2>
+<p><em>(This is push/pull, landed early — it used to arrive an hour in, and that was too late.)</em></p>
+<p>You sent the email. You posted it. You texted it. It's on the website, it's in the group chat, there was a flyer. <strong>[CLICK]</strong> Four channels, and you get the same question anyway.</p>
+<p>That's a <strong>push</strong>. A <strong>pull</strong> is when <em>they</em> ask — at the moment they actually want to know. <strong>[CLICK]</strong> Remember those two words. The whole hour hangs off them.</p>
+<hr>
+<h2>WHO I AM (0:07–0:09) · Slide 4 — four fast clicks</h2>
+<p>I'm <strong>Daniel Abrahamson</strong>.</p>
+<p><strong>[CLICK]</strong> <strong>StreamStage.</strong> We shoot your recital and your competitions — multiple cameras, live stream, photography, delivered while you're still in the building.</p>
+<p><strong>[CLICK]</strong> But behind all the gear, I'm a <strong>technologist first</strong>.</p>
+<p><strong>[CLICK]</strong> Which means I'm the person who fixes the printer at every family gathering. I don't care what's wrong with that printer. USB A to USB B. I'm getting it on the wifi.</p>
+<p><strong>[CLICK]</strong> And <strong>StudioSage</strong> — StreamStage shoots your recital, StudioSage answers your parents. Two things, one guy, one letter apart. Sorry about that.</p>
+<hr>
+<h2>GAUGE THE ROOM (0:09–0:10) · Slide 5 · [INTERACT]</h2>
+<p>Before I start — where are you? Hands up: who's in it <strong>every day</strong>? Who's used it <strong>a few times</strong>? Who <strong>tried it once and quietly gave up</strong>? Who has <strong>never opened one</strong>?</p>
+<p><em>(Say out loud what you saw.)</em> Okay — now I know who I'm talking to. <em>If mostly new:</em> nothing today needs a credit card. <em>If mostly daily users:</em> moves three and four are new even for you.</p>
+<hr>
+<h2>THE PROMISE (0:10–0:11) · Slide 6</h2>
+<p>Five free AI moves you can do Monday morning. No vendor. No sign-up. Free tiers do every single thing in this hour. And then <strong>one that I productized</strong>, because I couldn't stop thinking about it.</p>
+<p>Here's the deal: <strong>I'm going to take an hour of your time, and I'm going to give you back a lot more than that.</strong></p>
+<hr>
+<h2>★ THE PLANT — website facelift, part 1 (0:11–0:14) · Slide 7 · [INTERACT] [LOOP]</h2>
+<p>Before we go anywhere — a favour, and a bit of proof of competency.</p>
+<p>Whose studio website needs a <strong>facelift</strong>? Built in 2016, or your nephew made it, or it's just… tired. Shout me the address.</p>
+<p><em>(Type it into the box on the slide and press Enter — their existing site loads underneath. If the site blocks embedding, don't fight it: say the address back out loud and move on.)</em></p>
+<p><em>(Kick the refresh off from the phone now — see the run-of-show.)</em></p>
+<p>Remember that. We'll come back to it. <strong>That's all I'm going to say.</strong></p>
+<hr>
+<h2>A VERY SHORT HISTORY (0:14–0:16) · Slide 8</h2>
+<p>For fifty years, computers made <strong>you</strong> learn <strong>their</strong> language. Commands. Exact file names. The right button in the right menu. One character wrong and it just says no. Everybody in this room has felt stupid in front of a computer, and it was never your fault.</p>
+<p>Then they started learning <strong>ours</strong>, one sense at a time. Spellcheck. Autocorrect. Your phone finding your daughter's face in four thousand photos. "Okay Google, take me home." Nobody called that AI. It just stopped making you do the work.</p>
+<p>And now they've learned the whole thing: <strong>plain English</strong>. The most powerful software ever built ships with a text box and no manual. The breakthrough isn't the intelligence — <strong>it's the interface.</strong></p>
+<p><strong>[CLICK]</strong> You feel like you're behind. <strong>You are not behind.</strong> This is the biggest shift since the internet — since the printing press. We are all very new at it.</p>
+<p><strong>[CLICK]</strong> And by the way: 99% of the time somebody says "AI", they mean <strong>ChatGPT, Claude or Perplexity</strong>. That's the whole vocabulary.</p>
+<p><em>Pivot:</em> which means the fastest way in isn't typing carefully — it's talking.</p>
+<hr>
+<h2>101 — WHAT IS THIS THING? (0:16–0:19) · Slide 9</h2>
+<p>It read almost everything ever written, and it predicts what comes next. That's it. Then it learned to search the web too, which helps and doesn't fix it.</p>
+<p><strong>The magic:</strong> anything made of language. Write it, rewrite it, shorten it, sort it, put it in your voice. That's most of your admin week.</p>
+<p><strong>The catch:</strong> it can be <strong>confidently wrong</strong>.</p>
+<p><strong>[CLICK]</strong> My favourite: you ask it, <em>"should I walk to the car wash or drive? It's only ten minutes away."</em> And it says: <em>"just walk — it's so close!"</em> <em>(let them laugh)</em></p>
+<p><strong>[CLICK]</strong> So: <strong>trust, but verify.</strong> Check it before you hit send. You are the editor, always. <em>(Backup joke if the room is flat: ask it how many R's are in "strawberry".)</em></p>
+<hr>
+<h2>101 — WHICH ONE DO I OPEN? (0:19–0:22) · Slide 10</h2>
+<p><strong>ChatGPT</strong> is the all-rounder — start there, the phone app is the one you'll actually use. <strong>Claude</strong> for long documents and writing that sounds like you. <strong>NotebookLM</strong> (free, Google) to build a brain out of your own material. <strong>Gemini</strong> because it lives where your Google mail and drive already are. <strong>Nano Banana</strong>, inside Gemini, is the image one — and it writes text <em>into</em> the picture. <strong>Perplexity</strong> is the research one: live web, with sources.</p>
+<p>Pro tip: keep a <strong>free account on all of them</strong> and cycle through as you run out. Just keep your documents in one folder so it doesn't matter which one you opened — that was literally my own early workflow.</p>
+<p>I personally pay five, six hundred dollars a month for AI, because it's making me money. <strong>Everything in this talk runs on the free tiers.</strong></p>
+<p><em>(Don't paste anything you wouldn't put in an email — student names, medical, payment details.)</em></p>
+<hr>
+<h2>101 — THE ONLY SEVEN WORDS (0:22–0:25) · Slide 11 — the pyramid</h2>
+<p>Top of the pyramid down: <strong>Memory</strong> is what it knows about you — tell it who you are, once, and it applies everywhere. A <strong>project</strong> is a folder of threads sharing your studio's material. A <strong>thread</strong> is one conversation that remembers itself — new job, new thread, don't cross your contexts. A <strong>prompt</strong> is what you actually ask.</p>
+<p>Then three more: a <strong>connector</strong> lets it reach your email and calendar. A <strong>skill</strong> is a job you teach it once and reuse. And an <strong>agent</strong> is something using tools on its own — <strong>it works while you sleep.</strong> As a business owner, you know the feeling I mean: you go to bed, you wake up, and something has already changed. That's what we want.</p>
+<hr>
+<h1>SEGMENT 1 — THE FIVE FREE MOVES (0:25–0:53)</h1>
+<p><em>(Delivery rule: name the pain → show the real thing on screen → one-sentence Monday move. Number them out loud — "free move number three" — so the structure stays audible for an hour.)</em></p>
+<h2>MOVE 1 — Talk, don't type (0:25–0:30) · Slide 12</h2>
+<p>I've been working with this stuff for about a year and a half, same as everybody. The single biggest thing that sped me up wasn't a model or a plugin. It was a button: <strong>the microphone.</strong></p>
+<p>We have something in common — studio owners love to talk. And you think differently when you talk than when you type. I type fast, I play piano, and I <em>still</em> talk to my robots all day, because things come out mid-sentence that never would have made it through my fingers.</p>
+<p>To be clear: not voice <em>mode</em>, where it talks back. <strong>I read faster than the robot talks</strong> — that's for driving. I mean <strong>voice typing</strong>: the little mic on your phone keyboard, the dictation key on your laptop.</p>
+<p><strong>[LIVE / CLICK ×4]</strong> Watch. <em>(Hit the mic and ramble a real Monday:)</em> "Okay so costume payments are late again and I need to remind parents without sounding annoyed for the third time… and Tuesday ballet isn't filling like Thursday tap… book the photographer, call StreamStage about video… and I need a poster, fun and vibrant, warm and welcoming." <strong>Ramble. Ramble. Ramble.</strong></p>
+<p>Same trick, bigger: pull your <strong>Zoom transcripts</strong> off zoom.us and paste them in. <strong>Hit record</strong> on the teacher meeting. Record yourself in the car. People will sell you a little AI note pin — you already own a phone.</p>
+<p><strong>MONDAY:</strong> app on your first screen, mic every time.</p>
+<hr>
+<h2>MOVE 2 — Your studio in two files (0:30–0:35) · Slide 13</h2>
+<p>Here's the problem with AI writing: it sounds like nobody.</p>
+<p>So give it two files. <strong>A voice file</strong> — how you talk, how you sign off, how you handle a sensitive email, the words you use and the words you don't. <em>(Always <strong>dancers</strong> — never "kids".)</em> And <strong>tell it to stop using em dashes.</strong> That one line fixes the most obvious tell there is.</p>
+<p><strong>A brand file</strong> — your colours, your fonts, your logo rules, the feel: warm, vibrant, welcoming. What your studio is, and what it isn't.</p>
+<p>These are plain text one-pagers <strong>you own</strong>. Not a setting inside somebody's app. ChatGPT today, Claude next month, whatever exists in 2031 — the value is in <strong>your</strong> files.</p>
+<p>How do you fill the voice file honestly? If you're on Gmail, <strong>Google Takeout</strong> exports all of your email. Hand it the real thing. Or drop fifty old newsletters into NotebookLM — it's free, it's Google's, you upload a pile of documents and it builds a knowledge base out of them — and ask, <em>"what patterns do you see in how I write?"</em> Then the monthly studio email is: <em>"here's what we have — pajama day Friday, the twelve-year-old Acro hair moved from a messy bun to a high pony"</em> — and out it comes, in your voice. Ten minutes instead of two hours.</p>
+<p><strong>MONDAY:</strong> start both files. One page each. Boring is fine.</p>
+<hr>
+<h2>THE FOLDER (0:35–0:37) · Slide 14</h2>
+<p>Those files don't float loose. They live in <strong>one folder</strong>. Call it "Studio Brain", or honestly just "AI stuff". In it: the voice file, the brand file, the handbook, last year's newsletters, key dates.</p>
+<p><strong>[CLICK]</strong> Step one is the <strong>copy-paste era</strong> — everything in one place so you always know where to grab it from. That was literally my workflow. <strong>[CLICK]</strong> Step two, the <strong>drag era</strong> — new chat, drag the two or three files that matter in. Ten seconds. <em>(Do the gesture.)</em> <strong>[CLICK]</strong> Step three, the <strong>connected era</strong> — you point it at the folder once and stop dragging.</p>
+<p>You're building the thing you'll point <strong>every tool</strong> at for the next five years.</p>
+<hr>
+<h2>MOVE 3 — Make it write the prompt (0:37–0:42) · Slide 15</h2>
+<p>Everybody's real problem is <em>"I don't know what to type."</em></p>
+<p>So stop writing the prompt. <strong>Ask it to write the prompt.</strong></p>
+<p><strong>[CLICK]</strong> <em>"I need a poster for our June recital. Write me the prompt to make that image — ask me anything you need first."</em></p>
+<p><strong>[CLICK]</strong> And it hands you back the careful version: vertical 18×24, deep plum, soft warm spotlight upper left, one silhouetted dancer mid-leap, negative space in the bottom third for text, elegant not glittery, include this text in a modern serif…</p>
+<p><strong>[CLICK]</strong> You could never have typed that. You didn't have to. You're not the prompt engineer — it is. You just edit <strong>its</strong> prompt. That's the entire skill.</p>
+<p>Related habit: ask <strong>how</strong> questions, not just do-this questions. <em>"How would I go about doing this?"</em> Half the time you don't know what "this" even is yet.</p>
+<p><strong>[CLICK]</strong> And it writes <strong>your two files</strong> as well: <em>"read my website and my last ten newsletters, then write me a brand file and a voice file."</em> You hand-author nothing. You just correct it.</p>
+<p><strong>MONDAY:</strong> next bad answer — go fix the <em>prompt</em>, not the answer.</p>
+<hr>
+<h2>MOVE 4 — Make the poster (0:42–0:47) · Slide 16 · [LIVE if wifi holds]</h2>
+<p><strong>Nano Banana</strong> lives inside Gemini. ChatGPT makes images too. Both free tiers.</p>
+<p>The thing that changed this year: <strong>it can put the text inside the image.</strong> Which is the whole difference between a picture and a poster.</p>
+<p><strong>[CLICK]</strong> Here's that prompt with <strong>no brand file</strong>. And look — it's <em>lovely</em>. Art nouveau, coral and teal, ribbons, the whole thing. I'd put that on a wall.</p>
+<p>Now read the bottom of it. <em>"Rhythm &amp; Bloom Dance Studio presents…"</em> <strong>That studio does not exist.</strong></p>
+<p>It didn't make a bad poster. <strong>It made somebody else's studio.</strong></p>
+<p><strong>[CLICK]</strong> Same prompt, plus the brand file from Move 2. Your sage, your serif, your dancers, your negative space. Same four minutes.</p>
+<p><em>That</em> is what those two files buy you — and it's why Move 2 is worth the twenty minutes. When people say AI posters look generic, it isn't the model. It's that nobody ever told it who they were.</p>
+<p><strong>[CLICK]</strong> And it does the rest of your year too: fall registration, the carousel card for picture day, class-schedule graphics, costume handouts.</p>
+<p>Recital posters, social carousels, class-schedule graphics, costume handouts. You don't need to be a designer. <strong>You need taste</strong> — and you already know which one of those is better.</p>
+<p><strong>MONDAY:</strong> make the one poster you were going to pay somebody for.</p>
+<hr>
+<h2>SKILLS + THE DARK VALLEY (0:47–0:49) · Slide 17</h2>
+<p>Two rules that make everything else stick.</p>
+<p>One: if you catch yourself correcting the same thing — <em>"that's not my voice, say it like this"</em> — stop correcting and teach it once. Some tools call that a <strong>skill</strong>.</p>
+<p>Two, the honest math. <strong>[CLICK]</strong> The task takes <strong>10 minutes</strong>, every time you do it. <strong>[CLICK]</strong> Automating it takes <strong>30 minutes</strong> — once. <strong>[CLICK]</strong> After that it takes <strong>2 minutes</strong>, forever.</p>
+<p><strong>[CLICK]</strong> So on day one you <em>lose</em> twenty minutes. That's the dark valley. Everybody hits it, and it's exactly where most people quit. Push through on the one thing you do most often.</p>
+<p>And for a business owner: <strong>saving time is the same as making money.</strong> It frees up the attention you spend on the work that actually earns.</p>
+<hr>
+<h2>MOVE 5 — Ask your own handbook ★ (0:49–0:53) · Slide 18 — SLOW DOWN</h2>
+<p>Upload the handbook. All your rules, your hours, your dress code, your key dates, tuition.</p>
+<p><strong>[CLICK]</strong> <em>"What's the hair for senior jazz on Thursday?"</em> — High pony, no bangs, page 12. <strong>[CLICK]</strong> <em>"What costume for musical theatre senior on Saturdays?"</em> — Costume B, character shoes, page 14.</p>
+<p>Notice those are <strong>staff</strong> questions. Teachers, subs, your September hire. Move 2 taught it your <strong>voice</strong>; this one teaches it your <strong>rules</strong>. Same folder, and now everybody who works for you can ask it instead of asking you.</p>
+<p>Then ask it this one: <em>"does this handbook contradict itself about refunds?"</em> It will find it.</p>
+<p><strong>[CLICK]</strong> And… wouldn't it be cool if that handbook — and all your latest info — lived somewhere <strong>public</strong>? <em>(Don't answer that. Move on.)</em></p>
+<p><strong>MONDAY:</strong> upload it, ask the three questions your staff ask most.</p>
+<hr>
+<h2>WHERE IT SHOULD NOT REPLACE YOU (0:53–0:55) · Slide 19 — ⚠ published promise, do not cut</h2>
+<p>Hand over the <strong>repeats</strong>: "what time is Saturday", the newsletter draft, the schedule first pass, the link they already have, the reminder nobody read.</p>
+<p><strong>Never</strong> hand over the conversations. The upset parent. Placement and casting. An injury. Anything about a dancer's body, ability or confidence. The apology when you got it wrong.</p>
+<p>If it changes how a family <strong>feels</strong> about their dancer — <strong>that's you.</strong> Always.</p>
+<p><strong>[CLICK]</strong> And here's the number that makes this workable: about <strong>80% of the conversations</strong> you're having are the repeats. On those, <strong>accuracy and speed matter more than tact.</strong> On the hard ones it still helps you — get it to <strong>review your draft</strong>, or <strong>role-play the difficult conversation in a thread first</strong>, and then go have it like a human being.</p>
+<hr>
+<h1>SEGMENT 2 — HOW THIS ACTUALLY WORKS (0:55–1:09)</h1>
+<h2>THE PATTERN (0:55–0:56) · Slide 20</h2>
+<p>None of that made AI smarter <em>in general</em>. You didn't make ChatGPT or Claude or Perplexity smarter, not one bit. <strong>You made it smart about your studio. Once.</strong></p>
+<p><strong>[CLICK]</strong> Five moves, one move: hand it your material once, and stop repeating yourself.</p>
+<hr>
+<h2>★ PERFECT UNISON (0:56–0:58) · Slide 21</h2>
+<p>Last year I asked a room of studio owners exactly like this one a question: <em>what's the one thing you'd never do again?</em> If you could stop doing one thing at your studio forever, what would it be?</p>
+<p><em>(beat)</em></p>
+<p><strong>[CLICK]</strong> They answered in <strong>perfect unison.</strong> All of them, together: <strong>[CLICK]</strong> <em>"Answering the same questions from parents."</em></p>
+<p><strong>[CLICK]</strong> Not teaching. Not choreography. Not payroll. <strong>The repeats.</strong> And that is exactly the job you just learned how to hand over.</p>
+<hr>
+<h2>★ THE TURN (0:58–0:59) · Slide 22 — take the beat</h2>
+<p>You can ask your handbook. Your staff can ask your handbook.</p>
+<p><strong>Your parents can't.</strong></p>
+<p>No login. Installing nothing. Asking at nine o'clock on a Sunday night. <em>(Let it sit. Do not rush.)</em></p>
+<hr>
+<h2>THE AGENTIC LADDER (0:59–1:01) · Slide 23</h2>
+<p>Remember the history? Here's the next step, and it's the same story.</p>
+<p><strong>[CLICK] Rung 1 — chatbot.</strong> You ask, it answers, and <strong>you</strong> carry everything back and forth. That was all five moves. <strong>[CLICK] Rung 2 — scheduled.</strong> It runs without you starting it. <strong>[CLICK] Rung 3 — agentic.</strong> It has <strong>agency</strong>: it uses <strong>tools</strong>. Looks things up, drafts, sends.</p>
+<p><strong>[CLICK]</strong> First we talked to each other. Then somebody made a hammer. Then a screwdriver. <strong>Tools are the whole difference</strong> — that's the entire word "agentic".</p>
+<hr>
+<h2>RUNG 2 — while you're not there (1:01–1:03) · Slide 24</h2>
+<p><em>"Every weekday at 7am — brief me."</em></p>
+<p>ChatGPT calls them <strong>tasks</strong>. Claude calls it <strong>cowork</strong>. Same idea: you told it <em>when</em> to run, once.</p>
+<p><strong>[CLICK]</strong> Twelve parent emails overnight — three actually need you, the rest are the same two questions. <strong>[CLICK]</strong> Today: comp team 4:30, parent call at 6, tech rehearsal moved to Thursday. <strong>[CLICK]</strong> Two studios nearby opened fall registration this week. <strong>[CLICK]</strong> Marketing checklist: newsletter due Friday, recital post, waitlist follow-ups.</p>
+<p><strong>[CLICK]</strong> Honest limit: <strong>you still have to set it up</strong>, and it only ever reaches what you connected. <strong>[CLICK]</strong> But as a business owner you love waking up and finding something already changed.</p>
+<hr>
+<h2>RUNG 3 — it goes and gets it (1:03–1:05) · Slide 25</h2>
+<p>Everything up to here, you fed it by hand. <strong>Connectors</strong> are when it goes and <strong>gets</strong> the information.</p>
+<p><em>"Read my teachers' emails, find the conflicts, and build next week."</em></p>
+<p><strong>[CLICK]</strong> Before you flinch: it's <strong>read-only</strong>, and <strong>you approve anything it sends.</strong> <strong>[CLICK]</strong> Ninety seconds to a draft beats a Sunday night.</p>
+<p>Notice what just changed — <strong>it went and got something.</strong></p>
+<hr>
+<h2>BE WITH PEOPLE, NOT INTERFACES (1:05–1:07) · Slide 26</h2>
+<p>Here's why anybody should want this.</p>
+<p>We want things happening while we're <strong>not</strong> doing them. <strong>[CLICK]</strong> We want to leverage the thing only you have — your <strong>taste</strong>. The machine has no opinion about your studio; you do. <strong>[CLICK]</strong> People are expensive and they need training, and nobody was hired to retype the same answer — <strong>get your people doing what they actually want to do.</strong> <strong>[CLICK]</strong> And where it goes: my agent talks to your agent, finds the Tuesday, and books the coffee. Nobody should be trading six emails to find an hour.</p>
+<p>What we should be doing is being with <strong>people</strong>. Not with data. Not with interfaces. Not with buttons and knobs and sliders.</p>
+<hr>
+<h2>ROUTINE 436 (1:07–1:09) · Slide 27 — emotional peak, slow down</h2>
+<p>Here's what I tell my operators.</p>
+<p>For <strong>us</strong>, it's routine 436 on the Saturday. Just another number on a long day.</p>
+<p>For <strong>that dancer</strong>, it's the most important three minutes of their season. It might be the only competition they dance all year.</p>
+<p>So we do not look away. And we do not mess it up.</p>
+<hr>
+<h2>THE LOOP PAYOFF (1:09–1:12) · Slide 28</h2>
+<p>Mid-competition. Eight cameras — wide, close-up, side stage, crowd. My email is filling up while I'm watching angles. And in comes: <em>"I never got the link."</em></p>
+<p>Spoiler: <strong>they got the link.</strong> They did, though. We emailed it to them.</p>
+<p>So I built a little <strong>email spider</strong>. <strong>[CLICK]</strong> It catches the email, checks the calendar for which event I'm actually at, drafts the reply, and <strong>scores its own confidence</strong>. <strong>85% or above, it fires.</strong> Below that, it asks me. Then it pings me either way.</p>
+<p><strong>[CLICK]</strong> I never touched my keyboard.</p>
+<p><strong>[CLICK]</strong> <em>That's</em> agentic. It's taking action, it's using tools — on a workload <strong>I</strong> designed and supervised. I managed the first few myself.</p>
+<hr>
+<h2>PULL, DON'T PUSH (1:12–1:15) · Slide 29</h2>
+<p>We push it, and push it, and push it, and they never seem to have it — because at the moment you pushed, they didn't want it yet.</p>
+<p>Let me indict myself. I'm a dance parent now. <strong>[CLICK]</strong> Five years old, unicorn hat, Pink Pony Club, her very first recital. <strong>[CLICK]</strong> <em>(photo takes the screen — stop talking for a second)</em></p>
+<p>I work in <strong>tech</strong>, and I still couldn't find the email.</p>
+<p>So what do parents actually do? They search their inbox, they can't find it — <strong>Outlook search is terrible</strong> — and then they text you.</p>
+<p><strong>Push</strong> loses. <strong>Pull</strong> is when they're ready, and that's when it sticks. That's why I built StudioSage.</p>
+<hr>
+<h1>SEGMENT 3 — STUDIOSAGE (1:15–1:27)</h1>
+<h2>THE PRODUCT (1:15–1:17) · Slide 30 — ⚠ do NOT say "text it now" here</h2>
+<p><strong>StudioSage.</strong> The AI front desk for your dance studio.</p>
+<p>Parents <strong>text a number</strong>. No app, no login. It answers from <strong>your</strong> stuff, and if it isn't confident, it does <strong>not</strong> guess.</p>
+<p><strong>[CLICK]</strong> Only <strong>cited</strong> answers — out of the emails you're already sending.</p>
+<p><strong>[CLICK]</strong> And honestly? You could build this yourself. A custom GPT, a Twilio number, and on every incoming text you check your email database and keep it in sync. You absolutely could. <strong>I built it for you.</strong></p>
+<p><strong>[CLICK]</strong> <strong>Twenty dollars a month.</strong> <em>(Say it flatly, then stop.)</em></p>
+<hr>
+<h2>HUMAN IN THE LOOP (1:17–1:19) · Slide 31</h2>
+<p>Same confidence-and-flag mechanic as my email spider. When it isn't confident, it does <strong>not</strong> guess — it flags the question in your morning digest. <strong>[CLICK]</strong> You answer once, with one tap, and it knows that answer forever.</p>
+<p>You're in the loop <strong>by design</strong>. You never handed over the relationship. You handed over the retyping.</p>
+<hr>
+<h2>HOW IT ACTUALLY WORKS (1:19–1:22) · Slide 32 — one click per step</h2>
+<p><strong>[CLICK]</strong> One: you get a <strong>phone number</strong>, a <strong>QR code</strong>, and an <strong>8.5×11 poster</strong> for the studio wall. <strong>[CLICK]</strong> Two: both go on your outgoing comms — newsletter footer, recital program, studio door, and <strong>your email signature</strong>. <em>(That last one is the one everybody forgets.)</em> <strong>[CLICK]</strong> Three: parents <strong>save the number</strong>, or <strong>scan the QR</strong> while they're standing in your lobby. <strong>[CLICK]</strong> Four: they text it whenever they want. Instant answer, in your studio's own words.</p>
+<p>That's about <strong>five minutes</strong> to set up. One class period, and your front desk is trained.</p>
+<p><strong>[CLICK]</strong> It answers <strong>80 to 90%</strong> of the repeated questions you get over and over. You still want a human at that desk being lovely with your families — this one just stops them retyping the same answer forever.</p>
+<p><strong>[CLICK]</strong> So — <strong>text it right now.</strong> The number's on the screen. Watch what happens next.</p>
+<hr>
+<h2>★ THE LIVE DEMO (1:22–1:27) · Slide 33 · [LIVE]</h2>
+<p><em>Never go silent. Full patter is in the run-of-show.</em></p>
+<p>Does anybody have a <strong>studio email</strong> on their phone right now? <em>(walk to them, look at it, say what it is out loud)</em> Great — forward that to <strong>bot@studiosage.ai</strong>.</p>
+<p><em>(It arrives on the wall. Then it gets parsed into the knowledge base.)</em> That's it. That's the whole onboarding: point it at the stuff you already send.</p>
+<p>The panel stays up the whole time — the number, the QR, and five things it already knows. Scan the QR and it opens your messages already addressed; that's exactly what your parents get.</p>
+<p>Test it on the facts listed there. Then try to break it.</p>
+<p><strong>And here's the magic, both halves:</strong> it answers what it actually knows — and when it doesn't, it says <em>"I don't have that information yet, please contact your studio director."</em> <strong>A flag is a win.</strong> It didn't fake it, I answer once, and it knows forever.</p>
+<p><em>(No wifi? Press <strong>O</strong> for the animated version. The deck never switches itself.)</em></p>
+<hr>
+<h2>★ THE REVEAL — website facelift, part 2 (1:27–1:29) · Slide 35</h2>
+<p>Remember the website you gave me at the start?</p>
+<p><em>(Paste the URL from Telegram into the bar, press Enter — it loads behind the curtain. Then one click.)</em></p>
+<p>You gave me that address seventy-five minutes ago. I haven't touched a keyboard since. <strong>Site unseen</strong> — I haven't looked at this, and there's no web developer hiding backstage.</p>
+<p><em>(Curtain opens. Say nothing for a second.)</em></p>
+<p>That's yours. <strong>Free.</strong> We'll host it for a year, and after that hosting is twenty dollars a <strong>year</strong>.</p>
+<p><em>(If the live run failed: show the pre-baked one and say so. Honesty beats a broken reveal.)</em></p>
+<hr>
+<h2>WHAT'S YOUR TIME WORTH? (1:29–1:31) · Slide 36</h2>
+<p>So let me ask you the closing question. <strong>What's an hour of your time actually worth?</strong></p>
+<p><em>(Ask it. Then stop talking. Don't answer it for them.)</em></p>
+<p><strong>[CLICK]</strong> If you got five of them back this week — would you be less stressed? <strong>[CLICK]</strong> Would you do more of the part you actually love?</p>
+<p><strong>[CLICK]</strong> That's the promise I want you to take home: <strong>AI lets us do more of what we want, and hands the robots what we don't.</strong></p>
+<p>It doesn't make a single second of your recital. It buys back the hours around it, so you're in the room for it.</p>
+<hr>
+<h2>CTA — LEAVE THIS UP (1:31+) · Slide 37</h2>
+<p>Two codes. Take either.</p>
+<p><strong>On the left, the freebie</strong> — all five moves, one page. You put your email in, we send you the PDF. <em>(Say that plainly. It is email-gated, and that's fine.)</em></p>
+<p><strong>On the right, studiosage.ai.</strong> Twenty dollars a month. And the real question isn't whether that's cheap — it's <strong>how much time does that buy back</strong>.</p>
+<p>And the first <strong>five</strong> studios who sign up today get the website facelift free, hosted for a year, and then twenty dollars a year after that.</p>
+<p>If you've got any questions about AI, come see me. I'd love to have a chat. <strong>I love technology and I love dance</strong>, and I want to make this work for you.</p>
+<p>Worst case — I'll fix your printer.</p>
+<p><strong>Big love.</strong></p>
+</section>
+<section class="panel" id="p1">
+<h1>Talk 2 — Run of Show / Presenter Cue Card</h1>
+<p><strong>Why AI? Save Your Studio Time, Money, and Stress</strong> Wed Jul 29 2026 · <strong>4:10–5:10 PM EDT</strong> · Adapt Stage · Business Track Print single-sided, large type. Pocket version of <code>talk2-ai-script.md</code>. Deck = <strong>38 slides</strong>. Rebuilt 2026-07-26 from run-through #2 + the moves directive (prompt-writing / poster / brand kit).</p>
+<blockquote>## ⚠ TIMING — a decision, not a fix This cue sheet carries <strong>~93 minutes of material into a 60-minute slot</strong> (the CTA goes up at 1:33). That was already true before today (the old 31-slide sheet ran to 1:32); today's rebuild added the brand-kit, folder, poster and philosophy beats, so the gap is the same shape but the content is stronger. <strong>Nothing has been cut for time — that call is Daniel's.</strong> If he wants a true 60, the six cheapest cuts, in order: <strong>One Folder</strong> (fold into Move 2, −2) · <strong>Philosophy</strong> (−2) · <strong>Rung 3</strong> (−2) · <strong>Perfect Unison</strong> (−2) · <strong>Audience gauge</strong> (−1) · <strong>Pattern</strong> (−1), then trim Move 4 live-make to the before/after only (−3). That is −13; the rest comes out of the demo window.</blockquote>
+<h2>Pre-stage</h2>
+<ul>
+<li>[ ] <strong>Start the remote:</strong> double-click <code>START-REMOTE.bat</code>, leave the window open, <strong>scan the QR</strong> it prints</li>
+<li>[ ] Deck open at <strong><code>http://localhost:8080/talk2-deck.html</code></strong> (served, NOT the file) · fullscreen</li>
+<li>[ ] Phone on <code>/remote</code> — beats + Jump list + Prev/Next. Beats are colour-coded: <strong>amber = must say</strong>, <strong>cyan = near-verbatim</strong>, <strong>grey = stage direction</strong></li>
+<li>[ ] Deck opened as <code>talk2-deck.html?rt=&lt;DEMO_RESET_TOKEN&gt;</code> or <strong>audience texts won't route</strong></li>
+<li>[ ] Rehearsal text sent from own phone ≥30 min before: <code>LIVE26</code> → question → got answer</li>
+<li>[ ] Pre-baked website refresh ready — <strong>already in the deck</strong>: reveal slide → "Use pre-baked fallback" (fully offline, Ancaster Dance Arts)</li>
+<li>[ ] <strong>Facelift runs from the phone now</strong> — <code>/remote</code> → <strong>★</strong> panel → type the url → <strong>GO</strong>. No Telegram, no app switching.</li>
+<li>[ ] Rehearse the whole facelift path once with <code>FACELIFT_FAKE=1 python3 presenter-server.py</code> (15-second fake run)</li>
+<li>[ ] Scan <strong>both CTA QRs</strong> yourself: <code>/moves</code> (email-gated, live) and studiosage.ai</li>
+<li>[ ] Send one email to <strong>bot@studiosage.ai</strong> and confirm it lands in the KB</li>
+<li>[ ] Phone hotspot ON · phone on Do Not Disturb after the rehearsal text</li>
+<li>[ ] ⚠ <code>studiosage.ai/moves</code> live, <strong>email-gated</strong>, serving the PDF (both CTA QRs are already on the slide)</li>
+</ul>
+<h2>Cue sheet</h2>
+<table><thead><tr><th>#</th><th>Clock</th><th>Slide</th><th>Cue / beat</th><th>Don't forget</th></tr></thead><tbody>
+<tr><td>1</td><td>0:00</td><td>Title</td><td>"You will <strong>not</strong> see me dance." Sheridan grad, 3 yrs jazz/ballet/tap</td><td>Hands: 11pm Sunday, <em>how do we do the hair?</em> — <strong>keep them up if it was in the email</strong></td></tr>
+<tr><td>2</td><td>0:03</td><td>Front desk job</td><td>Roles arc: teacher → owner → marketer/support/bookkeeper/janitor</td><td><strong>Circle FRONT DESK.</strong> "Even if you're not AT the desk, we know who gets the texts"</td></tr>
+<tr><td>3</td><td>0:05</td><td>You pushed it</td><td>Name <strong>push</strong> and <strong>pull</strong> here, in the first five minutes</td><td>Plant the words. Don't explain them yet</td></tr>
+<tr><td>4</td><td>0:07</td><td>Who I am</td><td><strong>Name is on the slide.</strong> 4 clicks: StreamStage → what we do → technologist → printer → StudioSage</td><td>"Two things, one guy, one letter apart"</td></tr>
+<tr><td>5</td><td>0:09</td><td>Gauge the room</td><td>Hands: every day / a few times / gave up / never</td><td>Say what you see out loud</td></tr>
+<tr><td>6</td><td>0:10</td><td>Promise</td><td>5 free moves + the one I built. <strong>No number pops</strong></td><td>Say the spine: an hour of yours, a lot more back</td></tr>
+<tr><td>7</td><td>0:11</td><td>★ PLANT</td><td>"Whose website needs a facelift?" <strong>Phone ★ panel → url → GO</strong> (or type it on the slide)</td><td>Slide shows the url + a live chip: QUEUED → RUNNING → <strong>READY</strong>. ⚠ <strong>Start it HERE — a real run is 60–90 min</strong></td></tr>
+<tr><td>8</td><td>0:14</td><td>History</td><td>Their language → ours → plain English</td><td>"You feel behind. <strong>You are not behind.</strong>" 99% mean ChatGPT/Claude/Perplexity</td></tr>
+<tr><td>9</td><td>0:16</td><td>101 what is it</td><td>Predicts the next words → magic AND confidently wrong</td><td><strong>Car wash joke</strong> → <strong>trust but verify, before you hit send</strong></td></tr>
+<tr><td>10</td><td>0:19</td><td>101 matrix</td><td>Icons: ChatGPT / Claude / NotebookLM / Gemini / Nano Banana / <strong>Perplexity = research</strong></td><td>"Free account on all of them, cycle." <em>I pay $500–600. This talk is free tier</em></td></tr>
+<tr><td>11</td><td>0:22</td><td>101 seven words</td><td>Pyramid: memory → project → thread → prompt, then connector/skill/agent</td><td><strong>Agent = works while you sleep.</strong> Safety line before moving</td></tr>
+<tr><td>12</td><td>0:25</td><td>MOVE 1 Talk don't type</td><td>Click the ramble onto the phone</td><td><strong>Mic button, not voice mode.</strong> Zoom transcripts · hit record on teacher meetings</td></tr>
+<tr><td>13</td><td>0:30</td><td>MOVE 2 Two files</td><td><strong>VOICE file + BRAND file</strong> — plain text one-pagers they own</td><td>Google Takeout · <strong>"stop using em dashes"</strong> · dancers, never kids. ⚠ never say "markdown"</td></tr>
+<tr><td>14</td><td>0:35</td><td>One folder</td><td>copy-paste → <strong>drag</strong> → connect</td><td>Do the drag gesture. "The thing you'll point every tool at for five years"</td></tr>
+<tr><td>15</td><td>0:37</td><td>MOVE 3 Write the prompt</td><td>"Here's what I want — <strong>write me the prompt that does that</strong>"</td><td>It writes <strong>the two files</strong> too. Bad answer → fix the <em>prompt</em></td></tr>
+<tr><td>16</td><td>0:42</td><td>MOVE 4 Make the poster</td><td><strong>4 real posters on the slide.</strong> Nano Banana / ChatGPT — text INSIDE the image</td><td>⚠ The BEFORE is <strong>beautiful</strong> — don't call it ugly. Read the name at the bottom: <strong>"Rhythm &amp; Bloom" — a studio that doesn't exist.</strong> <em>It made somebody else's studio.</em> Then click to the branded one</td></tr>
+<tr><td>17</td><td>0:47</td><td>Skills + dark valley</td><td>Click the math: <strong>10 min → 30 min → 2 min forever</strong></td><td>"Saving time is the same as making money"</td></tr>
+<tr><td>18</td><td>0:49</td><td>MOVE 5 Handbook ★</td><td>Staff questions: senior jazz hair Thursday · musical theatre costume Saturday</td><td>Contradiction finder. <strong>Tease:</strong> <em>what if it lived somewhere public?</em></td></tr>
+<tr><td>19</td><td>0:53</td><td>Where AI should NOT</td><td>Repeats yes · the conversations never</td><td><strong>80% are repeats — accuracy beats tact there.</strong> ⚠ Published promise, do not cut</td></tr>
+<tr><td>20</td><td>0:55</td><td>Pattern</td><td>"You made it smart about YOUR studio. Once."</td><td>One click, move on</td></tr>
+<tr><td>21</td><td>0:56</td><td>★ Perfect unison</td><td><strong>The story, moved here from the open</strong></td><td>"They answered in perfect unison." Take the beat</td></tr>
+<tr><td>22</td><td>0:58</td><td>★ THE TURN</td><td>"You can ask your handbook. Your staff can. <strong>Your parents can't.</strong>"</td><td><strong>Don't rush into the product</strong></td></tr>
+<tr><td>23</td><td>0:59</td><td>Agentic ladder</td><td>Vertical pyramid, one rung per click</td><td>Hammer/screwdriver = agency</td></tr>
+<tr><td>24</td><td>1:01</td><td>Rung 2 — scheduled</td><td>Daily briefing: email · calendar · other studios · marketing checklist</td><td><strong>Limit:</strong> you still set it up; it only reaches what you connected</td></tr>
+<tr><td>25</td><td>1:03</td><td>Rung 3 — agentic</td><td>"Read my teachers' emails, build next week"</td><td><strong>Disarm:</strong> read-only, you approve anything it sends</td></tr>
+<tr><td>26</td><td>1:05</td><td>Be with people</td><td>Taste · your people on the work they want · agent books the coffee</td><td>Belief, not futurism</td></tr>
+<tr><td>27</td><td>1:07</td><td><strong>Routine 436</strong></td><td>StreamStage logo up. <strong>Say "dancer" — never "kid"</strong></td><td>Emotional peak. Slow down</td></tr>
+<tr><td>28</td><td>1:09</td><td>Loop payoff</td><td><strong>4 real camera angles on screen</strong> · the email spider · <strong>≥85% fires</strong></td><td>"They got the link. They did, though." <em>I never touched my keyboard</em></td></tr>
+<tr><td>29</td><td>1:12</td><td>Pull don't push</td><td>Unicorn hat / Pink Pony = <strong>its own click</strong>, then the <strong>photo takes the screen</strong></td><td>"Outlook search is terrible — that's why they pull"</td></tr>
+<tr><td>30</td><td>1:15</td><td>StudioSage</td><td>Text a number, no app, <strong>cited</strong> answers from the emails you already send</td><td>"Custom GPT + a Twilio number — you could. <strong>I built it for you.</strong>" $20/mo. ⚠ <strong>No "text it now" here</strong></td></tr>
+<tr><td>31</td><td>1:17</td><td><strong>Inside the dashboard</strong></td><td>86-sec walkthrough, autoplays muted on arrival</td><td>Talk over it: knowledge base · personality · threads. Opens on the sign-in screen — normal</td></tr>
+<tr><td>32</td><td>1:19</td><td>Human in the loop</td><td>Not confident → flags → you tap once → knows forever</td><td>You're in the loop by design</td></tr>
+<tr><td>33</td><td>1:21</td><td><strong>How it actually works</strong></td><td>4 steps, one click each: number+QR+<strong>poster</strong> → comms + <strong>email signature</strong> → save/scan → instant answer</td><td><strong>5 minutes.</strong> <strong>80–90% stat.</strong> <em>Then</em> tell them to text it</td></tr>
+<tr><td>34</td><td>1:24</td><td>★ LIVE DEMO</td><td>Ask for a real studio email → walk to them → <strong>forward to bot@studiosage.ai</strong></td><td>Panel stays up: QR (SMS intent) + number + 5 known facts. <strong>A flag is a WIN</strong></td></tr>
+<tr><td>35</td><td>—</td><td>Animated fallback</td><td><strong>Manual only</strong> — press <code>O</code> or the button. Deck never switches itself</td><td>Space steps beats · R restarts</td></tr>
+<tr><td>36</td><td>1:29</td><td>★ REVEAL</td><td><strong>Nothing to type — the finished site is already behind the curtain.</strong> One click opens it</td><td>Chip bottom-left: READY = built live · FAILED = pre-baked, say so. "Site unseen. No web developer backstage." Free + hosted 1 yr, then $20/yr</td></tr>
+<tr><td>37</td><td>1:31</td><td>What's your time worth</td><td>Ask it — <strong>then stop talking</strong></td><td>"AI lets us do more of what we want, and hands the robots what we don't"</td></tr>
+<tr><td>38</td><td>1:33</td><td><strong>CTA — LEAVE UP</strong></td><td>Two QRs: freebie (<strong>email-gated</strong>) + studiosage.ai</td><td>$20 = time bought back · first five get facelift + 1 yr hosting, then $20/yr · <strong>"Big love."</strong></td></tr>
+</tbody></table>
+<h2>Live demo patter (slide 34) — never go silent</h2>
+<p>1. "Does anybody have a studio email on their phone right now?" Walk to them. Read it out loud. 2. "Forward that to <strong>bot@studiosage.ai</strong>." Watch it arrive, then watch it get parsed into the KB. 3. Read the number out loud <strong>twice</strong>. The QR opens their messages already addressed — say that. 4. "It'll ask your name first — it's polite like that." (first-timers get an onboarding text) 5. Disclaimer: "this dashboard is our demo studio, so it looks different from yours." 6. Point at the five known facts on the panel: "test it on those, then try to break it." 7. When one <strong>flags</strong>: celebrate it. <em>"I don't have that information yet, please contact your studio director."</em> <strong>Both halves are the magic</strong> — it answers what it knows and refuses what it doesn't. 8. <strong>Never</strong> narrate logistics on mic ("I can only test this number", talking to someone offstage).</p>
+<h2>Keys on stage (changed 2026-07-26 — nothing the room sees is one keypress away)</h2>
+<table><thead><tr><th>Key</th><th>Does</th><th>Why</th></tr></thead><tbody>
+<tr><td><strong>→ / space / click</strong></td><td>next beat, then next slide</td><td>the only keys you need</td></tr>
+<tr><td><strong>←</strong></td><td>back a beat</td><td></td></tr>
+<tr><td><strong>O</strong></td><td><strong>the live-demo rescue</strong> — jumps to the offline animated version</td><td>deliberately still a SINGLE key: it is the emergency, and the amber bar on that slide shouts it</td></tr>
+<tr><td><strong>#+Enter</strong></td><td>jump to a slide</td><td>the number you're typing now shows bottom-right before it fires; <strong>Esc</strong> aborts it</td></tr>
+<tr><td><strong>SHIFT+P</strong></td><td>speaker notes on the screen</td><td>⚠ <strong>the projector shows this.</strong> It used to be bare <code>p</code> — one fat-finger showed the room your cue card. A red banner across the top of the overlay now says so. <strong>Your notes are on the phone; you should never need this.</strong></td></tr>
+<tr><td><strong>SHIFT+F</strong></td><td>reveal every beat on the slide</td><td>was bare <code>f</code> — a stray press dumped a whole build at once</td></tr>
+<tr><td><strong>SHIFT+Home / SHIFT+End</strong></td><td>first / last slide</td><td>bare <code>End</code> used to jump straight to the pricing slide</td></tr>
+<tr><td>bare <code>p</code> / <code>f</code> / <code>Home</code> / <code>End</code></td><td>nothing — a small nudge appears bottom-right, audience-invisible</td><td></td></tr>
+<tr><td><strong>R / A</strong></td><td>restart / autoplay — <strong>only</strong> on the offline demo slide</td><td>inert everywhere else</td></tr>
+</tbody></table>
+<h2>Hard guardrails</h2>
+<ul>
+<li><strong>No Talk 1 material</strong> — "do the hard thing once" is Talk 1's thesis; drone/mortgage/hostage jokes are Talk 1's.</li>
+<li><strong>"Dancer", never "kid".</strong> Anywhere, all hour.</li>
+<li>Never say "markdown" or ".md" on stage — "a plain text one-pager you keep in a folder".</li>
+<li>No beta-client names without permission. No saved-hours stat unless cleared.</li>
+<li>Price is <strong>$20/month</strong>, said flatly. Hosting after year one is <strong>$20/year</strong> — don't blur the two.</li>
+<li>The reveal is served <strong>off this laptop</strong>, not the internet — venue wifi cannot kill it.</li>
+<li>The freebie <strong>is email-gated</strong>. Say so plainly; don't claim "no email required".</li>
+</ul>
+<h2>What the demo studio KNOWS (LIVE26 KB — answers instantly)</h2>
+<p>Saturday rehearsal · weekly schedule · March break · picture day · costume fees ($85, Feb 1) · tuition/sibling discount · trial classes · ages (3+) · spring recital (June 13) · dress code · snow days · absences/makeups · front-desk hours · summer camp (July) · comp team. Anything outside that list likely <strong>flags</strong> — which is the trust beat. Both outcomes are wins; say so.</p>
+</section>
+<section class="panel" id="p2">
+<h1>Talk 2 — Slide Outline (GENERATED from decks/talk2-ai.html — do not hand-edit)</h1>
+<p><strong>Why AI? Save Your Studio Time, Money, and Stress</strong> · Wed Jul 29 2026, 4:10–5:10 PM EDT · Adapt Stage</p>
+<p>Regenerate with <code>python3 expo-assets/regen-slides.py</code>. <strong>38 slides.</strong></p>
+<table><thead><tr><th>#</th><th>Slide</th><th>Cue</th><th>Beats</th><th>Clicks</th></tr></thead><tbody>
+<tr><td>1</td><td>Title / Open</td><td>0:00–0:03 · OPEN</td><td>9</td><td>0</td></tr>
+<tr><td>2</td><td>The Front Desk Job</td><td>0:03–0:05 · OPEN · [INTERACT]</td><td>8</td><td>11</td></tr>
+<tr><td>3</td><td>You Pushed It. Nobody Saw It.</td><td>0:05–0:07 · OPEN</td><td>6</td><td>3</td></tr>
+<tr><td>4</td><td>Who I Am</td><td>0:07–0:09 · OPEN</td><td>12</td><td>4</td></tr>
+<tr><td>5</td><td>Who’s Already Using It?</td><td>0:09–0:10 · OPEN · [INTERACT]</td><td>9</td><td>5</td></tr>
+<tr><td>6</td><td>The Promise</td><td>0:10–0:11 · OPEN</td><td>6</td><td>0</td></tr>
+<tr><td>7</td><td>★ Website Facelift — the ask</td><td>0:11–0:14 · OPEN · [PLANT]</td><td>8</td><td>0</td></tr>
+<tr><td>8</td><td>A Very Short History</td><td>0:14–0:16 · OPEN</td><td>8</td><td>2</td></tr>
+<tr><td>9</td><td>101: What Is This Thing?</td><td>0:16–0:19 · 101</td><td>13</td><td>2</td></tr>
+<tr><td>10</td><td>101: What Do I Use It For?</td><td>0:19–0:22 · 101</td><td>11</td><td>0</td></tr>
+<tr><td>11</td><td>101: The Only 7 Words You Need</td><td>0:22–0:25 · 101</td><td>11</td><td>0</td></tr>
+<tr><td>12</td><td>Tip 1: Talk, Don’t Type</td><td>0:25–0:30 · MOVE 1</td><td>12</td><td>6</td></tr>
+<tr><td>13</td><td>Tip 2: Your Studio in Two Files</td><td>0:30–0:35 · MOVE 2 (REBUILT 2026-07-26)</td><td>12</td><td>2</td></tr>
+<tr><td>14</td><td>One Folder — Your Studio’s Brain</td><td>0:35–0:37 · MOVE 2 (addendum)</td><td>8</td><td>4</td></tr>
+<tr><td>15</td><td>Tip 3: Make It Write the Prompt</td><td>0:37–0:42 · MOVE 3 (NEW)</td><td>12</td><td>4</td></tr>
+<tr><td>16</td><td>Tip 4: Make the Poster</td><td>0:42–0:47 · MOVE 4 (NEW)</td><td>14</td><td>4</td></tr>
+<tr><td>17</td><td>Skills + the Dark Valley</td><td>0:47–0:49 · MOVES (own beat)</td><td>12</td><td>6</td></tr>
+<tr><td>18</td><td>Tip 5: Ask Your Own Handbook ★</td><td>0:49–0:53 · MOVE 5 (the seed)</td><td>9</td><td>6</td></tr>
+<tr><td>19</td><td>Where AI Should NOT Replace You</td><td>0:53–0:55 · THE LINE</td><td>10</td><td>1</td></tr>
+<tr><td>20</td><td>The Pattern</td><td>0:55–0:56 · BRIDGE</td><td>6</td><td>1</td></tr>
+<tr><td>21</td><td>Perfect Unison</td><td>0:56–0:58 · BRIDGE</td><td>8</td><td>3</td></tr>
+<tr><td>22</td><td>★ The Turn — who can't use this</td><td>0:58–0:59 · THE HINGE</td><td>5</td><td>0</td></tr>
+<tr><td>23</td><td>The Agentic Ladder</td><td>0:59–1:01 · HOW IT WORKS</td><td>8</td><td>4</td></tr>
+<tr><td>24</td><td>Rung 2 — While You’re Not There</td><td>1:01–1:03 · HOW IT WORKS</td><td>10</td><td>6</td></tr>
+<tr><td>25</td><td>Rung 3 — It Goes and Gets It</td><td>1:03–1:05 · HOW IT WORKS</td><td>8</td><td>2</td></tr>
+<tr><td>26</td><td>Be With People, Not Interfaces</td><td>1:05–1:07 · HOW IT WORKS</td><td>9</td><td>3</td></tr>
+<tr><td>27</td><td>Routine 436</td><td>1:07–1:09 · HOW IT WORKS</td><td>6</td><td>0</td></tr>
+<tr><td>28</td><td>Pay Off the Loop</td><td>1:09–1:12 · HOW IT WORKS (loop payoff)</td><td>9</td><td>3</td></tr>
+<tr><td>29</td><td>Pull, Don't Push</td><td>1:12–1:15 · HOW IT WORKS</td><td>12</td><td>2</td></tr>
+<tr><td>30</td><td>StudioSage</td><td>1:15–1:17 · PRODUCT</td><td>9</td><td>3</td></tr>
+<tr><td>31</td><td>Inside the Dashboard</td><td>1:17–1:19 · PRODUCT</td><td>9</td><td>0</td></tr>
+<tr><td>32</td><td>Human in the Loop</td><td>1:19–1:21 · PRODUCT</td><td>7</td><td>1</td></tr>
+<tr><td>33</td><td>How It Actually Works</td><td>1:21–1:24 · PRODUCT</td><td>10</td><td>6</td></tr>
+<tr><td>34</td><td>Live Demo ★ (real)</td><td>1:24–1:29 · PRODUCT · [LIVE DEMO]</td><td>13</td><td>0</td></tr>
+<tr><td>35</td><td>Animated Fallback (offline) ★</td><td>FALLBACK ONLY · not in the running order</td><td>9</td><td>0</td></tr>
+<tr><td>36</td><td>★ The Facelift Reveal</td><td>1:29–1:31 · CLOSE · [REVEAL]</td><td>12</td><td>1</td></tr>
+<tr><td>37</td><td>What’s Your Time Worth?</td><td>1:31–1:33 · CLOSE</td><td>8</td><td>3</td></tr>
+<tr><td>38</td><td>CTA — leave this up</td><td>1:29+ · CTA — DO NOT ADVANCE PAST THIS</td><td>9</td><td>0</td></tr>
+</tbody></table>
+</section>
+<section class="panel" id="p3"><h2>Live “Watch It Learn” Demo</h2><p><a class="deckcta" href="kb-demo/index.html" target="_blank" style="background:#c0392b">🔴 Open the KB demo</a> &nbsp; <span style="color:#6b7a70;font-size:14px">Controls: Space = next · R = reset · A = autoplay · offline-safe</span></p><hr><p><strong>Talk 2, the "watch it learn" beat. The REAL product, not the animated mock.</strong></p>
+<p>This is the procedure for filling StudioSage's knowledge base live from a genuinely forwarded studio email — proven end-to-end on 2026-07-08 (forward → parsed → embedded → answerable in ~5–15s).</p>
+<h3>The one-line version</h3>
+<p>Forward a studio email to <strong>demo@ingest.studiosage.ai</strong> from <strong>any of your registered addresses</strong> (daniel@streamstageproductions.com, danieljohnabrahamson@gmail.com, or daniel@streamstage.live) → wait ~10s → text a question only that email answers to <strong>+1 226-796-6037</strong> → the answer lands on the wall.</p>
+<h3>Why this works without any toggle</h3>
+<p>Three of your addresses are registered senders for the demo studio (StudioSage Live Demo / LIVE26 / studio_0012): <strong>daniel@streamstageproductions.com</strong>, <strong>danieljohnabrahamson@gmail.com</strong>, <strong>daniel@streamstage.live</strong>. An email forwarded from any of them routes straight into the demo KB — no "demo mode" flag, no per-email lock. Forward as many as you like; each one appends. So whichever inbox you happen to read the studio email in, forwarding works. (An unregistered sender would be rejected unless <code>STUDIOSAGE_DEMO_MODE=true</code> is set — it is NOT set, by choice. Stick to forwarding from one of your three addresses.)</p>
+<h3>Design decision baked in (option 1)</h3>
+<p>The demo studio keeps its <strong>15 hand-seeded facts</strong> so the audience-texting portion always works. The live email should cover a <strong>new topic the seed doesn't</strong> — e.g. "picture day moved to the gym", "guest workshop Saturday", "parking change for recital" — so the forwarded email doesn't contradict a seeded fact. Then text a question ONLY that email can answer. That's the clean "it just learned that, live" moment.</p>
+<p>Avoid forwarding an email about a topic already seeded (hours, tuition, costume fees, the recital, dress code, etc.) — you'll get two competing answers on stage.</p>
+<h3>Content safety</h3>
+<p>Forward a <strong>studio newsletter or announcement</strong>, NOT a parent conversation. A forwarded parent thread can drop real names/phone numbers into the KB and onto the projector wall. Newsletters are safe.</p>
+<h3>Attachments</h3>
+<p>Forward emails where the content is in the <strong>body text</strong>. PDF/image attachment extraction is a separate path and is currently unreliable (OCR/vision dependency) — don't rely on a PDF attachment landing on stage. Body text is what was proven.</p>
+<h3>Operator console (reset between shows)</h3>
+<p><strong>studiosage.ai/demo/operator?token=&lt;OPERATOR_TOKEN&gt;</strong></p>
+<ul>
+<li>Live status: seed count, ingested count, emails held, wall messages, and an <strong>ARMED</strong> indicator.</li>
+<li>Refreshes every few seconds — you can watch "Ingested" tick up right after you forward.</li>
+<li><strong>Re-arm</strong> button: deletes the ingested emails + their KB entries, keeps the 15 seeds and the wall. Use before each new run so the fill starts clean.</li>
+<li><strong>Full reset</strong> button: also clears the wall (the on-screen SMS thread).</li>
+<li>The token is a Vercel env secret (<code>DEMO_RESET_TOKEN</code>). Ask Daniel / pull from Vercel; don't print it on any slide.</li>
+</ul>
+<h3>Live KB projector view — the REAL "watch it learn"</h3>
+<p><strong>studiosage.ai/demo/kb?code=LIVE26</strong></p>
+<p>A back-of-room-readable grid of everything StudioSage knows for this studio, newest first, refreshing every 3 seconds. When your forwarded email lands, its new card <strong>flies in at the top with a ★ JUST LEARNED badge</strong> (held for 3 minutes). This is the real product — it replaces the animated mock (<code>kb-demo/index.html</code>) with genuine data. The mock stays as the wifi-independent fallback.</p>
+<h3>On-stage sequence (maps to Talk 2, Slides 14–15)</h3>
+<ol>
+<li>Before the talk: open the operator page, hit <strong>Re-arm</strong> (status shows ARMED, 15 seed / 0 ingested).</li>
+<li>Slide 14: put the <strong>live KB view</strong> (<code>/demo/kb?code=LIVE26</code>) on the projector — "here's what it already knows." (Or run the animated mock if wifi's dead — that's the fallback, see <code>demo-failure-playbook.html</code>.)</li>
+<li>For the real fill: forward your chosen studio email from your phone. Narrate while it lands (~10s). The new card flies in on the KB view with <strong>JUST LEARNED</strong> — that's the money moment.</li>
+<li>Slide 15: switch to the wall (<code>studiosage.ai/demo/wall?code=LIVE26</code>). Text the question only that email answers. Answer appears in the studio's voice.</li>
+<li>Between sessions: <strong>Re-arm</strong> again.</li>
+</ol>
+<h3>The three demo URLs (bookmark all)</h3>
+<ul>
+<li><strong>Operator</strong> (private, has token): <code>studiosage.ai/demo/operator?token=…</code> — arm/reset, watch the counter.</li>
+<li><strong>KB view</strong> (projector): <code>studiosage.ai/demo/kb?code=LIVE26</code> — the knowledge filling live.</li>
+<li><strong>Wall</strong> (projector): <code>studiosage.ai/demo/wall?code=LIVE26</code> — the SMS question/answer.</li>
+</ul>
+<h3>If the wall hasn't painted it in ~20s (display lag, not delivery)</h3>
+<p>Don't wait on stage. Cut to the animated mock (it's local, wifi-independent) and say the line: "trade-show wifi, everyone's favorite sponsor." Debug at the booth — check the operator page later; a forward that arrived late will show up there.</p>
+</section>
+<section class="panel" id="p4"><div class="framebar"><a href="handout-5-free-ai-moves.html" target="_blank">Open / print the one-pager →</a></div><iframe class="frame" src="handout-5-free-ai-moves.html"></iframe></section>
+<section class="panel" id="p5"><h2>AV Pre-Flight Checklist</h2><h2>AV / Tech Pre-Flight Checklist — Expo Talks</h2>
+<p>Run T-24h, then again T-30min. Every item is a known trade-show failure mode.</p>
+<h3>T-24 hours (hotel room)</h3>
+<ul>
+<li>[ ] <strong>Laptop updates OFF</strong> — pause OS/browser auto-updates; nothing installs overnight before a talk.</li>
+<li>[ ] <strong>Everything local</strong>: <code>decks/talk1-video.html</code>, <code>decks/talk2-ai.html</code>, <code>kb-demo/index.html</code>, content-day reel MP4 — on laptop AND a USB stick. Zero streaming dependencies.</li>
+<li>[ ] <strong>Airplane-mode test</strong>: wifi OFF → open both decks + KB demo → arrow through every slide, run every KB beat. All must work offline. (The wall page is the ONLY thing that needs internet.)</li>
+<li>[ ] <strong>Rehearsal text</strong>: from own phone — <code>LIVE26</code> to +1 226-796-6037 → complete onboarding → ask "What time is Saturday rehearsal?" → confirm instant correct answer. If anything is off, there is still time to fix it.</li>
+<li>[ ] <strong>Wall check</strong>: open <code>https://www.studiosage.ai/demo/wall?code=LIVE26</code> — rehearsal Q/A visible, phone masked.</li>
+<li>[ ] Charge: laptop, phone, clicker (+ spare batteries), power bank.</li>
+<li>[ ] Print: run-of-show ×2 each, handouts, leave-behinds, failure playbook.</li>
+</ul>
+<h3>T-30 minutes (at the podium)</h3>
+<ul>
+<li>[ ] <strong>Projector</strong>: native 1920×1080 mirror (NOT extend, unless using presenter notes deliberately). Check edges not cropped — advance to the densest slide and read it from the back row.</li>
+<li>[ ] <strong>Audio</strong>: play 5 seconds of the reel THROUGH THE PA. HDMI audio routing is the most common silent failure.</li>
+<li>[ ] <strong>Tabs staged, in order</strong>: deck → kb-demo (fullscreen, Beat 0) → wall. Close everything else. Notifications OFF (Do Not Disturb / Focus mode — no calendar popups on stage).</li>
+<li>[ ] <strong>Browser zoom 100%</strong>, bookmarks bar hidden, fullscreen (F11) tested with Alt-Tab.</li>
+<li>[ ] <strong>Network</strong>: venue wifi connected → load the wall once. If flaky: phone hotspot ON, laptop joined, wall reloaded. Hotspot stays on as hot spare either way.</li>
+<li>[ ] <strong>Second rehearsal text</strong> from own phone — confirms Twilio + edge function + wall are live NOW, not last night.</li>
+<li>[ ] Phone → Do Not Disturb after the test text.</li>
+<li>[ ] Clicker paired; walk the stage to test range.</li>
+<li>[ ] Water on the podium.</li>
+</ul>
+<h3>Screen hygiene (live-demo best practice)</h3>
+<ul>
+<li>Fresh browser profile or Guest window: no personal bookmarks, no autofill, no notification prompts on screen.</li>
+<li>Hide the dock/taskbar (auto-hide on).</li>
+<li>Set laptop display to never sleep (Battery + Power settings) — a demo dying at minute 14 because the lid setting is 10 min is a classic.</li>
+<li>Bring own HDMI adapter + spare. Never trust the venue dongle.</li>
+</ul>
+<h3>Restart cheatcodes</h3>
+<ul>
+<li>KB demo: <code>R</code> restarts to Beat 0 instantly. <code>A</code> toggles autoplay (avoid on stage — Space is safer).</li>
+<li>Decks: <code>Home</code> returns to slide 1; number + Enter jumps.</li>
+<li>Wall: plain browser refresh; feed rebuilds itself (server holds history).</li>
+</ul>
+<hr><h2>If the Demo Breaks — Failure Playbook</h2><h2>Demo Failure Playbook — Expo Talks</h2>
+<p>One page. Per failure: what you'll see → what to do → what to SAY. The audience only remembers a failure if you panic; every recovery line keeps the room.</p>
+<h3>Talk 2, Slide 14 — KB animated demo</h3>
+<div class="tw"><table><thead><tr><th>Failure</th><th>Do</th><th>Say</th></tr></thead><tbody>
+<tr><td>Tab crashed / closed</td><td>Reopen <code>kb-demo/index.html</code> from bookmark or USB; <code>R</code> resets</td><td>"Even the demo warms up first."</td></tr>
+<tr><td>Beat stuck / mis-clicked</td><td><code>R</code> → restart takes 15 seconds, narrate over it</td><td>"Let me run that again — worth seeing twice."</td></tr>
+<tr><td>Laptop dies entirely</td><td>Skip to describing over Slide 14's static frame; the deck slide carries the beats</td><td>"Picture it: empty brain → your emails → your handbook → instant answer. Ten minutes of setup."</td></tr>
+</tbody></table></div>
+<p><strong>Design guarantee:</strong> the KB demo is a local file with zero network calls. Venue wifi CANNOT kill it. Only a dead laptop can — and the USB stick + any borrowed laptop with a browser recovers it.</p>
+<h3>Talk 2, Slide 15 — audience texting the live number</h3>
+<div class="tw"><table><thead><tr><th>Failure</th><th>Do</th><th>Say</th></tr></thead><tbody>
+<tr><td>Wall won't load (venue wifi)</td><td>Phone hotspot (pre-staged) → reload wall</td><td>"Trade-show wifi, everyone's favorite sponsor."</td></tr>
+<tr><td>Wall loads, texts not appearing</td><td>Audience replies still arrive on THEIR phones — ask people to read answers out loud</td><td>"Forget my screen — someone read out what it just told you."</td></tr>
+<tr><td>Wall is slow to paint (venue wifi, not delivery)</td><td>Keep talking and point at the wall; it catches up. <b>Delivery itself is not the risk — every number in this demo is Canadian and that path is proven.</b></td><td>"Watch the screen."</td></tr>
+<tr><td>A question flags instead of answering</td><td>NOTHING IS WRONG — this is the trust beat</td><td>"See that? It didn't know, so it didn't fake it. That's the whole point."</td></tr>
+<tr><td>Nobody texts</td><td>Text it yourself from the podium phone (it's onboarded from rehearsal)</td><td>"Fine, I'll be the shy parent."</td></tr>
+</tbody></table></div>
+<p><strong>Never</strong> apologize twice for the same failure. One line, move on.</p>
+<h3>Talk 1, Slide 10 — content-day reel</h3>
+<div class="tw"><table><thead><tr><th>Failure</th><th>Do</th><th>Say</th></tr></thead><tbody>
+<tr><td>No audio over PA</td><td>Play muted, narrate the beats live — you know the reel cold</td><td>"Director's commentary version — even better."</td></tr>
+<tr><td>Video won't play</td><td>USB backup copy; worst case describe the four deliverables on the slide list</td><td>"You'll have to book the live version."</td></tr>
+</tbody></table></div>
+<h3>Universal</h3>
+<ul>
+<li><strong>Projector dies:</strong> keep talking. Both talks are stories with slides, not slides with a narrator. The interaction beats (hands, shout-outs, texting) all work without a screen.</li>
+<li><strong>Clicker dies:</strong> arrow keys. Stand at the laptop.</li>
+<li><strong>You blank:</strong> the run-of-show card is in your pocket. Look down, breathe, next cue.</li>
+</ul>
+<h3>The two-strike rule (adapted for stage)</h3>
+<p>Any live element that fails twice → switch to its fallback permanently for that session. Do not try a third time on stage; debug at the booth after.</p>
+</section></main>
+<script>
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');document.getElementById(b.dataset.p).classList.add('on');
+  window.scrollTo(0,0);
+});
+</script>

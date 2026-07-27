@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ancaster Dance Arts — Where Passion for Dance Grows | Ancaster, ON</title>
+<meta name="description" content="Ancaster's newest dance studio. Recreational & competitive classes for ages 2 to adult — ballet, jazz, acro, lyrical, tap, hip hop & musical theatre. 2026/2027 Fall registration now open." />
+<meta property="og:title" content="Ancaster Dance Arts — Where Passion for Dance Grows" />
+<meta property="og:description" content="Recreational & competitive dance for ages 2–adult in Ancaster, ON. Fall 2026/2027 registration open." />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="assets/hero-poster.jpg" />
+<meta name="theme-color" content="#231B3B" />
+<!-- hallmark scorecard: P5 H5 E4 S4 R5 V5 -->
+
+
+<link rel="stylesheet" href="assets/vendor/fonts.css">
+<script src="assets/vendor/tailwind.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['Fraunces', 'serif'],
+        body: ['Manrope', 'sans-serif'],
+        mono: ['"Spline Sans Mono"', 'monospace'],
+      },
+      colors: {
+        ada: {
+          ink: '#1c1530',      // deep plum ink
+          plum: '#231B3B',     // brand purple
+          royal: '#272354',    // brand royal
+          pink: '#FF7FE8',      // brand pink
+          lime: '#DEFF00',      // brand lime
+          cream: '#F6F1E7',     // brochure paper
+          paper: '#FBF8F1',     // lighter fold
+          dust: '#E7DECD',      // fold seam
+        },
+      },
+    },
+  },
+};
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { background: #231B3B; }
+  ::selection { background: #FF7FE8; color: #231B3B; }
+  /* paper grain */
+  .grain::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+  /* fold seam — vertical brochure crease */
+  .fold-seam{position:relative;}
+  .fold-seam::after{content:"";position:absolute;top:0;bottom:0;left:0;width:1px;
+    background:linear-gradient(to bottom,transparent,#c9bea6 12%,#c9bea6 88%,transparent);opacity:.5;}
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1);}
+  .reveal.in{opacity:1;transform:none;}
+  .tab-underline{background-image:linear-gradient(#FF7FE8,#FF7FE8);background-size:0% 2px;background-position:0 100%;background-repeat:no-repeat;transition:background-size .35s ease;}
+  .tab-underline:hover{background-size:100% 2px;}
+  .marquee{display:flex;gap:3.5rem;width:max-content;animation:slide 38s linear infinite;}
+  @keyframes slide{to{transform:translateX(-50%);}}
+  .deckle{clip-path:polygon(0 2%,3% 0,97% 1%,100% 3%,99% 98%,96% 100%,2% 99%,0 97%);}
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important;}
+    .reveal{opacity:1;transform:none;}
+    .marquee{width:auto;flex-wrap:wrap;}
+  }
+</style>
+</head>
+<body class="font-body text-ada-ink antialiased">
+
+<!-- ============ TOP BAR / INDEX TABS ============ -->
+<header class="fixed top-0 inset-x-0 z-50 bg-ada-plum/92 backdrop-blur border-b border-white/10">
+  <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+    <a href="#cover" class="flex items-center gap-3 group">
+      <span class="bg-ada-cream rounded-lg px-2.5 py-1.5 inline-flex">
+        <img src="assets/logo.png" alt="Ancaster Dance Arts" class="h-7 w-auto" />
+      </span>
+      <span class="hidden sm:inline font-mono text-[10px] text-ada-pink tracking-widest uppercase">Ancaster · ON</span>
+    </a>
+    <nav class="hidden md:flex items-center gap-7 font-mono text-[12px] uppercase tracking-widest text-ada-cream/80">
+      <a href="#programs" class="tab-underline pb-1">Programs</a>
+      <a href="#schedule" class="tab-underline pb-1">Calendar</a>
+      <a href="#studio" class="tab-underline pb-1">The Studio</a>
+      <a href="#camps" class="tab-underline pb-1">Camps</a>
+      <a href="#visit" class="tab-underline pb-1">Visit</a>
+    </nav>
+    <a href="#visit" class="bg-ada-pink text-ada-plum font-bold text-sm px-4 py-2 rounded-full hover:bg-ada-lime transition-colors">Register</a>
+  </div>
+</header>
+
+<!-- ============ COVER / HERO (brochure cover) ============ -->
+<section id="cover" class="relative min-h-screen flex items-end overflow-hidden">
+  <video data-lazy preload="none" autoplay muted loop playsinline poster="assets/hero-poster.jpg"
+    class="absolute inset-0 w-full h-full object-cover">
+    <source data-src="assets/hero-bg.mp4" src="assets/hero-bg.mp4" type="video/mp4" />
+  </video>
+  <div class="absolute inset-0 bg-gradient-to-t from-ada-plum via-ada-plum/45 to-ada-plum/30"></div>
+  <div class="absolute inset-0 bg-ada-royal/20 mix-blend-multiply"></div>
+
+  <!-- corner program flourish -->
+  <div class="absolute top-20 left-0 right-0 px-5">
+    <div class="max-w-6xl mx-auto flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.25em] text-ada-cream/70">
+      <span>Open House Program</span>
+      <span class="hidden sm:inline">2026 / 2027 Season</span>
+    </div>
+  </div>
+
+  <div class="relative z-10 w-full px-5 pb-16 sm:pb-24">
+    <div class="max-w-6xl mx-auto">
+      <p class="font-mono text-ada-lime text-xs sm:text-sm uppercase tracking-[0.3em] mb-5 reveal">Ancaster's newest dance studio</p>
+      <h1 class="font-display text-ada-cream font-black leading-[0.92] tracking-tight text-[14vw] sm:text-7xl lg:text-8xl reveal">
+        Where passion<br/>for dance <span class="italic font-medium text-ada-pink">grows.</span>
+      </h1>
+      <p class="mt-6 max-w-xl text-ada-cream/85 text-lg leading-relaxed reveal">
+        A nurturing studio where dancers ages 2&ndash;18 &amp; adults explore ballet, jazz, acro, lyrical, tap, hip hop &amp; musical theatre &mdash; and every dancer shines.
+      </p>
+      <div class="mt-8 flex flex-wrap items-center gap-4 reveal">
+        <a href="#visit" class="bg-ada-pink text-ada-plum font-bold px-7 py-3.5 rounded-full hover:bg-ada-lime transition-colors">Start Here &rarr;</a>
+        <a href="#programs" class="text-ada-cream/90 font-semibold px-2 py-3.5 border-b border-ada-cream/30 hover:border-ada-pink transition-colors">Explore Classes</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REGISTRATION RIBBON / MARQUEE ============ -->
+<section class="bg-ada-lime text-ada-plum py-3.5 overflow-hidden border-y-2 border-ada-plum">
+  <div class="marquee font-display font-black text-xl sm:text-2xl uppercase tracking-tight items-center">
+    <span>Fall 2026/2027 Registration is OPEN</span><span class="text-ada-pink">✦</span>
+    <span>Classes Begin September</span><span class="text-ada-pink">✦</span>
+    <span>Competitive Auditions · June 22</span><span class="text-ada-pink">✦</span>
+    <span>Summer Evening Classes &amp; Intensives</span><span class="text-ada-pink">✦</span>
+    <span>Fall 2026/2027 Registration is OPEN</span><span class="text-ada-pink">✦</span>
+    <span>Classes Begin September</span><span class="text-ada-pink">✦</span>
+    <span>Competitive Auditions · June 22</span><span class="text-ada-pink">✦</span>
+    <span>Summer Evening Classes &amp; Intensives</span><span class="text-ada-pink">✦</span>
+  </div>
+</section>
+
+<!-- ============ THE FOLD: open-house intro panel ============ -->
+<section id="studio" class="relative grain bg-ada-cream py-20 sm:py-28">
+  <div class="max-w-6xl mx-auto px-5 grid lg:grid-cols-12 gap-10">
+    <div class="lg:col-span-5 reveal">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-ada-royal/70 mb-4">The Studio · Inside the Fold</p>
+      <h2 class="font-display text-4xl sm:text-5xl font-black leading-tight text-ada-plum">
+        Leaders in dance education.
+      </h2>
+      <p class="mt-6 text-ada-ink/80 leading-relaxed text-lg">
+        Ancaster Dance Arts is a place where friendships flourish and memories are made. We believe dance should be fun, fulfilling and enriching &mdash; in a positive, inclusive environment for every dancer who walks through the door.
+      </p>
+      <p class="mt-4 text-ada-ink/70 leading-relaxed">
+        Come be part of our story &mdash; and let dance be part of yours.
+      </p>
+      <div class="mt-7 inline-flex items-center gap-3 bg-ada-plum text-ada-cream rounded-full pl-2 pr-5 py-2">
+        <span class="bg-ada-pink text-ada-plum font-display font-black w-9 h-9 rounded-full grid place-content-center text-sm">ML</span>
+        <span class="text-sm leading-tight"><span class="font-bold block">Mandy London</span><span class="text-ada-cream/70 text-xs">Owner / Director</span></span>
+      </div>
+    </div>
+    <div class="lg:col-span-7 lg:fold-seam lg:pl-10">
+      <div class="grid sm:grid-cols-2 gap-4" id="perks"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROGRAMS — class brochure panels ============ -->
+<section id="programs" class="relative grain bg-ada-paper py-20 sm:py-28 border-t border-ada-dust">
+  <div class="max-w-6xl mx-auto px-5">
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-12 reveal">
+      <div>
+        <p class="font-mono text-xs uppercase tracking-[0.3em] text-ada-royal/70 mb-3">Class Brochure</p>
+        <h2 class="font-display text-4xl sm:text-6xl font-black text-ada-plum leading-none">Our Programs</h2>
+      </div>
+      <p class="max-w-sm text-ada-ink/70">Ballet · Jazz · Acro · Lyrical · Tap · Hip Hop · Musical Theatre &mdash; for ages 2 to adult.</p>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-ada-dust rounded-2xl overflow-hidden border border-ada-dust" id="programGrid"></div>
+  </div>
+</section>
+
+<!-- ============ TRACKS: recreational vs competitive vs adult ============ -->
+<section class="relative bg-ada-plum text-ada-cream py-20 sm:py-28">
+  <div class="max-w-6xl mx-auto px-5">
+    <p class="font-mono text-xs uppercase tracking-[0.3em] text-ada-pink mb-3 reveal">Choose Your Path</p>
+    <h2 class="font-display text-4xl sm:text-5xl font-black mb-12 reveal">Three ways to dance with us.</h2>
+    <div class="grid md:grid-cols-3 gap-5" id="tracks"></div>
+  </div>
+</section>
+
+<!-- ============ SCHEDULE / SEASON CALENDAR (timeline of dates) ============ -->
+<section id="schedule" class="relative grain bg-ada-cream py-20 sm:py-28">
+  <div class="max-w-6xl mx-auto px-5">
+    <div class="mb-12 reveal">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-ada-royal/70 mb-3">Season Calendar · 2026 / 2027</p>
+      <h2 class="font-display text-4xl sm:text-6xl font-black text-ada-plum leading-none">Mark your dates.</h2>
+    </div>
+    <div class="space-y-px bg-ada-dust border border-ada-dust rounded-2xl overflow-hidden" id="calendar"></div>
+    <p class="mt-5 font-mono text-xs text-ada-ink/60">Dancer's age is determined as of December&nbsp;31,&nbsp;2026. Spots are limited &mdash; register early.</p>
+  </div>
+</section>
+
+<!-- ============ CAMPS & PARTIES ============ -->
+<section id="camps" class="relative grain bg-ada-paper py-20 sm:py-28 border-t border-ada-dust">
+  <div class="max-w-6xl mx-auto px-5 grid lg:grid-cols-2 gap-6">
+    <article class="reveal bg-ada-plum text-ada-cream rounded-3xl p-8 sm:p-10 relative overflow-hidden">
+      <div class="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-ada-pink/20 blur-2xl"></div>
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-ada-lime mb-3">PA Day Camps</p>
+      <h3 class="font-display text-3xl sm:text-4xl font-black leading-tight">A full day of dance, games &amp; creativity.</h3>
+      <p class="mt-4 text-ada-cream/80 leading-relaxed">Ballet, jazz, hip hop &amp; creative movement, mini-performances and choreography projects &mdash; with snack breaks and pizza lunch built in.</p>
+      <dl class="mt-6 grid grid-cols-2 gap-4 font-mono text-sm">
+        <div><dt class="text-ada-cream/55 text-xs uppercase tracking-wider">Ages</dt><dd class="text-ada-lime text-lg">4&ndash;8</dd></div>
+        <div><dt class="text-ada-cream/55 text-xs uppercase tracking-wider">Time</dt><dd class="text-ada-lime text-lg">9AM&ndash;3PM</dd></div>
+        <div><dt class="text-ada-cream/55 text-xs uppercase tracking-wider">Dates</dt><dd class="text-ada-lime text-lg">Jun 5 · Jun 26</dd></div>
+        <div><dt class="text-ada-cream/55 text-xs uppercase tracking-wider">Price</dt><dd class="text-ada-lime text-lg">$65 +HST</dd></div>
+      </dl>
+      <a href="#visit" class="mt-7 inline-block bg-ada-pink text-ada-plum font-bold px-6 py-3 rounded-full hover:bg-ada-lime transition-colors">Sign up now</a>
+    </article>
+    <article class="reveal bg-ada-cream border-2 border-ada-plum rounded-3xl p-8 sm:p-10 relative">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-ada-royal/70 mb-3">Birthday Parties</p>
+      <h3 class="font-display text-3xl sm:text-4xl font-black leading-tight text-ada-plum">Make their special day unforgettable.</h3>
+      <p class="mt-4 text-ada-ink/80 leading-relaxed">A high-energy dance party packed with music, movement and magic &mdash; perfect for any young dancer and their friends.</p>
+      <ul class="mt-6 space-y-2.5 text-ada-ink/85">
+        <li class="flex gap-3"><span class="text-ada-pink font-black">›</span> 45-minute class &mdash; jazz, ballet &amp;/or hip hop</li>
+        <li class="flex gap-3"><span class="text-ada-pink font-black">›</span> 2-hour party with decorations &amp; balloons</li>
+        <li class="flex gap-3"><span class="text-ada-pink font-black">›</span> Tables, chairs &amp; cutlery provided</li>
+        <li class="flex gap-3"><span class="text-ada-pink font-black">›</span> Clean-up included &mdash; you enjoy, we clean!</li>
+      </ul>
+      <a href="#visit" class="mt-7 inline-block border-2 border-ada-plum text-ada-plum font-bold px-6 py-3 rounded-full hover:bg-ada-plum hover:text-ada-cream transition-colors">Book a party</a>
+    </article>
+  </div>
+</section>
+
+<!-- ============ VISIT / CTA — back cover of the brochure ============ -->
+<section id="visit" class="relative grain bg-ada-plum text-ada-cream py-20 sm:py-28">
+  <div class="max-w-6xl mx-auto px-5 grid lg:grid-cols-12 gap-12">
+    <div class="lg:col-span-7 reveal">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-ada-pink mb-4">Visit the Studio</p>
+      <h2 class="font-display text-4xl sm:text-6xl font-black leading-[0.95]">Join the Ancaster Dance Arts family.</h2>
+      <p class="mt-6 text-ada-cream/80 text-lg max-w-lg leading-relaxed">2026/2027 Fall registration is open with classes starting in September. Come visit our air-conditioned studio &mdash; small class sizes, weekend options and plenty of free on-site parking.</p>
+      <div class="mt-9 grid sm:grid-cols-2 gap-5 max-w-lg font-mono text-sm">
+        <div>
+          <p class="text-ada-cream/50 text-xs uppercase tracking-widest mb-1">Studio</p>
+          <p class="text-ada-cream leading-snug">1412 Sandhill Drive, Unit D<br/>Ancaster, ON L9G 4V5</p>
+        </div>
+        <div>
+          <p class="text-ada-cream/50 text-xs uppercase tracking-widest mb-1">Email</p>
+          <a href="mailto:ancasterdancearts@gmail.com" class="text-ada-lime hover:text-ada-pink transition-colors break-all">ancasterdancearts@gmail.com</a>
+        </div>
+        <div>
+          <p class="text-ada-cream/50 text-xs uppercase tracking-widest mb-1">Call / Text</p>
+          <a href="tel:+19056998741" class="text-ada-lime hover:text-ada-pink transition-colors">(905) 699-8741</a>
+        </div>
+      </div>
+    </div>
+    <div class="lg:col-span-5 reveal">
+      <div class="bg-ada-cream text-ada-ink rounded-3xl p-7 sm:p-8 deckle">
+        <p class="font-display text-2xl font-black text-ada-plum mb-1">Ready to begin?</p>
+        <p class="text-ada-ink/70 text-sm mb-6">Reach out and we'll help you find the perfect class.</p>
+        <a href="mailto:ancasterdancearts@gmail.com?subject=Class%20Registration%20Inquiry" class="block text-center bg-ada-pink text-ada-plum font-bold px-6 py-4 rounded-full hover:bg-ada-lime transition-colors">Email the Studio</a>
+        <div class="mt-5 flex flex-wrap gap-2 font-mono text-[11px] uppercase tracking-wider">
+          <span class="bg-ada-dust/60 text-ada-royal px-3 py-1.5 rounded-full">Air-conditioned</span>
+          <span class="bg-ada-dust/60 text-ada-royal px-3 py-1.5 rounded-full">Free parking</span>
+          <span class="bg-ada-dust/60 text-ada-royal px-3 py-1.5 rounded-full">Small classes</span>
+          <span class="bg-ada-dust/60 text-ada-royal px-3 py-1.5 rounded-full">Weekends</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER + STREAMSTAGE CTA ============ -->
+<footer class="bg-ada-ink text-ada-cream/70 py-12">
+  <div class="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+    <div>
+      <span class="bg-ada-cream rounded-lg px-3 py-2 inline-flex">
+        <img src="assets/logo.png" alt="Ancaster Dance Arts" class="h-8 w-auto" />
+      </span>
+      <p class="text-sm mt-3">1412 Sandhill Drive, Unit D · Ancaster, ON · ages 2 to adult</p>
+    </div>
+    <a href="mailto:hello@streamstageproductions.com?subject=Launch%20my%20studio%20site"
+       class="group inline-flex items-center gap-2 text-sm bg-white/5 hover:bg-ada-pink hover:text-ada-plum border border-white/15 rounded-full px-5 py-3 transition-colors">
+      <span class="font-mono uppercase tracking-widest text-[11px]">Powered by</span>
+      <span class="font-bold">StreamStage</span>
+      <span class="opacity-70 group-hover:opacity-100">— contact to launch yours &rarr;</span>
+    </a>
+  </div>
+</footer>
+
+<script>
+// ---- data ----
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const perks = [
+  ['Certified instructors', 'Acrobatic Arts, Alixa Flexibility, PBT, I.D.A, P.A.E.C, MUV Method, Kinder Musik & more.'],
+  ['Early-childhood programs', 'Specialized, custom-designed classes for dancers as young as 18 months.'],
+  ['Comfortable studio', 'Fully air-conditioned space with plenty of free parking on-site.'],
+  ['Small class sizes', 'Personalized attention so every dancer gets the time they deserve.'],
+  ['Flexible weekends', 'Convenient daytime and Saturday / Sunday class options.'],
+  ['Private & semi-private', 'One-on-one lessons tailored to individual goals, plus studio rentals.'],
+];
+const programs = [
+  ['Pre-Dance / Tumble Tots', '18 mo – 3 yrs', 'An introduction to rhythm, expressiveness, posture, stretching and the very basics of dance.'],
+  ['Acro', '3 yrs & up', 'Acrobatics, tumbling, stretching and dance — building line, flexibility and strength.'],
+  ['Ballet', '3 yrs & up', 'Classical technique with proper placement and alignment — the base for all other styles.'],
+  ['Jazz', '3 yrs & up', 'Expressive, energetic movement: warm-up, isolations, progressions and choreography.'],
+  ['Tap', '3 yrs & up', 'High-energy footwork that teaches timing, rhythm and coordination like no other style.'],
+  ['Hip Hop', '5 yrs & up', 'Confidence, positivity and the limitless dynamics of the body — the dance that amazed the world.'],
+];
+const tracks = [
+  ['Recreational', 'Ages 2–18', 'Engaging classes across every style, designed to enrich the community and grow a love of dance — at your own pace.', 'Explore styles'],
+  ['Competitive', 'By audition', 'Small, focused teams with individualized training, exams, guest faculty and real performance opportunities. Auditions June 22.', 'Audition info'],
+  ['Adult', 'Ages 18+', 'Move, sweat and shine — from complete beginners to experienced dancers, in a fun, judgment-free environment.', 'Adult classes'],
+];
+const calendar = [
+  ['Now', 'Fall Recreational Registration', '2026/2027 registration is OPEN — classes begin in September.'],
+  ['Apr 7', 'Spring Session Classes', 'Short-term, focused sessions you can join anytime, spots permitting.'],
+  ['Jun 22', 'Competitive Team Auditions', 'Monday — pre-registration required for all auditioning dancers.'],
+  ['Summer', 'Evening Classes & Adult Sessions', '4 & 6-week evening classes for ages 2 to adult — register early.'],
+  ['Aug 25–27', 'Acro & Tumbling Intensive', 'Ages 6 & up — three focused days of acro and tumbling.'],
+  ['Sep 1–3', 'Back2Dance Competitive Intensive', 'Ages 4 & up — kick off the competitive season strong.'],
+];
+
+// ---- render ----
+const el = (sel) => document.querySelector(sel);
+el('#perks').innerHTML = perks.map(([t,d]) => `
+  <div class="reveal bg-ada-paper border border-ada-dust rounded-2xl p-5">
+    <div class="font-display font-black text-ada-plum text-lg leading-snug">${t}</div>
+    <p class="mt-2 text-sm text-ada-ink/70 leading-relaxed">${d}</p>
+  </div>`).join('');
+
+el('#programGrid').innerHTML = programs.map(([t,age,d],i) => `
+  <div class="reveal bg-ada-paper p-7 hover:bg-ada-cream transition-colors group">
+    <div class="flex items-baseline justify-between">
+      <span class="font-mono text-xs text-ada-pink">${String(i+1).padStart(2,'0')}</span>
+      <span class="font-mono text-[11px] uppercase tracking-wider text-ada-royal/60">${age}</span>
+    </div>
+    <h3 class="font-display text-2xl font-black text-ada-plum mt-3 leading-tight">${t}</h3>
+    <p class="mt-2 text-sm text-ada-ink/70 leading-relaxed">${d}</p>
+  </div>`).join('');
+
+el('#tracks').innerHTML = tracks.map(([t,tag,d,cta]) => `
+  <div class="reveal bg-white/5 border border-white/10 rounded-3xl p-7 flex flex-col">
+    <span class="font-mono text-[11px] uppercase tracking-widest text-ada-lime">${tag}</span>
+    <h3 class="font-display text-3xl font-black text-ada-cream mt-2">${t}</h3>
+    <p class="mt-3 text-ada-cream/75 text-sm leading-relaxed flex-1">${d}</p>
+    <a href="#visit" class="mt-6 inline-flex items-center gap-2 font-bold text-ada-pink hover:text-ada-lime transition-colors">${cta} &rarr;</a>
+  </div>`).join('');
+
+el('#calendar').innerHTML = calendar.map(([when,title,d]) => `
+  <div class="reveal bg-ada-cream grid sm:grid-cols-12 gap-2 sm:gap-5 items-center p-5 sm:p-6 hover:bg-ada-paper transition-colors">
+    <div class="sm:col-span-2 font-mono text-ada-pink font-semibold text-sm uppercase tracking-wide">${when}</div>
+    <div class="sm:col-span-3 font-display font-black text-ada-plum text-lg leading-tight">${title}</div>
+    <div class="sm:col-span-7 text-ada-ink/70 text-sm leading-relaxed">${d}</div>
+  </div>`).join('');
+
+// ---- reveal ----
+const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }), {threshold:.12});
+document.querySelectorAll('.reveal').forEach(n => io.observe(n));
+
+// ---- lazy video (poster-first, skip on Save-Data / reduced motion) ----
+(function(){
+  const sd = navigator.connection && navigator.connection.saveData;
+  document.querySelectorAll('video[data-lazy]').forEach(v => {
+    if(sd || REDUCED){ return; }
+    const s = v.querySelector('source[data-src]');
+    if(s && !s.src){ s.src = s.dataset.src; v.load(); v.play().catch(()=>{}); }
+  });
+})();
+</script>
+</body>
+</html>

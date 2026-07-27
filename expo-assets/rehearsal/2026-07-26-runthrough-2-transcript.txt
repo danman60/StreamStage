@@ -1,0 +1,287 @@
+
+All right. This is another rehearsal walkthrough.
+
+[Speaker 1]
+Of my presentation, so I'm actually referencing the latest. Uh, phone notes, as well as.
+
+[Speaker 2]
+Phone notes, as well as the latest slide content.
+
+I don't know if this opening note about
+
+[Speaker 1]
+The Unison story. Is goes here. I think that should actually go way later in the presentation.
+
+[Speaker 2]
+Closer to when
+
+[Speaker 1]
+We're talking about the handbook, Etc. That's my first note for the presentation. So, now I'm going to go live again. And so when I say I go live, that means I'm doing the presentation. And when I say note, that means it's something to fix. So, I'm going to go live.
+
+Hi, it's me, Daniel.
+
+[Speaker 2]
+And I'm hoping.
+
+[Speaker 1]
+And if you've come here to learn about AI? One little about Ai and some of the latest Trends and how to prevent yourself from getting conquered. When the robot overlords come through, you're in the right place. Uh, you will not see me doing any dancing. Although I'm a Sheridan grad, I have three years of jazz, ballet, and tap.
+
+[Speaker 2]
+So, if you're really nice, then.
+
+[Speaker 1]
+Then, we're going to maybe see me do my grand gate Antoine. So, hopefully, you're here. Uh, you're you're a studio owner and all the Studio owners here. You know, you started as a teacher. Probably. You know, then you became. A business owner. Which naturally led into you, becoming a full-time marketer.
+
+And then customer support, janitor, bookkeeper, and then finally. Uh, probably the front desk. And let's be honest, uh, even if you're not sitting at that front desk in the physical space, we all know who's getting those text messages over and over. Who's getting those questions? How do we do the hair?
+
+So, like, hands up, who here has gotten? A question. At 11 o'clock on Sunday before the recital asking about how do we have to do our hair for this number? Okay, and keep your hand up if that was already included in the email that you sent out. They don't read it, right?
+
+You're getting paid for one of those jobs. We're going to fix that today, so that's you. You're the studio owner. That's how you're handling it a little bit about me. Uh, I'm Daniel. I do video. For your recital. And.
+
+You know, we do all kinds of instant digital delivery multiple cameras. I was doing that for years, but I've realized I'm a technologist first.
+
+So, here's a note on the who I am slide. It should have my name at the top doesn't have my name right now. And I want it to be like beat by beat. In fact, I want more beat by beat, especially once we have the volume up. Clicking through, I want more beat by beat so I can click through and talk about myself faster.
+
+So, should I have my name? And it should. The beats should be like name and then stream stage, and then the stream stage information. And then. It should be technologist first.
+
+And then the printer joke. And then maybe the? Studio Sage bit and the? The letter joke, which is kind of funny. So, I'm gonna give you. I want to start here by giving you five free AI moves. Can I ask a question here? Uh, who? Who here is using AI to do stuff right now?
+
+So you got? You're in chat CPT every day, so I know who I'm talking to. This is, I'm gonna make a note. I want to ask them more questions here, but like, where their experience, I can see where they're at. Right? And so.
+
+See where they're at your favorite? So, I want to show you free five AI moves that you can try to do Monday morning. No vendor, no sign up, just. You're probably already doing right now.
+
+[Speaker 2]
+And then one that I.
+
+[Speaker 1]
+Let's kill the one email. Note let's kill the one email Midstream live stream without typing here. We'll save that for later. And then the one I productized.
+
+Let's kill the numbers popping up on each click. That's a note. I don't like the numbers here on slide four.
+
+Okay, first, I want to ask. Is that before I get into that, I want to show you, uh? Just for a little just for a little proof of proof of competency here. Uh, who's here has a studio website that needs a facelift. Maybe it's a little bit older. Somebody made it.
+
+I want to give you a little uplift. I'll show it to you at the end of the presentation. Okay, here's a note I would like to be able to somehow. Have them shout out the website. And then maybe I could type that website. Into a little box on my notes Here on slide five.
+
+[Speaker 2]
+And then.
+
+[Speaker 1]
+It would come up in like a little animated box, and everyone could look at their look at their existing website, and I could scroll it within an element on the box here. Would be super cool. And then.
+
+Say, look. Remember that we'll come back later. Okay. Okay, I just want to talk a little the story so far with AI, because you know, I work in this all the time. You're probably like me. You feel like you're just constantly behind, like everybody's doing a new cool thing.
+
+They made a cool graphic, and you're following behind, you're falling behind. I'm here to tell you that is not true. You know, we are very new into this. As a culture, it is not too late for you to use these things and, and yes, 100. This is the biggest technological Revolution since the internet since.
+
+Since the internet since? The printing press is in social media. This is the biggest thing you are not far behind, so I want to tell you a little bit like what? What is Ai and what do people mean by that? And by the way, like, like, 99 of the time where people are talking about AI, they're talking about Chachi BT Claude perplexity.
+
+A couple of vendors, I'll tell you about. So, for years, you know, with computers, we had to learn their language, you know, commands, file names. Clicking the right field, clicking the right button, and then slowly they started learning our language right spell. Check autocorrect you could say from your phone, your phone, finding your kid's face.
+
+Uh, okay, Google take me home, Siri, play whatever on whatever they start understanding. And now, with AI plain English semantic, as in, we just talk to it naturally, so the Breakthrough isn't so much in the intelligence. It's the interface. Breakthrough isn't so much in the intelligent. It's the interface.
+
+Okay. So? All it is ever doing. When you talk to chat GPT or any other AI, it's it's understanding everything that's ever been written. And it's predicting what's coming next. Then it learned how to search the internet, so anything made of language. The big thing is, it can be very, very wrong, as I'm sure you've seen very confidently wrong.
+
+So, a key part of collaborating with your AI chatbot is is, uh, trust. But verify, you have to be checking, making sure that that info before you hit send. We all have a great story of an AI under something. Maybe I could note maybe here on seven. I should have a joke.
+
+A couple of like AI famous AI jokes here. We could do the three R's in strawberry. We could do the or actually much funnier joke should be the car. Uh, Car Wash joke.
+
+[Speaker 2]
+So, the car
+
+[Speaker 1]
+Wash joke is, you ask, Chad, GPT. Should I walk to the car wash or should I drive? It's only 10 minutes away and it prints back.
+
+It prints back.
+
+[Speaker 2]
+You should just walk because it's so close.
+
+So, when people talk about?
+
+[Speaker 1]
+Ai nebulously. This is always what they're talking about. We need icons for Chachi, BT, clawed notebook, LM Gemini, and Daniel banana here. Maybe we should include perplexity can indicate that's for research. Um, and these are some of the best things you can use them for. All right, and most of the time, if you want to get started with AI, you're going to go to chatch EPT.
+
+You're going to set up an account. It's free. There's a free tier, use it until you run out of your free usage. It resets, you use it again. Uh, here's a pro tip. Have a free chat CPT, a free Claude, a free notebook LM. A free Google Gemini cycle through them all.
+
+You just got to keep track of all of your documents whatever in one place. This could be another tip is like having a place where you're like constantly copying and pasting things like. This was part of my AI journey was like copying and pasting things into a folder to keep everything centralized.
+
+That's how you start until you develop repos and file structure.
+
+So everything I'm going to talk to you about in this talk free tiers. You don't need to get subscriptions. I am paying a ton for AI. I am. I'm paying 500 600 a month for all my AI subscriptions. I'm making more money from them. Uh, because of how they're accelerating my business.
+
+But here's the only thing you ever need to prompt is what you ask it, what you're getting it to say. The thread is where you keep all of the context about a specific subject, new task, new thread. A project is a collection of threads that are kind of in the background, referencing each other, and then memory is what it kind of knows about you.
+
+Tell us who you are. Tell it to remember things like your voice. Things like your goals that apply to everything. So, maybe we should organize this? This slide here. Slide nine, where it's like memories at the top, which then goes down into projects which goes into threads, which goes into prompts like a pyramid.
+
+Uh, a connector is a tool. Connect your email, connect your calendar, a skill. Is something that a workflow that you wanted to run the same way over and over again. You don't have to teach it over and over again, and then an agent is something that is using tools on its own.
+
+That's working while you sleep, and as a business owner. I know you love what I love, which is the ability to. Which is that which is that ability to go to sleep? You wake up and something's changed something's new. That's what we want. We want to be able to sleep and things are happening.
+
+So, here's my free move AI number one. Things really changed for me when I started talking and not typing. I talked to dance studio owners all the time. Dance teachers I live in the dance world and? Best thing you can do hit that mic and ramble. You think differently when you're talking?
+
+I'm a very fast typer and a piano player, and what I realized was when I'm talking when I'm Midstream. That's when things just like tumble out of me. All the best ideas come out right in the middle. Don't get stuck typing, especially if you're a slow typer. Hit that mic button and ramble.
+
+Ramble ramble ramble, uh, in your Zoom meetings, get those transcripts out of zoom.us get those transcripts. Copy those transcripts into chat CBT as they. Get them to analyze it. If you're talking to your partner, your teachers, you have a meeting with all of your teachers. Somebody hit record, hit record, hit record.
+
+People sell those little AI. Note pin things that record all of your meetings and conversations. You can do that, but just hit record on your phone and talk and talk and talk and talk. Let the language model parse all of that context. Maybe on slide is a note, maybe on slide 10, we should have a bunch of texts that I can hit next to, and a bunch of textures like writing on that screen ramble ramble ramble.
+
+That would look cool. Cool.
+
+[Speaker 2]
+Also, I'm realizing it would be cool to not have just Cuts between these slides, but
+
+[Speaker 1]
+Varying transitions between the slides, like a blur push or a swipe, or like a 90s DVD. Like, we need more exciting transitions in between the slides. Number two develop your voice so? A cool one is, if any of you have Gmail, you can go to Google takeout. You can download all of your emails from there, put it into chat gbd as they develop a voice.
+
+How do I talk? How do I assign things off? Here's how I handle the sensitive topic. Here's how I handle an important topic. Uh, yes, 100 use that when you're dealing with your sensitive emails. Language is what they're good at, so get it to kind of go into your language, teach you how to do it once, develop your voice.
+
+And that's how you get it. To start from that robotic language, yes, 100, tell it to stop using M dashes. Let's have a little m-beat here on move number two. That's a note.
+
+Uh, number three. Stop you once you start to level up past that. You're gonna go into.
+
+Uh, not pasting, you're going to start hooking up your tools, connect your email, ask it, go through my email, and find all the emails from this teacher. What are the issues I'm always struggling with? I've noticed that this could be a good note. This could be a good move for slide number 12.
+
+To be about the how. So, like, I like, like, asking how AI how to do things, it's like, how would I go about doing this. How would I go about doing that as opposed to do this? Do that because we don't always know what that is, but if we ask AI to how sometimes it can do it.
+
+And then paste that email. Two of your replies develop that voice, so slide. Tip four and tip three are way too similar. We need something else entirely.
+
+Before the handbook moment. So tip four and tip three are too similar. So, what's another move? We can offer people for. Uh, AI, for tip.
+
+You know, I kind of trying to think back to my early days in AI. Maybe it was like custom gpts or? Have one thread per conversations, like one thread that's on operations. One thread that's on marketing, like, think of threads. As agents, or think of projects as agents that own context.
+
+You're not crossing contexts, and like, sit and talk with your different contexts, and you're the leader of these different things that are talking. And maybe I should also include, like, what the limitations they're going to find are, so you're going to do that, but you still need to send a message you still need to reach out to it first or maybe four should be like?
+
+Uh, co-work, and crons so? You're going to start asking it to like run the things. On The Daily summarize all my emails. What's coming up on my calendar? Like a daily briefing.
+
+Or, you know, scan other Studios as to what they're doing, like, maybe four should be co-working crons? And which is a good rule. I've resumed the live now here. On slide 14. This is a good rule for. How it's going to work, which is, you know, you're going to do a 10-minute task.
+
+You're seeing it in 10 minutes, and if you want to set up one of these automated processes, one of these, like evolved things, are repeatable. It's going to take you 30 minutes to set that the first time, but once you take 30 minutes. Now that 10 minute task takes two minutes, maybe we need on slide 14 to have a more clickable.
+
+A more clickable. Um. You know, show the 10-minute task and then. Click, and now it's going to take 30 minutes click, but then it will take you two minutes and show that simple math, like fourth grade math, so we can show them. Now, it's going to save you that time.
+
+And as a business owner, you know that, that's this dark Valley. You got to spend on the first time, but once you do that, now you have this automated task that's saving you time, and you're a business owner. Saving time is is just as good as making money.
+
+Um, and then number five is upload your handbook PDF, your parent handbook, all of your questions. Uh, what is the hair for senior Jazz on Thursday, or what costume do we need for musical theater super line on Saturdays? For your staff. And then they can go to that, and they can ask questions from it so they can not have to ask you all those questions.
+
+And wouldn't it be cool if that handbook PDF? And all your latest info was in a public place. Right. All these questions.
+
+So, I just want a brief note about human in the loop, so we talk a lot about what the robots are great for. That's for the menial, repeated things, which really is 80 of the conversations that you're having. Quick answers, where it's far more about the accuracy and the speed that you're answering something than it is about the tact.
+
+That's a good note. I just said there, so that should be involved in my in my notes Here. So, you never want to have it. Answering an upset parent? An injury or a casting or a placement. Those are things that you're going to want to have, but that's a good one to have your email like, go over your drafts of your email and.
+
+Uh, even use a thread to role play a conversation. See how that's going to go see how they're going to talk about that. So there's certain conversations that are sensitive and delicate and complicated that you want to have. But then there's conversations that are.
+
+Really repeatable. So you can ask your handbook. Your staff can ask your parents can't. Wouldn't that be nice? So, that's why.
+
+So, I feel like the transition from 17 to 18 is confusing. I felt like we were really going into Studio stage there, so maybe we should swap 17 and 18? This is a note here.
+
+I don't even know if I like this thread altogether. This, sorry, this. Slide 18, we should just naturally go right into.
+
+[Speaker 2]
+Or maybe
+
+[Speaker 1]
+I'll just tease that? Maybe we keep it as it is, but I just tease that on this. So, like? After. Wouldn't that be nice if the if the handbook but your parents can't? So all that there. None of that made AI kind of any smarter. You're not making chat cheap to your perplexity or quad any smarter.
+
+You're just.
+
+You're just teaching it about you right to get your emails your newsletter. This is stale. Scheduling is stale Lobby. TV is stale.
+
+So that was the history, right? Make that. Note that we had stale copy in the in the slide deck for. The pain point board feels live, like, that's stale and yucky. I don't know what that is. So we can move that other stuff centered in the screen. So, remember the history, okay?
+
+We started with chat Bots that we like, ask questions to. Then, we moved on to schedule, right? So, this is not current in the DAC, we didn't do anything on crons or co-work, so that needs to be in step four. Um. Scheduled. And maybe we need to have. Other ideas of?
+
+Scheduled things that could run there, even like a checklist for the day. Marketing checklist.
+
+And then this is going to number three, which is agentic, and maybe this rungs should be also vertical in a pyramid. And this is so, which kind of shows more the tracking of? The tracking of the evolution?
+
+So, here's the word about agentic like that's what we really want. As business owners, we want to feel like things are happening when we're not doing them, leveraging ourselves and our ideas and our taste. So, it's not just us. And we, we do that with people and hire. Great people, but you know?
+
+People are expensive and there's training. This is a great way to get your people doing what they want to do. That's a good note I should return to get the people doing what they want to be doing and all the time. What we should be doing is people is being with people, not with data, not with interfaces, not with buttons and knobs and sliders.
+
+In the future, agents are going to run everything. My agent will talk to your agent will figure out a time for coffee. It is not going to be. People sitting down and clicking on calendars and interfaces. So, for stream stage, you'll have stream stage logo back on slide 20 here.
+
+For stream stage. For us, it's routine 436 on Saturday. That's just another routine that we have to do, but for some kid. For some dancer, not some kid. But for that dancer, let's not say, kid, ever. It's dancer for that dancer. It's the most important three minutes of their season.
+
+We can't mess that up, and all the time, my email is filling up. I'm looking at all the different camera angles. Let's have this be more like a multi-cam view. Can we generate some images to show a wide shot, a close-up shot, a side stage shot? And then a crowd shot just those four or five, not the eight that are currently there.
+
+And I get an email that comes in. I never got the link spoiler alert. They got the link, so I built a little email spider that catches the email as it comes in checks the calendar. For what event that I'm at drafts an email to that parent? Checks the confidence about how sure it is that the right event?
+
+85 or above fires out. The email sends me a notification I never touch my keyboard, and they get that link that's called agentic. It's taking action. It's using tools. For a workload that you designed in your mind, you built that you supervised it. You managed the first couple? And.
+
+Oh, we need to have the. Pink Pony hat unicorn Club be a separate, clickable beat. Same thing. With all these email blasts, text reminders like, it's like, here's a note on every page I want to be able to click my up button and fire off the different animations. And like buttons, like all these different things to appear within the boxes.
+
+But.
+
+Then, I should be able to just hit the jump buttons to actually do a whole different slide. That way, I can quickly get back to another slide with what I'm. Tab back through animations.
+
+And I need to make sure I talk about pushing and pulling earlier in the presentation. Maybe that should be in my notes? So? It happens to me. I love technology and we push things to the what was the previous? I never got the link. They did get the link by the way we sent them the email.
+
+We pushed it out, but at that moment they wanted to pull, they wanted to pull the answer from somewhere, and people will do. We'll just search their email inbox. They can't find their email Outlook. Search is terrible. So, we want to pull. We push, they still get buried when they can pull.
+
+They get the answer. I'm a dance parent. We do this all the time. By the way, here's my kid, the my kid picture when that beat come up. It should be like a photo that spins up to the center. Of me with my kid. More full screen. I'm okay to do that.
+
+We want to be able to pull that information to us when we want to have it. So, that's why I created Studio Sage. So, this is your super easy to use agent for your studio. You know, you could totally build this yourself. You could, you could build yourself a custom GPT that ingests a twilio number, and then on an SMS event action.
+
+Double checks your email database, and you keep that in sync with your ingest, and you could absolutely build this yourself. But I built it for you, and uh, for 20 bucks a month. This will answer all your emails and think of how many hours you spend at the a month.
+
+And if you think twenty dollars? Will buy you back some of that time. You're gonna love this, so parents text the number no app. No login answers from your stuff, not confident, does not guess it. Only answers with cited answers from the emails you're already sending. Let's not say text this number right now on slide 24, because we're not going into the live demo yet.
+
+Whole mechanic slide on 25 needs to be in The Branding of Studio sage, and then we need to have these build to be like one animated, beautiful element at a time that pops onto the screen. So, number one. You get a phone number and a QR code, you get a little eight and a half by eleven poster.
+
+You put it up in your studio. And then you to display that number. You put it on all your outgoing comms. They save the number they scan the QR, and when they have a question, they text it and all the e. And we forgot that we, we have to put that in, add it to your email address.
+
+We have to add that, so the director. Emails come in. This is also a development note. Let's just make 100 sure that this routing is exactly how it's described in the app that. The studio director's email is linked to their account, and there's no cross-tenant leak and whatever that parents get paired to the correct Studio, Etc.
+
+That takes about five minutes to set up, and once they do. Your front desk is trained. It is answering those questions. You still want to have a human. There are your front desk. They're going to be chatting with your parents and being lovely with your families. But again, this is going to answer 80 to.
+
+We need a stat here on the screen? How it's going to answer 80 to 90 percent of the repeated questions that you get over and over again? So, now we go into the live demo. I want to ask them does anybody here have an email from? From their thing.
+
+I'm going to walk up to that person. Let me look at the email. Great. Okay, great. You're going to forward that to bot at studiosage.ai, okay, we're forwarding the email and Bing right there. We saw it come in. We want to have, like a beautiful little email animation on this screen.
+
+On slide 26, the live demo. So, you want to see that beautiful thing there there it comes in. We need to have the phone number up on this screen all the time. At 26, the phone number is there and the QR code they scan the QR code and that creates an sms2 in their messaging app, so they're automatically have it loaded to text.
+
+Uh, there's the email. It's up there, and I want to see that email like automatically gets sorted. And parsed into the knowledge-based questions. And then, okay, so somebody asked it. What is?
+
+What is it? So, I want to say, like, these are some of the things that it knows. Okay, so, like, ask it about this. Is that correct? Yeah, is that correct? Yeah. And it should have, like? Four or five facts on it. At the top. So, pull out some facts and people can test it and ask those facts.
+
+And then people can ask it facts, it doesn't know. And then they can say, I don't have that information yet, please. Please contact your studio director. And the magic we want is for people to see that.
+
+The magic we want is for people to see that. It's answering the questions that it has the real answers to, and that when it doesn't add the answer, it says, I don't have that information. That's the magic of the demo, and all these texts are going to fire. Uh, during that presentation, people on their phones and we want to make sure that all works.
+
+So, once again, let's double check that it works. I'm also noticing that this is routing not yet armed open deck as so I need this link to start. Now, like I need to test this tomorrow, so I need this to actually show the proper. Working state so I can rate now from my phone.
+
+Test it because right now, it looks like there's like other knowledge base here and whatever, so I need end-to-end. I think we've done lots of end-to-end testing on this, but it needs to be live right now. And that'sudiosage.ai so? Uh, 20 bucks a month. Get back some of your time.
+
+I'm happy to. Answer that. So, I want to show you how I have combined. I've combined skills, agentic, repeatable processes and then a bunch of the back-end stuff like deployment and hosting and web domains. You gave me that address. When I come to this point on the slide deck, I would love it if.
+
+From my telegram. Now, I could just, how are we going to do that? Like, how can we automate this this, uh? Facelift skill, because what, what this is? I use a facelift skill, which is, I give a message in a telegram into a cloud code session. It does the facelift skill on that website, and then it will put back in telegram, the verceel, the verselle.
+
+Demo website. I would love to have that all automated, so I don't have it's more magical. And then, like, I come, and we just like, show the website site unseen. I haven't looked at this yet. I've been talking to you. I haven't looked at my keyboard. There isn't some web developer hiding somewhere?
+
+Uh, let's take a look, and it would be cool. If then, I pressed a button. There was like a curtain open reveal, and it showed the refreshed website, and we scanned that on. And then if I that it's yours free. That could be like a click to reveal so, and that's yours free.
+
+Thank you for doing that, uh. We're gonna host them, and we'll host that website for you for one year, and after that that hosting will be 20 bucks a year. Does that sound good to you? Okay, great.
+
+So, I want you to think, what's the one task you'd?
+
+I don't know if this is the right closer. For 29. I think 29 should be like, what's your time worth to you? How can we buy back more of your time if you had more of your time? Would you be less stressed if you had to answer these emails.
+
+Would you be less stressed if you automated some of these processes in your life? Would you get to do what you want to do more? That's the promise of AI that I want you to take home with you today. AI lets us do more of what we want to do.
+
+And lets the robots handle us. What we don't want to do so. That's my, that's my dream for you and your Studios that this technology allows you to focus on, what you love to do.
+
+Uh, of course. If you want to?
+
+I don't think we need slides 30 at all.
+
+I don't think we want the okay. So of slide 31 should just be the QR code. To get the freebie and then a second QR code for Studiosage.ai. And.
+
+I feel like Studiosage.ai in the previous slides, we should also like have a view of the live dashboard. Maybe a video should play? Do we have like a walkthrough video of the live dashboard showing the personality settings? And the knowledge base and the email threads like we need, like a recorded walkthrough of that, so we can show I can just describe the actual dashboard interface.
+
+And the QR code flow. Like, we need to show them all this stuff. Like, I'm just talking about it. Uh, and then we get the last one here. It is. Qr code for the freebie. Get these AI moves.
+
+No, and the AI moves, uh, freebie needs to have a down. Enter their email and we email it to them so we can get their email for our mailing list obviously. So, it is not, no email on slide 31. Um.
+
+And then sign up 20, 20 a month. Try this, how much is it is going to get you buying back your time? Uh, and what I'm gonna, and we need to have like a reveal in the first five signups. Today, I'm going to give you that website facelift one year of Hosting 20 a year after that for your website hosting?
+
+Uh, do that for. If you have any questions about Ai and leveraging, come see me. Uh, I'd love to have a chat with you. I love technology. I love dance. Want to make this work for you? Worst case, I help you fix your printer. Big Love by.

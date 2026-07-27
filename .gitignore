@@ -35,3 +35,4 @@ public/.playwright-cli/
 .claude/
 AGENTS.md
 *.codex-bak
+expo-assets/decks/facelift-out/

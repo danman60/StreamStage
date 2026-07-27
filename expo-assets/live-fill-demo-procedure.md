@@ -47,5 +47,5 @@ A back-of-room-readable grid of everything StudioSage knows for this studio, new
 - **KB view** (projector): `studiosage.ai/demo/kb?code=LIVE26` — the knowledge filling live.
 - **Wall** (projector): `studiosage.ai/demo/wall?code=LIVE26` — the SMS question/answer.
 
-## If it doesn't land in ~20s
+## If the wall hasn't painted it in ~20s (display lag, not delivery)
 Don't wait on stage. Cut to the animated mock (it's local, wifi-independent) and say the line: "trade-show wifi, everyone's favorite sponsor." Debug at the booth — check the operator page later; a forward that arrived late will show up there.

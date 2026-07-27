@@ -1,7 +1,47 @@
 # Current Work - StreamStage
 
 ## Active Task
-Video production proposal builder recalibrated to custom day + deliverable pricing. Local build passes; ready for push and redeploy.
+**Talk 2 expo deck (Dance Teacher Expo, Wed Jul 29 2026, 4:10–5:10 PM EDT, Adapt Stage).**
+Run-through #2 notes executed end to end, plus three mid-session directives from Daniel.
+Deck is **38 slides**, audit-green, mirrored to FIRMAMENT. Nothing deployed.
+
+## Recent Changes (Session 2026-07-26 evening)
+- **Five moves rebuilt:** 1 talk-don't-type · 2 studio-in-two-files (voice + brand + the folder) ·
+  3 make-it-write-the-prompt · 4 make-the-poster · 5 handbook. Connectors and cowork/crons moved out
+  of the tips and into the agentic ladder as rungs 2 and 3.
+- New slides: push-lands-early, audience gauge, one-folder, perfect-unison (moved out of the open),
+  rung 2, rung 3, philosophy, dashboard walkthrough video, what's-your-time-worth.
+- Cut: old tip 4, old close slide, stale pain-point board (lobby TV), number pops, mid-livestream
+  tease, "text this number" on the StudioSage slide.
+- CTA rebuilt: two generated QRs, freebie **email-gated**, first-five + $20/yr hosting, "Big love."
+- All 38 slides carry hand-written `data-beats` with `!!`/`>>`/`..` markers; varied transitions on
+  every content slide; "dancer" never "kid" swept through.
+- Live-demo slide: persistent SMS-intent QR + number + 5 known facts. Reveal slide: real curtain,
+  URL bar, one-click pre-baked fallback. Dashboard video autoplays on its slide.
+- `rehearsal/COVERAGE.md` written — every item from BOTH transcripts, status + location + a
+  NEEDS DANIEL list at the top.
+- Docs regenerated: `talk2-ai-script.md`, `talk2-runofshow.md` (38-row cue sheet),
+  `talk2-ai-slides.md` + `talk2.html` tabs (now via `regen-slides.py` / `regen-notes.py`).
+- `handout-5-free-ai-moves.html` (the freebie PDF source) rebuilt — it still had the old moves and
+  Talk 1's banned thesis.
+
+## Blockers / NEEDS DANIEL
+1. **Timing:** cue sheet holds ~93 min of material for a 60-min slot. Cut list is at the top of
+   `talk2-runofshow.md`. His call — nothing cut unilaterally.
+2. `studiosage.ai/moves` must exist, be email-gated, and serve the PDF (CTA QR points at it).
+3. Live-demo routing `?rt=<token>` + tenancy check (StudioSage repo — other session owns it).
+4. Real multicam stills for the loop-payoff slide (four styled frames stand in).
+
+## Next Steps
+- Daniel rehearses from the FIRMAMENT copy (`talk2-deck.html`) and rules on timing.
+- After ANY deck change: `scp` to FIRMAMENT, then run `regen-slides.py` and `regen-notes.py`.
+- Verify harness: `PRESENTER_PORT=8081 python3 expo-assets/decks/presenter-server.py` +
+  `deck2-all.mjs` (session scratchpad) — checks JS errors, fonts, overflow at 1920×1080.
+- Nothing committed this session; deck work is uncommitted in `expo-assets/`.
+
+---
+
+# Previous work (2026-03-10/11) — video production proposal builder
 
 ## Recent Changes (Session 2026-03-10/11)
 - Video production proposal builder added at `/videoproduction`

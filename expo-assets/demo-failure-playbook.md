@@ -15,7 +15,7 @@ One page. Per failure: what you'll see → what to do → what to SAY. The audie
 |---|---|---|
 | Wall won't load (venue wifi) | Phone hotspot (pre-staged) → reload wall | "Trade-show wifi, everyone's favorite sponsor." |
 | Wall loads, texts not appearing | Audience replies still arrive on THEIR phones — ask people to read answers out loud | "Forget my screen — someone read out what it just told you." |
-| Carrier delay (texts slow) | Keep talking; circle back after Slide 16 — messages will have landed | "It's faster than your front desk at 11pm, slower than a live stage. We'll check back." |
+| Wall is slow to paint (venue wifi, not delivery) | Keep talking and point at the wall; it catches up. **Delivery itself is not the risk — every number in this demo is Canadian and that path is proven.** | "Watch the screen." |
 | A question flags instead of answering | NOTHING IS WRONG — this is the trust beat | "See that? It didn't know, so it didn't fake it. That's the whole point." |
 | Nobody texts | Text it yourself from the podium phone (it's onboarded from rehearsal) | "Fine, I'll be the shy parent." |
 
