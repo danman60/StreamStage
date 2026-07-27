@@ -299,6 +299,18 @@
   /* Notes 2026-07-26: the small version of the family shot should not exist. The
      picture is absent until the reveal click, then it arrives already big — it was
      also sitting on top of the copy at the bottom right while small. */
+
+  /* Notes 2026-07-26: one click per pyramid tier, highlight walks down. Uses the
+     same invisible-cue trick as .blowcue so the rungs all stay on screen. */
+  #s7words .pyrung{transition:opacity .35s ease,transform .35s ease,border-color .35s ease}
+  #s7words .pyrung{opacity:.42}
+  #s7words:has(.c1.show) .pyrung.p1{opacity:1;transform:scale(1.02);border-color:var(--cyan)}
+  #s7words:has(.c2.show) .pyrung.p1{opacity:.42;transform:none;border-color:inherit}
+  #s7words:has(.c2.show) .pyrung.p2{opacity:1;transform:scale(1.02);border-color:var(--cyan)}
+  #s7words:has(.c3.show) .pyrung.p2{opacity:.42;transform:none;border-color:inherit}
+  #s7words:has(.c3.show) .pyrung.p3{opacity:1;transform:scale(1.02);border-color:var(--cyan)}
+  #s7words:has(.c4.show) .pyrung.p3{opacity:.42;transform:none;border-color:inherit}
+  #s7words:has(.c4.show) .pyrung.p4{opacity:1;transform:scale(1.02);border-color:var(--cyan)}
   .s12 .dadshot{opacity:0;visibility:hidden;transform:scale(.96);
     transition:opacity .5s var(--ease-expo),transform .6s var(--ease-expo),width .85s var(--ease-expo),right .85s var(--ease-expo),bottom .85s var(--ease-expo)}
   .s12:has(.blowcue.show) .dadshot{opacity:1;visibility:visible;transform:none;width:690px;right:615px;bottom:56px;z-index:40;box-shadow:0 50px 120px rgba(0,0,0,.75)}
@@ -861,9 +873,13 @@
 </section>
 
 <!-- ============ SLIDE — 101: THE SEVEN WORDS ============ -->
-<section class="slide t-rise" data-title="101: The Only 7 Words You Need" data-beats="This doubles as the table of contents for the hour|Prompt = what you ask|Thread = one conversation that remembers itself — new job, new thread|Project = a folder of threads sharing your studio's material|Memory/custom instructions = tell it who you are, once|Connector = let it reach your email + calendar — comes back on the ladder|Skill = teach it a job once, reuse forever|!!Agent = it uses tools on its own — IT WORKS WHILE YOU SLEEP|&gt;&gt;&#39;As a business owner you love going to sleep and waking up to something already changed.&#39;|..Top to bottom: memory, projects, threads, prompts. Twenty seconds a word, no examples yet.|!!Safety line before you move: don&#39;t paste anything you wouldn&#39;t put in an email">
+<section class="slide t-rise" id="s7words" data-title="101: The Only 7 Words You Need" data-beats="This doubles as the table of contents for the hour|Prompt = what you ask|Thread = one conversation that remembers itself — new job, new thread|Project = a folder of threads sharing your studio's material|Memory/custom instructions = tell it who you are, once|Connector = let it reach your email + calendar — comes back on the ladder|Skill = teach it a job once, reuse forever|!!Agent = it uses tools on its own — IT WORKS WHILE YOU SLEEP|&gt;&gt;&#39;As a business owner you love going to sleep and waking up to something already changed.&#39;|..Top to bottom: memory, projects, threads, prompts. Twenty seconds a word, no examples yet.|!!Safety line before you move: don&#39;t paste anything you wouldn&#39;t put in an email">
   <div class="ns">
     <div class="kick">The only seven words you need</div>
+    <div class="pcue c1 frag" data-frag="1" style="position:absolute;left:0;top:0;width:1px;height:1px"></div>
+    <div class="pcue c2 frag" data-frag="2" style="position:absolute;left:0;top:0;width:1px;height:1px"></div>
+    <div class="pcue c3 frag" data-frag="3" style="position:absolute;left:0;top:0;width:1px;height:1px"></div>
+    <div class="pcue c4 frag" data-frag="4" style="position:absolute;left:0;top:0;width:1px;height:1px"></div>
     <div class="pyr tight">
       <div class="pyrung p1"><span class="n">MEMORY</span><b>What it knows about you.</b><i>Tell it who you are, your studio, your goals &mdash; once. It applies everywhere.</i></div>
       <div class="pyrung p2"><span class="n">PROJECT</span><b>A folder of threads.</b><i>They share your studio&rsquo;s material in the background.</i></div>
