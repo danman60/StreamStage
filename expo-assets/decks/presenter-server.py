@@ -35,6 +35,34 @@ FACELIFT_SITE = os.path.join(FACELIFT_DIR, "site")
 FACELIFT_RUNNER = os.path.join(HERE, "facelift-run.sh")
 FACELIFT_FALLBACK = os.path.join(HERE, "facelift-fallback")
 
+# --- remote build host -------------------------------------------------------
+# facelift-run.sh needs bash AND the Claude CLI. The Windows presenting laptop
+# has neither (no bash on PATH, no WSL), so a local Popen silently never starts:
+# status sticks at "queued", runner.log stays 0 bytes, and the deck quietly falls
+# back to the canned facelift-fallback. Verified failure on FIRMAMENT 2026-07-26.
+#
+# So: dispatch the build to SPYBALLOON over ssh (into a tmux session so it
+# survives a dropped connection and can be watched), poll its status, and pull
+# the finished site back here. The REVEAL still serves off this laptop — the
+# network is only needed during the build window, not at reveal time.
+FACELIFT_REMOTE      = os.environ.get("FACELIFT_REMOTE", "danman60@100.122.177.91")
+FACELIFT_REMOTE_DIR  = os.environ.get(
+    "FACELIFT_REMOTE_DIR",
+    "/home/danman60/projects/StreamStage/expo-assets/decks/facelift-out")
+FACELIFT_REMOTE_RUN  = os.environ.get(
+    "FACELIFT_REMOTE_RUN",
+    "/home/danman60/projects/StreamStage/expo-assets/decks/facelift-run.sh")
+# Set FACELIFT_LOCAL=1 to run the build on this machine instead (Linux only).
+FACELIFT_LOCAL       = os.environ.get("FACELIFT_LOCAL", "") == "1"
+# -n: never let the remote command hold our stdin open, or ssh blocks on dispatch.
+SSH = ["ssh", "-n", "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=no",
+       "-o", "ConnectTimeout=15"]
+# `ssh host 'cmd'` is NON-interactive: .bashrc bails early, nvm never loads, and
+# facelift-run.sh dies with `claude exited rc=127`. Verified 2026-07-26. So the
+# runner is launched through a login shell with the node bin dir forced on PATH.
+FACELIFT_REMOTE_PATH = os.environ.get(
+    "FACELIFT_REMOTE_PATH", "/home/danman60/.nvm/versions/node/v22.22.1/bin")
+
 # statuses: idle · queued · running · ready · failed
 IDLE_FACELIFT = {"status": "idle", "url": "", "stage": "", "deployed_url": "",
                  "local_url": "", "error": "", "started_at": 0, "updated_at": 0}
@@ -71,27 +99,116 @@ def facelift_state():
     return st
 
 
-def start_facelift(url):
-    """Launch the runner detached. Returns (ok, message)."""
-    if not os.path.exists(FACELIFT_RUNNER):
-        return False, "facelift-run.sh missing next to presenter-server.py"
+def _write_status(**kw):
+    st = {"updated_at": int(time.time())}
+    st.update(kw)
+    tmp = FACELIFT_STATUS + ".tmp"
+    with open(tmp, "w") as fh:
+        json.dump(st, fh)
+    os.replace(tmp, FACELIFT_STATUS)
+
+
+def _clear_previous_run():
+    """A stale 'ready' must never masquerade as this run."""
     os.makedirs(FACELIFT_DIR, exist_ok=True)
-    # Clear the previous run so a stale 'ready' can't masquerade as this one.
-    for stale in (FACELIFT_STATUS,):
-        try:
-            os.remove(stale)
-        except OSError:
-            pass
+    try:
+        os.remove(FACELIFT_STATUS)
+    except OSError:
+        pass
     if os.path.isdir(FACELIFT_SITE):
         os.rename(FACELIFT_SITE, FACELIFT_SITE + "-prev-%d" % int(time.time()))
-    with open(FACELIFT_STATUS, "w") as fh:
-        json.dump({"status": "queued", "url": url, "stage": "starting",
-                   "started_at": int(time.time()), "updated_at": int(time.time())}, fh)
-    log = open(os.path.join(FACELIFT_DIR, "runner.log"), "ab")
-    subprocess.Popen([FACELIFT_RUNNER, url, FACELIFT_DIR],
-                     stdout=log, stderr=subprocess.STDOUT,
-                     stdin=subprocess.DEVNULL, start_new_session=True)
-    return True, "started"
+
+
+def _remote_poll(url, session, started):
+    """Mirror the remote run's status locally; pull the site down when it's ready."""
+    remote_status = FACELIFT_REMOTE_DIR + "/status.json"
+    while True:
+        time.sleep(5)
+        try:
+            out = subprocess.run(SSH + [FACELIFT_REMOTE, "cat " + remote_status],
+                                 capture_output=True, timeout=30).stdout
+            st = json.loads(out or b"{}")
+        except Exception as e:                     # network blip — keep polling
+            _write_status(status="running", url=url, stage="link down (%s)" % type(e).__name__,
+                          started_at=started, session=session)
+            continue
+        status = st.get("status", "running")
+        st.setdefault("url", url)
+        st["session"] = session
+        if status == "ready":
+            st["stage"] = "copying build to this laptop"
+            _write_status(**st)
+            # Pull the built site down so the REVEAL is served locally and can
+            # survive the venue network dying between now and the reveal.
+            r = subprocess.run(["scp", "-q", "-r", "-o", "BatchMode=yes",
+                                FACELIFT_REMOTE + ":" + FACELIFT_REMOTE_DIR + "/site",
+                                FACELIFT_SITE], capture_output=True, timeout=600)
+            if r.returncode == 0 and os.path.exists(os.path.join(FACELIFT_SITE, "index.html")):
+                st["stage"] = "done"
+                _write_status(**st)
+            else:
+                st["status"] = "failed"
+                st["error"] = "build finished but copy failed: " + \
+                              (r.stderr or b"").decode("utf-8", "replace")[:200]
+                _write_status(**st)
+            return
+        _write_status(**st)
+        if status == "failed":
+            return
+
+
+def start_facelift(url):
+    """Kick the build off (remote by default) and return (ok, message)."""
+    _clear_previous_run()
+    started = int(time.time())
+
+    if FACELIFT_LOCAL:
+        if not os.path.exists(FACELIFT_RUNNER):
+            return False, "facelift-run.sh missing next to presenter-server.py"
+        _write_status(status="queued", url=url, stage="starting (local)", started_at=started)
+        log = open(os.path.join(FACELIFT_DIR, "runner.log"), "ab")
+        subprocess.Popen([FACELIFT_RUNNER, url, FACELIFT_DIR],
+                         stdout=log, stderr=subprocess.STDOUT,
+                         stdin=subprocess.DEVNULL, start_new_session=True)
+        return True, "started (local)"
+
+    session = "facelift-%d" % started
+    rdir = FACELIFT_REMOTE_DIR
+    # Reset remote state, then run the skill inside tmux so it survives a dropped
+    # ssh connection and can be watched live with: tmux attach -t <session>
+    inner = ("export PATH={p}:$PATH; exec {run} \"{u}\" \"{d}\" >> {d}/runner.log 2>&1"
+             ).format(p=FACELIFT_REMOTE_PATH, run=FACELIFT_REMOTE_RUN, u=url, d=rdir)
+    remote_cmd = (
+        "mkdir -p {d} && rm -f {d}/status.json && "
+        "if [ -d {d}/site ]; then mv {d}/site {d}/site-prev-{ts}; fi && "
+        # </dev/null and the redirects stop tmux inheriting ssh's pipes, which
+        # would keep the ssh call open until the whole build finished.
+        "tmux new-session -d -s {s} \"bash -lc '{inner}'\" </dev/null >/dev/null 2>&1 && "
+        "echo DISPATCHED"
+    ).format(d=rdir, ts=started, s=session, inner=inner.replace("'", "'\\''"))
+
+    # ssh often does NOT return here even though the remote work ran fine: tmux
+    # keeps the channel open. Verified 2026-07-26 — the build completed while ssh
+    # sat at 45s. So a timeout is NOT a failure; the poller decides the truth.
+    try:
+        r = subprocess.run(SSH + [FACELIFT_REMOTE, remote_cmd],
+                           capture_output=True, timeout=20)
+        if r.returncode != 0 and b"DISPATCHED" not in (r.stdout or b""):
+            err = (r.stderr or b"").decode("utf-8", "replace")[:200]
+            _write_status(status="failed", url=url, stage="dispatch",
+                          started_at=started, error=err or "remote command failed")
+            return False, "remote dispatch failed: " + (err or "unknown")
+    except subprocess.TimeoutExpired:
+        pass                                   # dispatched; ssh just won't hang up
+    except Exception as e:
+        _write_status(status="failed", url=url, stage="dispatch",
+                      started_at=started, error="ssh to %s failed: %s" % (FACELIFT_REMOTE, e))
+        return False, "ssh dispatch failed: %s" % e
+
+    _write_status(status="queued", url=url, stage="dispatched to %s" % FACELIFT_REMOTE,
+                  started_at=started, session=session)
+    threading.Thread(target=_remote_poll, args=(url, session, started), daemon=True).start()
+    return True, "started on %s (tmux %s)" % (FACELIFT_REMOTE, session)
 
 
 def local_ips():
@@ -156,6 +273,15 @@ button:active{background:var(--cy);color:#06121a}
 #jumplist li:before{content:none}
 #jumplist .n{color:var(--cy);font-weight:800;font-variant-numeric:tabular-nums;min-width:2.2em}
 #jumplist li.cur{background:#16222e;border-radius:10px}
+#flbar{display:flex;gap:8px;padding:10px 12px;background:#101822;border-bottom:1px solid #223040}
+#flurl2{flex:1;min-width:0;padding:14px 12px;font-size:18px;border-radius:10px;border:1px solid #2c3d4f;
+  background:#0b1016;color:var(--ink)}
+#flgo2{flex:none;padding:0 20px;font-size:17px;font-weight:800;border-radius:10px;border:1px solid #2c3d4f;
+  background:#1b2734;color:var(--ink)}
+#flgo2:active{background:var(--cy);color:#06121a}
+#flnote{display:none;padding:8px 14px;font-size:15px;font-weight:700;background:#0d1c22;color:var(--cy);
+  border-bottom:1px solid #223040}
+#flnote.on{display:block}
 /* --- facelift panel --- */
 #fl{display:none;position:fixed;inset:0;z-index:25;background:var(--bg);overflow-y:auto;
   padding:16px 16px calc(90px + env(safe-area-inset-bottom));padding-top:max(16px,env(safe-area-inset-top))}
@@ -173,6 +299,11 @@ button:active{background:var(--cy);color:#06121a}
 #flrow button{padding:16px 0;font-size:16px}
 </style></head><body>
 <header><span id="dot"></span><span id="pos">-/-</span><span id="title">connecting…</span></header>
+<div id="flbar">
+  <input id="flurl2" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="their-studio.com">
+  <button id="flgo2">GO</button>
+</div>
+<div id="flnote"></div>
 <main><h2 id="h"></h2><ul id="beats"></ul></main>
 <section id="jump"><ul id="jumplist"></ul></section>
 <section id="fl">
@@ -257,12 +388,31 @@ document.getElementById('flreset').onclick=function(){
     body:JSON.stringify({action:'reset'})}).then(function(r){return r.json()})
     .then(function(d){if(d.facelift)paintFl(d.facelift)}).catch(function(){});
 };
+function flStart(u){
+  if(!u){return;}
+  fetch('/facelift',{method:'POST',headers:{'content-type':'application/json'},
+    body:JSON.stringify({action:'start',url:u})})
+    .then(function(r){return r.json()})
+    .then(function(d){ if(d.facelift)paintFl(d.facelift); }).catch(function(){});
+}
+document.getElementById('flgo2').onclick=function(){
+  var el=document.getElementById('flurl2');
+  flStart(el.value); el.blur();
+};
+document.getElementById('flurl2').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){e.preventDefault();flStart(this.value);this.blur();}
+});
 function paintFl(f){
   if(!f)return;
   var v=document.getElementById('flv');
   v.textContent=f.status+(f.stage?' · '+f.stage:'');
   v.className='v '+(f.status==='ready'?'ready':f.status==='failed'?'failed':f.status==='running'||f.status==='queued'?'running':'');
   document.getElementById('flu').textContent=f.url||'—';
+  var note=document.getElementById('flnote');
+  if(f && f.status && f.status!=='idle'){
+    note.classList.add('on');
+    note.textContent='facelift: '+f.status+(f.url?(' · '+f.url):'');
+  } else { note.classList.remove('on'); }
   var r=f.deployed_url||f.local_url||'';
   document.getElementById('flr').textContent=r?r:(f.error?('error: '+f.error):'—');
 }
