@@ -13,6 +13,7 @@ Volume buttons cannot be used: no mobile browser exposes them to a web page.
 Tap zones instead (and they can't accidentally change your volume mid-talk).
 """
 import http.server, socketserver, json, socket, sys, os, threading, re, subprocess, time
+import tempfile
 
 PORT = int(os.environ.get("PRESENTER_PORT", "8080"))
 
@@ -70,6 +71,44 @@ IDLE_FACELIFT = {"status": "idle", "url": "", "stage": "", "deployed_url": "",
 URL_RE = re.compile(r"^https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:[/:?#].*)?$")
 
 
+def run_capture(cmd, timeout):
+    """subprocess.run(capture_output=True) replacement that survives Windows OpenSSH.
+
+    MEASURED ON FIRMAMENT 2026-07-26 (sshdiag.py, python 3.10.11), same host, same
+    command, 30s budget:
+        run(capture_output=True)              -> TIMEOUT 30.02s
+        run(+stdin=DEVNULL)                   -> TIMEOUT 30.01s
+        run(no -n)                            -> TIMEOUT 30.01s
+        run(inside a daemon thread)           -> TIMEOUT 30.02s
+        Popen(stdout=real file handle)        -> 0.08s rc=0, 218 bytes   <-- this
+    ssh.exe hands the pipe write end to its posix-emulation layer and never closes
+    it, so CPython's Windows reader thread blocks on read() forever and communicate()
+    can never return. A real file handle has no reader thread and no EOF to wait for.
+    It was never stdin, never `-n`, and never the abandoned dispatch child.
+
+    Returns (rc, stdout_bytes, stderr_bytes). rc is None if the deadline passed.
+    """
+    fo, fe = tempfile.TemporaryFile(), tempfile.TemporaryFile()
+    p = None
+    try:
+        p = subprocess.Popen(cmd, stdout=fo, stderr=fe, stdin=subprocess.DEVNULL)
+        rc = p.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        rc = None
+        try:
+            p.kill()
+        except Exception:
+            pass
+    finally:
+        try:
+            fo.seek(0); out = fo.read()
+            fe.seek(0); err = fe.read()
+        except Exception:
+            out, err = b"", b""
+        fo.close(); fe.close()
+    return rc, out, err
+
+
 def normalise_url(raw):
     """Accept what a human types on a phone: 'foo.com', 'www.foo.com/x', full urls."""
     u = (raw or "").strip()
@@ -125,8 +164,9 @@ def _remote_poll(url, session, started):
     while True:
         time.sleep(5)
         try:
-            out = subprocess.run(SSH + [FACELIFT_REMOTE, "cat " + remote_status],
-                                 capture_output=True, timeout=30).stdout
+            rc, out, _ = run_capture(SSH + [FACELIFT_REMOTE, "cat " + remote_status], 30)
+            if rc is None:
+                raise TimeoutError("poll ssh exceeded 30s")
             st = json.loads(out or b"{}")
         except Exception as e:                     # network blip — keep polling
             _write_status(status="running", url=url, stage="link down (%s)" % type(e).__name__,
@@ -135,21 +175,25 @@ def _remote_poll(url, session, started):
         status = st.get("status", "running")
         st.setdefault("url", url)
         st["session"] = session
+        # the runner's status.json has no started_at; without this the deck's
+        # elapsed-time readout resets to 1970 the moment the first poll lands.
+        st["started_at"] = started
         if status == "ready":
             st["stage"] = "copying build to this laptop"
             _write_status(**st)
             # Pull the built site down so the REVEAL is served locally and can
             # survive the venue network dying between now and the reveal.
-            r = subprocess.run(["scp", "-q", "-r", "-o", "BatchMode=yes",
-                                FACELIFT_REMOTE + ":" + FACELIFT_REMOTE_DIR + "/site",
-                                FACELIFT_SITE], capture_output=True, timeout=600)
-            if r.returncode == 0 and os.path.exists(os.path.join(FACELIFT_SITE, "index.html")):
+            rc, _, cerr = run_capture(["scp", "-q", "-r", "-o", "BatchMode=yes",
+                                       "-o", "StrictHostKeyChecking=no",
+                                       FACELIFT_REMOTE + ":" + FACELIFT_REMOTE_DIR + "/site",
+                                       FACELIFT_SITE], 600)
+            if rc == 0 and os.path.exists(os.path.join(FACELIFT_SITE, "index.html")):
                 st["stage"] = "done"
                 _write_status(**st)
             else:
                 st["status"] = "failed"
                 st["error"] = "build finished but copy failed: " + \
-                              (r.stderr or b"").decode("utf-8", "replace")[:200]
+                              (cerr or b"").decode("utf-8", "replace")[:200]
                 _write_status(**st)
             return
         _write_status(**st)
@@ -191,15 +235,14 @@ def start_facelift(url):
     # keeps the channel open. Verified 2026-07-26 — the build completed while ssh
     # sat at 45s. So a timeout is NOT a failure; the poller decides the truth.
     try:
-        r = subprocess.run(SSH + [FACELIFT_REMOTE, remote_cmd],
-                           capture_output=True, timeout=20)
-        if r.returncode != 0 and b"DISPATCHED" not in (r.stdout or b""):
-            err = (r.stderr or b"").decode("utf-8", "replace")[:200]
+        rc, dout, derr = run_capture(SSH + [FACELIFT_REMOTE, remote_cmd], 20)
+        if rc is None:
+            pass                               # dispatched; ssh just won't hang up
+        elif rc != 0 and b"DISPATCHED" not in (dout or b""):
+            err = (derr or b"").decode("utf-8", "replace")[:200]
             _write_status(status="failed", url=url, stage="dispatch",
                           started_at=started, error=err or "remote command failed")
             return False, "remote dispatch failed: " + (err or "unknown")
-    except subprocess.TimeoutExpired:
-        pass                                   # dispatched; ssh just won't hang up
     except Exception as e:
         _write_status(status="failed", url=url, stage="dispatch",
                       started_at=started, error="ssh to %s failed: %s" % (FACELIFT_REMOTE, e))
