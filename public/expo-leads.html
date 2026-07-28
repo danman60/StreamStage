@@ -41,8 +41,10 @@
 <body>
   <main>
     <div class="brand">STREAMSTAGE</div>
-    <h1>Make every dance moment count.</h1>
-    <p class="intro">Get the Dance Studio Video Plan, practical ideas for recital films, studio stories, and social content that families will want to share.</p>
+    <h1>Get the Recital Video &amp; Livestream Checklist.</h1>
+    <p class="intro">The full checklist from the talk &mdash; what to lock before the night, the
+      coverage you can&rsquo;t go back for, the five formats audiences actually watch, and how one
+      night becomes a season of content. It opens as soon as you hit send.</p>
     <section class="card" id="form-card">
       <form id="lead-form">
         <label for="name">Your name</label>
@@ -67,8 +69,14 @@
         <p class="privacy">By submitting, you agree that StreamStage may follow up about the selections above. No spam, no list-selling.</p>
       </form>
       <div id="thanks" class="hidden">
-        <h2>You&rsquo;re on the list.</h2>
-        <p>Thanks for stopping by. We&rsquo;ll send the Dance Studio Video Plan shortly. Enjoy the expo!</p>
+        <h2>Here it is.</h2>
+        <p>Your checklist is ready &mdash; it opens straight away, no second form.</p>
+        <p style="margin:16px 0 4px">
+          <a id="openchecklist" href="/checklist"
+             style="display:inline-block;padding:15px 28px;background:#1898b4;color:#fff;
+                    font-weight:800;font-size:1.05rem;text-decoration:none;border-radius:11px">
+            Open the checklist &rsaquo;</a>
+        </p>
         <button type="button" id="next">Capture another lead</button>
       </div>
     </section>
@@ -130,6 +138,9 @@
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Send me the plan';
+        // They just gave name/studio/email here, so don't make them do it again at
+        // the checklist gate. Same origin, so unlocking it from this page works.
+        try { localStorage.setItem('ss_checklist_unlocked', '1'); } catch (_) {}
         form.classList.add('hidden');
         thanks.classList.remove('hidden');
       }
