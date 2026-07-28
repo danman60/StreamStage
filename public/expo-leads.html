@@ -55,6 +55,10 @@
         <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@studio.com" />
         <label for="phone">Mobile number <span style="font-weight:500;color:var(--muted)">(optional)</span></label>
         <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="For a quick follow-up" />
+        <label for="notes">Notes <span style="font-weight:500;color:var(--muted)">(optional)</span></label>
+        <textarea id="notes" name="notes" rows="3" placeholder="Anything worth remembering about this conversation"
+          style="width:100%;padding:13px 14px;font:inherit;font-size:1rem;color:inherit;background:inherit;
+                 border:1px solid var(--line,#2c3d4f);border-radius:10px;resize:vertical"></textarea>
         <label>What would be most useful right now?</label>
         <div class="options">
           <label class="choice"><input type="checkbox" name="interest" value="Recital capture" /> Recital capture</label>
@@ -116,6 +120,7 @@
         email: data.get('email'),
         phone: data.get('phone'),
         interests: data.getAll('interest'),
+        notes: data.get('notes') || '',
         source: 'Dance Teacher Expo kiosk',
       };
       // Always keep a local copy (offline-safe kiosk backup + CSV export).

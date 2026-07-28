@@ -11,6 +11,7 @@ interface LeadBody {
   phone?: string;
   interests?: string[] | string;
   source?: string;
+  notes?: string;
 }
 
 function row(label: string, value: string) {
@@ -29,6 +30,7 @@ function buildHtml(l: {
   phone: string;
   interests: string;
   source: string;
+  notes: string;
 }) {
   return `<!doctype html><html><head><meta charset="utf-8"/></head>
 <body style="margin:0;background:#eaf5ff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
@@ -45,6 +47,7 @@ function buildHtml(l: {
           ${row("Email", `<a href="mailto:${escapeHtml(l.email)}" style="color:#1976d2;text-decoration:none;">${escapeHtml(l.email)}</a>`)}
           ${row("Phone", l.phone ? `<a href="tel:${escapeHtml(l.phone)}" style="color:#1976d2;text-decoration:none;">${escapeHtml(l.phone)}</a>` : "")}
           ${row("Interested in", escapeHtml(l.interests) || "—")}
+          ${row("Notes", escapeHtml(l.notes).replace(/\n/g, "<br>"))}
         </table>
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:28px;"><tr><td>
           <a href="mailto:${escapeHtml(l.email)}?subject=Re: Your StreamStage Dance Studio Video Plan" style="display:inline-block;padding:12px 26px;background:#1976d2;color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:10px;">Reply to ${escapeHtml(l.name)}</a>
@@ -69,6 +72,9 @@ export async function POST(request: Request) {
       ? body.interests.join(" · ")
       : (body.interests || "").toString();
     const source = (body.source || "Dance Teacher Expo kiosk").toString();
+    // Free-text context Daniel types at the booth ("also wants a website", "call
+    // after Labour Day"). Stored on the lead; never shown to or sent to the lead.
+    const notes = (body.notes || "").toString().slice(0, 2000).trim();
 
     if (!name || !studio || !email) {
       return NextResponse.json(
@@ -87,7 +93,7 @@ export async function POST(request: Request) {
       // email here or delivery bounces. Reply to the lead via the in-body mailto button.
       replyTo: LEAD_FROM,
       subject: `New expo lead — ${name}${studio ? ` (${studio})` : ""}`,
-      html: buildHtml({ name, studio, email, phone, interests, source }),
+      html: buildHtml({ name, studio, email, phone, interests, source, notes }),
     });
 
     // Mirror into StudioSage's unified `leads` table. StreamStage has no database
@@ -112,7 +118,9 @@ export async function POST(request: Request) {
             phone,
             interests: Array.isArray(body.interests) ? body.interests : [],
             consent: "form_submitted",
-            notes: source,
+            // Daniel's booth notes take the field; fall back to the source label
+            // so a lead with no notes still records where it came from.
+            notes: notes || source,
           }),
           signal: AbortSignal.timeout(4000),
         });
