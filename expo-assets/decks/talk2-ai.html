@@ -1932,9 +1932,15 @@
   /* ---- phone presenter remote (only active when served by presenter-server.py) ----
      Deck reports where it is; phone shows that slide's beats and sends next/prev.
      Commands are replayed as real arrow keys so the demo/wall special cases still apply.
-     Silently inert over file:// or a plain static server — every call just fails and stops. */
+     Silently inert over file:// or a plain static server — the calls just fail and back off. */
   (function(){
-    var on=true, fails=0;
+    /* Run-through fix, carried over from talk1: this used to switch itself off
+       permanently after four failed requests (`if(++fails>3)on=false`). One wifi
+       blip on the heavy live slide and the remote was dead for the rest of the
+       talk with no way back. Now it backs off and recovers on the next success. */
+    var backoff=0, tick=0;
+    function ok(){ backoff=0; }
+    function bad(){ backoff = backoff ? Math.min(backoff*2, 8) : 1; }
     function beatsFor(s){
       var d=s.getAttribute('data-beats');
       if(d)return d.split('|').map(function(x){return x.trim();}).filter(Boolean);
@@ -1944,20 +1950,26 @@
              .map(function(x){return x.trim();}).filter(function(x){return x.length>3;}).slice(0,12);
     }
     window.__report=function(s){
-      if(!on)return;
       fetch('/state',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
         idx:cur, total:slides.length, title:s.getAttribute('data-title')||'', beats:beatsFor(s),
         titles:slides.map(function(x){return x.getAttribute('data-title')||'';})
-      })}).then(function(){fails=0;}).catch(function(){ if(++fails>3)on=false; });
+      })}).then(ok).catch(bad);
     };
     setInterval(function(){
-      if(!on)return;
+      if(backoff>0 && (++tick % (backoff+1))) return;      // still backing off — skip this tick
       fetch('/cmd',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
+        ok();
         (d.cmds||[]).forEach(function(a){
           if(a.indexOf('goto:')===0){ show(parseInt(a.slice(5),10),true); return; }
-          window.dispatchEvent(new KeyboardEvent('keydown',{key:a==='next'?'ArrowRight':'ArrowLeft'}));
+          // Phone rescue button — same branch the O key and the on-slide
+          // "Animated version" button take, so the behaviour is identical.
+          if(a==='animdemo'){ var fi=fallbackIndex(); if(fi>=0) show(fi); return; }
+          if(a==='next'){ window.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight'})); return; }
+          if(a==='prev'){ window.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft'})); return; }
+          // Anything else is ignored. This used to fall through to ArrowLeft, so an
+          // unrecognised command (e.g. 'facelift') silently walked the deck BACKWARDS.
         });
-      }).catch(function(){ if(++fails>3)on=false; });
+      }).catch(bad);
     },400);
   })();
   /* ---- facelift state (SageDev contract: GET /facelift) ----

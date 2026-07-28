@@ -370,6 +370,13 @@ li.beat:before{content:"\\23F8";color:var(--dim)}
 .empty{color:var(--dim);font-style:italic}
 nav{display:flex;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--panel);
   border-top:1px solid #223040}
+/* Rescue row: its own full-width button above the nav so it is unmissable under
+   stage light and cannot shrink the Prev/Next thumb zones. Amber, not cyan, so a
+   panicked thumb never confuses it with Next. */
+#rescuerow{padding:8px 12px 0;background:var(--panel)}
+#rescuerow button{width:100%;padding:18px 0;font-size:18px;letter-spacing:.04em;
+  background:#3a2a12;color:#f0c579;border:1px solid #6b4a17}
+#rescuerow button:active{background:#b8791a;color:#1a1206}
 button{flex:1;padding:26px 0;font-size:21px;font-weight:800;border-radius:16px;border:1px solid #2c3d4f;
   background:#1b2734;color:var(--ink);touch-action:manipulation}
 button:active{background:var(--cy);color:#06121a}
@@ -427,6 +434,7 @@ button:active{background:var(--cy);color:#06121a}
   </div>
   <div id="flrow"><button id="flclose">Close</button><button id="flreset">Reset run</button></div>
 </section>
+<div id="rescuerow"><button id="animbtn">&#9656; ANIMATED DEMO &mdash; rescue</button></div>
 <nav><button id="prev">Prev</button><button id="flbtn">&#9733;</button><button id="jumpbtn">Jump</button><button id="next">Next &rsaquo;</button></nav>
 <script>
 var lastSeq=-1, dot=document.getElementById('dot');
@@ -436,6 +444,11 @@ function send(action){
 }
 document.getElementById('prev').onclick=function(){send('prev')};
 document.getElementById('next').onclick=function(){send('next')};
+document.getElementById('animbtn').onclick=function(){
+  send('animdemo');
+  var b=this, t=b.textContent;                 // confirm the tap landed — no time to wonder on stage
+  b.textContent='→ ANIMATED DEMO'; setTimeout(function(){b.textContent=t;},1400);
+};
 var jump=document.getElementById('jump');
 document.getElementById('jumpbtn').onclick=function(){jump.classList.toggle('open')};
 function paintJump(s){
@@ -641,6 +654,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                         PENDING.append("goto:%d" % int(data.get("i", 0)))
                 except Exception:
                     pass
+            elif a == "animdemo":
+                # The rescue: jump to the animated offline demo. Same thing the O key
+                # and the on-slide "Animated version" button do, but from the phone, so
+                # it does not need him to reach the laptop mid-demo.
+                with _lock:
+                    PENDING.append("animdemo")
             elif a == "facelift":
                 # talk1 keeps the rebuild on an overlay rather than a slide, so the phone
                 # needs a way to pop it. talk2 ignores this command harmlessly.
