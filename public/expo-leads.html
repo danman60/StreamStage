@@ -106,6 +106,24 @@
     const dialog = document.querySelector('#admin-dialog');
     const errEl = document.querySelector('#err');
     const submitBtn = document.querySelector('#submit');
+
+    /* ---- staff mode -------------------------------------------------------
+       Same form, two audiences. Public scans arrive from the TV QR and are
+       offered the checklist. Daniel works the booth from ?staff=1, where the
+       marketing copy is wrong and confusing — he is not requesting a plan, he
+       is recording a person. Flip the wording; the payload is identical. */
+    const STAFF = new URLSearchParams(location.search).has('staff')
+               || new URLSearchParams(location.search).has('booth');
+    const SUBMIT_LABEL = STAFF ? 'Save lead' : 'Get the checklist';
+    if (STAFF) {
+      document.title = 'Booth — add a lead';
+      document.querySelector('h1').textContent = 'Add a lead';
+      const intro = document.querySelector('.intro');
+      if (intro) intro.textContent = 'Internal capture. Nothing is emailed to them.';
+      const priv = document.querySelector('.privacy');
+      if (priv) priv.remove();
+    }
+    submitBtn.textContent = SUBMIT_LABEL;
     const getLeads = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     const esc = value => '"' + String(value ?? '').replaceAll('"', '""') + '"';
 
@@ -142,12 +160,21 @@
         console.warn('Lead email failed, kept local copy:', e);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Send me the plan';
-        // They just gave name/studio/email here, so don't make them do it again at
-        // the checklist gate. Same origin, so unlocking it from this page works.
-        try { localStorage.setItem('ss_checklist_unlocked', '1'); } catch (_) {}
-        form.classList.add('hidden');
-        thanks.classList.remove('hidden');
+        submitBtn.textContent = SUBMIT_LABEL;
+        if (STAFF) {
+          // Booth flow: no reward, no checklist, straight back to a blank form
+          // so the next person can be recorded without an extra tap.
+          form.reset();
+          document.querySelector('#name').focus();
+          submitBtn.textContent = 'Saved ✓';
+          setTimeout(() => { submitBtn.textContent = SUBMIT_LABEL; }, 1600);
+        } else {
+          // They just gave name/studio/email here, so don't make them do it again
+          // at the checklist gate. Same origin, so unlocking from this page works.
+          try { localStorage.setItem('ss_checklist_unlocked', '1'); } catch (_) {}
+          form.classList.add('hidden');
+          thanks.classList.remove('hidden');
+        }
       }
     });
 
