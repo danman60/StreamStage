@@ -35,6 +35,27 @@
   footer a{color:var(--cy);text-decoration:none;font-weight:700}
   @media print{body{background:#fff}.page{box-shadow:none;padding:0;max-width:none}}
   @media(max-width:600px){.page{padding:28px 20px 44px}h1{font-size:32px}}
+  /* ---- email gate ---------------------------------------------------------
+     The checklist used to be ungated: a room full of QR scans produced zero
+     leads. Content is blurred behind an overlay until name/studio/email are in.
+     Unlocks permanently per-device via localStorage so a re-scan is not a wall. */
+  body.locked{overflow:hidden}
+  body.locked .page{filter:blur(7px);pointer-events:none;user-select:none}
+  #gate{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;
+    padding:20px;background:rgba(10,26,40,.72);backdrop-filter:blur(2px)}
+  body.locked #gate{display:flex}
+  #gatecard{width:100%;max-width:430px;background:#fff;border-radius:16px;padding:28px 26px;
+    box-shadow:0 30px 80px rgba(8,22,36,.45)}
+  #gatecard h2{margin:0 0 6px;font-size:25px;color:var(--blue)}
+  #gatecard p{margin:0 0 18px;color:var(--dim);font-size:15.5px;line-height:1.5}
+  #gatecard input{width:100%;margin:0 0 11px;padding:14px 14px;font-size:16px;color:var(--ink);
+    border:1px solid #c6d6e2;border-radius:10px;background:#fbfdff}
+  #gatecard input:focus{outline:none;border-color:var(--cy);box-shadow:0 0 0 3px rgba(24,152,180,.16)}
+  #gatego{width:100%;padding:15px 0;font-size:17px;font-weight:800;color:#fff;background:var(--cy);
+    border:0;border-radius:11px;cursor:pointer}
+  #gatego[disabled]{opacity:.6}
+  #gateerr{margin:10px 0 0;font-size:14px;color:#b4462f;min-height:19px}
+  #gatefine{margin:14px 0 0;font-size:12.5px;color:#8b9aa6;line-height:1.45}
 </style>
 </head>
 <body>
@@ -184,5 +205,59 @@
     <a href="https://streamstage.live">streamstage.live</a>
   </footer>
 </div>
+
+<div id="gate" role="dialog" aria-modal="true" aria-labelledby="gatetitle">
+  <div id="gatecard">
+    <h2 id="gatetitle">Where should we send it?</h2>
+    <p>The full recital video &amp; livestream checklist &mdash; plus the shot and scene ideas from
+      the talk. Enter your details and it opens right here.</p>
+    <form id="gateform" novalidate>
+      <input id="gname"   type="text"  autocomplete="name"         placeholder="Your name" required>
+      <input id="gstudio" type="text"  autocomplete="organization" placeholder="Studio name" required>
+      <input id="gemail"  type="email" autocomplete="email" inputmode="email"
+             autocapitalize="off" spellcheck="false" placeholder="you@yourstudio.com" required>
+      <button id="gatego" type="submit">Open the checklist</button>
+      <p id="gateerr" role="alert"></p>
+    </form>
+    <p id="gatefine">We will send occasional studio video tips. Unsubscribe any time.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var KEY='ss_checklist_unlocked';
+  var b=document.body;
+  // Already unlocked on this device? Never gate the same person twice.
+  try{ if(localStorage.getItem(KEY)){ return; } }catch(e){}
+  b.classList.add('locked');
+  var f=document.getElementById('gateform'), btn=document.getElementById('gatego'),
+      err=document.getElementById('gateerr');
+  function unlock(){
+    try{ localStorage.setItem(KEY,'1'); }catch(e){}
+    b.classList.remove('locked');
+    window.scrollTo(0,0);
+  }
+  f.addEventListener('submit',function(ev){
+    ev.preventDefault();
+    var name=document.getElementById('gname').value.trim(),
+        studio=document.getElementById('gstudio').value.trim(),
+        email=document.getElementById('gemail').value.trim();
+    if(!name||!studio||!email){ err.textContent='Name, studio and email are all needed.'; return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent='That email does not look right.'; return; }
+    err.textContent=''; btn.disabled=true; btn.textContent='Opening…';
+    fetch('/api/expo-leads',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({name:name,studio:studio,email:email,
+        interests:['recital video checklist'],source:'Checklist QR — talk handout'})})
+      .then(function(r){ return r.ok ? r.json() : Promise.reject(r); })
+      .then(unlock)
+      .catch(function(){
+        // Never trap someone behind a venue-wifi blip — they scanned in good faith.
+        // Open it anyway and keep the address locally so it is recoverable.
+        try{ localStorage.setItem('ss_checklist_pending',JSON.stringify({name:name,studio:studio,email:email})); }catch(e){}
+        unlock();
+      });
+  });
+})();
+</script>
 </body>
 </html>
