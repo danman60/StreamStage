@@ -520,6 +520,69 @@
   @keyframes rescuePulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.55)}50%{box-shadow:0 0 0 14px rgba(245,158,11,0)}}
   .demobar{height:88px}
   .demoframe{height:992px}
+
+  /* ---- live scene -------------------------------------------------------
+     Replaces the cross-origin iframe on the wall slide. Same story, but drawn
+     locally from /demo-kb + /demo-wall (proxied by presenter-server.py, since
+     studiosage.ai sends no CORS header). Empty KB -> volunteer's email flies in
+     -> wires feed the core -> facts appear -> texts pop and get answered.
+     The old iframe is still in the DOM, hidden, on the W key. ------------- */
+  .lscene{position:absolute;left:0;top:0;width:1920px;height:992px;overflow:hidden;
+    background:radial-gradient(1150px 680px at 1080px 455px,#16201b 0%,#0c110f 62%,#070a09 100%)}
+  .lscene[hidden]{display:none}
+  .ls-wires{position:absolute;left:0;top:0;width:1920px;height:992px;pointer-events:none;z-index:3}
+  .ls-wire{stroke:#5fd0a0;stroke-width:2.5;fill:none;opacity:.55;
+    stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:lsdraw .85s ease-out forwards}
+  @keyframes lsdraw{to{stroke-dashoffset:0}}
+
+  .ls-core{position:absolute;left:1080px;top:455px;width:304px;height:304px;margin:-152px 0 0 -152px;
+    border-radius:50%;z-index:5;display:flex;align-items:center;justify-content:center;text-align:center;
+    background:radial-gradient(circle at 38% 30%,#1e3128,#0c1411 72%);border:2px solid #3c5a4b;
+    box-shadow:0 0 90px rgba(95,208,160,.12)}
+  .ls-core.empty{border-style:dashed;border-color:#55655c}
+  .ls-core.hit{animation:lspulse 1s ease-out}
+  @keyframes lspulse{from{box-shadow:0 0 0 0 rgba(95,208,160,.5),0 0 90px rgba(95,208,160,.12)}
+                     to{box-shadow:0 0 0 70px rgba(95,208,160,0),0 0 90px rgba(95,208,160,.12)}}
+  .ls-core-t{font:800 16px/1 var(--sans);letter-spacing:.18em;color:#7f9a8c}
+  .ls-core-n{font:900 96px/1 var(--sans);color:#fff;margin:6px 0 0}
+  .ls-core-s{font:700 19px/1.25 var(--sans);color:#8fb3a2;max-width:230px;margin:4px auto 0}
+
+  .ls-fact{position:absolute;z-index:4;transform:translate(-50%,-50%) scale(.55);opacity:0;
+    max-width:262px;background:rgba(11,19,15,.95);border:1px solid #3f6152;border-radius:13px;
+    padding:11px 14px;color:#e2efe7;font:600 18px/1.28 var(--sans);animation:lsfact .65s ease-out forwards}
+  @keyframes lsfact{to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+  .ls-fact b{display:block;font:800 12px/1 var(--sans);letter-spacing:.15em;color:#5fd0a0;
+    margin-bottom:6px;text-transform:uppercase}
+
+  .ls-mail{position:absolute;left:1080px;top:-340px;transform:translateX(-50%);width:640px;z-index:6;
+    background:#f5f2e9;color:#181c1a;border-radius:15px;padding:18px 24px;
+    box-shadow:0 30px 80px rgba(0,0,0,.65);animation:lsmail 1.6s cubic-bezier(.2,.9,.25,1) forwards}
+  @keyframes lsmail{0%{top:-340px;opacity:0}45%{opacity:1}100%{top:38px;opacity:1}}
+  .ls-mail-h{font:800 13px/1 var(--sans);letter-spacing:.17em;color:#8a7d5c;margin-bottom:9px}
+  .ls-mail-s{font:900 27px/1.2 var(--sans);margin-bottom:5px}
+  .ls-mail-f{font:600 17px/1.3 var(--sans);color:#5d635f}
+
+  /* Rolling feed: newest at the bottom, oldest scrolls off the top. Capped at 20
+     in the DOM. Deliberately small + clamped — an un-clamped answer ate half the
+     screen and still truncated mid-sentence. */
+  .ls-msgs{position:absolute;right:26px;top:150px;width:560px;height:800px;z-index:7;
+    display:flex;flex-direction:column;justify-content:flex-end;gap:7px;overflow:hidden;
+    -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 70px,#000 100%);
+            mask-image:linear-gradient(to bottom,transparent 0,#000 70px,#000 100%)}
+  .ls-m{flex:0 0 auto;border-radius:13px;padding:8px 12px;font:600 16px/1.3 var(--sans);
+    opacity:0;animation:lsin .45s ease-out forwards}
+  .ls-m.q{background:#1c2a33;border:1px solid #38505f;color:#e0f0fb;border-bottom-left-radius:4px;margin-right:70px}
+  .ls-m.a{background:#153029;border:1px solid #35705c;color:#dcf7ec;border-bottom-right-radius:4px;margin-left:70px}
+  .ls-m .who{display:block;font:800 10px/1 var(--sans);letter-spacing:.14em;opacity:.65;
+    margin-bottom:4px;text-transform:uppercase}
+  .ls-m .txt{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  @keyframes lsin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  .ls-empty{position:absolute;left:1080px;top:690px;transform:translateX(-50%);z-index:5;text-align:center;
+    color:#93aca0;font:700 25px/1.4 var(--sans);max-width:660px}
+  .ls-status{position:absolute;right:30px;top:196px;z-index:8;font:700 14px/1 var(--mono);color:#7f9a8c;
+    background:rgba(9,14,12,.85);border:1px solid #33403a;border-radius:8px;padding:8px 12px}
+  .ls-status.bad{color:#e0a89f;border-color:#7a4038}
   body.on-demo #counter,body.on-demo #hint{display:none}
   .demonext{margin-left:auto;background:#5b7362;color:#fff;border:0;border-radius:12px;padding:13px 28px;font:800 21px/1 var(--sans);cursor:pointer}
   .demonext:hover{background:#6d8a76}
@@ -1550,7 +1613,22 @@
 
 <!-- ============ SLIDE 15 — LIVE DEMO ★ (real, wifi) — PRIMARY ============ -->
 <section class="slide wall-slide s16wall" data-title="Live Demo &#9733; (real)" data-beats="!!IF THE WALL IS DEAD: press O for the animated rescue. (This cue is no longer on screen.)|!!IF THIS SLIDE IS BLANK OR STUCK: PRESS O. That is the whole recovery — the deck never does it for you.|..The amber bar bottom-right says the same thing. Trust it and move on; do not debug on stage.|!!ASK THE ROOM FIRST: does anyone have a studio email on their phone right now?|..Walk to them. Look at it. Say what it is out loud.|&gt;&gt;&#39;Forward that to bot@studiosage.ai.&#39;|..Watch it arrive on the wall — then watch it get parsed into the knowledge base|!!THE PANEL STAYS UP: number, QR, and five facts it already knows|Tell them the QR opens their messages already addressed — that is the real product experience|..Point at the WALL — their message lands there, masked. Narrate what it&#39;s doing while they watch.|!!THE MAGIC IS BOTH HALVES: it answers what it knows —|&gt;&gt;&#39;and when it doesn&#39;t: I don&#39;t have that information yet, please contact your studio director.&#39;|!!A flag is a WIN, not a failure. Say that when it happens.|!!Any doubt at all — press O. The animated version tells the same story and nobody knows.">
-  <iframe class="demoframe" src="https://www.studiosage.ai/demo/live?code=LIVE26" title="StudioSage — live demo"></iframe>
+  <div class="lscene" id="lscene">
+    <svg class="ls-wires" id="lsWires" viewBox="0 0 1920 992" preserveAspectRatio="none"></svg>
+    <div class="ls-core empty" id="lsCore">
+      <div>
+        <div class="ls-core-t">KNOWLEDGE BASE</div>
+        <div class="ls-core-n" id="lsCount">0</div>
+        <div class="ls-core-s" id="lsSub">nothing yet</div>
+      </div>
+    </div>
+    <div class="ls-empty" id="lsEmpty">It knows nothing about this studio yet.<br>Forward one email and watch.</div>
+    <div class="ls-status" id="lsStatus">waiting for the first email</div>
+    <div class="ls-msgs" id="lsMsgs"></div>
+  </div>
+  <!-- Fallback: the original cross-origin wall. Hidden, lazy (data-src so it costs
+       nothing until needed). Press W on this slide to swap to it. -->
+  <iframe class="demoframe" id="lsFallback" hidden data-src="https://www.studiosage.ai/demo/live?code=LIVE26" title="StudioSage — live demo"></iframe>
   <div class="demobar">
     <span>&#128241; Text <b>+1 226-796-6037</b> &nbsp;&middot;&nbsp; your text + the KB animate here LIVE</span>
     <!-- On-screen operator cue removed 2026-07-26 — it was a note to himself, on the
@@ -1564,13 +1642,16 @@
     <div class="dp-qr"><svg viewBox="0 0 29 29" width="100%" height="100%" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><rect width="29" height="29" fill="#fff"/><path d="M2 2h7v1h-7zM13 2h1v1h-1zM17 2h2v1h-2zM20 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM11 3h2v1h-2zM14 3h1v1h-1zM20 3h1v1h-1zM26 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM10 4h1v1h-1zM12 4h1v1h-1zM16 4h1v1h-1zM18 4h1v1h-1zM20 4h1v1h-1zM22 4h3v1h-3zM26 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM10 5h1v1h-1zM13 5h1v1h-1zM20 5h1v1h-1zM22 5h3v1h-3zM26 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM10 6h2v1h-2zM13 6h1v1h-1zM15 6h3v1h-3zM20 6h1v1h-1zM22 6h3v1h-3zM26 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h7v1h-7zM20 7h1v1h-1zM26 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h7v1h-7zM10 9h1v1h-1zM13 9h3v1h-3zM18 9h1v1h-1zM2 10h1v1h-1zM4 10h5v1h-5zM12 10h2v1h-2zM16 10h3v1h-3zM20 10h5v1h-5zM2 11h3v1h-3zM6 11h1v1h-1zM9 11h1v1h-1zM12 11h1v1h-1zM14 11h1v1h-1zM19 11h1v1h-1zM23 11h1v1h-1zM25 11h1v1h-1zM2 12h1v1h-1zM4 12h1v1h-1zM6 12h1v1h-1zM8 12h3v1h-3zM17 12h4v1h-4zM22 12h1v1h-1zM24 12h3v1h-3zM7 13h1v1h-1zM10 13h1v1h-1zM12 13h1v1h-1zM16 13h1v1h-1zM19 13h1v1h-1zM21 13h1v1h-1zM23 13h1v1h-1zM25 13h2v1h-2zM3 14h2v1h-2zM7 14h2v1h-2zM11 14h1v1h-1zM17 14h2v1h-2zM20 14h3v1h-3zM24 14h2v1h-2zM2 15h1v1h-1zM4 15h1v1h-1zM7 15h1v1h-1zM9 15h1v1h-1zM11 15h1v1h-1zM14 15h3v1h-3zM19 15h1v1h-1zM23 15h2v1h-2zM2 16h1v1h-1zM5 16h1v1h-1zM7 16h3v1h-3zM12 16h1v1h-1zM15 16h3v1h-3zM22 16h5v1h-5zM2 17h1v1h-1zM4 17h1v1h-1zM6 17h2v1h-2zM11 17h1v1h-1zM14 17h2v1h-2zM17 17h1v1h-1zM19 17h2v1h-2zM23 17h1v1h-1zM25 17h1v1h-1zM2 18h1v1h-1zM7 18h3v1h-3zM12 18h1v1h-1zM14 18h1v1h-1zM16 18h9v1h-9zM26 18h1v1h-1zM10 19h3v1h-3zM18 19h1v1h-1zM22 19h4v1h-4zM2 20h7v1h-7zM11 20h1v1h-1zM13 20h2v1h-2zM18 20h1v1h-1zM20 20h1v1h-1zM22 20h1v1h-1zM24 20h3v1h-3zM2 21h1v1h-1zM8 21h1v1h-1zM10 21h4v1h-4zM16 21h3v1h-3zM22 21h2v1h-2zM26 21h1v1h-1zM2 22h1v1h-1zM4 22h3v1h-3zM8 22h1v1h-1zM10 22h2v1h-2zM13 22h1v1h-1zM17 22h6v1h-6zM24 22h1v1h-1zM26 22h1v1h-1zM2 23h1v1h-1zM4 23h3v1h-3zM8 23h1v1h-1zM10 23h2v1h-2zM14 23h5v1h-5zM20 23h4v1h-4zM25 23h2v1h-2zM2 24h1v1h-1zM4 24h3v1h-3zM8 24h1v1h-1zM10 24h1v1h-1zM12 24h1v1h-1zM15 24h2v1h-2zM19 24h1v1h-1zM26 24h1v1h-1zM2 25h1v1h-1zM8 25h1v1h-1zM11 25h1v1h-1zM14 25h2v1h-2zM18 25h3v1h-3zM22 25h2v1h-2zM26 25h1v1h-1zM2 26h7v1h-7zM10 26h3v1h-3zM14 26h1v1h-1zM16 26h2v1h-2zM24 26h3v1h-3z" fill="#2d3a30"/></svg></div>
     <div class="dp-num">226-796-6037</div>
     <div class="dp-sub">Scan &mdash; it opens your messages, already addressed.</div>
-    <div class="dp-hd">TRY THESE &mdash; IT KNOWS:</div>
+    <!-- Content-agnostic on purpose. The KB is empty until a volunteer forwards a
+         real email, so naming specific facts here would point the room at things
+         it cannot answer. These work for ANY studio email. -->
+    <div class="dp-hd">ASK IT ANYTHING FROM THAT EMAIL:</div>
     <ul class="dp-facts">
-      <li>What time is Saturday rehearsal?</li>
-      <li>When are costume fees due?</li>
-      <li>Is the studio open March break?</li>
-      <li>What&rsquo;s the dress code for ballet?</li>
-      <li>Where do I park for the recital?</li>
+      <li>When is it?</li>
+      <li>What does it cost?</li>
+      <li>Where is it / where do I park?</li>
+      <li>What do we need to bring?</li>
+      <li>What time do doors open?</li>
     </ul>
     <div class="dp-magic">Ask it something it does <b>not</b> know &mdash; watch what it says.</div>
   </div>
@@ -1973,6 +2054,122 @@
     el.scrollTo({top:to, behavior:'smooth'});
     ev.preventDefault(); ev.stopPropagation();
   }, true);
+})();
+</script>
+
+<script>
+/* ===================== LIVE SCENE (wall slide) ==========================
+   Draws the demo locally instead of iframing studiosage.ai. Data comes from
+   /demo-kb and /demo-wall, which presenter-server.py proxies (the real API
+   sends no CORS header, so the browser cannot read it cross-origin).
+
+   Story order, deliberately: empty core -> forwarded email drops in -> wires
+   feed the core -> fact chips appear -> texts roll in and get answered.
+
+   Only polls while its slide is on screen. Fails quiet: on a network blip it
+   keeps the last frame and flags the status pill rather than blanking.
+   Press W to swap to the original iframe wall if this ever misbehaves.
+======================================================================== */
+(function(){
+  var scene=document.getElementById('lscene');
+  if(!scene) return;
+  var slide=scene.closest('section.slide');
+  var wires=document.getElementById('lsWires'), core=document.getElementById('lsCore');
+  var elCount=document.getElementById('lsCount'), elSub=document.getElementById('lsSub');
+  var elEmpty=document.getElementById('lsEmpty'), elStatus=document.getElementById('lsStatus');
+  var elMsgs=document.getElementById('lsMsgs'), fallback=document.getElementById('lsFallback');
+
+  var CX=1080, CY=455, R=152;              // core centre + radius, matches the CSS
+  var MAX_MSGS=20;                          // hard cap - newest 20, oldest roll off
+  var SLOTS=[200,158,242,120,278,86,315,52,340,20,222,140]  // degrees around the core
+    .map(function(d){var a=d*Math.PI/180;return {x:CX+330*Math.cos(a), y:CY+330*Math.sin(a)};});
+
+  var seenFacts={}, seenMsgs={}, factN=0, mailShown=false, failures=0;
+
+  function svgLine(x1,y1,x2,y2){
+    var l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    var len=Math.round(Math.hypot(x2-x1,y2-y1));
+    l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);
+    l.setAttribute('class','ls-wire');l.style.setProperty('--len',len);
+    wires.appendChild(l);
+  }
+  function towardCore(p){                   // stop the wire at the core edge, not its centre
+    var dx=p.x-CX, dy=p.y-CY, m=Math.hypot(dx,dy)||1;
+    return {x:CX+dx/m*R, y:CY+dy/m*R};
+  }
+  function showMail(e){
+    if(mailShown) return; mailShown=true;
+    var d=document.createElement('div'); d.className='ls-mail';
+    d.innerHTML='<div class="ls-mail-h">&#9993; FORWARDED EMAIL &rarr; KNOWLEDGE</div>'
+      +'<div class="ls-mail-s"></div><div class="ls-mail-f"></div>';
+    d.querySelector('.ls-mail-s').textContent=e.title||'(no subject)';
+    d.querySelector('.ls-mail-f').textContent=(e.snippet||'').slice(0,150);
+    scene.appendChild(d);
+    setTimeout(function(){ svgLine(CX,190,CX,CY-R); },1400);   // card -> core
+  }
+  function addFact(e){
+    var p=SLOTS[factN % SLOTS.length]; factN++;
+    var d=document.createElement('div'); d.className='ls-fact';
+    d.style.left=p.x+'px'; d.style.top=p.y+'px';
+    var b=document.createElement('b'); b.textContent=e.from_email?'from the email':(e.category||'fact');
+    var s=document.createElement('span'); s.textContent=e.title||'';
+    d.appendChild(b); d.appendChild(s); scene.appendChild(d);
+    var edge=towardCore(p); svgLine(edge.x,edge.y,p.x,p.y);
+    core.classList.remove('hit'); void core.offsetWidth; core.classList.add('hit');
+  }
+  function addMsg(m){
+    var out=(m.direction==='outbound');
+    var d=document.createElement('div'); d.className='ls-m '+(out?'a':'q');
+    var w=document.createElement('span'); w.className='who';
+    w.textContent=out?'StudioSage':(m.sender||'Parent');
+    var t=document.createElement('span'); t.className='txt'; t.textContent=m.message||'';
+    d.appendChild(w); d.appendChild(t); elMsgs.appendChild(d);
+    while(elMsgs.children.length>MAX_MSGS) elMsgs.removeChild(elMsgs.firstChild);
+  }
+  function setStatus(txt,bad){ elStatus.textContent=txt; elStatus.classList.toggle('bad',!!bad); }
+
+  function tick(){
+    if(!slide.classList.contains('active')) return;
+    Promise.all([
+      fetch('/demo-kb',{cache:'no-store'}).then(function(r){return r.json();}),
+      fetch('/demo-wall',{cache:'no-store'}).then(function(r){return r.json();})
+    ]).then(function(res){
+      var kb=res[0]||{}, wall=res[1]||{};
+      if(kb.offline||wall.offline){ failures++; setStatus('feed offline ('+failures+') — press W for the iframe wall',true); return; }
+      failures=0;
+
+      var entries=(kb.entries||[]).slice().sort(function(a,b){
+        return new Date(a.created_at)-new Date(b.created_at); });
+      var n=entries.length;
+      elCount.textContent=n;
+      elSub.textContent = n===0 ? 'nothing yet' : (n===1?'fact from 1 email':'facts, live');
+      core.classList.toggle('empty', n===0);
+      elEmpty.style.display = n===0 ? '' : 'none';
+      entries.forEach(function(e){
+        if(seenFacts[e.id]) return; seenFacts[e.id]=1;
+        if(e.from_email) showMail(e);
+        addFact(e);
+      });
+
+      var msgs=(wall.messages||[]).slice().sort(function(a,b){
+        return new Date(a.created_at)-new Date(b.created_at); }).slice(-MAX_MSGS);
+      msgs.forEach(function(m){ if(seenMsgs[m.id]) return; seenMsgs[m.id]=1; addMsg(m); });
+
+      setStatus(n===0 ? 'waiting for the first email' : (n+' fact'+(n===1?'':'s')+' · live'));
+    }).catch(function(){
+      failures++; setStatus('feed unreachable ('+failures+') — press W for the iframe wall',true);
+    });
+  }
+  setInterval(tick,2000); tick();
+
+  window.addEventListener('keydown',function(ev){
+    if(ev.key!=='w'&&ev.key!=='W') return;
+    if(!slide.classList.contains('active')) return;
+    var toIframe=!scene.hasAttribute('hidden');
+    if(toIframe && !fallback.getAttribute('src')) fallback.setAttribute('src',fallback.dataset.src);
+    scene.toggleAttribute('hidden',toIframe);
+    fallback.toggleAttribute('hidden',!toIframe);
+  },true);
 })();
 </script>
 </body>

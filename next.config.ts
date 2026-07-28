@@ -52,6 +52,13 @@ const nextConfig: NextConfig = {
       { source: "/recitals/proposal", destination: "/dancerecital", permanent: true },
     ];
   },
+  async rewrites() {
+    return [
+      // Expo talk QR — the big code on Talk 1's closing slide. Rewrite (not redirect) so the
+      // address bar stays on the clean /checklist the QR advertises.
+      { source: "/checklist", destination: "/checklist.html" },
+    ];
+  },
   async headers() {
     const securityHeaders = [
       { key: "X-Content-Type-Options", value: "nosniff" },

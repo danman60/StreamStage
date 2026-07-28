@@ -13,13 +13,47 @@ Volume buttons cannot be used: no mobile browser exposes them to a web page.
 Tap zones instead (and they can't accidentally change your volume mid-talk).
 """
 import http.server, socketserver, json, socket, sys, os, threading, re, subprocess, time
-import tempfile
+import tempfile, urllib.request
 
 PORT = int(os.environ.get("PRESENTER_PORT", "8080"))
 
 _lock = threading.Lock()
 STATE = {"idx": 0, "total": 0, "title": "", "beats": [], "titles": [], "seq": 0}
 PENDING = []          # commands from the phone, consumed by the deck
+
+# ------------------------------------------------------------- demo feeds ---
+# The live scene slide needs the public demo feeds, but studiosage.ai serves them
+# with no Access-Control-Allow-Origin, so the deck cannot read them cross-origin.
+# Proxy them here instead: same origin as the deck, so no CORS and no deploy.
+# Short cache because the scene polls every 2s and two panels want the same data.
+DEMO_FEED_URL = "https://www.studiosage.ai/api/demo/%s?code=live26"
+DEMO_FEED_TTL = 1.5
+_demo_cache = {}      # which -> (fetched_at, payload)
+
+
+def demo_feed(which):
+    """Fetch kb/wall for the scene. Never raises - the stage must not see a stack
+    trace. On failure, serve the last good payload marked stale so the scene keeps
+    whatever it already drew instead of blanking mid-demo."""
+    now = time.time()
+    hit = _demo_cache.get(which)
+    if hit and now - hit[0] < DEMO_FEED_TTL:
+        return hit[1]
+    try:
+        req = urllib.request.Request(
+            DEMO_FEED_URL % which,
+            headers={"user-agent": "presenter-server", "accept": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=6) as r:
+            payload = json.loads(r.read().decode("utf-8", "replace"))
+    except Exception as e:
+        if hit:
+            payload = dict(hit[1])
+            payload["stale"] = True
+        else:
+            payload = {"offline": True, "error": str(e)[:200]}
+    _demo_cache[which] = (now, payload)
+    return payload
 
 # ---------------------------------------------------------------- facelift ---
 # The stage trick: Daniel takes ONE studio url from the room on the PLANT slide,
@@ -545,6 +579,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
             return
+        if self.path.startswith("/demo-kb"):      # live scene: knowledge feed
+            return self._json(demo_feed("kb"))
+        if self.path.startswith("/demo-wall"):    # live scene: text feed
+            return self._json(demo_feed("wall"))
         if self.path.startswith("/state"):
             with _lock:
                 out = dict(STATE)
