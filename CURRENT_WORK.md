@@ -12,11 +12,15 @@ Direction chosen 2026-08-05: (1) freebies first, (2) rebuild T1 around the deliv
 ### DONE this session
 - `expo-assets/POSTMORTEM-2026-07-28-said-vs-planned.md` - grounded read-out (boundaries,
   said-vs-planned diff, audience markers, timing arithmetic, promise audit).
-- **Freebie 1 (the one promised on stage and never built):**
-  `expo-assets/handout-interview-questions.html` (print, 1-page PDF verified) +
-  `public/interview-questions.html` (web, checklist.html's blue/cyan system, UNGATED) +
-  inline QR to streamstage.live/interview-questions.html. Shots:
-  `expo-assets/shots-handout-interview-questions.png`, `shots-web-interview-questions.png`.
+- **Freebie 1 (the one promised on stage and never built) - SHIPPED `44a70be`:**
+  Daniel chose option A - fold into the EXISTING live link, no new URL. The questions now
+  live as **"Part two - the interview questions"** in `public/checklist.html`
+  (livestream renumbered to Part three, lede updated, stub Interviews section links to
+  `#interviews`, "kid" -> "dancer"). Standalone `public/interview-questions.html` was built
+  then DELETED - one surface only. Print handout
+  `expo-assets/handout-interview-questions.html` QR repointed to
+  `streamstage.live/checklist.html#interviews`.
+  Verified: email gate still engages for new visitors, 0 JS errors, 4 parts in order.
 - **Freebie 2:** `expo-assets/handout-videographer-brief.html` (print, 1-page PDF verified) -
   the `:347` Calgary sheet. No exact prices (talk-1 guardrail); money box is structural.
 - `expo-assets/ADLIB-DECISIONS-2026-08-05.md` - 28 ad-libs ranked + items 29-31 (live-demo
@@ -25,8 +29,8 @@ Direction chosen 2026-08-05: (1) freebies first, (2) rebuild T1 around the deliv
   (delivery metrics, what's wrong, what to protect), his own on-mic flags, and the master
   42-item punch list: 8 done / 34 open across promises, decisions, T1 deck, T2 deck, housekeeping.
 
-### NOT deployed
-Nothing pushed. `public/interview-questions.html` needs a deploy for the QR to resolve.
+### Deployed
+`44a70be` pushed to main 2026-08-05. Vercel serves `streamstage.live/checklist.html`.
 
 ### Blocked on his call
 Deck edits. Items 29-31 in the ad-lib file gate the T1/T2 rebuilds.

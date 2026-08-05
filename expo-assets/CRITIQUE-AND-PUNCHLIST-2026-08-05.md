@@ -206,21 +206,21 @@ These are his notes, not mine.
 |---|---|---|
 | 1 | Grounded read-out: talk boundaries, said-vs-planned diff, audience markers, timing arithmetic, promise audit | `expo-assets/POSTMORTEM-2026-07-28-said-vs-planned.md` |
 | 2 | **The interview-questions freebie promised on stage twice** — print handout, one page, 1-page PDF verified, QR inlined | `expo-assets/handout-interview-questions.html` |
-| 3 | The page that QR lands on — mobile-first, matches `checklist.html`'s design system, ungated | `public/interview-questions.html` |
+| 3 | **Shipped to production** `44a70be` — questions folded into the live `checklist.html` as "Part two", per his call to use the existing link. Standalone page deleted; handout QR repointed to `checklist.html#interviews` | `public/checklist.html` |
 | 4 | Videographer brief (the `:347` Calgary sheet) — print handout, one page, 1-page PDF verified, no prices per guardrail | `expo-assets/handout-videographer-brief.html` |
 | 5 | 28 ad-libs ranked with slide/note/cut recommendations | `expo-assets/ADLIB-DECISIONS-2026-08-05.md` |
 | 6 | This critique + punch list | `expo-assets/CRITIQUE-AND-PUNCHLIST-2026-08-05.md` |
 | 7 | Session state, blockers, open items | `CURRENT_WORK.md` |
 | 8 | Three handout/page screenshots, DM'd | `expo-assets/shots-*.png` |
 
-**Nothing committed. Nothing deployed. No deck touched.**
+**Committed and deployed `44a70be`. No deck touched.**
 
 ## ⬜ Not yet changed — promises owed to real people
 
 | # | Item | Source | Note |
 |---|---|---|---|
-| 9 | **Stepping Up Dance Company (Sarnia) — their rebuilt website** | `:3043`, `:3107`, `:3443` | Built, never delivered. Oldest debt. Needs his contact |
-| 10 | Deploy `public/interview-questions.html` | — | **The QR on the new handout 404s until this ships** |
+| ~~9~~ | ~~Stepping Up Dance Company (Sarnia) — their rebuilt website~~ | `:3043`, `:3443` | **DONE — he sent it 2026-08-05.** Site was at `expo-assets/decks/facelift-out/site/` |
+| ~~10~~ | ~~Deploy the questions page~~ | — | **DONE `44a70be`** — shipped into `checklist.html` instead of a new URL |
 | 11 | First five StudioSage signups → free website refresh + $20/yr hosting | `:3083` | Who are the first five? Needs a list |
 | 12 | Confirm free-until-2027 + Sept pay gate + paid texts match the product | `:2907`, `:3059–3079` | Said on stage, so it's a commitment |
 | 13 | Support group for dance teachers + technologists | `:2967` | He said "great idea" on mic and moved on |
@@ -273,3 +273,16 @@ These are his notes, not mine.
 | 40 | Rotate `DEMO_RESET_TOKEN` — it ships in a tracked file (carried over from the pre-show blocker list) |
 | 41 | Regenerate `talk2-ai-slides.md` + `talk2.html` after any deck edit (`regen-slides.py`, `regen-notes.py`) |
 | 42 | Talk 1's transcript opens mid-sentence — if there's an earlier recording of the first few minutes, it would close the only gap in the source |
+
+---
+
+## Update 2026-08-05 — shipped
+
+Items 2, 3, 9 and 10 are closed. The interview questions are live inside
+`streamstage.live/checklist.html` as **Part two**, reachable from the QR your audience already
+scanned at the talk — no new URL, so every code that is already in the wild now leads to the thing
+you promised. Steppin' Up has their site.
+
+Still open and worth naming: **Joanne Chapman School of Dance** (Brampton) — that facelift also
+finished on disk (`expo-assets/decks/facelift-out/site-prev-1785356381/`, built Jul 29 19:27) and
+you referenced a Chapman email at `:3407`. Unclear whether that one was ever sent.
