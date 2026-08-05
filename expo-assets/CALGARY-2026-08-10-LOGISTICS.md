@@ -20,23 +20,38 @@ by the other. Manage/check-in via BudgetAir My Account using the booking number 
 
 ---
 
-## Hotel — Hotel Clique Calgary Airport
+## Hotel — The Westin Calgary Airport  *(changed 2026-08-05)*
 
-**Confirmation: `220855`** · Guest: Daniel Abrahamson
+**Confirmation: `232588`** · Guest: Daniel Abrahamson · booked into the Dance Attack Inc. / Calgary
+Dance event block. Contact: `westincalgaryairport@marriott.com`, attn. Monali Gaiki.
 
 | | |
 |---|---|
-| Arrival | **Mon Aug 10, 2026** · check-in **3:00 pm** |
-| Departure | **Thu Aug 13, 2026** · check-out **11:00 am** |
-| Room | Clique Pet Friendly King Room |
-| Total | **C$642.84** incl. taxes and fees (upgrades not included) |
-| Contact | info@hotelclique.ca · hotelclique.ca |
+| Arrival | **Mon Aug 10, 2026** |
+| Departure | **Thu Aug 13, 2026** |
+| Occupancy | 1 adult |
+| Room | Traditional |
+| Rate | **C$209.00/night plus taxes** (3 nights ≈ C$627 + tax) |
+| Guarantee | GTD to VA |
 
-Note: this is **not** the show hotel. The Expo's room block was at the Westin Calgary Airport
-(the venue itself) — you booked the Clique instead. Both are in the YYC airport cluster.
+**You are now staying in the venue.** 671 Aero Drive NE — the Expo, the Adapt Stage, and your room
+are the same building.
 
-⚠ **Check-out Aug 13 is 11:00 am and the flight is 11:15 am from YYC.** Those do not work together —
-you need to be at the airport ~09:15, so plan to check out early Thursday morning, not at 11.
+~~Hotel Clique Calgary Airport (conf 220855, C$642.84)~~ — **cancelled 2026-08-05.**
+⚠ No cancellation email from Hotel Clique is in the mailbox; their only recent messages are a
+marketing note and an email-verification request. **Get the cancellation in writing** — that
+reservation was booked directly and a no-show bills a night.
+
+### What staying on-site changes
+- **No transit to a 09:20 Tuesday talk.** That was the riskiest slot on the schedule and it just
+  got easier — you can be on the Adapt Stage in minutes, and you can do the SMS pre-flight from
+  the room on venue wifi, on the actual network the demo will run on.
+- **Rehearse on the real network the night before.** The facelift and the wall both depend on that
+  wifi. Being in the building means you can test it Monday evening after setup rather than
+  discovering it at 09:15.
+- **Thursday's departure is much simpler** — the Westin is on the airport grounds, so the 11:15
+  flight no longer needs a cab window. Still check out early; standard check-out will be around
+  11:00–12:00 and you want to be through security before then.
 
 ---
 
@@ -98,7 +113,8 @@ the morning.
 |---|---|---|---|
 | 1 | **Booth prize, $100+ value** — physical item or gift certificate. Winner's name must be submitted to the organiser by **4:00 pm Wed Aug 12** | "Complete Your Calgary Exhibitor Prize Giveaway Form", Jul 27 | No completed-form confirmation in the mailbox |
 | 3 | Free conference shirt request | "Request a FREE Conference Shirt", Jul 8 | Unclear whether claimed |
-| 4 | Thursday morning check-out vs 11:15 flight | above | Needs an early check-out |
+| 4 | Thursday check-out vs the 11:15 flight | above | Easier now — the Westin is on airport grounds. Still check out early |
+| 5 | **Written cancellation from Hotel Clique** (conf 220855) | changed 2026-08-05 | Nothing in the mailbox. Chase it — a no-show bills |
 
 ---
 

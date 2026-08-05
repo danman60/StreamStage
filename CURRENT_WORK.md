@@ -1,8 +1,9 @@
 # Current Work - StreamStage
 
 ## ⏰ DEADLINE — Calgary Dance Teacher Expo, Mon Aug 10 2026
-Flights WS633 out Aug 10 09:00 YYZ->YYC, WS636 home Aug 13. Hotel Clique Calgary Airport
-(conf 220855). Venue Westin Calgary Airport. Full detail:
+Flights WS633 out Aug 10 09:00 YYZ->YYC, WS636 home Aug 13. Staying AT the venue:
+The Westin Calgary Airport, conf 232588, C$209/night (Hotel Clique conf 220855 CANCELLED
+2026-08-05 - written cancellation not yet received). Full detail:
 `expo-assets/CALGARY-2026-08-10-LOGISTICS.md`.
 **Last useful working day for deck changes is Sun Aug 9.**
 BOTH talks confirmed on the event agenda, Adapt Stage / Business Track, 1 hour each:
