@@ -1,6 +1,46 @@
 # Current Work - StreamStage
 
 ## Active Task
+**Post-expo: improve the talks + decks from the real lapel-mic transcript.**
+Primary source `/mnt/firmament/ExpoMic.txt`. Grounded read-out delivered
+2026-08-05: `expo-assets/POSTMORTEM-2026-07-28-said-vs-planned.md`.
+Boundaries: talk 1 = lines 1-415 (starts mid-sentence, open not captured),
+booth/hallway/vox-pop = 419-2559, talk 2 = 2565-3087, expo closing = 3371+.
+Direction chosen 2026-08-05: (1) freebies first, (2) rebuild T1 around the delivered talk,
+(3) re-shape T2 from the delivered version. Ad-libs decided beat by beat.
+
+### DONE this session
+- `expo-assets/POSTMORTEM-2026-07-28-said-vs-planned.md` - grounded read-out (boundaries,
+  said-vs-planned diff, audience markers, timing arithmetic, promise audit).
+- **Freebie 1 (the one promised on stage and never built):**
+  `expo-assets/handout-interview-questions.html` (print, 1-page PDF verified) +
+  `public/interview-questions.html` (web, checklist.html's blue/cyan system, UNGATED) +
+  inline QR to streamstage.live/interview-questions.html. Shots:
+  `expo-assets/shots-handout-interview-questions.png`, `shots-web-interview-questions.png`.
+- **Freebie 2:** `expo-assets/handout-videographer-brief.html` (print, 1-page PDF verified) -
+  the `:347` Calgary sheet. No exact prices (talk-1 guardrail); money box is structural.
+- `expo-assets/ADLIB-DECISIONS-2026-08-05.md` - 28 ad-libs ranked + items 29-31 (live-demo
+  policy, T1 real slot length, which T1 deck is canonical). **Awaiting his picks.**
+- `expo-assets/CRITIQUE-AND-PUNCHLIST-2026-08-05.md` - subjective critique of both talks
+  (delivery metrics, what's wrong, what to protect), his own on-mic flags, and the master
+  42-item punch list: 8 done / 34 open across promises, decisions, T1 deck, T2 deck, housekeeping.
+
+### NOT deployed
+Nothing pushed. `public/interview-questions.html` needs a deploy for the QR to resolve.
+
+### Blocked on his call
+Deck edits. Items 29-31 in the ad-lib file gate the T1/T2 rebuilds.
+
+Open items surfaced by the read-out:
+- The interview-questions QR freebie promised on stage twice (`:13`, `:201`) DOES NOT EXIST
+  (verified two ways). `public/checklist.html` lists 1 of the 5 prompts, no provoke technique.
+- Stepping Up Dance Company (Sarnia) is still owed the rebuilt website (`:3043`, `:3443`).
+- Both talk-2 live beats failed on stage (SMS demo `:2939-2983`, facelift reveal `:3011-3043`).
+- Talk 1 ran ~58-66 min (est. from 8,630 words) against a ~20-min run-of-show.
+- Three different talk1 decks exist with three different md5s; the one that shipped
+  (`~/expo-backup/TRADESHOW-2026-07-29/talks/talk1-deck.html`, 14 slides) matches neither repo copy.
+
+### Prior task (shipped)
 **Expo decks (Dance Teacher Expo, Wed Jul 29 2026, 4:10-5:10 PM EDT).** Two talks:
 Talk 2 "The AI Front Desk" (38 slides, owned by Daniel's session) and Talk 1 "The Content Day"
 (14 slides, `StudioSage/live-demo/talk1-deck.html`).
