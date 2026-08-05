@@ -1,5 +1,16 @@
 # Current Work - StreamStage
 
+## ⏰ DEADLINE — Calgary Dance Teacher Expo, Mon Aug 10 2026
+Flights WS633 out Aug 10 09:00 YYZ->YYC, WS636 home Aug 13. Hotel Clique Calgary Airport
+(conf 220855). Venue Westin Calgary Airport. Full detail:
+`expo-assets/CALGARY-2026-08-10-LOGISTICS.md`.
+**Last useful working day for deck changes is Sun Aug 9.**
+BOTH talks confirmed on the event agenda, Adapt Stage / Business Track, 1 hour each:
+- **Tue Aug 11, 09:20 AM** - "Why AI? Save Your Studio Time, Money, and Stress" (talk 2)
+- **Wed Aug 12, 10:50 AM** - "One Year of Video Content in One Day" (talk 1)
+Order is REVERSED vs Toronto - AI goes first. The Toronto cliffhanger points the wrong way.
+Talk 1 has NEW published copy in Calgary: content-day only, no recital-media/media-fee framing.
+
 ## Active Task
 **Post-expo: improve the talks + decks from the real lapel-mic transcript.**
 Primary source `/mnt/firmament/ExpoMic.txt`. Grounded read-out delivered
@@ -32,8 +43,31 @@ Direction chosen 2026-08-05: (1) freebies first, (2) rebuild T1 around the deliv
 ### Deployed
 `44a70be` pushed to main 2026-08-05. Vercel serves `streamstage.live/checklist.html`.
 
-### Blocked on his call
-Deck edits. Items 29-31 in the ad-lib file gate the T1/T2 rebuilds.
+### Decisions taken 2026-08-05 (Daniel)
+- **Facelift: KEEP** both plant and reveal. Needs a proper rehearsal, not a cut.
+- **SMS demo: stays where it is** (slide 34). Wiring corrected, see below.
+- **Pricing: free until Jan 1 2027 for anyone signing up now; $20/month for new
+  signups from Sept 1.** Facelift hosting after year one is a separate $20/YEAR.
+- **No per-dancer scoping slide.** Say parents can ask about classes. Item dropped.
+
+### Demo wiring corrected — `5a14462`
+The Toronto demo did NOT fail on stage. `pesupport@namecheap.com` hit the any-sender
+ingest path at 15:27 on 2026-07-29 and consumed the one-email lock; the volunteer's
+forward 403'd 38 min later. Root cause + fix: `~/projects/StudioSage/docs/plans/2026-08-03-demo-mode-v2.md`.
+Fixed in the product 2026-08-03; the DECK was still pointing at the old rig. Now:
+- ingest address `bot@studiosage.ai` -> **`calgary@ingest.studiosage.ai`** (any sender resolves)
+- demo SMS **`+1 587-317-0721`** (Calgary 587); routing is by receiving number
+- the `?rt=TOKEN` arming step is GONE (demo_route_state retired, route-all 410)
+- pre-flight = 8 checks at `studiosage.ai/demo/operator`; seed restore =
+  `POST /api/demo/reset {"seeds":true}` -> 15 entries
+
+### STILL UNVERIFIED for Calgary (from the StudioSage plan's own open list)
+1. **No real handset has ever texted `+1 587-317-0721`** — webhook tests only.
+2. SES->S3->SNS latency unmeasured; needs one real email to calgary@ingest.studiosage.ai.
+3. Number not prewarmed — a cold long code taking a 40-phone burst can trip Canadian
+   carrier filtering.
+4. `sms:` QR prefill untested on real iPhone AND Android.
+5. Facelift end-to-end has not been rehearsed since Daniel decided to keep it.
 
 Open items surfaced by the read-out:
 - The interview-questions QR freebie promised on stage twice (`:13`, `:201`) DOES NOT EXIST
