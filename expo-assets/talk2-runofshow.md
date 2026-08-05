@@ -17,13 +17,13 @@ Rebuilt 2026-07-26 from run-through #2 + the moves directive (prompt-writing / p
 - [ ] **Start the remote:** double-click `START-REMOTE.bat`, leave the window open, **scan the QR** it prints
 - [ ] Deck open at **`http://localhost:8080/talk2-deck.html`** (served, NOT the file) · fullscreen
 - [ ] Phone on `/remote` — beats + Jump list + Prev/Next. Beats are colour-coded: **amber = must say**, **cyan = near-verbatim**, **grey = stage direction**
-- [ ] Deck opened as `talk2-deck.html?rt=<DEMO_RESET_TOKEN>` or **audience texts won't route**
-- [ ] Rehearsal text sent from own phone ≥30 min before: `LIVE26` → question → got answer
+- [ ] ~~Arm routing~~ — **no arming step since 2026-08-03.** Demo routes by the number the text lands on (`+1 587-317-0721`). Run the 8-check pre-flight at `studiosage.ai/demo/operator` instead
+- [ ] Rehearsal text from a **real handset** to `+1 587-317-0721` ≥30 min before — question → got answer. ⚠ No real phone has ever texted this number
 - [ ] Pre-baked website refresh ready — **already in the deck**: reveal slide → "Use pre-baked fallback" (fully offline, Ancaster Dance Arts)
 - [ ] **Facelift runs from the phone now** — `/remote` → **★** panel → type the url → **GO**. No Telegram, no app switching.
 - [ ] Rehearse the whole facelift path once with `FACELIFT_FAKE=1 python3 presenter-server.py` (15-second fake run)
 - [ ] Scan **both CTA QRs** yourself: `/moves` (email-gated, live) and studiosage.ai
-- [ ] Send one email to **bot@studiosage.ai** and confirm it lands in the KB
+- [ ] Send one real email to **calgary@ingest.studiosage.ai** and confirm it lands in the KB (also the only way to measure the SES→S3→SNS hop)
 - [ ] Phone hotspot ON · phone on Do Not Disturb after the rehearsal text
 - [ ] ⚠ `studiosage.ai/moves` live, **email-gated**, serving the PDF (both CTA QRs are already on the slide)
 
@@ -63,7 +63,7 @@ Rebuilt 2026-07-26 from run-through #2 + the moves directive (prompt-writing / p
 | 31 | 1:17 | **Inside the dashboard** | 86-sec walkthrough, autoplays muted on arrival | Talk over it: knowledge base · personality · threads. Opens on the sign-in screen — normal |
 | 32 | 1:19 | Human in the loop | Not confident → flags → you tap once → knows forever | You're in the loop by design |
 | 33 | 1:21 | **How it actually works** | 4 steps, one click each: number+QR+**poster** → comms + **email signature** → save/scan → instant answer | **5 minutes.** **80–90% stat.** *Then* tell them to text it |
-| 34 | 1:24 | ★ LIVE DEMO | Ask for a real studio email → walk to them → **forward to bot@studiosage.ai** | Panel stays up: QR (SMS intent) + number + 5 known facts. **A flag is a WIN** |
+| 34 | 1:24 | ★ LIVE DEMO | Ask for a real studio email → walk to them → **forward to calgary@ingest.studiosage.ai** | Panel stays up: QR (SMS intent) + number + 5 known facts. **A flag is a WIN** |
 | 35 | — | Animated fallback | **Manual only** — press `O` or the button. Deck never switches itself | Space steps beats · R restarts |
 | 36 | 1:29 | ★ REVEAL | **Nothing to type — the finished site is already behind the curtain.** One click opens it | Chip bottom-left: READY = built live · FAILED = pre-baked, say so. "Site unseen. No web developer backstage." Free + hosted 1 yr, then $20/yr |
 | 37 | 1:31 | What's your time worth | Ask it — **then stop talking** | "AI lets us do more of what we want, and hands the robots what we don't" |
@@ -71,7 +71,7 @@ Rebuilt 2026-07-26 from run-through #2 + the moves directive (prompt-writing / p
 
 ## Live demo patter (slide 34) — never go silent
 1. "Does anybody have a studio email on their phone right now?" Walk to them. Read it out loud.
-2. "Forward that to **bot@studiosage.ai**." Watch it arrive, then watch it get parsed into the KB.
+2. "Forward that to **calgary@ingest.studiosage.ai**." Watch it arrive, then watch it get parsed into the KB.
 3. Read the number out loud **twice**. The QR opens their messages already addressed — say that.
 4. "It'll ask your name first — it's polite like that." (first-timers get an onboarding text)
 5. Disclaimer: "this dashboard is our demo studio, so it looks different from yours."
@@ -98,11 +98,11 @@ Rebuilt 2026-07-26 from run-through #2 + the moves directive (prompt-writing / p
 - **"Dancer", never "kid".** Anywhere, all hour.
 - Never say "markdown" or ".md" on stage — "a plain text one-pager you keep in a folder".
 - No beta-client names without permission. No saved-hours stat unless cleared.
-- Price is **$20/month**, said flatly. Hosting after year one is **$20/year** — don't blur the two.
+- Price: **sign up today and it is free until Jan 1, 2027.** From **Sept 1** new signups are **$20/month**. Say it once, flatly. Facelift hosting after year one is **$20/year** — a different number, don't blur them.
 - The reveal is served **off this laptop**, not the internet — venue wifi cannot kill it.
 - The freebie **is email-gated**. Say so plainly; don't claim "no email required".
 
-## What the demo studio KNOWS (LIVE26 KB — answers instantly)
+## What the demo studio KNOWS (demo KB, 15 seeded entries — answers instantly)
 Saturday rehearsal · weekly schedule · March break · picture day · costume fees ($85, Feb 1) ·
 tuition/sibling discount · trial classes · ages (3+) · spring recital (June 13) · dress code ·
 snow days · absences/makeups · front-desk hours · summer camp (July) · comp team.

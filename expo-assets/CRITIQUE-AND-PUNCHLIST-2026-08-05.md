@@ -248,6 +248,8 @@ These are his notes, not mine.
 | 25 | Aspect-ratio / codec / frame-rate primer as an appendix he can jump to | His own `:217` |
 | 26 | Add: graduating-dancer profiles · "Dancing on Camera Day, charge for it" · correction→breakthrough arc · recital-night peak vibes · owner-on-camera | Ad-libs 4, 6, 7, 8, 9 |
 | 27 | Fix the stale header — the run-of-show still says "Dance NYC Expo" | `talk1-runofshow.md:2` |
+| ~~19b~~ | ~~Provoke slide~~ | **DONE 2026-08-05** — new slide 8 in `StudioSage/live-demo/talk1-deck.html`, uncommitted |
+| ~~27b~~ | ~~Cliffhanger points at a talk that already happened~~ | **DONE 2026-08-05** — reworded to a backward callback for the flipped Calgary order, uncommitted |
 
 ## ⬜ Not yet changed — talk 2 deck work
 

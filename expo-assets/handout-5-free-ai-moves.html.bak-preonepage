@@ -9,20 +9,20 @@
   body {
     font-family: 'DM Sans', -apple-system, 'Segoe UI', sans-serif;
     color: #2d3a30; background: #fff;
-    width: 7.4in; margin: 0 auto; padding: 0;
-    font-size: 10pt; line-height: 1.32;
+    width: 7.4in; margin: 0 auto; padding: 0.2in 0;
+    font-size: 10.5pt; line-height: 1.4;
   }
-  header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #5b7362; padding-bottom: 7px; margin-bottom: 10px; }
-  h1 { font-size: 19pt; line-height: 1.1; letter-spacing: -0.3px; }
+  header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #5b7362; padding-bottom: 10px; margin-bottom: 14px; }
+  h1 { font-size: 21pt; line-height: 1.1; letter-spacing: -0.3px; }
   h1 .accent { color: #5b7362; }
   .byline { font-size: 9pt; color: #6b7a6f; text-align: right; }
-  .thesis { font-style: italic; color: #4e6456; margin-bottom: 8px; font-size: 10.5pt; }
-  .move { display: flex; gap: 10px; margin-bottom: 6px; border: 1.5px solid #d8e0da; border-radius: 8px; padding: 6px 10px; page-break-inside: avoid; }
+  .thesis { font-style: italic; color: #4e6456; margin-bottom: 12px; font-size: 11pt; }
+  .move { display: flex; gap: 10px; margin-bottom: 10px; border: 1.5px solid #d8e0da; border-radius: 8px; padding: 9px 11px; page-break-inside: avoid; }
   .num { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; background: #5b7362; color: #fff; font-weight: 700; font-size: 13pt; display: flex; align-items: center; justify-content: center; }
-  .move h2 { font-size: 11pt; margin-bottom: 1px; }
-  .move p { margin-bottom: 2px; }
-  .monday { background: #eef3ef; border-left: 3px solid #5b7362; padding: 2px 8px; font-weight: 600; font-size: 9pt; }
-  .sage-box { display: flex; gap: 14px; align-items: center; background: #2d3a30; color: #f9f6f1; border-radius: 10px; padding: 10px 13px; margin-top: 8px; page-break-inside: avoid; }
+  .move h2 { font-size: 11.5pt; margin-bottom: 2px; }
+  .move p { margin-bottom: 3px; }
+  .monday { background: #eef3ef; border-left: 3px solid #5b7362; padding: 3px 8px; font-weight: 600; font-size: 9.5pt; }
+  .sage-box { display: flex; gap: 14px; align-items: center; background: #2d3a30; color: #f9f6f1; border-radius: 10px; padding: 13px 15px; margin-top: 13px; page-break-inside: avoid; }
   .sage-box h2 { font-size: 13.5pt; margin-bottom: 4px; }
   .sage-box .tagline { color: #b8c9bc; }
   .sage-box .qr { flex: 0 0 auto; background: #fff; padding: 5px; border-radius: 6px; }
@@ -35,7 +35,7 @@
   .contactbar { margin-top: 10px; background: #eef3ef; border: 1.5px solid #5b7362; border-radius: 8px;
     padding: 8px 12px; font-size: 9.5pt; color: #3c4f42; page-break-inside: avoid; }
   .contactbar .mail { font-size: 10.5pt; }
-  footer { margin-top: 7px; display: flex; justify-content: space-between; font-size: 8.5pt; color: #6b7a6f; border-top: 1px solid #d8e0da; padding-top: 7px; }
+  footer { margin-top: 10px; display: flex; justify-content: space-between; font-size: 8.5pt; color: #6b7a6f; border-top: 1px solid #d8e0da; padding-top: 7px; }
 </style>
 </head>
 <body>
@@ -81,7 +81,7 @@
     <h2>Move #6 — the one I productized: StudioSage</h2>
     <div class="tagline">The AI front desk for your dance studio. Parents text a number — no app, no login. It answers instantly from YOUR stuff, in your voice. Not sure? It doesn't guess — it flags it to your morning digest, you one-tap, it learns forever.</div>
     <div class="url">studiosage.ai</div>
-    <div class="trynow">Try it right now: text <b>+1 587-317-0721</b> and ask it anything a parent would — class times, costume fees, what to bring. Free until Jan 1, 2027 if you sign up today; $20/month for anyone starting after Sept 1.</div>
+    <div class="trynow">Try it right now: text <b>LIVE26</b> to <b>+1 226-796-6037</b> and ask it anything a parent would. $20/month — the real question is how much time that buys back.</div>
     <div class="reachout"><b>Want to talk about a project or a build?</b> Promo videos, content days, recital video,
       livestreams, websites, or an AI build for your studio. I answer my own email:
       <b class="mail">daniel@streamstage.live</b></div>
