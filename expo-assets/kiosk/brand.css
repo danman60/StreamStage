@@ -1,0 +1,240 @@
+/* =============================================================================
+   StreamStage booth kiosk — brand + motion system
+   Shared by index.html, tablet.html and tv.html.
+
+   Design language follows the Talk 2 deck the same audience will have just
+   watched: near-black ground, Inter, cyan #4EC5D4 and amber #F59E0B as the
+   StreamStage frame. Each of the five products then gets its OWN colour pair,
+   so the tablet reads as five distinct things rather than five grey boxes.
+
+   Motion rules (this has to hold 60fps on a cheap tablet AND on a Fire Stick's
+   Silk browser, which is slow):
+     - animate transform and opacity ONLY
+     - no filter: blur() on anything that moves
+     - ambient loops are long (20s+) and low-contrast, so they never compete
+       with a film or pull the eye off a QR
+   No webfonts, no CDN, no network. The booth has no internet.
+   ========================================================================== */
+
+:root{
+  /* ground */
+  --bg:        #07090C;
+  --bg-2:      #0B0F16;
+  --panel:     #111722;
+  --panel-2:   #161E2B;
+  --line:      rgba(255,255,255,.10);
+  --line-hot:  rgba(255,255,255,.20);
+
+  /* ink */
+  --ink:       #FFFFFF;
+  --dim:       #A8B6C4;
+  --faint:     #5C6A78;
+
+  /* StreamStage frame */
+  --cyan:      #4EC5D4;
+  --cyan-deep: #2E9AA8;
+  --amber:     #F59E0B;
+  --amber-deep:#D97706;
+
+  /* type */
+  --sans:"Inter",-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+
+  /* motion */
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --ease-out-back:cubic-bezier(.34,1.4,.64,1);
+}
+
+/* ---- the five product identities -----------------------------------------
+   Applied by adding data-product="<id>" to any element. Every tile, badge,
+   progress bar and glow reads its colour from here, so re-theming a product
+   is a six-line change.
+
+   These are written out as literal rgba() rather than computed with
+   color-mix(). That is deliberate: the TV may be a Fire Stick, and Silk is an
+   OLD Chromium. color-mix() there resolves to nothing, which would not look
+   wrong — it would make elements invisible. Long-hand always renders.
+
+     --a/--b  the pair          --lite  legible on near-black
+     --glow   shadow            --tint  panel wash        --edge  active border
+   -------------------------------------------------------------------------- */
+:root{
+  --a:#4EC5D4; --b:#F59E0B; --lite:#8FE3EC;
+  --glow:rgba(78,197,212,.55); --tint:rgba(78,197,212,.22);
+  --wash:rgba(78,197,212,.12); --edge:rgba(78,197,212,.60);
+}
+[data-product="studiosage"]{
+  --a:#4EC5D4; --b:#5FD3A3; --lite:#8FE3EC;
+  --glow:rgba(78,197,212,.55); --tint:rgba(78,197,212,.22);
+  --wash:rgba(78,197,212,.12); --edge:rgba(78,197,212,.60);
+}
+[data-product="compsync"]{
+  --a:#F59E0B; --b:#F97316; --lite:#FBC96A;
+  --glow:rgba(245,158,11,.55); --tint:rgba(245,158,11,.22);
+  --wash:rgba(245,158,11,.12); --edge:rgba(245,158,11,.60);
+}
+[data-product="callboard"]{
+  --a:#60A5FA; --b:#6366F1; --lite:#A9CDFD;
+  --glow:rgba(96,165,250,.55); --tint:rgba(96,165,250,.22);
+  --wash:rgba(96,165,250,.12); --edge:rgba(96,165,250,.60);
+}
+[data-product="costumecraft"]{
+  --a:#F472B6; --b:#C026D3; --lite:#F9AED4;
+  --glow:rgba(244,114,182,.55); --tint:rgba(244,114,182,.22);
+  --wash:rgba(244,114,182,.12); --edge:rgba(244,114,182,.60);
+}
+[data-product="reflect"]{
+  --a:#A78BFA; --b:#7C8CF8; --lite:#CBBBFD;
+  --glow:rgba(167,139,250,.55); --tint:rgba(167,139,250,.22);
+  --wash:rgba(167,139,250,.12); --edge:rgba(167,139,250,.60);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow:hidden;
+}
+
+/* =============================================================================
+   AMBIENT FIELD — the slow colour wash behind everything.
+   Two radial gradients on one layer, drifting. Cheap: no blur, no filter,
+   two transforms. It is what stops a static booth screen reading as "frozen"
+   from across the aisle.
+   ========================================================================== */
+.ambient{position:fixed;inset:-20%;z-index:0;pointer-events:none;opacity:.9}
+.ambient::before,.ambient::after{
+  content:"";position:absolute;width:70%;height:70%;border-radius:50%;
+  will-change:transform;
+}
+.ambient::before{
+  left:-6%;top:-8%;
+  background:radial-gradient(circle at 50% 50%, rgba(78,197,212,.20), rgba(78,197,212,0) 62%);
+  animation:drift-a 34s var(--ease) infinite alternate;
+}
+.ambient::after{
+  right:-10%;bottom:-12%;
+  background:radial-gradient(circle at 50% 50%, rgba(245,158,11,.16), rgba(245,158,11,0) 62%);
+  animation:drift-b 43s var(--ease) infinite alternate;
+}
+@keyframes drift-a{
+  0%  {transform:translate3d(0,0,0) scale(1)}
+  100%{transform:translate3d(14%,10%,0) scale(1.22)}
+}
+@keyframes drift-b{
+  0%  {transform:translate3d(0,0,0) scale(1.1)}
+  100%{transform:translate3d(-12%,-9%,0) scale(.92)}
+}
+/* while a film is up the wash gets out of the way completely */
+body.playing .ambient{opacity:0;transition:opacity .6s var(--ease)}
+
+/* =============================================================================
+   THE WORDMARK — the real StreamStage.live lockup, on every screen, always.
+   ========================================================================== */
+.ss-mark{display:flex;align-items:center;gap:1.1em;user-select:none}
+.ss-mark img{display:block;height:1em;width:auto}
+.ss-mark .rule{width:1px;height:1.35em;background:var(--line-hot);flex:none}
+.ss-mark .say{
+  font:800 .34em/1.25 var(--mono);letter-spacing:.2em;text-transform:uppercase;
+  color:var(--faint);white-space:nowrap;
+}
+.ss-mark .say b{color:var(--cyan);font-weight:800}
+
+/* =============================================================================
+   BUTTONS — big, coloured, and they answer back when touched.
+   A studio owner gets exactly one signal that the tap landed, and it has to be
+   instant, because the film takes a beat to start.
+   ========================================================================== */
+.btn{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;gap:.6em;
+  border:0;border-radius:99em;cursor:pointer;overflow:hidden;
+  font:900 1em/1 var(--sans);letter-spacing:-.01em;color:#06090D;
+  padding:1.05em 2.2em;
+  background:linear-gradient(120deg,var(--a),var(--b));
+  box-shadow:0 .6em 2em -.5em var(--glow),
+             inset 0 1px 0 rgba(255,255,255,.35);
+  transition:transform .16s var(--ease-out-back), box-shadow .22s var(--ease), filter .2s var(--ease);
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+.btn::after{ /* the sheen that sweeps across on an interval — "this is alive" */
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.42) 48%,transparent 66%);
+  transform:translateX(-120%);
+  animation:sheen 5.5s var(--ease) infinite;
+}
+@keyframes sheen{0%,72%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+.btn:active{transform:scale(.965);box-shadow:0 .2em .8em -.3em rgba(0,0,0,.6)}
+.btn.ghost{
+  background:rgba(255,255,255,.05);color:var(--ink);
+  border:1px solid var(--line-hot);box-shadow:none;
+}
+.btn.ghost::after{display:none}
+.btn.ghost:active{background:rgba(255,255,255,.11)}
+
+/* =============================================================================
+   GLASS PANEL — the base for QR cards, the operator sheet, tiles.
+   ========================================================================== */
+.glass{
+  background:linear-gradient(180deg,rgba(22,30,43,.86),rgba(11,15,22,.92));
+  border:1px solid var(--line);
+  border-radius:1.4em;
+  box-shadow:0 1.4em 4em -1.6em rgba(0,0,0,.9);
+}
+
+/* =============================================================================
+   QR CARD — white plate, because a QR on a dark background is a QR that does
+   not scan. This is a functional requirement, not a style choice.
+   ========================================================================== */
+.qr-plate{background:#fff;border-radius:.7em;display:block;padding:.35em}
+.qr-plate img{display:block;width:100%;height:auto}
+
+/* the always-on community QR, same component on both screens */
+.fbcard{display:flex;align-items:center;gap:1em}
+.fbcard .qr-plate{flex:none}
+.fbcard .t{font:900 1em/1.2 var(--sans)}
+.fbcard .t em{
+  display:block;font-style:normal;font-weight:600;font-size:.78em;
+  color:var(--dim);margin-top:.45em;line-height:1.35;
+}
+.fbcard .t .fbtag{
+  display:inline-block;margin-bottom:.5em;
+  font:800 .58em/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);
+}
+
+/* =============================================================================
+   LIVE PILL — the pulsing "running in production" chip from the deck.
+   ========================================================================== */
+.live{
+  display:inline-flex;align-items:center;gap:.55em;width:max-content;
+  background:rgba(78,197,212,.10);border:1px solid rgba(78,197,212,.42);
+  border-radius:99em;padding:.5em 1.15em;
+  font:800 1em/1 var(--sans);color:var(--cyan);
+}
+.live::before{
+  content:"";width:.42em;height:.42em;border-radius:50%;background:currentColor;
+  animation:pulse 1.7s var(--ease) infinite;
+}
+.live.amber{background:rgba(245,158,11,.10);border-color:rgba(245,158,11,.42);color:var(--amber)}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.75)}}
+
+.kicker{
+  font:800 1em/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);
+}
+.kicker.amber{color:var(--amber)}
+
+/* =============================================================================
+   ENTRANCE — a short stagger on first paint so the booth looks built, not
+   dumped. Runs once; never on a state change, because repeated motion in
+   peripheral vision is what makes trade-show screens exhausting.
+   ========================================================================== */
+@keyframes rise{from{opacity:0;transform:translate3d(0,1.4em,0)}to{opacity:1;transform:none}}
+.rise{animation:rise .62s var(--ease) both}
+
+@media (prefers-reduced-motion: reduce){
+  .ambient::before,.ambient::after,.btn::after,.live::before{animation:none}
+  .rise{animation:none}
+}

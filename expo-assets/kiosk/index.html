@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StreamStage booth — start here</title>
+<link rel="icon" href="brand/logo-icon-white.png">
+<link rel="stylesheet" href="brand.css">
+<!--
+  THE LAUNCHER. Daniel opens this once at setup and never again.
+
+  This used to be the baked single-screen loop. That loop is not gone — its
+  cards, its dwell timing and its progress bar are now the ATTRACT STATE of
+  tv.html, which is where they belong. The loop concept was replaced; the
+  design was kept.
+-->
+<style>
+  html{font-size:clamp(12px,1.5vmin,18px)}
+  body{overflow:auto;min-height:100%}
+  main{position:relative;z-index:1;max-width:96rem;margin:0 auto;padding:5rem 3rem 7rem}
+  .ss-mark{font-size:3.4rem;margin-bottom:4rem}
+
+  h1{font-size:5.4rem;line-height:1;letter-spacing:-.035em;font-weight:900}
+  h1 .g{background:linear-gradient(105deg,var(--cyan),var(--amber));
+        -webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{margin-top:1.6rem;font-size:2rem;color:var(--dim);line-height:1.45;max-width:56rem;font-weight:500}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:1.8rem;margin:3.6rem 0 2.4rem}
+  @media(max-width:760px){.two{grid-template-columns:1fr}}
+  .go{
+    display:block;text-decoration:none;color:var(--ink);padding:2.6rem;border-radius:2rem;
+    border:1px solid var(--line);position:relative;overflow:hidden;
+    background:radial-gradient(120% 100% at 0% 0%, var(--tint), transparent 58%),
+               linear-gradient(180deg,rgba(22,30,43,.9),rgba(9,12,18,.95));
+    transition:transform .2s var(--ease-out-back),border-color .25s var(--ease);
+  }
+  .go::before{content:"";position:absolute;left:0;right:0;top:0;height:.4rem;
+    background:linear-gradient(90deg,var(--a),var(--b))}
+  .go:hover{transform:translateY(-.3rem);border-color:var(--edge)}
+  .go .n{font:800 1.2rem/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--lite)}
+  .go h2{margin-top:1.2rem;font-size:3.2rem;font-weight:900;letter-spacing:-.03em}
+  .go p{margin-top:.9rem;font-size:1.55rem;color:var(--dim);line-height:1.4}
+  .go[data-product="studiosage"]{--a:#4EC5D4;--b:#5FD3A3}
+
+  .panel{padding:2.4rem;margin-bottom:1.6rem;font-size:1.6rem;line-height:1.5;color:var(--dim)}
+  .panel h3{font-size:2rem;color:var(--ink);font-weight:900;letter-spacing:-.02em;margin-bottom:1rem}
+  .panel b{color:var(--ink)}
+  .panel code{font:800 .95em/1 var(--mono);color:var(--cyan);
+    background:rgba(78,197,212,.1);padding:.25em .5em;border-radius:.4em}
+  .lan{font:900 3rem/1.15 var(--mono);color:var(--amber);margin:1.4rem 0;word-break:break-all}
+  ol{margin:1rem 0 0 2rem}
+  ol li{margin-bottom:.7rem}
+  .warn{padding:1.6rem 2rem;border-radius:1.2rem;font-size:1.5rem;line-height:1.5;
+    background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.38);color:#F8D48A}
+  .warn b{color:var(--amber)}
+</style>
+</head>
+<body>
+<div class="ambient"></div>
+
+<main>
+  <div class="ss-mark">
+    <img src="brand/logo-white.png" alt="StreamStage.live">
+    <span class="rule"></span>
+    <span class="say">Calgary booth &middot; <b>Aug 11&ndash;12</b></span>
+  </div>
+
+  <h1>Two screens.<br><span class="g">One tap.</span></h1>
+  <p class="lede">Open the tablet on the thing people touch, and the TV on the thing they watch.
+     Nothing else needs doing.</p>
+
+  <div class="two">
+    <a class="go" href="tablet.html" data-product="studiosage">
+      <div class="n">Screen 1</div>
+      <h2>Tablet &rarr;</h2>
+      <p>The controller on the booth counter. Five tiles, one tap each.
+         Put it in fullscreen and leave it on this page all day.</p>
+    </a>
+    <a class="go" href="tv.html" target="ss-tv" data-product="compsync">
+      <div class="n">Screen 2</div>
+      <h2>TV &rarr;</h2>
+      <p>The big screen. Click once to allow sound, press <b>F</b> for fullscreen,
+         then don&rsquo;t touch it again.</p>
+    </a>
+  </div>
+
+  <div class="panel glass">
+    <h3>Using a Fire Stick instead of an HDMI cable</h3>
+    On the Fire Stick, open Silk and go to this address &mdash; then bookmark it:
+    <div class="lan" id="lan">start the server to see the address</div>
+    Both devices have to be on the <b>same network</b>. Use a travel router or the laptop&rsquo;s
+    own hotspot. It does <b>not</b> need internet &mdash; only each other.
+    <ol>
+      <li>Laptop: <code>python3 expo-assets/kiosk/serve.py</code></li>
+      <li>Fire Stick Silk: the address above, then <b>bookmark it</b></li>
+      <li>Tablet: the same address ending in <code>/tablet</code></li>
+    </ol>
+  </div>
+
+  <div class="panel glass">
+    <h3>If a film will not play</h3>
+    Run <code>./expo-assets/kiosk/sync-media.sh</code> &mdash; it re-copies the five films and
+    always prefers the newest cut. A product whose film is missing does not black out:
+    it goes straight to its signup QR. Full detail is in <b>README-BOOTH.md</b>.
+  </div>
+
+  <div class="warn">
+    <b>Two things are still assumptions.</b> The CompSync QR points at <code>compsync.net</code>
+    because no signup URL was ever given, and Reflect&rsquo;s line is taken verbatim from its own
+    film script rather than confirmed by you. Both are noted in README-BOOTH.md.
+  </div>
+</main>
+
+<script>
+// The address to type into the Fire Stick. Asked of the server, because only
+// the server knows which interface it actually came up on.
+fetch('/health').then(function (r) { return r.json(); }).then(function (h) {
+  document.getElementById('lan').textContent = 'http://' + h.ip + ':' + h.port + '/tv';
+}).catch(function () {
+  document.getElementById('lan').textContent =
+    'server not running — start serve.py, then reload this page';
+});
+</script>
+</body>
+</html>

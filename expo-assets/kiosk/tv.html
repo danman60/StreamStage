@@ -1,0 +1,745 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StreamStage — booth TV</title>
+<link rel="icon" href="brand/logo-icon-white.png">
+<link rel="stylesheet" href="brand.css">
+<!--
+  THE TV. Either a full-screen window on the laptop over HDMI, or a Fire Stick
+  (or any browser on the same wifi) pointed at http://<laptop-ip>:8080/tv
+
+  It has no controls a passer-by can reach. It listens to the tablet; if the
+  tablet goes away, or the wifi does, it runs the attract loop on its own
+  forever. Every state on this screen carries the community QR.
+
+  INSTANT START: all five films exist as live <video> elements from page load,
+  paused on frame 0 with the frame already decoded. A tap does not create a
+  video, does not fetch, does not seek — it slides an already-warm layer into
+  place and calls play(). Each layer carries its OWN signup QR, so the QR is
+  never a swap that could lag behind the picture: it arrives with the film.
+
+  Written to run on Silk (Fire OS), which is an OLD Chromium: no color-mix,
+  no backdrop-filter, transform/opacity animation only.
+-->
+<style>
+  /* Everything scales off viewport width, so this is correct at 1920x1080 and
+     at whatever the venue TV turns out to actually be. 1rem = 10px @ 1920. */
+  html{font-size:calc(100vw / 192)}
+  body{cursor:none;background:#000}
+
+  #stage{position:fixed;inset:0;z-index:1;transition:transform .5s var(--ease),opacity .4s var(--ease)}
+  body.playing #stage{opacity:0}
+  body.playing.dir-l #stage{transform:translate3d(-14%,0,0)}
+  body.playing.dir-r #stage{transform:translate3d(14%,0,0)}
+
+  /* ---- attract cards ------------------------------------------------- */
+  .card{position:absolute;inset:0;display:none;opacity:0;transition:opacity .6s var(--ease)}
+  .card.on{display:block}
+  .card.vis{opacity:1}
+  .pad{position:absolute;left:0;right:0;top:0;bottom:0;
+       padding:14rem 11rem 11rem;display:flex;flex-direction:column;justify-content:center}
+  .card .kicker{font-size:2.6rem;margin-bottom:2.6rem}
+  h1{font-size:11rem;line-height:.98;letter-spacing:-.03em;font-weight:900}
+  h1 .q{color:var(--faint)}
+  h1 .g{background:linear-gradient(105deg,var(--cyan),var(--amber));
+        -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{margin-top:3rem;font-size:4.4rem;line-height:1.28;color:var(--dim);max-width:98rem;font-weight:500}
+  .rows{margin-top:4.6rem;display:flex;flex-direction:column;gap:2.2rem;max-width:98rem}
+  .row{display:flex;gap:2.6rem;align-items:flex-start;font-size:3.4rem;line-height:1.3;color:var(--dim)}
+  .row b{color:#fff;font-weight:800}
+  .dot{flex:none;width:1.5rem;height:1.5rem;border-radius:50%;
+       background:linear-gradient(120deg,var(--a),var(--b));margin-top:1.3rem}
+  .live{margin-top:4.4rem;font-size:3rem;padding:1.5rem 3.2rem}
+  .url{position:absolute;left:11rem;bottom:8rem;font:900 3.4rem/1 var(--mono);color:var(--lite)}
+
+  /* the per-product QR sitting on the attract card — a passer-by can scan a
+     product without anybody touching the tablet at all */
+  .cardqr{position:absolute;right:11rem;bottom:8rem;width:30rem;text-align:center}
+  .cardqr .qr-plate{width:100%}
+  .cardqr .lbl{margin-top:1.4rem;font:900 2.2rem/1.2 var(--sans)}
+  .cardqr .lbl em{display:block;font-style:normal;font-weight:600;font-size:1.7rem;
+    color:var(--dim);margin-top:.6rem}
+
+  /* the "go tap it" card — the only instruction anywhere in the booth */
+  .invite h1{font-size:13rem}
+  .arrow{margin-top:5.4rem;font-size:5rem;font-weight:800;color:var(--amber);
+    display:flex;align-items:center;gap:2.6rem}
+  .arrow .hand{font-size:7.4rem;animation:nudge 1.9s var(--ease) infinite;display:inline-block}
+  @keyframes nudge{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,1.5rem,0)}}
+
+  /* big product wordmark ghosted behind the copy — depth without cost */
+  .ghost{position:absolute;right:-4rem;top:6rem;font-size:26rem;font-weight:900;
+    letter-spacing:-.06em;line-height:1;color:rgba(255,255,255,.028);pointer-events:none;
+    white-space:nowrap}
+
+  /* ==========================================================================
+     FILM LAYERS — one per product, alive from page load.
+     A tap slides one in from the side that was tapped. Nothing is created,
+     nothing is fetched, nothing seeks.
+     ====================================================================== */
+  #film{position:fixed;inset:0;z-index:5;display:none;background:#000;overflow:hidden}
+  #film.on{display:block}
+  .layer{
+    position:absolute;inset:0;background:#000;
+    transform:translate3d(100%,0,0);
+    will-change:transform;
+  }
+  .layer.slide{transition:transform .46s var(--ease)}
+  .layer.active{transform:translate3d(0,0,0);z-index:2}
+  .layer.out-l{transform:translate3d(-100%,0,0);z-index:1}
+  .layer.out-r{transform:translate3d(100%,0,0);z-index:1}
+  .layer video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
+
+  .badge{position:absolute;left:6rem;top:16rem;display:flex;align-items:center;gap:1.8rem;
+    background:rgba(7,9,12,.82);border:1px solid var(--line-hot);border-radius:99rem;
+    padding:1.5rem 3rem}
+  .badge b{font-size:3.2rem;font-weight:900;letter-spacing:-.02em}
+  .badge i{width:1.2rem;height:1.2rem;border-radius:50%;font-style:normal;
+    background:linear-gradient(120deg,var(--a),var(--b));animation:pulse 1.7s var(--ease) infinite}
+
+  .filmqr{position:absolute;right:6rem;bottom:6rem;width:32rem;padding:2.4rem;
+    background:rgba(7,9,12,.9);border:1px solid var(--line-hot);border-radius:2.4rem;
+    text-align:center;
+    transform:translate3d(0,4rem,0);opacity:0;
+    transition:opacity .6s var(--ease),transform .6s var(--ease)}
+  .filmqr.show{opacity:1;transform:translate3d(0,0,0)}
+  .filmqr .qr-plate{width:100%}
+  .filmqr .cap{margin-top:1.5rem;font:900 2.1rem/1.2 var(--sans)}
+  .filmqr .cap em{display:block;font-style:normal;font-size:1.6rem;color:var(--dim);
+    margin-top:.7rem;font-weight:600;word-break:break-all}
+
+  /* ---- end card ------------------------------------------------------ */
+  #end{position:fixed;inset:0;z-index:6;display:none;opacity:0;
+    transition:opacity .5s var(--ease);
+    align-items:center;gap:8rem;padding:0 11rem;
+    background:
+      radial-gradient(90% 90% at 8% 10%, var(--tint), rgba(0,0,0,0) 62%),
+      radial-gradient(80% 80% at 100% 100%, var(--wash), rgba(0,0,0,0) 60%),
+      #07090C}
+  #end.on{display:flex}
+  #end.vis{opacity:1}
+  #end .left{flex:1;min-width:0}
+  #end .kicker{font-size:2.6rem;margin-bottom:2.6rem}
+  #end h2{font-size:10.5rem;line-height:.95;letter-spacing:-.035em;font-weight:900}
+  #end .tl{margin-top:3rem;font-size:4rem;line-height:1.28;color:var(--dim);max-width:76rem;font-weight:500}
+  #end .addr{margin-top:4.4rem;font:900 3.4rem/1 var(--mono);color:var(--lite);word-break:break-all}
+  #end .alsoget{margin-top:3rem;font-size:2.4rem;line-height:1.35;color:var(--faint);max-width:66rem}
+  #end .alsoget b{color:var(--lite);font-weight:800}
+  #end .right{flex:none;width:44rem;text-align:center}
+  #end .right .qr-plate{width:100%;padding:2.2rem;border-radius:2.6rem}
+  #end .right .scan{margin-top:2.2rem;font:900 3rem/1.15 var(--sans)}
+  #end .right .scan em{display:block;font-style:normal;font-weight:600;font-size:1.9rem;
+    color:var(--dim);margin-top:.8rem}
+
+  /* ---- persistent chrome: wordmark + community QR, in EVERY state ----- */
+  #brandbar{position:fixed;left:6rem;top:5rem;z-index:40;font-size:4.4rem}
+  #fb{position:fixed;right:6rem;top:5rem;z-index:40;
+      padding:1.8rem 2.2rem;border-radius:2.2rem;font-size:1.6rem;
+      background:linear-gradient(100deg,rgba(78,197,212,.16),rgba(11,15,22,.92) 60%);
+      border:1px solid rgba(78,197,212,.34)}
+  #fb .qr-plate{width:13rem}
+  #fb .t{font-size:2.3rem;max-width:26rem}
+  #fb .t em{font-size:1.75rem}
+  #fb .fbtag{font-size:1.3rem}
+
+  #bar{position:fixed;left:0;bottom:0;height:.7rem;z-index:50;width:0;
+    background:linear-gradient(90deg,var(--a),var(--b));transition:width .25s linear}
+
+  /* cold-start audio unlock — only Daniel ever sees this, at setup */
+  #unlock{position:fixed;inset:0;z-index:90;background:rgba(5,7,10,.95);display:flex;
+    align-items:center;justify-content:center;flex-direction:column;gap:3.2rem;
+    cursor:pointer;text-align:center;padding:0 12rem}
+  #unlock.gone{display:none}
+  #unlock img{width:52rem;max-width:60%}
+  #unlock h3{font-size:6rem;font-weight:900;letter-spacing:-.03em}
+  #unlock p{font-size:2.8rem;color:var(--dim);max-width:88rem;line-height:1.4;font-weight:500}
+  #unlock .k{font:800 2.2rem/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);
+    animation:pulse 1.9s var(--ease) infinite}
+  #warm{font:700 1.9rem/1 var(--mono);color:var(--faint);letter-spacing:.1em;text-transform:uppercase}
+
+  #hud{position:fixed;left:6rem;bottom:2.6rem;z-index:60;font:700 1.9rem/1 var(--mono);
+    color:#33414d;opacity:0}
+  body.showhud #hud{opacity:1}
+  #offline{position:fixed;right:6rem;bottom:2.6rem;z-index:60;font:800 1.7rem/1 var(--mono);
+    letter-spacing:.12em;text-transform:uppercase;color:#F87171;opacity:0;transition:opacity .4s}
+  body.showhud.norelay #offline{opacity:1}
+</style>
+</head>
+<body>
+<div class="ambient"></div>
+
+<div id="stage">
+
+  <!-- ============ ATTRACT LOOP ==========================================
+       The 90% state. Nobody is standing here, so this has to do the whole
+       job on its own: say what the five things are, and give a way in
+       (the community QR always, the product QR per card).
+  -->
+  <section class="card invite" data-hold="9000">
+    <div class="pad">
+      <div class="kicker">Calgary Dance Teacher Expo &middot; Aug 11&ndash;12</div>
+      <h1>Five tools<br>for studios.<br><span class="g">Pick one.</span></h1>
+      <div class="arrow"><span class="hand">&#128071;</span><span>Tap the tablet &mdash; it plays right here.</span></div>
+    </div>
+  </section>
+
+  <section class="card" data-product="studiosage" data-hold="11000">
+    <div class="ghost">StudioSage</div>
+    <div class="pad">
+      <div class="kicker">The AI front desk</div>
+      <h1>StudioSage</h1>
+      <div class="sub">Parents text the studio. It answers &mdash; from your own emails, in your own
+        words, at eleven at night when you are not there.</div>
+      <div class="live">Running in production</div>
+    </div>
+    <div class="url">studiosage.ai</div>
+    <div class="cardqr">
+      <span class="qr-plate"><img src="qr/tv/studiosage.svg" alt="QR code to try StudioSage"></span>
+      <div class="lbl">Scan to try it<em>Or tap the tablet to watch</em></div>
+    </div>
+  </section>
+
+  <section class="card" data-product="compsync" data-hold="11000">
+    <div class="ghost">CompSync</div>
+    <div class="pad">
+      <div class="kicker amber">Competition management</div>
+      <h1>CompSync</h1>
+      <div class="sub">Entries, scheduling, tabulation, backstage and the livestream &mdash;
+        one weekend, one system, instead of six spreadsheets and a walkie-talkie.</div>
+      <div class="live amber">Running in production</div>
+    </div>
+    <div class="url">compsync.net</div>
+    <div class="cardqr">
+      <span class="qr-plate"><img src="qr/tv/compsync.svg" alt="QR code to CompSync"></span>
+      <div class="lbl">Scan to see it<em>Or tap the tablet to watch</em></div>
+    </div>
+  </section>
+
+  <section class="card" data-product="callboard" data-hold="11000">
+    <div class="ghost">Callboard</div>
+    <div class="pad">
+      <div class="kicker">Early access &middot; live now</div>
+      <h1>Callboard</h1>
+      <div class="sub">Rehearsal scheduling that already knows the rules. Siblings on the same day.
+        A duet partner who also has a solo. No room double-booked. No three-hour gap.</div>
+      <div class="rows">
+        <div class="row"><span class="dot"></span><span>You set which rules are <b>hard</b>,
+          which are <b>soft</b>, and which are <b>off</b> &mdash; per show.</span></div>
+      </div>
+      <div class="live">Running in production</div>
+    </div>
+    <div class="url">callboard-scheduler.vercel.app</div>
+    <div class="cardqr">
+      <span class="qr-plate"><img src="qr/tv/callboard.svg" alt="QR code to try Callboard"></span>
+      <div class="lbl">Scan to try it<em>Or tap the tablet to watch</em></div>
+    </div>
+  </section>
+
+  <section class="card" data-product="costumecraft" data-hold="11000">
+    <div class="ghost">CostumeCraft</div>
+    <div class="pad">
+      <div class="kicker">Early access &middot; live now</div>
+      <h1>CostumeCraft</h1>
+      <div class="sub">Design, measurements and per-class quantities in one place &mdash; instead of
+        a costuming console that only takes the order.</div>
+      <div class="rows">
+        <div class="row"><span class="dot"></span><span>Design the look, then hold the
+          <b>measurements</b> against it</span></div>
+        <div class="row"><span class="dot"></span><span>How many of that costume, for which class,
+          by when</span></div>
+      </div>
+      <div class="live">Running in production</div>
+    </div>
+    <div class="url">costume-craft.vercel.app</div>
+    <div class="cardqr">
+      <span class="qr-plate"><img src="qr/tv/costumecraft.svg" alt="QR code to try CostumeCraft"></span>
+      <div class="lbl">Scan to try it<em>Or tap the tablet to watch</em></div>
+    </div>
+  </section>
+
+  <section class="card" data-product="reflect" data-hold="11000">
+    <div class="ghost">Reflect</div>
+    <div class="pad">
+      <div class="kicker">Every room. At once.</div>
+      <h1>Reflect</h1>
+      <!-- Verbatim from the film's own closing line (VO-SCRIPT.md, beat 16).
+           No claim invented at the booth. -->
+      <div class="sub">The system that runs your studio&rsquo;s day &mdash; and remembers it.</div>
+      <div class="live">Ask me for a demo login</div>
+    </div>
+    <div class="url">reflect-vert.vercel.app</div>
+    <div class="cardqr">
+      <span class="qr-plate"><img src="qr/tv/reflect.svg" alt="QR code to see Reflect"></span>
+      <div class="lbl">Scan to see it<em>Or tap the tablet to watch</em></div>
+    </div>
+  </section>
+
+  <section class="card" data-hold="12000">
+    <div class="pad">
+      <div class="kicker">One guy, one letter apart</div>
+      <h1>Built for studios.<br><span class="q">Not sold to them yet.</span></h1>
+      <div class="sub">Everything on this screen is running in production today. Early studios get in
+        first, and shape what gets built next.</div>
+      <div class="live">Come talk to me &mdash; I answer my own email</div>
+    </div>
+    <div class="url">daniel@streamstage.live</div>
+  </section>
+
+</div>
+
+<!-- ============ FILM LAYERS (built from CONFIG.products) ================ -->
+<div id="film"></div>
+
+<!-- ============ END CARD =============================================== -->
+<div id="end">
+  <div class="left">
+    <div class="kicker" id="endkick">Running in production</div>
+    <h2 id="endname"></h2>
+    <div class="tl" id="endtl"></div>
+    <div class="addr" id="endaddr"></div>
+    <div class="alsoget">Want all five films and the recital checklist?
+      <b>Scan the code on the tablet.</b></div>
+  </div>
+  <div class="right">
+    <span class="qr-plate"><img id="endqr" alt=""></span>
+    <div class="scan">Scan to try it<em>Opens on your phone &mdash; nothing to install</em></div>
+  </div>
+</div>
+
+<!-- ============ PERSISTENT CHROME ====================================== -->
+<div class="ss-mark" id="brandbar">
+  <img src="brand/logo-white.png" alt="StreamStage.live">
+</div>
+
+<div class="fbcard" id="fb">
+  <span class="qr-plate"><img src="qr/facebook.svg" alt="QR code — StreamStage studio community on Facebook"></span>
+  <span class="t">
+    <span class="fbtag">Scan &middot; free</span>
+    Join the studio community
+    <em>Owners and teachers. What ships next, first.</em>
+  </span>
+</div>
+
+<div id="bar"></div>
+<div id="hud">F fullscreen &middot; M mute &middot; &larr; &rarr; step &middot; H hud</div>
+<div id="offline">relay offline</div>
+
+<div id="unlock">
+  <img src="brand/logo-white.png" alt="StreamStage.live">
+  <h3>Booth TV ready</h3>
+  <p>Click once to allow sound, then press <b>F</b> for fullscreen.
+     After that leave it alone &mdash; the tablet drives it.</p>
+  <div class="k">click anywhere</div>
+  <div id="warm">warming films&hellip;</div>
+</div>
+
+<script src="kiosk.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  Telemetry.init('tv');
+
+  var cards    = [].slice.call(document.querySelectorAll('#stage .card'));
+  var stage    = document.getElementById('stage');
+  var filmWrap = document.getElementById('film');
+  var endWrap  = document.getElementById('end');
+  var bar      = document.getElementById('bar');
+  var unlock   = document.getElementById('unlock');
+
+  var state    = 'attract';    // attract | playing | end
+  var current  = null;         // product being shown
+  var idx      = -1;
+  var timer = null, raf = null, endTimer = null;
+  var audioReady = false;
+
+  /* per-play accounting */
+  var watched   = 0;           // REAL seconds of picture watched, not wall clock
+  var lastTime  = 0;
+  var quartiles = {};
+  var reported  = false;
+  var tapAt     = 0;           // when the play request landed here
+  var firstFrameLogged = false;
+
+  /* ------------------------------------------------------------------------
+     Build one warm layer per product. This is the whole instant-start trick:
+     the <video> elements exist, are attached, have their poster painted and
+     their first frame decoded, and are sitting paused at 0 before anybody
+     walks up. Each layer also owns its own QR, so the QR can never lag the
+     picture — there is nothing to swap.
+     --------------------------------------------------------------------- */
+  var layers = {};
+  var warm = 0;
+
+  CONFIG.products.forEach(function (p) {
+    var layer = document.createElement('div');
+    layer.className = 'layer';
+    layer.setAttribute('data-product', p.id);
+
+    var v = document.createElement('video');
+    v.playsInline = true;
+    v.muted = true;                 // required to preload/decode without a gesture
+    v.preload = 'auto';
+    v.controls = false;
+    v.poster = 'media/posters/' + p.id + '.jpg';
+    v.setAttribute('disablepictureinpicture', '');
+
+    // film[] is a preference list — an unplayable file falls through to the
+    // next rather than leaving a black screen at a trade show.
+    var tries = p.film.slice();
+    v.addEventListener('error', function () {
+      if (tries.length) { v.src = tries.shift(); v.load(); }
+      else { layer.setAttribute('data-broken', '1'); }
+    });
+    v.src = tries.shift();
+
+    // Decode frame 0 so the first painted frame is instant, then sit still.
+    v.addEventListener('loadeddata', function once() {
+      v.removeEventListener('loadeddata', once);
+      try { v.currentTime = 0; } catch (e) {}
+      warm++;
+      var w = document.getElementById('warm');
+      if (w) w.textContent = warm >= CONFIG.products.length
+        ? 'all five films ready'
+        : 'warming films… ' + warm + '/' + CONFIG.products.length;
+    });
+
+    layer.appendChild(v);
+
+    var badge = document.createElement('div');
+    badge.className = 'badge';
+    badge.innerHTML = '<i></i><b>' + p.name + '</b>';
+    layer.appendChild(badge);
+
+    var qr = document.createElement('div');
+    qr.className = 'filmqr';
+    qr.innerHTML =
+      '<span class="qr-plate"><img src="qr/tv/' + p.id + '.svg" alt="QR code to try ' + p.name + '"></span>' +
+      '<div class="cap">Scan to try it<em>' + shortUrl(p.url) + '</em></div>';
+    layer.appendChild(qr);
+
+    filmWrap.appendChild(layer);
+    layers[p.id] = { el: layer, video: v, qr: qr };
+  });
+
+  function shortUrl(u) { return u.replace(/^https?:\/\//, '').replace(/\/$/, ''); }
+
+  /* The community QR is on screen in EVERY state, so its impression clock runs
+     from load to unload. Rolled hourly so a crash never eats the whole day. */
+  var fbImp = new QrImpression('facebook', 'tv');
+  fbImp.start();
+  setInterval(function () { fbImp.stop(); fbImp.start(); }, 60 * 60 * 1000);
+  window.addEventListener('pagehide', function () { fbImp.stop(); abandon(); });
+  window.addEventListener('beforeunload', function () { fbImp.stop(); });
+
+  var prodImp = null;
+  function stopProdImp() { if (prodImp) { prodImp.stop(); prodImp = null; } }
+
+  function clearTimers() {
+    if (timer)    { clearTimeout(timer); timer = null; }
+    if (raf)      { cancelAnimationFrame(raf); raf = null; }
+    if (endTimer) { clearTimeout(endTimer); endTimer = null; }
+  }
+
+  function runBar(ms) {
+    var t0 = performance.now();
+    (function step(nowMs) {
+      var pct = Math.min(1, (nowMs - t0) / ms);
+      bar.style.width = (pct * 100).toFixed(2) + '%';
+      if (pct < 1) raf = requestAnimationFrame(step);
+    })(performance.now());
+  }
+
+  /* -------------------------------------------------------------- attract */
+  function showCard(n) {
+    clearTimers();
+    stopProdImp();
+    if (idx >= 0) cards[idx].classList.remove('vis', 'on');
+    idx = (n + cards.length) % cards.length;
+    var c = cards[idx];
+
+    // The page inherits the card's product accent, so the progress bar and
+    // glows change colour with it.
+    var pid = c.getAttribute('data-product');
+    if (pid) document.body.setAttribute('data-product', pid);
+    else document.body.removeAttribute('data-product');
+
+    c.classList.add('on');
+    requestAnimationFrame(function () { c.classList.add('vis'); });
+    bar.style.width = '0%';
+
+    if (pid) { prodImp = new QrImpression(pid, 'tv'); prodImp.start(); }
+    if (idx === 0) Telemetry.log('attract_cycle', {});
+
+    var hold = parseInt(c.getAttribute('data-hold') || CONFIG.idle.attractHoldMs, 10);
+    runBar(hold);
+    timer = setTimeout(function () { showCard(idx + 1); }, hold);
+  }
+
+  function toAttract() {
+    clearTimers();
+    stopProdImp();
+    state = 'attract';
+    document.body.classList.remove('playing', 'dir-l', 'dir-r');
+    endWrap.classList.remove('on', 'vis');
+
+    // Park every layer offstage, paused and rewound, ready for an instant replay.
+    Object.keys(layers).forEach(function (id) {
+      var L = layers[id];
+      L.el.classList.remove('active', 'out-l', 'out-r', 'slide');
+      L.qr.classList.remove('show');
+      try { L.video.pause(); L.video.currentTime = 0; L.video.muted = true; } catch (e) {}
+    });
+    filmWrap.classList.remove('on');
+
+    current = null;
+    showCard(idx < 0 ? 0 : idx + 1);
+    push();
+  }
+
+  /* ----------------------------------------------------------------- film
+     dir = +1 the new film comes in from the RIGHT, -1 from the LEFT. The
+     tablet sends the direction it was tapped from, so the motion matches the
+     gesture.                                                              */
+  function play(product, dir) {
+    clearTimers();
+    stopProdImp();
+    dir = (dir === -1) ? -1 : 1;
+
+    var prev = current;
+    var L = layers[product.id];
+    if (!L) return;
+
+    tapAt = performance.now();
+    current  = product;
+    state    = 'playing';
+    reported = false;
+    watched  = 0;
+    lastTime = 0;
+    quartiles = {};
+    firstFrameLogged = false;
+
+    document.body.classList.add('playing');
+    document.body.classList.remove('dir-l', 'dir-r');
+    document.body.classList.add(dir === 1 ? 'dir-l' : 'dir-r');
+    document.body.setAttribute('data-product', product.id);
+    filmWrap.classList.add('on');
+    bar.style.width = '0%';
+
+    // Park the incoming layer on the side it will arrive from, WITHOUT a
+    // transition, then flip the transition on for the actual slide.
+    L.el.classList.remove('slide', 'active', 'out-l', 'out-r');
+    L.el.style.transform = 'translate3d(' + (dir === 1 ? '100%' : '-100%') + ',0,0)';
+    L.qr.classList.remove('show');
+
+    // Start the picture BEFORE the slide, so what slides in is already moving.
+    try { L.video.currentTime = 0; } catch (e) {}
+    L.video.muted = !audioReady;
+    var go = L.video.play();
+    if (go && go.catch) go.catch(function () {
+      L.video.muted = true;                 // sound refused: muted beats nothing
+      L.video.play().catch(function () {});
+    });
+
+    // Force layout, then animate.
+    void L.el.offsetWidth;
+    L.el.style.transform = '';
+    L.el.classList.add('slide', 'active');
+
+    if (prev && prev.id !== product.id && layers[prev.id]) {
+      var O = layers[prev.id];
+      O.el.classList.add('slide');
+      O.el.classList.remove('active');
+      O.el.classList.add(dir === 1 ? 'out-l' : 'out-r');
+      O.qr.classList.remove('show');
+      try { O.video.pause(); O.video.currentTime = 0; } catch (e) {}
+    }
+
+    Telemetry.log('film_start', { product: product.id });
+    push();
+  }
+
+  /* --------------------------------------------- per-video event wiring */
+  CONFIG.products.forEach(function (p) {
+    var L = layers[p.id];
+    var v = L.video;
+
+    // Tap -> first moving frame. requestVideoFrameCallback fires on an actual
+    // painted frame, which is the only honest measure of this.
+    function markFirstFrame() {
+      if (firstFrameLogged || current !== p || state !== 'playing') return;
+      firstFrameLogged = true;
+      Telemetry.log('film_first_frame', {
+        product: p.id,
+        latencyMs: Math.round(performance.now() - tapAt)
+      });
+    }
+    if (typeof v.requestVideoFrameCallback === 'function') {
+      var pump = function () {
+        markFirstFrame();
+        try { v.requestVideoFrameCallback(pump); } catch (e) {}
+      };
+      try { v.requestVideoFrameCallback(pump); } catch (e) {}
+    } else {
+      v.addEventListener('playing', markFirstFrame);
+    }
+
+    v.addEventListener('timeupdate', function () {
+      if (current !== p || state !== 'playing') return;
+
+      // REAL watch time: sum of forward playback deltas. Wall-clock would
+      // count a stall or a backgrounded tab as "watched", which it is not.
+      var t = v.currentTime;
+      var d = t - lastTime;
+      if (d > 0 && d < 1.5) watched += d;
+      lastTime = t;
+
+      if (!v.duration || !isFinite(v.duration)) return;
+      var pct = t / v.duration;
+      bar.style.width = (pct * 100).toFixed(2) + '%';
+
+      // Quartile marks: if the tab dies mid-film the record still shows how
+      // far it got, instead of losing the whole view.
+      [25, 50, 75].forEach(function (q) {
+        if (!quartiles[q] && pct * 100 >= q) {
+          quartiles[q] = 1;
+          Telemetry.log('film_progress', {
+            product: p.id, percent: q, watchedSeconds: Math.round(watched * 10) / 10
+          });
+        }
+      });
+
+      // Bring the signup QR in a third of the way through: late enough not to
+      // fight the opening, early enough that someone who only catches the
+      // middle still gets a way in.
+      if (pct > 0.33 && !L.qr.classList.contains('show')) {
+        L.qr.classList.add('show');
+        prodImp = new QrImpression(p.id, 'tv');
+        prodImp.start();
+      }
+      push();
+    });
+
+    v.addEventListener('ended', function () {
+      if (current !== p || state !== 'playing') return;
+      if (!reported) {
+        reported = true;
+        Telemetry.log('film_complete', {
+          product: p.id,
+          watchedSeconds: Math.round(watched * 10) / 10,
+          durationSeconds: isFinite(v.duration) ? Math.round(v.duration * 10) / 10 : null
+        });
+      }
+      showEnd(p);
+    });
+  });
+
+  function abandon() {
+    if (state !== 'playing' || reported || !current) return;
+    reported = true;
+    var v = layers[current.id].video;
+    var dur = (v.duration && isFinite(v.duration)) ? v.duration : 0;
+    Telemetry.log('film_abandon', {
+      product: current.id,
+      atSecond: Math.round((v.currentTime || 0) * 10) / 10,
+      watchedSeconds: Math.round(watched * 10) / 10,
+      percent: dur ? Math.round((v.currentTime / dur) * 100) : null
+    });
+  }
+
+  /* ------------------------------------------------------------- end card */
+  function showEnd(product) {
+    clearTimers();
+    stopProdImp();
+    state = 'end';
+    document.body.classList.remove('playing', 'dir-l', 'dir-r');
+    document.body.setAttribute('data-product', product.id);
+
+    document.getElementById('endname').textContent = product.name;
+    document.getElementById('endtl').textContent   = product.tagline;
+    document.getElementById('endaddr').textContent = shortUrl(product.url);
+    document.getElementById('endqr').src = 'qr/tv/' + product.id + '.svg';
+    document.getElementById('endqr').alt = 'QR code to try ' + product.name;
+
+    endWrap.classList.add('on');
+    requestAnimationFrame(function () { endWrap.classList.add('vis'); });
+    bar.style.width = '0%';
+
+    prodImp = new QrImpression(product.id, 'tv');
+    prodImp.start();
+
+    runBar(CONFIG.idle.returnToAttractMs);
+    endTimer = setTimeout(toAttract, CONFIG.idle.returnToAttractMs);
+    push();
+  }
+
+  /* ------------------------------------------------------------------ bus */
+  function push() {
+    var v = current ? layers[current.id].video : null;
+    Bus.send({
+      type: 'tv',
+      state: state,
+      product: current ? current.id : null,
+      pos: (v && isFinite(v.currentTime)) ? v.currentTime : 0,
+      dur: (v && isFinite(v.duration)) ? v.duration : 0,
+      muted: v ? v.muted : true,
+      warm: warm,
+      at: Date.now()
+    });
+  }
+
+  Bus.on(function (msg) {
+    if (!msg) return;
+    if (msg.type === 'play') {
+      var p = productById(msg.product);
+      if (!p) return;
+      abandon();                 // a tap during a film abandons the old one
+      play(p, msg.dir);
+    } else if (msg.type === 'stop') {
+      abandon();
+      toAttract();
+    } else if (msg.type === 'ping') {
+      push();
+    }
+  });
+
+  Bus.onConnection(function (up) { document.body.classList.toggle('norelay', !up); });
+
+  setInterval(push, 1000);       // heartbeat, so the tablet knows we are alive
+
+  /* ------------------------------------------------------- audio and keys */
+  function doUnlock() {
+    audioReady = true;
+    unlock.classList.add('gone');
+    if (current && layers[current.id]) layers[current.id].video.muted = false;
+  }
+  unlock.addEventListener('click', doUnlock);
+
+  document.addEventListener('keydown', function (e) {
+    var k = (e.key || '').toLowerCase();
+    if (!audioReady && (k === 'f' || k === 'enter' || e.code === 'Space')) doUnlock();
+
+    if (k === 'f') {
+      e.preventDefault();
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    } else if (k === 'm') {
+      if (current) { var v = layers[current.id].video; v.muted = !v.muted; push(); }
+    } else if (k === 'h') {
+      document.body.classList.toggle('showhud');
+    } else if (k === 'escape' && state !== 'attract') {
+      abandon(); toAttract();
+    } else if (state === 'attract' && e.key === 'ArrowRight') {
+      showCard(idx + 1);
+    } else if (state === 'attract' && e.key === 'ArrowLeft') {
+      showCard(idx - 1);
+    }
+  });
+
+  toAttract();
+})();
+</script>
+</body>
+</html>

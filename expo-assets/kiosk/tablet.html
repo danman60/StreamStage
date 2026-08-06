@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#07090C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>StreamStage — booth tablet</title>
+<link rel="icon" href="brand/logo-icon-white.png">
+<link rel="stylesheet" href="brand.css">
+<!--
+  THE TABLET. This is the only thing anybody touches.
+  One tap on a tile = that film starts on the TV. There is no second step,
+  no menu, no back button you need to find, and nothing that can be got
+  stuck in — it returns to the grid on its own.
+-->
+<style>
+  /* Type scales off the SHORT edge, so the same layout is right at
+     1024x768 landscape and 820x1180 portrait without a pile of overrides. */
+  html{font-size:clamp(11px, 1.62vmin, 19px)}
+  body{overflow:hidden;position:fixed;inset:0;-webkit-tap-highlight-color:transparent}
+
+  #app{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;
+       padding:2.4rem 2.6rem 2.2rem;gap:1.8rem}
+
+  /* ------------------------------------------------------------- header */
+  header{display:flex;align-items:center;justify-content:space-between;gap:2rem;flex:none}
+  .ss-mark{font-size:2.6rem}
+  .where{
+    text-align:right;font:800 1.15rem/1.35 var(--mono);letter-spacing:.14em;
+    text-transform:uppercase;color:var(--faint)
+  }
+  .where b{display:block;color:var(--cyan);font-size:1.05rem;letter-spacing:.18em}
+  .tvdot{display:inline-block;width:.62rem;height:.62rem;border-radius:50%;
+    background:var(--faint);margin-left:.6rem;vertical-align:middle;transition:background .3s}
+  body.tvlive .tvdot{background:#5FD3A3;box-shadow:0 0 .8rem #5FD3A3}
+
+  .lede{flex:none;margin-top:-.4rem}
+  .lede h1{font-size:4.4rem;line-height:1.02;letter-spacing:-.035em;font-weight:900}
+  .lede h1 .g{
+    background:linear-gradient(105deg,var(--cyan),var(--amber));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .lede p{margin-top:.85rem;font-size:1.85rem;color:var(--dim);line-height:1.35;font-weight:500}
+
+  /* -------------------------------------------------------------- tiles */
+  #grid{
+    flex:1;display:grid;gap:1.5rem;min-height:0;
+    grid-template-columns:repeat(6,1fr);
+    grid-auto-rows:1fr;
+  }
+  /* landscape: 3 up, then 2 centred */
+  .tile{grid-column:span 2}
+  .tile:nth-child(4){grid-column:2/4}
+  .tile:nth-child(5){grid-column:4/6}
+
+  .tile{
+    position:relative;overflow:hidden;text-align:left;
+    border:1px solid var(--line);border-radius:2rem;
+    background:
+      radial-gradient(120% 100% at 0% 0%, var(--tint), transparent 58%),
+      linear-gradient(180deg,rgba(22,30,43,.92),rgba(9,12,18,.96));
+    color:var(--ink);font-family:var(--sans);cursor:pointer;
+    padding:1.9rem;
+    /* Grid, not flex: exactly one row is allowed to flex (the text), and it
+       clips. With flex, a long tagline grew its own box and drove the pill
+       out through the bottom of the tile. */
+    display:grid;grid-template-rows:1fr auto;gap:1rem;
+    transition:transform .18s var(--ease-out-back), border-color .25s var(--ease), box-shadow .25s var(--ease);
+    touch-action:manipulation;
+    box-shadow:0 1.2rem 3rem -1.6rem rgba(0,0,0,.9);
+  }
+  /* the coloured edge that tells five products apart at a glance */
+  .tile::before{
+    content:"";position:absolute;left:0;right:0;top:0;height:.42rem;
+    background:linear-gradient(90deg,var(--a),var(--b));
+  }
+  /* a slow sheen so the grid never looks like a screenshot */
+  .tile::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(105deg,transparent 34%,rgba(255,255,255,.07) 50%,transparent 64%);
+    transform:translateX(-130%);
+    animation:tilesheen 9s var(--ease) infinite;
+    animation-delay:var(--d,0s);
+  }
+  @keyframes tilesheen{0%,80%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
+
+  .tile:active{
+    transform:scale(.955);
+    border-color:var(--edge);
+    box-shadow:0 0 0 .35rem var(--tint),
+               0 1.4rem 3.4rem -1.4rem var(--glow);
+  }
+
+  /* Landscape: play button parked top-right, text fills, pill sits at the
+     bottom. The text block is the ONLY thing allowed to flex, and its
+     tagline is line-clamped — that is what stops a long line pushing the
+     pill out of the tile. */
+  .tile .txt{min-height:0;overflow:hidden;padding-right:5rem}
+  .tile h2{font-size:3.05rem;line-height:1;letter-spacing:-.03em;font-weight:900}
+  .tile .tl{
+    margin-top:.8rem;font-size:1.5rem;line-height:1.32;color:var(--dim);font-weight:500;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .tile .go{
+    position:absolute;right:1.9rem;top:2.3rem;
+    display:flex;align-items:center;justify-content:center;
+    width:3.6rem;height:3.6rem;border-radius:50%;
+    background:linear-gradient(120deg,var(--a),var(--b));
+    box-shadow:0 .5rem 1.6rem -.4rem var(--glow);
+  }
+  .tile .go svg{width:1.45rem;height:1.45rem;fill:#06090D;margin-left:.16rem}
+  .tile .watch{
+    justify-self:start;align-self:end;white-space:nowrap;
+    font:800 1.1rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+    color:var(--lite);
+    border:1px solid var(--edge);border-radius:99rem;padding:.7rem 1.2rem;
+  }
+
+  /* ------------------------------------------------------------- footer */
+  footer{flex:none;display:flex;align-items:center;gap:1.8rem}
+  .fbcard{font-size:1.6rem;flex:1;padding:1.3rem 1.6rem;border-radius:1.5rem;
+    background:linear-gradient(100deg,rgba(78,197,212,.14),rgba(22,30,43,.9) 55%);
+    border:1px solid rgba(78,197,212,.3)}
+  .fbcard .qr-plate{width:7.4rem}
+  .fbcard .t{font-size:1.62rem}
+  .fbcard .t em{font-size:1.22rem}
+
+  /* ==========================================================================
+     NOW PLAYING — the takeover after a tap. The whole tablet becomes the
+     scan target for the film that is running on the TV.
+     ====================================================================== */
+  #now{
+    position:fixed;inset:0;z-index:30;display:none;flex-direction:column;
+    padding:2.6rem;gap:1.8rem;
+    background:
+      radial-gradient(120% 90% at 12% 0%, var(--tint), transparent 60%),
+      radial-gradient(100% 80% at 100% 100%, var(--wash), transparent 60%),
+      #07090C;
+  }
+  #now.on{display:flex;animation:rise .45s var(--ease) both}
+  /* The panel slides in from the side that was tapped, and slides again when
+     you switch product without going back to the grid — so the motion always
+     matches the gesture instead of being a generic fade. */
+  #now .body.swipe-r{animation:swipe-in-r .42s var(--ease) both}
+  #now .body.swipe-l{animation:swipe-in-l .42s var(--ease) both}
+  @keyframes swipe-in-r{from{opacity:0;transform:translate3d(22%,0,0)}to{opacity:1;transform:none}}
+  @keyframes swipe-in-l{from{opacity:0;transform:translate3d(-22%,0,0)}to{opacity:1;transform:none}}
+  #now .nowhead{display:flex;align-items:center;justify-content:space-between;gap:2rem;flex:none}
+  #now .onair{
+    display:inline-flex;align-items:center;gap:.7rem;
+    font:900 1.35rem/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:#06090D;
+    background:linear-gradient(120deg,var(--a),var(--b));border-radius:99rem;padding:.85rem 1.5rem;
+  }
+  #now .onair i{width:.6rem;height:.6rem;border-radius:50%;background:#06090D;
+    animation:pulse 1.4s var(--ease) infinite;font-style:normal}
+  #now .body{flex:1;display:flex;align-items:center;gap:3rem;min-height:0}
+  #now .txt{flex:1;min-width:0}
+  #now h2{font-size:6.2rem;line-height:.98;letter-spacing:-.04em;font-weight:900}
+  #now .tl{margin-top:1.4rem;font-size:2.15rem;line-height:1.3;color:var(--dim);font-weight:500}
+  #now .addr{margin-top:2rem;font:900 1.7rem/1 var(--mono);
+    color:var(--lite);word-break:break-all}
+  #now .scanbox{flex:none;width:30%;max-width:34rem;text-align:center}
+  #now .scanbox .qr-plate{width:100%}
+  #now .scanbox .lbl{margin-top:1.2rem;font:900 1.9rem/1.2 var(--sans)}
+  #now .scanbox .lbl em{display:block;font-style:normal;font-weight:600;font-size:1.35rem;
+    color:var(--dim);margin-top:.5rem}
+
+  /* The soft email capture. It is ADDITIVE and appears only once a film has
+     finished — it never swaps a QR somebody might be mid-scan on, and it is
+     never a gate in front of a second film. */
+  #now .allfive{
+    display:none;margin-top:2rem;padding:1.3rem 1.5rem;border-radius:1.4rem;
+    align-items:center;gap:1.4rem;
+    background:rgba(78,197,212,.1);border:1px solid rgba(78,197,212,.34);
+  }
+  #now.ended .allfive{display:flex;animation:rise .5s var(--ease) both}
+  #now .allfive .qr-plate{width:8.4rem;flex:none}
+  #now .allfive .t{font:900 1.6rem/1.25 var(--sans)}
+  #now .allfive .t em{display:block;font-style:normal;font-weight:600;font-size:1.28rem;
+    color:var(--dim);margin-top:.5rem;line-height:1.35}
+  #now .foot{flex:none;display:flex;align-items:center;gap:1.6rem}
+  #prog{flex:1;height:.7rem;border-radius:99rem;background:rgba(255,255,255,.1);overflow:hidden}
+  #prog i{display:block;height:100%;width:0;border-radius:99rem;
+    background:linear-gradient(90deg,var(--a),var(--b));transition:width .3s linear}
+  #now .btn{font-size:1.6rem}
+  #now .fbmini{display:flex;align-items:center;gap:.9rem;font:800 1.25rem/1.25 var(--sans);color:var(--dim)}
+  #now .fbmini .qr-plate{width:5.4rem;flex:none}
+
+  /* ==========================================================================
+     OPERATOR SHEET — hidden. Ctrl+Shift+D, or five taps in the top-left
+     corner. Never a visible button: a studio owner must not find this.
+     ====================================================================== */
+  #op{position:fixed;inset:0;z-index:60;display:none;background:#05070A;
+      padding:2.4rem;overflow:auto;-webkit-overflow-scrolling:touch}
+  #op.on{display:block}
+  #op .sheet{max-width:76rem;margin:0 auto;font-size:1.5rem}
+  #op h3{font-size:3rem;font-weight:900;letter-spacing:-.03em;margin-bottom:.4rem}
+  #op .note{color:var(--faint);font-size:1.35rem;line-height:1.45;margin-bottom:1.8rem}
+  #op .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.6rem}
+  #op .stat{padding:1.3rem;border-radius:1.2rem;background:rgba(255,255,255,.045);border:1px solid var(--line)}
+  #op .stat b{display:block;font-size:3.1rem;font-weight:900;letter-spacing:-.03em;line-height:1}
+  #op .stat span{display:block;margin-top:.5rem;font:800 1.05rem/1.2 var(--mono);
+    letter-spacing:.13em;text-transform:uppercase;color:var(--faint)}
+  #op table{width:100%;border-collapse:collapse;margin-bottom:1.6rem}
+  #op th{text-align:right;font:800 1.05rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+    color:var(--faint);padding:.7rem .6rem;border-bottom:1px solid var(--line)}
+  #op th:first-child{text-align:left}
+  #op td{padding:.85rem .6rem;border-bottom:1px solid rgba(255,255,255,.05);text-align:right;
+    font-variant-numeric:tabular-nums}
+  #op td:first-child{text-align:left;font-weight:800}
+  #op td .sw{display:inline-block;width:.75rem;height:.75rem;border-radius:50%;margin-right:.7rem;
+    background:linear-gradient(120deg,var(--a),var(--b))}
+  #op .ops{display:flex;flex-wrap:wrap;gap:.9rem;margin-bottom:1.6rem}
+  #op .ops .btn{font-size:1.4rem;padding:.95em 1.7em}
+  #op .warn{padding:1.2rem 1.4rem;border-radius:1.1rem;font-size:1.35rem;line-height:1.45;
+    background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.4);color:#F8D48A;margin-bottom:1rem}
+  #op .warn b{color:var(--amber)}
+  #op .health{display:flex;gap:1.6rem;flex-wrap:wrap;font:700 1.25rem/1 var(--mono);color:var(--faint);
+    margin-bottom:1.6rem}
+  #op .health b{color:var(--ink);font-weight:800}
+  #op .health .ok{color:#5FD3A3}
+  #op .health .bad{color:#F87171}
+
+  #corner{position:fixed;left:0;top:0;width:8rem;height:8rem;z-index:70;background:transparent}
+  #now.on ~ #corner{z-index:70}
+
+  /* toast — confirms a tap landed even if the TV is slow to wake */
+  /* Sits high, not low: at the bottom it covered the progress bar. */
+  #toast{position:fixed;left:50%;top:8.5rem;transform:translate(-50%,-1.5rem);z-index:80;
+    padding:1.1rem 2rem;border-radius:99rem;font:800 1.5rem/1 var(--sans);
+    background:rgba(10,14,20,.94);border:1px solid var(--line-hot);color:var(--ink);
+    opacity:0;transition:opacity .3s var(--ease),transform .3s var(--ease);pointer-events:none}
+  #toast.on{opacity:1;transform:translate(-50%,0)}
+
+  /* ---------------------------------------------------------- portrait */
+  @media (orientation:portrait){
+    #app{padding:3rem 2.6rem}
+    .lede h1{font-size:4.9rem}
+    #grid{grid-template-columns:1fr;gap:1.35rem}
+    .tile,.tile:nth-child(4),.tile:nth-child(5){grid-column:1}
+    /* Portrait turns each tile on its side: play button, then text, then the
+       pill — all real flex children, so nothing can be clipped out of the box. */
+    .tile{display:flex;flex-direction:row;align-items:center;gap:1.8rem;padding:1.7rem 1.9rem}
+    .tile::before{right:auto;bottom:0;width:.42rem;height:auto;
+      background:linear-gradient(180deg,var(--a),var(--b))}
+    .tile .go{position:static;flex:none;width:4.4rem;height:4.4rem}
+    .tile .go svg{width:1.7rem;height:1.7rem}
+    .tile .txt{flex:1;padding-right:0;overflow:hidden}
+    .tile h2{font-size:3.1rem}
+    .tile .tl{font-size:1.55rem;-webkit-line-clamp:2}
+    .tile .watch{flex:none;align-self:center;justify-self:auto}
+    #now .body{flex-direction:column;align-items:stretch;gap:2rem}
+    #now .scanbox{width:100%;max-width:none;display:flex;align-items:center;gap:2rem;text-align:left}
+    #now .scanbox .qr-plate{width:22rem;flex:none}
+    #now h2{font-size:5.6rem}
+    #op .stats{grid-template-columns:repeat(2,1fr)}
+  }
+  /* short landscape (1024x768) — keep everything on one screen, no scroll */
+  /* A 1024x768 tablet is SHORT. Buy the tiles their height back by tightening
+     the lede rather than by clipping product copy. */
+  @media (orientation:landscape) and (max-height:820px){
+    #app{padding:1.8rem 2.2rem 1.6rem;gap:1.2rem}
+    .lede h1{font-size:3.4rem}
+    .lede p{display:none}
+    .tile{padding:1.6rem}
+    .tile h2{font-size:2.7rem}
+    .tile .tl{font-size:1.45rem;-webkit-line-clamp:2}
+  }
+</style>
+</head>
+<body>
+<div class="ambient"></div>
+
+<div id="app">
+  <header>
+    <div class="ss-mark">
+      <img src="brand/logo-white.png" alt="StreamStage.live">
+      <span class="rule"></span>
+      <span class="say">Booth<br><b>Live</b></span>
+    </div>
+    <div class="where">
+      Calgary Dance&nbsp;Teacher Expo
+      <b>Aug 11&ndash;12 &middot; on the big screen<span class="tvdot" id="tvdot"></span></b>
+    </div>
+  </header>
+
+  <div class="lede">
+    <h1>Tap one. <span class="g">Watch it.</span></h1>
+    <p>Five things I built for dance studios &mdash; each one plays on the big screen right here.</p>
+  </div>
+
+  <div id="grid"><!-- tiles injected from CONFIG.products --></div>
+
+  <footer>
+    <div class="fbcard glass">
+      <span class="qr-plate"><img src="qr/facebook.svg" alt="QR code — StreamStage studio community on Facebook"></span>
+      <span class="t">
+        <span class="fbtag">Scan &middot; free</span>
+        Join the studio community
+        <em>Owners and teachers. See what ships next, first &mdash; and get the recital checklist.</em>
+      </span>
+    </div>
+  </footer>
+</div>
+
+<!-- ===================== NOW PLAYING TAKEOVER ========================== -->
+<div id="now">
+  <div class="nowhead">
+    <span class="onair"><i></i><span id="nowstate">Playing on the big screen</span></span>
+    <div class="ss-mark" style="font-size:2rem">
+      <img src="brand/logo-white.png" alt="StreamStage.live">
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="txt">
+      <h2 id="nowname"></h2>
+      <div class="tl" id="nowtl"></div>
+      <div class="addr" id="nowaddr"></div>
+      <div class="allfive">
+        <span class="qr-plate"><img id="allfiveqr" alt="QR code — get all five films by email"></span>
+        <span class="t">
+          Want all five?
+          <em>Scan for the whole set plus the recital checklist, emailed to you.</em>
+        </span>
+      </div>
+    </div>
+    <div class="scanbox">
+      <span class="qr-plate"><img id="nowqr" alt=""></span>
+      <span class="lbl">Scan to try it<em>Opens on your phone &mdash; nothing to install</em></span>
+    </div>
+  </div>
+
+  <div class="foot">
+    <button class="btn ghost" id="back" type="button">&larr; Back to all five</button>
+    <div id="prog"><i id="progi"></i></div>
+    <div class="fbmini">
+      <span class="qr-plate"><img src="qr/facebook.svg" alt="QR code — Facebook community"></span>
+      <span>Join the<br>community</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== OPERATOR SHEET (hidden) ======================= -->
+<div id="op">
+  <div class="sheet">
+    <h3>Booth tally</h3>
+    <div class="note">
+      Local only. Nothing is sent anywhere. Numbers below are what these two screens
+      actually observed &mdash; see the note on QR impressions.
+    </div>
+
+    <div class="stats">
+      <div class="stat"><b id="s-taps">0</b><span>Taps</span></div>
+      <div class="stat"><b id="s-comp">0%</b><span>Watched to end</span></div>
+      <div class="stat"><b id="s-most">&mdash;</b><span>Most watched</span></div>
+      <div class="stat"><b id="s-loop">0</b><span>Attract loops</span></div>
+      <div class="stat"><b id="s-lat">&mdash;</b><span>Tap &rarr; picture</span></div>
+    </div>
+
+    <table>
+      <thead><tr><th>Product</th><th>Taps</th><th>Started</th><th>Finished</th><th>Left early</th><th>Watch mins</th><th>QR shown</th></tr></thead>
+      <tbody id="s-rows"></tbody>
+    </table>
+
+    <div class="warn">
+      <b>&ldquo;QR shown&rdquo; is an impression, not a scan.</b> A scan happens on the attendee&rsquo;s phone
+      and cannot be seen from this page, so nothing here is labelled as one. Real scans are countable on
+      the destination side: every product QR carries
+      <code>?src=booth-calgary&amp;p=&lt;product&gt;&amp;s=tv|tablet</code>.
+    </div>
+    <div class="warn" id="w-compsync">
+      <b>CompSync signup URL was never confirmed.</b> The QR currently points at
+      <code>compsync.net</code> &mdash; an assumption, so the code is not dead on the floor.
+      Confirm it and re-run <code>make-qr.py</code>.
+    </div>
+
+    <div class="health">
+      <span>TV: <b id="h-tv" class="bad">not connected</b></span>
+      <span>Relay: <b id="h-srv" class="bad">offline</b></span>
+      <span>Events held: <b id="h-ev">0</b></span>
+      <span>Leads: <b id="h-lead">0</b></span>
+    </div>
+
+    <div class="ops">
+      <button class="btn" id="op-export" type="button">Export today &mdash; CSV + JSON</button>
+      <button class="btn ghost" id="op-lead" type="button">+1 lead captured</button>
+      <button class="btn ghost" id="op-form" type="button">Open lead form &#8599;</button>
+      <button class="btn ghost" id="op-tv" type="button">Open TV window</button>
+      <button class="btn ghost" id="op-close" type="button">Close</button>
+    </div>
+    <div class="note">
+      Export downloads a CSV and a JSON of every event. Events are also written to
+      <code>expo-assets/kiosk/telemetry/events-YYYY-MM-DD.jsonl</code> on the laptop as they happen,
+      so a crash loses nothing. Do the export at the end of each day anyway.
+    </div>
+  </div>
+</div>
+
+<div id="corner"></div>
+<div id="toast"></div>
+
+<script src="kiosk.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  Telemetry.init('tablet');
+
+  var grid  = document.getElementById('grid');
+  var now   = document.getElementById('now');
+  var op    = document.getElementById('op');
+  var toast = document.getElementById('toast');
+  var progi = document.getElementById('progi');
+
+  var current   = null;    // product on the takeover
+  var idleTimer = null;
+  var tvSeen    = 0;       // last time the TV said anything
+  var nowImp    = null;    // QR impression clock for the takeover
+
+  /* The community QR is on this screen in every state, so its impression
+     clock runs for as long as the page is open. */
+  var fbImp = new QrImpression('facebook', 'tablet');
+  fbImp.start();
+  setInterval(function () { fbImp.stop(); fbImp.start(); }, 60 * 60 * 1000);
+  window.addEventListener('pagehide', function () { fbImp.stop(); if (nowImp) nowImp.stop(); });
+
+  var PLAY_ICON = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+
+  /* ------------------------------------------------------------- tiles */
+  CONFIG.products.forEach(function (p, i) {
+    var el = document.createElement('button');
+    el.className = 'tile rise';
+    el.type = 'button';
+    el.setAttribute('data-product', p.id);
+    el.style.setProperty('--d', (i * 1.5) + 's');
+    el.style.animationDelay = (0.05 + i * 0.07) + 's';
+    el.innerHTML =
+      '<span class="go">' + PLAY_ICON + '</span>' +
+      '<span class="txt">' +
+        '<h2>' + p.name + '</h2>' +
+        '<span class="tl">' + (p.short || p.tagline) + '</span>' +
+      '</span>' +
+      '<span class="watch">Tap to watch</span>';
+    el.addEventListener('click', function (e) {
+      // Direction = the side of the screen the finger actually landed on, so
+      // the film looks like it slid in from where it was tapped.
+      var r = el.getBoundingClientRect();
+      var dir = ((r.left + r.width / 2) < window.innerWidth / 2) ? -1 : 1;
+      pick(p, dir);
+    });
+    grid.appendChild(el);
+  });
+
+  /* Direction to slide toward a product, given whatever is on screen now. */
+  function dirTo(p) {
+    if (!current) return 1;
+    var a = CONFIG.products.indexOf(current), b = CONFIG.products.indexOf(p);
+    return (b >= a) ? 1 : -1;
+  }
+
+  /* --------------------------------------------------------------- tap */
+  function pick(p, dir) {
+    var t0 = performance.now();
+
+    // Once a product is already up, direction follows the order of the five
+    // rather than the tap position — moving "along" the row reads better than
+    // a direction that flips at the halfway mark.
+    if (current) {
+      var a = CONFIG.products.indexOf(current), b = CONFIG.products.indexOf(p);
+      if (a !== b) dir = (b > a) ? 1 : -1;
+    }
+
+    Telemetry.log('tap', { product: p.id });
+    Bus.send({ type: 'play', product: p.id, dir: dir });
+    showNow(p, dir);
+    say(p.name + ' — playing on the big screen');
+
+    // How long this screen took to answer the finger. The TV logs its own
+    // tap-to-first-frame separately; these are two different numbers and are
+    // reported as such.
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        Telemetry.log('tap_render', {
+          product: p.id, latencyMs: Math.round(performance.now() - t0)
+        });
+      });
+    });
+  }
+
+  function showNow(p, dir) {
+    current = p;
+    if (nowImp) nowImp.stop();
+
+    var body = now.querySelector('.body');
+    body.classList.remove('swipe-l', 'swipe-r');
+    void body.offsetWidth;                       // restart the animation
+    body.classList.add(dir === -1 ? 'swipe-l' : 'swipe-r');
+
+    now.setAttribute('data-product', p.id);
+    document.getElementById('nowname').textContent = p.name;
+    document.getElementById('nowtl').textContent   = p.tagline;
+    document.getElementById('nowaddr').textContent =
+      p.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    document.getElementById('nowqr').src = 'qr/tablet/' + p.id + '.svg';
+    document.getElementById('allfiveqr').src = 'qr/tablet/leads-' + p.id + '.svg';
+    now.classList.remove('ended');
+    document.getElementById('nowqr').alt = 'QR code to try ' + p.name;
+    document.getElementById('nowstate').textContent = 'Playing on the big screen';
+    progi.style.width = '0%';
+    now.classList.add('on');
+
+    // The product QR is now on screen — start counting the impression.
+    nowImp = new QrImpression(p.id, 'tablet');
+    nowImp.start();
+
+    resetIdle();
+  }
+
+  function backToGrid(quiet) {
+    if (nowImp) { nowImp.stop(); nowImp = null; }
+    if (current && !quiet) Bus.send({ type: 'stop' });
+    current = null;
+    now.classList.remove('on', 'ended');
+    if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
+  }
+
+  document.getElementById('back').addEventListener('click', function () { backToGrid(false); });
+
+  /* The tablet must never be left sitting on one product when the next
+     person walks up. If nothing has been touched for a while, it goes home. */
+  function resetIdle() {
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(function () {
+      if (current) backToGrid(true);
+    }, CONFIG.idle.tabletResetMs);
+  }
+  ['pointerdown', 'keydown'].forEach(function (ev) {
+    document.addEventListener(ev, function () { if (current) resetIdle(); }, true);
+  });
+
+  function say(text) {
+    toast.textContent = text;
+    toast.classList.add('on');
+    clearTimeout(say._t);
+    say._t = setTimeout(function () { toast.classList.remove('on'); }, 2600);
+  }
+
+  /* --------------------------------------------------------------- bus */
+  Bus.on(function (msg) {
+    if (!msg || msg.type !== 'tv') return;
+    tvSeen = Date.now();
+    document.body.classList.add('tvlive');
+
+    if (msg.state === 'playing') {
+      var p = productById(msg.product);
+      if (p && (!current || current.id !== p.id)) showNow(p, dirTo(p));
+      if (msg.dur) progi.style.width = ((msg.pos / msg.dur) * 100).toFixed(1) + '%';
+      document.getElementById('nowstate').textContent = 'Playing on the big screen';
+    } else if (msg.state === 'end') {
+      var pe = productById(msg.product);
+      if (pe && (!current || current.id !== pe.id)) showNow(pe, dirTo(pe));
+      progi.style.width = '100%';
+      document.getElementById('nowstate').textContent = 'Scan it before it goes';
+      if (!now.classList.contains('ended')) {
+        now.classList.add('ended');
+        // Its own event type, not a qr_impression — otherwise "all-five" would
+        // appear in the per-product QR table as if it were a sixth product.
+        Telemetry.log('offer_shown', { product: pe.id, offer: 'all-five' });
+      }
+    } else if (msg.state === 'attract') {
+      // The TV finished on its own — bring the tablet home for the next person.
+      if (current) backToGrid(true);
+    }
+  });
+
+  // TV liveness: if it has gone quiet for 4s, drop the green dot.
+  setInterval(function () {
+    var live = (Date.now() - tvSeen) < 4000;
+    document.body.classList.toggle('tvlive', live);
+    var h = document.getElementById('h-tv');
+    h.textContent = live ? 'connected' : 'not connected';
+    h.className = live ? 'ok' : 'bad';
+  }, 1000);
+
+  Bus.onConnection(function (up) {
+    var h = document.getElementById('h-srv');
+    if (!h) return;
+    h.textContent = up ? 'online' : 'offline (same-laptop only)';
+    h.className = up ? 'ok' : 'bad';
+  });
+
+  Bus.send({ type: 'ping' });
+
+  /* ==================================================================
+     OPERATOR SHEET — Ctrl+Shift+D, or five taps in the top-left corner
+     (there is no keyboard on a tablet).
+     ================================================================== */
+  var taps = [];
+  document.getElementById('corner').addEventListener('click', function () {
+    var t = Date.now();
+    taps.push(t);
+    taps = taps.filter(function (x) { return t - x < 3000; });
+    if (taps.length >= 5) { taps = []; openOp(); }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey && e.shiftKey && (e.key || '').toLowerCase() === 'd') { e.preventDefault(); openOp(); }
+    if ((e.key || '').toLowerCase() === 'escape') { op.classList.remove('on'); }
+  });
+
+  var opTimer = null;
+  function openOp() {
+    op.classList.add('on');
+    render();
+    if (opTimer) clearInterval(opTimer);
+    opTimer = setInterval(render, 3000);
+  }
+  document.getElementById('op-close').addEventListener('click', function () {
+    op.classList.remove('on');
+    if (opTimer) { clearInterval(opTimer); opTimer = null; }
+  });
+
+  function mins(s) { return (Math.round((s / 60) * 10) / 10).toFixed(1); }
+
+  // The tally must show BOTH screens. With a Fire Stick TV those events live
+  // on another device, so the numbers come from the server's record when it
+  // is reachable and from local storage when it is not.
+  var lastEvents = [];
+  function render() {
+    Report.load().then(function (events) {
+      lastEvents = events;
+      paint(events);
+    });
+  }
+
+  function paint(events) {
+    var r = Report.rollup(events);
+
+    document.getElementById('s-taps').textContent = r.taps;
+    document.getElementById('s-comp').textContent = r.completionRate + '%';
+    document.getElementById('s-most').textContent = r.mostWatched ? r.mostWatched.name : '—';
+    document.getElementById('s-loop').textContent = r.attractCycles;
+    document.getElementById('s-lat').textContent =
+      r.startLatency ? (r.startLatency.medianMs + 'ms') : '—';
+    document.getElementById('h-ev').textContent   = events.length;
+    document.getElementById('h-lead').textContent = r.leads;
+
+    var rows = r.ranked.map(function (b) {
+      return '<tr data-product="' + b.id + '">' +
+        '<td><span class="sw"></span>' + b.name + '</td>' +
+        '<td>' + b.taps + '</td><td>' + b.starts + '</td><td>' + b.completes + '</td>' +
+        '<td>' + b.abandons + '</td><td>' + mins(b.watchedSeconds) + '</td>' +
+        '<td>' + b.qrImpressions + '</td></tr>';
+    }).join('');
+    document.getElementById('s-rows').innerHTML = rows;
+  }
+
+  document.getElementById('op-export').addEventListener('click', function () {
+    Report.load().then(function (events) {
+      Report.exportAll(events);
+      say('Exported ' + events.length + ' events');
+      render();
+    });
+  });
+  document.getElementById('op-lead').addEventListener('click', function () {
+    Telemetry.log('lead_captured', { via: 'operator' });
+    say('Lead logged');
+    render();
+  });
+  document.getElementById('op-form').addEventListener('click', function () {
+    // The EXISTING booth form. Needs the attendee's own data or venue wifi —
+    // it is not part of the offline path, which is why it is in here and not
+    // on the floor-facing screen.
+    window.open(CONFIG.lead.url, '_blank');
+  });
+  document.getElementById('op-tv').addEventListener('click', function () {
+    window.open('tv.html', 'ss-tv');
+  });
+
+  // Only warn about CompSync while the URL really is the unconfirmed one.
+  var cs = productById('compsync');
+  if (!cs || !cs.urlUnconfirmed) {
+    var w = document.getElementById('w-compsync');
+    if (w) w.style.display = 'none';
+  }
+})();
+</script>
+</body>
+</html>
