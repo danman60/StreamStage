@@ -1,6 +1,6 @@
 # Talk 1 Slides — VIDEO
 **The Content Day: A Year of Video in One Morning**
-Daniel Abrahamson · StreamStage · Dance NYC Expo
+Daniel Abrahamson · StreamStage · Calgary Dance Teacher Expo
 Built off `talk1-video-script.md`. 13 slides. ~20 min + Q&A.
 
 Design notes (apply to all slides):

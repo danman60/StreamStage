@@ -1,6 +1,6 @@
 # Talk 1 Master Script — VIDEO
 **The Content Day: A Year of Video in One Morning**
-Presenter: Daniel Abrahamson, StreamStage · Dance NYC Expo
+Presenter: Daniel Abrahamson, StreamStage · Calgary Dance Teacher Expo
 Target run: ~20 min talk + Q&A
 Sibling talk: Talk 2 — "The AI Front Desk" (same expo, same audience — do NOT reuse its signature bits: printer/technologist persona, mid-livestream email story, wife/pull story. Those live in Talk 2 only.)
 

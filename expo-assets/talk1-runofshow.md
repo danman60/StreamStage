@@ -1,32 +1,73 @@
 # Talk 1 — Run of Show / Presenter Cue Card
-**The Content Day · ~20 min + Q&A · Dance NYC Expo**
-Pocket version of `talk1-video-script.md` — cues only.
+**The Content Day · Calgary Dance Teacher Expo · Wed Aug 12 2026, 10:50, Adapt Stage**
+Pocket version. Cues only. Rebuilt 2026-08-06 against the real deck — the old card listed 13 slides
+against a 26-slide deck and still said "Dance NYC Expo".
+
+> **Talk 2 (AI) runs FIRST in Calgary, on the Tuesday.** The cliffhanger points BACKWARD. Half this
+> room will not have been there — one sentence, no recap, send them to the booth.
 
 ## Pre-stage
-- [ ] Deck open (`decks/talk1-video.html`, fullscreen) · content-day reel queued LOCAL (no streaming) with audio tested
-- [ ] Phone charged for Slide 8 hold-up beat
-- [ ] Clicker batteries · water · cards in pocket
+- [ ] Deck open: **`StudioSage/live-demo/talk1-deck.html`**, fullscreen (this is the canonical file —
+      not `decks/talk1-video.html`, which is the old 13-slide build)
+- [ ] **Press `V` and run the video preflight.** Every clip loads green, nothing says FAIL.
+      Rows marked **SIL** have no audio track at all — never click one expecting sound.
+- [ ] Projector audio tested at sound check — HDMI audio routing is the #1 silent failure
+- [ ] Phone charged for the slide-12 hold-up beat · clicker batteries · water · cards
+- [ ] Decide before you walk on: **are you running the media-fee act?** (see below)
 
-## Cue sheet
+## Keys
+| Key | Does |
+|---|---|
+| `→` `←` | fragments, then slides. **Never crosses into an off-main-line block.** |
+| `M` | jump into the media-fee act · press again to back out |
+| `A` | jump into the codec / camera-settings appendix · press again to back out |
+| `→` at the end of a block | returns you to exactly where you left the main line |
+| `P` | presenter notes · `F` reveal all · `#`+Enter jump to a slide |
+| `V` | video preflight · `L` facelift overlay · `Esc` closes either |
+
+## Cue sheet — the main line (21 slides)
 | # | Clock | Slide | Cue / beat | Don't forget |
 |---|-------|-------|-----------|--------------|
 | 1 | 0:00 | Title | Show of hands open | Hold, no clicks |
-| 2 | 0:30 | Second job | Teacher / content creator — "paid for one" | Two jobs (front desk = Talk 2's) |
-| 3 | 1:30 | Who I am | Credibility only — KEEP SHORT | Persona jokes budgeted to Talk 2 |
+| 2 | 0:30 | The second job | Teacher / owner / content creator — "paid for one" | Don't mention hiring — Talk 2's beat |
+| 3 | 1:30 | Who I am | Credibility only, KEEP SHORT | Persona jokes budgeted to Talk 2 |
 | 4 | 2:00 | How are you making video now? | Take 3–4 answers, react BY NAME | Seeds later examples |
-| 5 | 3:00 | Exhausting way | "Three studios. Three people. Never met." | |
-| 6 | 4:00 | Content Day | The fix. Hazer/smoke-alarm aside in voice | |
-| 7 | 5:30 | Stations | 2×2: interview · selfie · routines · extra angles | "People doing people things — AI can't generate that" |
-| 8 | 7:00 | One clip, nine posts | HOLD UP PHONE alongside slide | |
-| 9 | 8:00 | Pro feeds UGC | Mortgage joke + "hostage situation" editing math | 30-sec edit = 2–4 hrs |
-| 10 | 9:30 | DEMO — reel | Roll 30–45s reel FULLSCREEN. Land: "One morning in. Twelve months out." | Audio check was pre-stage |
-| 11 | 13:00 | Video you never make? | Rapid fire; doable-in-a-day → one-line answers | Generous, not salesy |
-| 12 | 15:00 | Cliffhanger | "Who answers the 40 parents who reply?" → Talk 2 trailer | [confirm slot/time] · ZERO product content |
-| 13 | 16:30 | Close/CTA | QR: streamstage.live/book — "partnership, not an invoice" | Q&A follows |
+| 5 | 3:00 | The exhausting way | "Three studios. Three people. Never met." | Name the pain, don't fix it |
+| 6 | 4:00 | The content day | The fix. One day, everybody in | |
+| 7 | 5:30 | **Stations** | Four clicks, then the recap strip | **Counter must read 4 / 4 before you leave.** You dropped station 4 last time |
+| 8 | 7:00 | The provoke | Ask it, then argue the opposite | Say the analogy ONCE. Do not apologise for it |
+| 9 | 8:30 | **The owner on camera** | "Nobody represents your culture like you do" | Say "I don't do it either" — that's the credibility beat |
+| 10 | 9:30 | **Dancing on Camera Day** | "I'm going to be bold and say charge for it" | NO price on screen. $45 only if asked |
+| 11 | 10:30 | What audiences watch | Five cards, five real examples | Keep the caveat honest |
+| 12 | 12:00 | One clip, nine posts | HOLD UP PHONE alongside the slide | The nine reels are **silent** — don't click for audio |
+| 13 | 13:00 | Pro feeds UGC | Mortgage joke + "hostage situation" editing math | 30-sec edit = 2–4 hrs |
+| 14 | 13:30 | **The long game** | Sept/Jan/May · grad class every June · the 5-year profile | "What a great idea, write this down" |
+| 15 | 15:00 | DEMO — the player | Three sources across the top. Click once for sound | Audio checked pre-stage |
+| 16 | 16:00 | Recital → recruiting film | "Recital night is **peak vibes**" | KMSD clip runs ~10 dB quiet |
+| 17 | 17:30 | Reel wall | Two clicks. Pick the two closest to this room | Leave it at 2 clicks |
+| 18 | 19:00 | Video you never make? | Rapid fire, one-line answers | Generous, not salesy |
+| 19 | 20:30 | Cliffhanger | "Who answers the 40 parents who reply?" | Points **BACKWARD** — the AI talk was yesterday |
+| 20 | 25:00 | **StudioSage sting** | **30 SECONDS. Look at a clock.** The snark slider is the laugh | No price, no dashboard, no knowledge base |
+| 21 | 25:30 | Close / CTA | Two asks, read #2 out loud verbatim | **"streamstage.live slash book."** You never said it last time |
+
+## The media-fee act — `M` (4 slides, ~6 min)
+Shoot it like a show · Getting it to every family · **The media fee** · What you hand over.
+
+**Off the main line on purpose.** Calgary's published description for this session is content-day only.
+- **Skipping it is the default** — do nothing.
+- **Running it:** press `M` after the reel wall (slide 17). `→` off the last slide drops you back.
+- The counter reads `MONEY 3 / 4` the whole time so you always know you're off the main line.
+- Decide at the top of the hour, not at minute 40. If the room is asking money questions, take it.
+
+## The appendix — `A` (2 slides)
+Frame/format/delivery · camera settings. Built because you asked for it on mic. **Answer only — never open it unprompted.**
 
 ## Hard guardrails
-- NO exact price on slides. NO client names without [confirm].
-- NO printer joke, NO livestream-email story, NO StudioSage content — all Talk 2's.
+- NO exact price on any slide. NO client names without [confirm].
+- NO printer joke, NO livestream-email story — Talk 2's.
+- **StudioSage: 30 seconds, one slide, and that is all.** Last time it ran ~7 minutes and ate the Q&A.
+- Silent clips (no audio track, verified): the four recital angles, and seven of the nine reels in the fan.
 
-## Demo asset
-- Slide 10 reel: LOCAL FILE ONLY on the laptop (+ USB backup). Never stream. Test projector audio at sound check — HDMI audio routing is the #1 silent failure.
+## Open question for you
+Last time you closed the booking ask with *"only if your studio is here in Ontario."* Calgary is not.
+The slide says nothing about geography — decide before you go on whether you're taking Alberta bookings.
