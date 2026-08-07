@@ -1,5 +1,62 @@
 # Current Work - StreamStage
 
+## 2026-08-07 13:10 ET — TRADE SHOW CAPTURE SYSTEM BUILT AND SHIPPED
+
+**Master status: `docs/plans/2026-08-07-TRADESHOW-READY-CHECKLIST.md`** — read that first, it has
+the per-item state and, more importantly, the list of what is still NOT done.
+
+Daniel's ask: *"we should never give anything away for free without capturing an email… we can't be
+losing leads… track where they scan, what path they came in through, video vs software."*
+His decisions: gate EVERYTHING including the booth films · Calgary-ready (live Aug 11-12) ·
+scan → landing page → email + studio → we send it · **SES only** (not Resend).
+
+### Shipped and pushed today
+- `03bed96` **`public/g.html`** — the one gated landing page every material QR lands on, plus a
+  lead retry queue on both it and checklist.html.
+- `b65a4a9` **the four money forms reach the database.** recital / promo / video-production /
+  contact emailed Daniel and reached NO database at all. 177 insertions, 0 deletions.
+- `7677d29` **kiosk film gate** (per visitor, not per film), StreamStage services card on the TV,
+  material QRs repointed at the gate.
+- `a5ff9db` **`kiosk-app/`** — Fire Stick app, plays the loop with no laptop and no network.
+- `84c2e8e` both stale decks now cover themselves with a DO-NOT-PRESENT banner.
+- `7dd83f0` lead route carries real attribution + emails the visitor the asset.
+
+### Verified against production, not mocks
+- One real capture: HTTP 200 in 2.0s, SES sent BOTH mails (counter 12→14), row landed in `leads`
+  with `source=booth_tv`, `interests=[video, recital filming]`, populated `raw`. **First row in
+  that table's history with a real surface** — it only ever held `expo_form` and `moves` before.
+  Row is tagged `TEST — ignore this row`.
+- Booth flow, tablet and TV in separate browser contexts (only the LAN SSE relay links them, which
+  is the Fire Stick path): first tap gates → studio+email → TV plays at t=4.95 → second film does
+  NOT re-gate → lead on disk with via/studio/product. Zero console errors.
+- `/g` live: 200, and every QR target URL 200. All 20 QRs decoded with zbar (independent of the
+  generator) — do not trust a QR's caption, decode it.
+
+### FACTS worth not re-deriving
+- **SES has production access** (50k/day, streamstage.live verified) so it CAN email strangers.
+  The old "rejects unverified replyTo" note is NOT a sandbox limit. Resend has only compsync.net.
+- **Booth TV target is a Fire TV STICK** (dongle), not a Fire TV set. adb-over-network sideload,
+  ~5GB usable, D-pad remote, needs LEANBACK_LAUNCHER.
+- **Canonical talk 1 = `StudioSage/live-demo/talk1-deck.html`** (27 slides, md5 ee95a6bd).
+  `StreamStage/expo-assets/decks/talk1-video.html` is a STALE 13-slide copy.
+- Talk 2 = `expo-assets/decks/talk2-ai.html`, 32 slides, md5 9769113f. Both match FIRMAMENT.
+- TV2 StreamStage film: `/mnt/firmament/TRADESHOW-2026-07-29/kiosk-tv/TV2-streamstage-kiosk.mp4`
+  → transcoded to `expo-assets/kiosk/media/streamstage-services.mp4` (92.8MB, 181s, audio).
+
+### STILL OPEN — do not assume ready
+1. **Fire Stick app is EMULATOR-ONLY.** No Fire Stick on this machine. The 20-min Fire OS sleep
+   timer has never been outrun (7 min max). Run `kiosk-app/README.md`'s 7-step test on the real
+   stick AT THE HOTEL, not on the floor.
+2. Tablet controller APK (E2) — not started; the tablet runs the browser today.
+3. Full booth rehearsal on a phone hotspot with no internet (F1) — not done.
+4. Deck QRs (D2) and the videographer-brief handout QR (D4) — not repointed / still absent.
+5. Browser lead queue only drains if the visitor reopens the page. Kiosk disk queue does not.
+6. StudioSage merges leads on email — two proposals from one studio collapse to one row and the
+   earlier notes are overwritten. Flagged in StudioSage INBOX. Daniel's call.
+7. Reflect's tagline still unconfirmed by Daniel.
+
+---
+
 ## SESSION REFRESHED 2026-08-07 09:40 ET (/fresh — long expo session: decks, films, kiosk, toolkit plan)
 
 ### NEXT SESSION: the trade-show toolkit is the live thread
