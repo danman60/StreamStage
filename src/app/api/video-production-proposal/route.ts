@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { forwardLead, noteLines } from "@/lib/lead-forward";
 
 const transporter = nodemailer.createTransport({
   host: "mail.privateemail.com",
@@ -188,6 +189,50 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Invalid email address." },
         { status: 400 }
+      );
+    }
+
+    // Mirror into StudioSage's unified `leads` table before the email goes out,
+    // so the lead is captured even if SMTP is the thing that fails. Best-effort:
+    // wrapped so nothing in here can change this route's response or its email.
+    try {
+      const deliverables = Array.isArray(body.deliverables)
+        ? body.deliverables
+            .map((item) => `${item.title}${item.quantity > 1 ? ` x${item.quantity}` : ""}`)
+            .join(", ")
+        : "";
+
+      await forwardLead(
+        {
+          source: "video_form",
+          name: body.contactName,
+          studio: body.organization,
+          email: body.email,
+          phone: body.phone,
+          interests: ["video", "business video"],
+          notes: noteLines([
+            ["Preferred date", body.preferredDate],
+            ["Location", body.location],
+            ["Shoot days", body.shootDays],
+            ["2nd operator days", body.secondOperatorDays],
+            ["Drone", body.droneIncluded ? "Included" : "Not included"],
+            ["Deliverables", deliverables],
+            ["Quoted total", typeof body.total === "number" ? `${money(body.total)} +HST` : ""],
+            ["Client notes", body.notes],
+          ]),
+          raw: {
+            ...body,
+            _form: "video_production_proposal",
+            _path: "/videoproduction",
+            _ts: new Date().toISOString(),
+          },
+        },
+        "video-production-proposal"
+      );
+    } catch (e) {
+      console.error(
+        "video-production-proposal: lead mirror failed",
+        e instanceof Error ? e.message : e
       );
     }
 

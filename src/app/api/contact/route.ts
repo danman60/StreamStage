@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { forwardLead, noteLines } from "@/lib/lead-forward";
 
 const transporter = nodemailer.createTransport({
   host: "mail.privateemail.com",
@@ -177,6 +178,34 @@ export async function POST(request: Request) {
         { error: "Invalid email address." },
         { status: 400 }
       );
+    }
+
+    // Mirror into StudioSage's unified `leads` table before the email goes out,
+    // so the inquiry is captured even if SMTP is the thing that fails.
+    // Best-effort: wrapped so nothing in here can change this route's response
+    // or its email. The form collects no studio and no phone.
+    try {
+      await forwardLead(
+        {
+          source: "contact_form",
+          name,
+          email,
+          interests: ["contact"],
+          notes: noteLines([
+            ["Project type", projectType],
+            ["Message", message],
+          ]),
+          raw: {
+            ...body,
+            _form: "contact",
+            _path: "/#contact",
+            _ts: new Date().toISOString(),
+          },
+        },
+        "contact"
+      );
+    } catch (e) {
+      console.error("contact: lead mirror failed", e instanceof Error ? e.message : e);
     }
 
     await transporter.sendMail({

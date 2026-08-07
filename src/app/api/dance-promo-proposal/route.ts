@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { forwardLead, noteLines } from "@/lib/lead-forward";
 
 const transporter = nodemailer.createTransport({
   host: "mail.privateemail.com",
@@ -124,6 +125,50 @@ export async function POST(request: Request) {
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
       return NextResponse.json({ error: "Invalid email address." }, { status: 400 });
+    }
+
+    // Mirror into StudioSage's unified `leads` table before the email goes out,
+    // so the lead is captured even if SMTP is the thing that fails. Best-effort:
+    // wrapped so nothing in here can change this route's response or its email.
+    // NOTE: this form collects no contact name and no phone — studio + email is
+    // all it asks for, so that is all that is mirrored.
+    try {
+      const cameras = Array.isArray(body.cameras)
+        ? body.cameras.map((c) => CAMERA_LABELS[c] || c).join(", ")
+        : "";
+      const d = body.deliverables || ({} as PromoData["deliverables"]);
+      const deliverables = [
+        d["30s"] > 0 ? `${d["30s"]}x 30-Second Vertical` : null,
+        d["1min"] > 0 ? `${d["1min"]}x 1-Minute Brand Story` : null,
+        d["10s"] > 0 ? `${d["10s"]}x 10-Second Vertical` : null,
+        d.raw ? "Raw Footage Package" : null,
+      ].filter(Boolean).join(", ");
+
+      await forwardLead(
+        {
+          source: "promo_form",
+          studio: body.studio,
+          email: body.email,
+          interests: ["video", "promo"],
+          notes: noteLines([
+            ["Preferred date", body.date],
+            ["Start time", body.startTime],
+            ["Shoot length", body.shootLength ? `${body.shootLength} hours` : ""],
+            ["Cameras", cameras],
+            ["Deliverables", deliverables],
+            ["Quoted total", typeof body.total === "number" ? `${money(body.total)} +HST` : ""],
+          ]),
+          raw: {
+            ...body,
+            _form: "dance_promo_proposal",
+            _path: "/dancepromo",
+            _ts: new Date().toISOString(),
+          },
+        },
+        "dance-promo-proposal"
+      );
+    } catch (e) {
+      console.error("dance-promo-proposal: lead mirror failed", e instanceof Error ? e.message : e);
     }
 
     await transporter.sendMail({

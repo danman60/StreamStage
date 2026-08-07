@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { forwardLead, noteLines } from "@/lib/lead-forward";
 
 const transporter = nodemailer.createTransport({
   host: "mail.privateemail.com",
@@ -172,6 +173,63 @@ export async function POST(request: Request) {
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
       return NextResponse.json({ error: "Invalid email address." }, { status: 400 });
+    }
+
+    // Mirror into StudioSage's unified `leads` table before the email goes out,
+    // so the lead is captured even if SMTP is the thing that fails. Best-effort:
+    // wrapped so nothing in here can change this route's response or its email.
+    try {
+      const services = body.services || ({} as ProposalData["services"]);
+      const discounts = body.discounts || ({} as ProposalData["discounts"]);
+      const showTimes = Array.isArray(body.showTimes)
+        ? body.showTimes.filter((t) => String(t).trim())
+        : [];
+      const serviceList = [
+        services.video ? "Video" : null,
+        services.streaming ? "Streaming" : null,
+        services.photo ? "Photo" : null,
+        services.bundle ? "Bundle" : null,
+      ].filter(Boolean).join(", ");
+      const discountList = [
+        discounts.earlyBird ? "Early Bird" : null,
+        discounts.testimonial ? "Testimonial" : null,
+        discounts.loyalty ? "3-Year Loyalty" : null,
+      ].filter(Boolean).join(", ");
+
+      await forwardLead(
+        {
+          source: "recital_form",
+          name: body.contact,
+          studio: body.studio,
+          email: body.email,
+          phone: body.phone,
+          interests: [
+            "video",
+            "recital filming",
+            // The form's own Streaming toggle is the livestream signal.
+            ...(services.streaming ? ["livestream"] : []),
+          ],
+          notes: noteLines([
+            ["Recital date", body.date],
+            ["Venue", body.venue],
+            ["Shows", showTimes.length ? `${body.showCount} (${showTimes.join(", ")})` : body.showCount],
+            ["Dancers", body.tier ? `${body.dancerCount} (${body.tier})` : body.dancerCount],
+            ["Services", serviceList],
+            ["Discounts", discountList],
+            ["Quoted total", typeof body.total === "number" ? money(body.total) : ""],
+            ["Studio notes", body.notes],
+          ]),
+          raw: {
+            ...body,
+            _form: "recital_proposal",
+            _path: "/dancerecital",
+            _ts: new Date().toISOString(),
+          },
+        },
+        "recital-proposal"
+      );
+    } catch (e) {
+      console.error("recital-proposal: lead mirror failed", e instanceof Error ? e.message : e);
     }
 
     await transporter.sendMail({
