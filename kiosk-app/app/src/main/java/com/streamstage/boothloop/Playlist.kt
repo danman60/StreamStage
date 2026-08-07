@@ -95,11 +95,25 @@ object Playlist {
         candidateDirs(context).any { videosIn(it).isNotEmpty() }
 
     /**
+     * The directory the booth is actually playing from — and therefore the one the updater
+     * downloads into. If nothing is anywhere yet (a fresh stick), this is the folder films
+     * *should* go in, so the first download has somewhere to land.
+     */
+    fun activeDir(context: Context): File {
+        for (dir in candidateDirs(context)) if (videosIn(dir).isNotEmpty()) return dir
+        @Suppress("DEPRECATION")
+        return File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES),
+            SHARED_SUBDIR
+        )
+    }
+
+    /**
      * @return the ordered list of playable files, or empty if nothing was found anywhere.
      */
     fun resolve(context: Context): List<File> {
         for (dir in candidateDirs(context)) {
-            val files = videosIn(dir)
+            val files = verified(context, videosIn(dir))
             if (files.isNotEmpty()) {
                 val ordered = order(dir, files)
                 Log.i(TAG, "Using ${ordered.size} file(s) from ${dir.absolutePath}: " +
@@ -122,6 +136,55 @@ object Playlist {
                 !f.name.startsWith(".") &&
                 f.extension.lowercase() in VIDEO_EXTENSIONS
         }
+    }
+
+    /**
+     * Drops films that this stick installed from a manifest and that no longer match what it
+     * installed.
+     *
+     * `length() > 0` used to be the whole test, and that is the gap this closes: a film that
+     * arrived truncated — a `push-media.sh` that lost the cable at 80%, or an update that
+     * somehow got half-written — is a non-zero-length file that ExoPlayer opens, plays part
+     * of, and then errors on. The error path blacklists it, and if enough films land in the
+     * blacklist the booth shows a black screen. Better to notice the damage here, where the
+     * only consequence is a shorter reel.
+     *
+     * Deliberately cheap: length against the record in `installed.json`, which is microseconds.
+     * There is no hashing on this path — a booth TV waiting 40 seconds to start because the
+     * app is checksumming 350 MB would be a worse failure than the one being prevented. The
+     * hash *is* checked, in full, at the moment a film is downloaded (see [UpdateManager]),
+     * and again on demand from the update panel.
+     *
+     * Only files with a `"manifest"` record are subject to this. A film pushed over adb has
+     * no record and behaves exactly as it always did — this cannot reject something it was
+     * never told about.
+     *
+     * And if this would somehow throw out everything, it throws out nothing instead. A bug in
+     * the verifier must never be able to black out the booth; that is the same reasoning as
+     * the decoder blacklist in BoothLoopActivity.startPlayback.
+     */
+    private fun verified(context: Context, files: List<File>): List<File> {
+        if (files.isEmpty()) return files
+        val records = runCatching { InstallRecords.installed(context) }.getOrNull() ?: return files
+
+        val good = files.filter { f ->
+            val rec = records.get(f.name)
+            when {
+                rec == null -> true                       // never installed by us; not ours to judge
+                rec.source != "manifest" -> true          // a cached hash, not a claim about validity
+                f.length() == rec.bytes -> true           // still the file we verified
+                else -> {
+                    Log.e(TAG, "${f.name} is ${f.length()} bytes but was installed as " +
+                            "${rec.bytes} — damaged, leaving it out of the reel")
+                    false
+                }
+            }
+        }
+        if (good.isEmpty()) {
+            Log.e(TAG, "Verification would drop every film — ignoring it and playing them all")
+            return files
+        }
+        return good
     }
 
     private fun order(dir: File, files: List<File>): List<File> {

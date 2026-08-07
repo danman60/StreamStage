@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The whole network policy of the booth app, in one file.
+
+  Default: cleartext HTTP is refused, everywhere, for every host. The films and the manifest
+  come from R2 over https and there is no reason for this app to ever speak plaintext on a
+  trade-show wifi network it does not control.
+
+  The single exception is loopback, which is not a network: it is how the stick is pointed at
+  a laptop for bench testing via `adb reverse tcp:8000 tcp:8000` plus a `.update-base` file in
+  the media folder. Nothing off the device can reach 127.0.0.1, so this exception cannot be
+  used by anything on the show floor.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>

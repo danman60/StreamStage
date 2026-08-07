@@ -2,15 +2,36 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- ================================================================= -->
-    <!-- THERE IS DELIBERATELY NO android.permission.INTERNET HERE.         -->
-    <!-- This is the load-bearing line of the whole app. Without it the     -->
-    <!-- kernel refuses socket creation for this UID, so no library, no     -->
-    <!-- transitive dependency and no future edit can reach the network     -->
-    <!-- without someone consciously adding the permission back.            -->
-    <!-- Works in airplane mode because it cannot do anything else.         -->
-    <!-- Do not add INTERNET or ACCESS_NETWORK_STATE to this file.          -->
-    <!-- ================================================================= -->
+    <!-- =================================================================== -->
+    <!-- INTERNET. Added deliberately, on 2026-08-07, for exactly one         -->
+    <!-- feature: the "Update films" panel, which Daniel opens from the       -->
+    <!-- remote (MENU, or a long press of SELECT) when he wants new films.    -->
+    <!--                                                                      -->
+    <!-- This file used to say "there is deliberately no INTERNET here" and    -->
+    <!-- that comment was load-bearing, so read what actually changed:        -->
+    <!--                                                                      -->
+    <!--   * The app still NEVER reaches out on its own. There is no boot      -->
+    <!--     check, no background poll, no WorkManager job, no alarm and no    -->
+    <!--     timer anywhere in this codebase. Grep for one. The only calls     -->
+    <!--     into UpdateManager come from a key press.                         -->
+    <!--   * Playback still never touches the network. Playlist reads the      -->
+    <!--     local folder; ExoPlayer is given file:// URIs and has no HTTP     -->
+    <!--     data source in its dependency graph (no media3-datasource-okhttp, -->
+    <!--     no HLS, no DASH — see app/build.gradle.kts).                      -->
+    <!--   * Airplane mode is still a supported, tested configuration. With no -->
+    <!--     network the loop plays exactly as before and says nothing about   -->
+    <!--     it. Only the panel mentions the network, and only when opened.    -->
+    <!--                                                                      -->
+    <!-- ACCESS_NETWORK_STATE comes back for the same reason (media3 declares  -->
+    <!-- it anyway; it is now honest rather than stripped).                    -->
+    <!--                                                                      -->
+    <!-- If you are auditing this app and want the old guarantee back for a    -->
+    <!-- specific show, remove these two lines and rebuild: the updater fails  -->
+    <!-- closed with "no network — the loop is unaffected" and nothing else    -->
+    <!-- changes.                                                             -->
+    <!-- =================================================================== -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Keeps the stick from hitting its own sleep timer mid-show.
          FLAG_KEEP_SCREEN_ON alone is not enough on Fire OS — see BoothLoopActivity. -->
@@ -32,14 +53,33 @@
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
 
-    <!-- androidx.media3:media3-common:1.6.0 declares ACCESS_NETWORK_STATE in its own
-         manifest, so the merger silently adds it to ours. It cannot open a socket without
-         INTERNET, but a permission we never asked for undermines the audit — anyone reading
-         `aapt dump permissions` should see a network-free app and not have to reason about
-         it. Stripped. Verified absent from the built APK. -->
+    <!-- Write the films back — the only reason this exists is the update panel replacing a
+         film with a newer one, in the same folder push-media.sh already uses.
+
+         Why the big hammer on API 30+: /sdcard/Movies is a scoped media collection. Android 11
+         lets an app write *media* files there by raw path but refuses anything else (a `.part`
+         or a `.json` gets EPERM — measured on this stick), and it will not let an app replace
+         a file that a different uid created, which is exactly what an update does because the
+         films were pushed over adb. MediaStore's createWriteRequest() is the sanctioned way
+         round that and it puts a consent dialog on the TV, which is not something a booth
+         stick with a five-button remote can answer.
+
+         So on the dedicated booth stick this is granted once, non-interactively, from the
+         laptop, in the same breath as the read permission:
+
+             adb shell appops set (dash dash)uid com.streamstage.boothloop \
+                 MANAGE_EXTERNAL_STORAGE allow
+
+         (written out because an XML comment cannot contain two hyphens in a row; the README
+         has the copy-pasteable version.)
+
+         If it is NOT granted, nothing breaks: the app reads and plays exactly as before and
+         the update panel says the films folder is read-only and prints that command. The loop
+         has never needed to write anything. -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission
-        android:name="android.permission.ACCESS_NETWORK_STATE"
-        tools:node="remove" />
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29" />
 
     <!-- Leanback declared so Fire TV / Android TV treat this as a TV app, but NOT required,
          so the same APK still installs on a phone or tablet for bench testing. -->
@@ -55,6 +95,7 @@
         android:banner="@drawable/app_banner"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="false"
         android:theme="@style/Theme.BoothLoop">
 

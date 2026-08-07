@@ -16,8 +16,16 @@ else in the trade-show toolkit is an upgrade on top of this floor.
 
 ## The one guarantee
 
-**The app has no `INTERNET` permission.** Not "doesn't use the network" — *cannot*. The kernel
-refuses socket creation for the UID. Verify it yourself on any build:
+**Playback never touches the network.** Plug the stick into a rented TV with no wifi, no router
+and no laptop, and the reel plays exactly as it does at home — no error, no spinner, no mention
+of a network anywhere on screen. Verified in airplane mode with the wifi radio off, on the real
+booth stick.
+
+Until 2026-08-07 that was enforced by having **no `INTERNET` permission at all**, which is the
+strongest possible version of the claim: the kernel refuses socket creation for the UID. The
+permission now exists, for one feature — the **"Update films" panel**, which Daniel opens from
+the remote when he wants new films. So the guarantee is now enforced by design rather than by
+the OS, and it is worth being able to check it:
 
 ```bash
 $ANDROID_HOME/build-tools/35.0.0/aapt dump permissions app/build/outputs/apk/debug/app-debug.apk
@@ -25,21 +33,33 @@ $ANDROID_HOME/build-tools/35.0.0/aapt dump permissions app/build/outputs/apk/deb
 
 ```
 package: com.streamstage.boothloop
+uses-permission: name='android.permission.INTERNET'
+uses-permission: name='android.permission.ACCESS_NETWORK_STATE'
 uses-permission: name='android.permission.WAKE_LOCK'
 uses-permission: name='android.permission.RECEIVE_BOOT_COMPLETED'
 uses-permission: name='android.permission.READ_EXTERNAL_STORAGE' maxSdkVersion='32'
 uses-permission: name='android.permission.READ_MEDIA_VIDEO'
+uses-permission: name='android.permission.MANAGE_EXTERNAL_STORAGE'
+uses-permission: name='android.permission.WRITE_EXTERNAL_STORAGE' maxSdkVersion='29'
 ```
 
-That is the whole list. The two storage entries are **read-only access to a folder we created
-ourselves** (`/sdcard/Movies/StreamStageBooth`), forced by Fire OS 8 blocking app-private
-storage — they grant no network capability whatsoever.
+What still holds, and how to check each claim yourself:
 
-`media3-common` tries to add `ACCESS_NETWORK_STATE` via manifest merge; it is explicitly
-stripped with `tools:node="remove"` so the audit stays clean. There is no Supabase, no OkHttp,
-no HTTP data source, no analytics in the dependency graph.
+- **The app never reaches out on its own.** No boot check, no background poll, no
+  `WorkManager`, no `AlarmManager`, no timer. Every call into `UpdateManager` is reachable only
+  from a key press in `BoothLoopActivity.dispatchKeyEvent`. `grep -rn "UpdateManager\." app/src`
+  is a short list.
+- **The player is never given a URL.** `Playlist` returns `java.io.File`s and
+  `startPlayback` hands ExoPlayer `file://` URIs. There is no HTTP data source in the
+  dependency graph — no `media3-datasource-okhttp`, no HLS, no DASH, no OkHttp, no Supabase, no
+  analytics (`app/build.gradle.kts`).
+- **Cleartext is refused everywhere except loopback** (`res/xml/network_security_config.xml`).
+- **A failed update changes nothing.** A film only replaces another after a complete download
+  whose byte count *and* sha256 match the manifest, and the swap is one atomic `rename()`.
 
-**Do not add `INTERNET` to `AndroidManifest.xml`.** It is the single line holding the guarantee up.
+If you want the old absolute guarantee back for a particular show, delete the `INTERNET` and
+`ACCESS_NETWORK_STATE` lines from `AndroidManifest.xml` and rebuild: the update panel then fails
+closed with *"no network — the loop is unaffected"* and nothing else changes.
 
 ---
 
@@ -162,10 +182,21 @@ adb push ~/projects/StreamStage/expo-assets/kiosk/media/*.mp4 $DEST/
 # Shared storage needs a read permission. This is a booth device we own, so grant it
 # non-interactively rather than accepting a dialog with the remote:
 adb shell pm grant com.streamstage.boothloop android.permission.READ_EXTERNAL_STORAGE
+
+# Only needed if you want the "Update films" panel to be able to REPLACE films over the
+# internet (see below). Without it the app is read-only and the loop behaves identically.
+adb shell appops set --uid com.streamstage.boothloop MANAGE_EXTERNAL_STORAGE allow
 ```
 
-**If you forget the grant**, the app does not show a black screen — it says
+**If you forget the read grant**, the app does not show a black screen — it says
 *"Storage permission not granted"* on the TV and prints the exact `pm grant` command.
+
+**If you forget the appops grant**, nothing breaks either: the update panel opens, checks and
+reports honestly, and says *"this stick cannot replace films — playback is unaffected"* with
+that command on screen. It is needed because `/sdcard/Movies` is a scoped media collection on
+Android 11: the platform refuses non-media writes there (a `.part` file gets `EPERM`) and
+refuses to let this app replace a file that `adb push` created under a different uid. Measured
+on the booth stick, not assumed.
 
 Pushing ~350 MB over Wi-Fi to a stick takes a few minutes. Do it at home, not at the booth.
 
@@ -208,6 +239,49 @@ playlist can never silently hide a film someone just pushed.
 
 ---
 
+## Updating the films over the internet, from the remote
+
+Added 2026-08-07. **Manual only, and the loop never depends on it.**
+
+**How to open it:** press **MENU** on the Fire TV remote (the hamburger/options key), *or*
+**hold SELECT for about a second**. Both open the same panel. A normal tap of SELECT still does
+nothing at all — that is what keeps a curious visitor out. **BACK** closes it.
+
+**What it does, in order:**
+
+1. Opening the panel checks. It downloads nothing. Each film shows its size on this stick and
+   one of `up to date` / `NEW VERSION` / `not on this stick` / `unknown (no network)`.
+   The first check on a stick whose films arrived by `adb push` hashes them once (~90 s for the
+   whole reel, throttled so it cannot make the video stutter) and caches the answer, so every
+   later check is instant.
+2. Nothing downloads until you choose **UPDATE ALL CHANGED FILMS** or a single film.
+3. A download goes to `Movies/StreamStageBooth/.staging/<file>.part`. The live film is never
+   opened for writing.
+4. It goes live only after **both** the byte count and the sha256 match the published manifest,
+   and then only by a single atomic `rename()` in the same directory. A truncated hotel-wifi
+   download fails here — this is the failure `push-media.sh` cannot catch.
+5. **A film that is on screen is never swapped.** It waits in `.staging` and goes live at the
+   next loop boundary for that film.
+6. Any failure leaves the booth byte-for-byte as it was, and says so in plain English
+   ("no network — the loop is unaffected"). Never a stack trace.
+
+**Manifest:** `https://pub-626d1637ca4c4f34a7916019aaa3efce.r2.dev/booth/manifest.json`,
+published by `tools/publish-films.sh`. The films are fetched from the manifest's own `base`
+field, so the bucket can move without a new APK. The manifest is treated as hostile input:
+filenames are whitelisted (no separators, no `..`, video extensions only), hashes must be 64
+hex, sizes are bounded, and anything malformed is ignored rather than acted on.
+
+**There is no boot check, no background poll, no scheduled job and no timer.** Grep the source;
+the only calls into `UpdateManager` come from a key press. Playback itself never touches the
+network — `Playlist` reads the local folder and ExoPlayer is handed `file://` URIs, with no
+HTTP data source anywhere in the dependency graph.
+
+For bench testing against a laptop rather than R2: `adb reverse tcp:8000 tcp:8000`, serve a
+`booth/` directory locally, and drop a `.update-base` file containing
+`http://127.0.0.1:8000/booth/` next to the films. Only `https://` and loopback are accepted.
+
+---
+
 ## Behaviour at the booth
 
 | Concern | What it does |
@@ -215,13 +289,16 @@ playlist can never silently hide a film someone just pushed.
 | Looping | ExoPlayer `REPEAT_MODE_ALL` across the whole playlist. Wraps last → first, forever. |
 | Audio | Plays at full volume. Audio focus is **deliberately not honoured** so nothing can duck or pause the VO. |
 | Screen sleep | `FLAG_KEEP_SCREEN_ON` **plus** a `SCREEN_BRIGHT_WAKE_LOCK` — Fire OS runs its own sleep timer that ignores the flag alone. (Learned on DanTV: `TVBOX/app/app/.../MainActivity.kt:91`.) |
-| Stray remote input | Every key on the Fire TV remote is swallowed — D-pad, Select, Back, play/pause, FF/REW, Menu. **Back and Select on their own do nothing at all.** A passer-by cannot pause, seek, or drop the TV to the launcher. |
+| Stray remote input | Every key on the Fire TV remote is swallowed — D-pad, Select, Back, play/pause, FF/REW. **Back and a normal press of Select do nothing at all.** A passer-by cannot pause, seek, or drop the TV to the launcher. |
+| Update panel | The two exceptions to the above: **MENU**, and **holding SELECT for ~1 s**, open the "Update films" panel. BACK closes it and the loop never stops playing behind it. See the section above. |
 | Volume keys | Deliberately **passed through** so staff can set booth level. On most sticks the TV handles these over CEC/IR anyway. |
 | Deliberate exit | **DOWN, DOWN, UP, UP, BACK** on the D-pad within 5 seconds. |
 | HOME | No app can intercept the HOME key. **Set this app as the stick's launcher** and the point becomes moot: HOME returns here instead of leaving. It registers `category.HOME` (the DanTV shape, which is proven on a real stick), so Fire OS offers it as a home app — choose it and tick Always. If you do not, HOME drops to the Fire OS launcher, which is a menu and *not* a black screen; relaunch from the home row. Reversible in Settings > Applications. |
 | Fire OS system keys | A few keys are handled by Fire OS **above** every app and cannot be swallowed, exactly like HOME. Verified on the stick: `KEYCODE_INFO` raises Amazon's `com.amazon.tv.keypolicymanager/.irfallback.IRFallbackDialog` over the loop. INFO is **not a button on the Fire TV remote** — it only reaches the stick via synthetic injection or an unmapped universal/IR remote. Verified that the app returns to the foreground and resumes playing on its own afterwards. |
 | Backgrounding | Releases the player on stop, resumes on return — and restores the film and position it was on. |
 | Missing storage permission | Says *"Storage permission not granted"* on the TV with the exact `pm grant` command — never a black screen. |
+| No network | Only ever noticed if you open the update panel, which then says *"no network — the loop is unaffected"*. Cold-starting in airplane mode plays the reel with nothing on screen about it. |
+| A truncated film | A film this app installed is checked (length vs. what was verified at install) on every launch and left out of the reel if it no longer matches, instead of becoming a decoder error and a blacklist entry. Films pushed by adb are untouched by this check. |
 | A corrupt film | Skipped, blacklisted for the session, show continues. One bad push cannot stall the booth. |
 | A stall | A 10-second watchdog nudges, then rebuilds the player if playback stops progressing. |
 | Empty media dir | Shows the `adb push` instructions on screen; the watchdog starts playing the moment films appear, with no relaunch. |
@@ -244,7 +321,27 @@ playlist can never silently hide a film someone just pushed.
 | Remote key immunity | D-pad, Select, Back, all media keys, Menu → app kept focus every time |
 | Missing-permission screen | Revoked the permission on the stick → TV showed the "Storage permission not granted" screen with the exact `pm grant` command. **Not a black screen.** |
 | Fire OS system key | `KEYCODE_INFO` raises Amazon's `IRFallbackDialog` above the app (uninterceptable, like HOME). App returned to foreground and resumed playing by itself. |
-| No INTERNET | Confirmed on the installed build |
+| No INTERNET | *Was* true up to 2026-08-07; see "The one guarantee" for what replaced it |
+
+### Update panel, on the same stick, 2026-08-07
+
+Baseline `sha256` of all seven films was recorded before any of this and compared afterwards:
+**all seven byte-identical**, nothing damaged.
+
+| Check | Result |
+|---|---|
+| **MENU opens the panel** | Opens over the loop; the reel and its audio keep playing behind it |
+| **Long press of SELECT opens it** | Same panel (`input keyevent --longpress KEYCODE_DPAD_CENTER`). A normal tap still does nothing. |
+| BACK closes it | Returns to the loop mid-film — playback was never interrupted |
+| Live manifest check | `film list v1`, all 7 films correctly reported **`up to date`**, `UPDATE ALL CHANGED FILMS (nothing to update)`. Nothing downloaded. |
+| First-run hashing | Films that arrived by `adb push` are hashed once (throttled), result cached in app-private `installed.json`; second open is instant |
+| **New film downloads and goes live** | Served a manifest with an extra film over `adb reverse` → downloaded, verified, applied, `Using 8 file(s)`, reel rebuilt and resumed on the same film it was playing |
+| **A film that fails sha256 is refused** | Same run, second film published with a deliberately wrong hash → `sha256 … != 0000…`, `.part` deleted, panel said **"did not verify — nothing changed"**, nothing written to the media folder |
+| `.staging` left clean | Empty after both the success and the failure |
+| Live films untouched | The 7 real films kept their original mtimes and sha256 throughout |
+| **Cold start in airplane mode** | Airplane mode on + `svc wifi disable` + `am force-stop` → app restarted and played the reel with **nothing on screen about a network** |
+| **Panel with no network** | Every film `unknown (no network)`, header `no network — the loop is unaffected`, no Update offered |
+| Scoped storage | Without `MANAGE_EXTERNAL_STORAGE` the panel says the stick cannot replace films and prints the `appops` command; with it, downloads and swaps work |
 
 ### On an Android TV emulator (AOSP TV, 1920×1080, API 34)
 
