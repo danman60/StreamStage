@@ -37,10 +37,15 @@ Dance event block. Contact: `westincalgaryairport@marriott.com`, attn. Monali Ga
 **You are now staying in the venue.** 671 Aero Drive NE — the Expo, the Adapt Stage, and your room
 are the same building.
 
-~~Hotel Clique Calgary Airport (conf 220855, C$642.84)~~ — **cancelled 2026-08-05.**
-⚠ No cancellation email from Hotel Clique is in the mailbox; their only recent messages are a
-marketing note and an email-verification request. **Get the cancellation in writing** — that
-reservation was booked directly and a no-show bills a night.
+~~Hotel Clique Calgary Airport (conf 220855, C$642.84)~~ — **cancelled 2026-08-05. CONFIRMED IN WRITING.**
+✅ **RESOLVED 2026-08-06 by the PA session.** The cancellation email does exist and was simply missed:
+subject **"Cancellation Confirmation"**, sent 2026-08-05 16:47 ET from `marketing@hotelclique.ca`
+(Guest Service Team, Jaime Miranda, GM). Because it comes from their *marketing* address, Gmail filed
+it outside Primary with their promotional mail, which is why a Primary-only look came up empty.
+
+It states verbatim: "YOUR RESERVATION IS CANCELLED · Guest Name: Daniel Abrahamson · Confirmation:
+220855 · Arrival: August 10, 2026 · Departure: August 13, 2026 · Room Type: Clique Pet Friendly King
+Room". Nothing further to chase, and no no-show exposure.
 
 ### What staying on-site changes
 - **No transit to a 09:20 Tuesday talk.** That was the riskiest slot on the schedule and it just
@@ -109,12 +114,17 @@ the morning.
 
 ## Open items
 
+**Owned by the PA session as of 2026-08-06.** Every live item below is now also a `user_todos` row in
+CommandCentered with a due date, so it surfaces without anyone re-reading this file.
+
 | # | Item | Source | Status |
 |---|---|---|---|
-| 1 | **Booth prize, $100+ value** — physical item or gift certificate. Winner's name must be submitted to the organiser by **4:00 pm Wed Aug 12** | "Complete Your Calgary Exhibitor Prize Giveaway Form", Jul 27 | No completed-form confirmation in the mailbox |
-| 3 | Free conference shirt request | "Request a FREE Conference Shirt", Jul 8 | Unclear whether claimed |
-| 4 | Thursday check-out vs the 11:15 flight | above | Easier now — the Westin is on airport grounds. Still check out early |
-| 5 | **Written cancellation from Hotel Clique** (conf 220855) | changed 2026-08-05 | Nothing in the mailbox. Chase it — a no-show bills |
+| 1 | **Booth prize, $100+ value** — physical item or gift certificate. Winner's name to the organiser by **4:00 pm Wed Aug 12** | "Complete Your Calgary Exhibitor Prize Giveaway Form", Jul 27 | **OPEN.** No completed-form confirmation in the mailbox, and Daniel has not said what the prize is. CC todo due Aug 9 |
+| 2 | **DNYC Events app** — install, sign in with the registered exhibitor email | EXHIBITOR INFO, Jul 21 | **OPEN.** Carries the private appointment schedule, so check whether attendees have already booked slots. CC todo due Aug 9 |
+| 3 | Free conference shirt request | "Request a FREE Conference Shirt", Jul 8 | **OPEN, low stakes.** Unclear whether claimed. CC todo due Aug 9 |
+| 4 | Thursday check-out vs the 11:15 flight | above | **OPEN.** Westin is on airport grounds so no cab window, but standard check-out is ~11:00–12:00. Arrange early check-out at the desk on arrival. CC todo due Aug 12 |
+| 5 | ~~Written cancellation from Hotel Clique (conf 220855)~~ | changed 2026-08-05 | ✅ **CLOSED 2026-08-06.** The confirmation exists, see the hotel section above. No money at risk |
+| 6 | **Exhibitor Packet** — download and print the latest copy | EXHIBITOR INFO, Jul 21 | **OPEN.** Do it before flying, printing in a hotel is a nuisance. CC todo due Aug 9 |
 
 ---
 

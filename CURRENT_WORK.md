@@ -1,16 +1,85 @@
 # Current Work - StreamStage
 
-## ⏰ DEADLINE — Calgary Dance Teacher Expo, Mon Aug 10 2026
-Flights WS633 out Aug 10 09:00 YYZ->YYC, WS636 home Aug 13. Staying AT the venue:
-The Westin Calgary Airport, conf 232588, C$209/night (Hotel Clique conf 220855 CANCELLED
-2026-08-05 - written cancellation not yet received). Full detail:
-`expo-assets/CALGARY-2026-08-10-LOGISTICS.md`.
-**Last useful working day for deck changes is Sun Aug 9.**
-BOTH talks confirmed on the event agenda, Adapt Stage / Business Track, 1 hour each:
-- **Tue Aug 11, 09:20 AM** - "Why AI? Save Your Studio Time, Money, and Stress" (talk 2)
-- **Wed Aug 12, 10:50 AM** - "One Year of Video Content in One Day" (talk 1)
-Order is REVERSED vs Toronto - AI goes first. The Toronto cliffhanger points the wrong way.
-Talk 1 has NEW published copy in Calgary: content-day only, no recital-media/media-fee framing.
+## SESSION REFRESHED 2026-08-06 21:56 ET (/fresh — long kiosk build session, context rot)
+
+### What this window (StreamStage-1) finished before the refresh
+**The booth kiosk is BUILT, TESTED, COMMITTED and PUSHED.** `expo-assets/kiosk/`.
+Three commits: `d4b3750` (first build), `af6bbbd` (vertical/six-product rework),
+`29081f6` (real product logos + Callboard reframed to recital orders).
+
+Start it with one command: `python3 ~/projects/StreamStage/expo-assets/kiosk/serve.py`
+→ tablet `localhost:8080/tablet`, TV `localhost:8080/tv`. Full operator doc:
+`expo-assets/kiosk/README-BOOTH.md`.
+
+State as of the refresh:
+- **Six products**, tablet is **portrait-first**, all six tiles + the Facebook QR fit with
+  **zero scroll** at 820x1180, 810x1080, 800x1280, 768x1024 and landscape 1024x768 (verified
+  by measuring each tile's box against the viewport, not by eye).
+- **All six films present** including StudioBeat (its film landed mid-session and the tile lit
+  up on its own via the runtime film probe — the degradation path is proven both directions).
+- Tile icons: **real marks** for StudioSage / CompSync / StudioBeat, **drawn** marks only for
+  Callboard / CostumeCraft / Reflect, which have no logo in any repo. Silhouettes live in
+  `expo-assets/kiosk/brand/icons/`.
+- Tap → first painted frame: **median ~87-91ms**, p90 99ms, with six warm video layers.
+- Cross-device relay works (a Fire Stick can be the TV); telemetry runs on its **own port**
+  (page port + 1) — see the gotcha below.
+
+### Bugs found and fixed in that session (do not regress these)
+1. **serve.py must keep HTTP Range support.** Without 206 responses a video seek silently
+   clamps to 0 and Safari-based clients refuse `<video>` outright.
+2. **The SSE relay retains ONLY `tv` state messages** (`RETAINABLE`). Retaining a `play`
+   command made a late-joining screen restart a stale film.
+3. **Telemetry gets its own port.** A browser allows ~6 connections per host; the TV holds an
+   EventSource plus one live connection per film — the whole budget — so per-event POSTs queued
+   behind the videos and NEVER sent (measured: 15 films played, 15 events in localStorage,
+   **0 on disk**). Fixed by batching with a 6s abort deadline AND moving telemetry to
+   port+1 with CORS + `text/plain`. Do not move it back onto the page's port.
+
+### Still open / unresolved
+- **CompSync signup URL is still an assumption** (`compsync.net`). Flagged in the operator
+  sheet and README. Daniel has never confirmed it.
+- **Reflect's tagline** is beat 16 of its own VO script verbatim, not confirmed by Daniel.
+- TV attract cards use only the left half of a 1920x1080 screen — Daniel flagged it as "worth
+  your judgement, not required"; deliberately NOT changed, to avoid churning a verified screen.
+- Daniel's Q5 (email capture) was answered by building **option 1 only**: a "Want all six?" QR
+  on the tablet after a film completes, pointing at the existing expo-leads form. He never
+  replied, so option 2 (tablet-side capture with offline queue) was NOT built.
+
+### Other deliveries from this window (not kiosk)
+- Hi-res promo links uploaded to R2 and DM'd: CSOD (4K), Footprints Bigs/Littles/Studio Tour
+  (4K), and 11 DIS vertical reels. Masters live at `/mnt/firmament/streamstage/promo-source/`.
+  CSOD has two unused drafts there, and WSDY (30s + a no-VO cut) was never uploaded.
+- Dance promo proposal builder link confirmed: `https://streamstage.live/dancepromo`.
+
+## SESSION REFRESHED 2026-08-06 10:15 ET (context rot — long expo session)
+
+## ⏰ DEADLINE — Calgary Dance Teacher Expo
+Fly **Mon Aug 10 09:00** (WS633 YYZ->YYC). Last useful working day **Sun Aug 9**.
+**BOTH talks confirmed**, Adapt Stage / Business Track, 1 hour each:
+- **Tue Aug 11, 09:20 AM** — "Why AI? Save Your Studio Time, Money, and Stress" (talk 2)
+- **Wed Aug 12, 10:50 AM** — "One Year of Video Content in One Day" (talk 1)
+Order REVERSED vs Toronto — AI goes first. Hotel: **The Westin Calgary Airport** (conf 232588,
+the venue itself); Hotel Clique cancelled 2026-08-05, written cancellation NOT yet received.
+Full detail: `expo-assets/CALGARY-2026-08-10-LOGISTICS.md`.
+
+## THE BIG ONE STILL NOT STARTED
+**Talk 2 reorg — 38 slides -> 28, proposal written and approved in principle but NOT BUILT.**
+`expo-assets/TALK2-REORG-PROPOSAL-2026-08-05.md`. It goes on stage FIRST, 09:20 Tuesday.
+Daniel's decisions: **keep the facelift** (rehearse it properly), **keep the SMS demo where it
+is**, pricing = **free until Jan 1 2027 if you sign up now, $20/month for new signups from
+Sept 1**, and **no per-dancer scoping slide** — just say parents can ask about classes.
+
+## Four background sessions running (spawned 2026-08-05 evening)
+| tmux window | job | state at refresh |
+|---|---|---|
+| `StreamStage-1` | booth kiosk (tablet controller + TV, 5 products, telemetry) | building; launcher/tablet/tv/serve.py exist |
+| `recital-scheduler-2` | Callboard explainer film | rendered; wiring VO+BG |
+| `costume-craft-2` | CostumeCraft explainer film | rendered; wiring VO+BG |
+| `reflect-2` | Reflect explainer film | rendered; VO is 15.7s LONGER than film — asked to report before re-cutting |
+
+VO + BG audio pulled from FIRMAMENT Downloads to `/mnt/data/vo-drop/`.
+Each session told to SPLIT the VO at beat boundaries and place per timecode — the ElevenLabs
+renders are continuous spoken-beats only, so they are shorter than the films by design.
 
 ## Active Task
 **Post-expo: improve the talks + decks from the real lapel-mic transcript.**
