@@ -256,6 +256,24 @@ lands on the animated fallback, and `→` from the wall still skips the cartoon 
 untouched: `calgary@ingest.studiosage.ai`, +1 587-317-0721, and the 8-check pre-flight at
 `studiosage.ai/demo/operator`.
 
+### ⚠ The on-slide demo QR pointed at the production number — found and fixed 2026-08-07
+
+Not reported by anyone; found by decoding every QR in the deck while patching the `/t/` warning.
+
+The QR in the live-demo slide's panel encoded **`sms:+12267966037`** — the **production** line —
+while the panel next to it told the room *"scan — it opens your messages, already addressed."*
+Every person who scanned instead of typing would have texted the wrong phone and never appeared on
+the wall. Same failure mode as the `/t/LIVE26` trap, except already baked into the projected slide.
+
+Fixed: the inline QR now encodes **`sms:+15873170721`**, decoded and verified rather than assumed.
+It deliberately does **not** prefill a keyword — `?body=` (Android) and `&body=` (iOS) disagree, and
+a half-working QR is worse than none — so the beat now says *"type LIVE26, or honestly type
+anything."* `handle-sms` defaults the code, so a bare message still lands.
+
+⚠ **Still wrong, not used by the deck, do not print or reuse:** `decks/QR-demo-sms.png` and
+`decks/QR-demo-sms-prefilled.png` both encode `226-796-6037`. All three QRs actually in the deck now
+decode correctly: demo line, `studiosage.ai/moves`, `studiosage.ai`.
+
 ### The two stale runtime figures are corrected in place
 
 `FACELIFT-CONTRACT.md:115` and `facelift-run.sh:97` both claimed 60–90 / ~75 minutes. Both now

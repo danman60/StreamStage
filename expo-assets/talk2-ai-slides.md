@@ -31,8 +31,8 @@ Regenerate with `python3 expo-assets/regen-slides.py`. **32 slides.**
 | 23 | Pull, Don't Push | 41:00–42:30 · THE PRODUCT | 12 | 2 |
 | 24 | StudioSage — and how it actually works | 42:30–45:30 · THE PRODUCT | 18 | 6 |
 | 25 | Inside the Dashboard | 45:30–47:00 · THE PRODUCT | 9 | 0 |
-| 26 | Human in the Loop — and What It Can’t Do | 47:00–48:30 · THE PRODUCT · [MECHANIC] | 15 | 3 |
-| 27 | Live Demo ★ (real) | 48:30–51:30 · [LIVE DEMO] · LIVE BEAT 2 | 14 | 0 |
+| 26 | Human in the Loop — and What It Can’t Do | 47:00–48:30 · THE PRODUCT · [MECHANIC] | 16 | 3 |
+| 27 | Live Demo ★ (real) | 48:30–51:30 · [LIVE DEMO] · LIVE BEAT 2 | 22 | 0 |
 | 28 | Animated Fallback (offline) ★ | FALLBACK ONLY · not in the running order | 9 | 0 |
 | 29 | Questions — and what’s working for you | 51:30–54:30 · Q&A · HARD CAP 3:00 | 12 | 1 |
 | 30 | ★ The Facelift Reveal | 54:30–57:00 · [REVEAL] · LIVE BEAT 1 PAYOFF | 12 | 1 |
