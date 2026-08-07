@@ -1,5 +1,41 @@
 # Current Work - StreamStage
 
+## 2026-08-07 17:10 ET — THE FULL DEVICE MATRIX IS PROVEN ON REAL HARDWARE
+
+Commits: `f8e921b` (tablet app) · `d71961b` (phone app, kiosk operator commands, presenter fix,
+kiosk-app, the ten-and-ten). Both pushed.
+
+### Proven on the actual devices, not emulators — every claim below has a DM'd screenshot
+- **Fire Stick: the 20-minute Fire OS sleep timer is BEATEN.** 27 consecutive minute samples, 27/27
+  `mWakefulness=Awake`, `BoothLoopActivity` in focus throughout, zero dropouts, still playing.
+  Previous record was 7 minutes and the crash notes called this the most important untested thing.
+- **Tablet: the discovery bug is fixed.** APK v1.1.0 installed, device state WIPED (`pm clear`), and
+  it found DART on its own inside 25s. Evidence is the socket table, not a page: 3 ESTABLISHED to
+  `:8081` plus one to `:8082` (log shipping). The gate still engages on the glass.
+- **Phone: operator console + presenter, one app, one icon.** v2.0.1, applicationId
+  `com.streamstage.phonepresenter`, so it upgrades PhonePresenter in place. Signing key confirmed
+  identical (`a7c65c8c…`) before install.
+- **END TO END — the phone drove a live TV**: `playfilm streamstage-services` played (that film was
+  previously accepted with ok:true and silently discarded), `pause` held with **0.00s drift over
+  5s**, `stop` returned to attract, a visitor-origin attempt at that film was **refused 403 by the
+  server**. TV page: zero console errors.
+
+### Open — do not assume done
+1. **Drag-to-reorder does not take effect on the TV.** The phone sends `playlist` correctly and
+   `serve.py` logs `order_set`, but `.tv.order` never changes (watched 32s + a full card cycle).
+   Reproduced with plain curl, so it is the TV handler (`tv.html:881 setOrder` / `:892 applyOrder`),
+   not the phone. Handed back to the kiosk agent.
+2. **DART's presenter server is serving a STALE deck** — `192.168.0.13:8080/state` says 38 slides;
+   the repo's talk2 is 32. Same for `192.168.0.12:8080`, which is the phone's saved presenter host.
+   Those are Daniel's processes; they need restarting on the current deck. NOT done, his call.
+3. **The main StreamStage film's baked-in QR points at `expo-leads.html`**, not the gated `/g` page.
+   Decoded independently off the Fire Stick screen. Fixing it means re-rendering the film.
+4. The presenter-notes fit fix is in the repo but **DART is still running the old process**, so the
+   phone sees the old clipped page until that server restarts.
+5. **Ten-and-ten delivered and DM'd**: `docs/five-and-five-2026-08-07.md`. Awaiting Daniel's picks.
+6. SPYBALLOON's firewall blocks inbound LAN, so on-device tests against this box need
+   `adb reverse`. DART is reachable normally.
+
 ## 2026-08-07 13:10 ET — TRADE SHOW CAPTURE SYSTEM BUILT AND SHIPPED
 
 **Master status: `docs/plans/2026-08-07-TRADESHOW-READY-CHECKLIST.md`** — read that first, it has
