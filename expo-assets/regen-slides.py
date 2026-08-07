@@ -14,7 +14,7 @@ for i, m in enumerate(re.finditer(r'<section class="[^"]*slide[^"]*"[^>]*data-ti
     frags = len(re.findall(r'class="[^"]*\bfrag\b', body))
     rows.append((i, title, cue, beats, frags))
 out = ["# Talk 2 — Slide Outline (GENERATED from decks/talk2-ai.html — do not hand-edit)", "",
-       "**Why AI? Save Your Studio Time, Money, and Stress** · Wed Jul 29 2026, 4:10–5:10 PM EDT · Adapt Stage",
+       "**Why AI? Save Your Studio Time, Money, and Stress** · Tue Aug 11 2026, 09:20–10:20 MDT · Adapt Stage, Calgary",
        "", f"Regenerate with `python3 expo-assets/regen-slides.py`. **{len(rows)} slides.**", "",
        "| # | Slide | Cue | Beats | Clicks |", "|---|---|---|---|---|"]
 for i, t, c, b, f in rows:
