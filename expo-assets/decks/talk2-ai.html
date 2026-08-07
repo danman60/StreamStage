@@ -746,6 +746,29 @@
   .s17 .urlbig{letter-spacing:-.026em}
   .s2 .under{letter-spacing:-.014em}
   .s3 .txt>div:first-child{letter-spacing:-.024em}
+
+  /* ===== GATHER LOOP — dancing robots on slide 1 while the room fills =====
+     Added 2026-08-05. Daniel wanted this on stage in Toronto (ExpoMic.txt:327:
+     "I should go get them for this talk tomorrow ... videos of robots dancing").
+     Plays ONLY on slide 1, muted, looping, local file. Any advance kills it. */
+  .gather{position:absolute;inset:0;z-index:0;overflow:hidden;background:#000;
+    opacity:0;transition:opacity 1.1s ease}
+  body.gathering .slide.t-fade.active .gather{opacity:1}
+  .gather video{width:100%;height:100%;object-fit:cover;filter:saturate(.92) brightness(.62)}
+  .gather::after{content:"";position:absolute;inset:0;
+    background:radial-gradient(ellipse at center,rgba(10,10,10,.28) 0%,rgba(10,10,10,.86) 78%)}
+  .gatherhint{position:absolute;left:50%;bottom:54px;transform:translateX(-50%);z-index:6;
+    font:700 24px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:#4b5a66;
+    opacity:0;transition:opacity .6s ease}
+  body.gathering .slide.t-fade.active .gatherhint{opacity:1}
+  /* the title sits above the wall */
+  .slide.t-fade .wrap{position:relative;z-index:3}
+  /* Fixed 2026-08-06: .ph.bleed is later in the DOM with no z-index, so it painted
+     over the wall and the video was never visible. Lift the wall, drop the photo
+     plate while gathering. Reverts the instant the loop is killed. */
+  body.gathering .slide.t-fade.active .gather{z-index:2}
+  body.gathering .slide.t-fade.active .ph.bleed{opacity:0;transition:opacity .5s ease}
+
 </style>
 </head>
 <body>
@@ -753,6 +776,8 @@
 
 <!-- ============ SLIDE 1 — TITLE ============ -->
 <section class="slide t-fade" data-title="Title / Open" data-beats="..Let the room settle. Clock says 11:04 PM. Do not rush this.|&gt;&gt;&quot;You will not see me dance today.&quot;|Sheridan grad &mdash; three years jazz, ballet, tap|&gt;&gt;&quot;If you&rsquo;re nice to me, maybe the grand jet&eacute; at the end.&quot;|!!HANDS UP: who answered a parent text after 9pm this season?|!!11pm the Sunday before recital &mdash; &lsquo;how do we do the hair for this number?&rsquo;|!!KEEP YOUR HAND UP if the answer was already in the email you sent|..Look at the hands. Let them look at each other.|&gt;&gt;&quot;I&rsquo;m going to give you back some of that time.&quot;">
+  <div class="gather"><video src="robot-wall.mp4" muted loop playsinline preload="auto"></video></div>
+  <div class="gatherhint">we&rsquo;ll start in a moment</div>
   <div class="ph bleed tx-night" style="position:absolute;inset:0">
     <div class="grain"></div>
     <div class="cap" style="bottom:auto;top:26px">[PHOTO: phone mid-text / inbox at 11pm — moody]</div>
@@ -2194,6 +2219,41 @@
     scene.toggleAttribute('hidden',toIframe);
     fallback.toggleAttribute('hidden',!toIframe);
   },true);
+})();
+</script>
+
+<script>
+/* Gather loop control — added 2026-08-05.
+   G toggles the robot wall on slide 1. It is OFF by default so a fresh tab at the
+   podium never surprises you; press G once when you open the room, and the first
+   advance turns it off for good. Deliberately cannot come back mid-talk. */
+(function(){
+  var used = false;
+  function vid(){ return document.querySelector('.gather video'); }
+  function on(){
+    if (used) return;
+    document.body.classList.add('gathering');
+    var v = vid(); if (v) { var p = v.play(); if (p && p.catch) p.catch(function(){}); }
+  }
+  function off(){
+    document.body.classList.remove('gathering');
+    var v = vid(); if (v) v.pause();
+    used = true;
+  }
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'g' || e.key === 'G') {
+      e.preventDefault();
+      document.body.classList.contains('gathering') ? off() : on();
+      return;
+    }
+    if (document.body.classList.contains('gathering')) {
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'ArrowLeft' || k === ' ' || k === 'Enter' || k === 'PageDown') off();
+    }
+  }, true);
+  document.addEventListener('click', function(){
+    if (document.body.classList.contains('gathering')) off();
+  }, true);
 })();
 </script>
 </body>
