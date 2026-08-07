@@ -565,6 +565,87 @@ setInterval(poll,400); poll();
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
+    # HTTP/1.1 so keep-alive works and the browser stops reopening a socket
+    # per video chunk.
+    protocol_version = "HTTP/1.1"
+
+    def _serve_range(self):
+        """Serve a byte range for static files.
+
+        SimpleHTTPRequestHandler ignores Range entirely and answers 200 with the
+        whole body. For a 37 MB video that means: no seeking (the scrub bar
+        snaps back to 0), and Safari-based clients refuse the <video> outright
+        because they require 206. Measured on FIRMAMENT 2026-08-06:
+        `Range: bytes=0-1000` came back `200` with all 37,866,989 bytes.
+
+        Returns True if it handled the request. Falls through to the normal
+        path for anything it does not understand, so a malformed Range header
+        degrades to the old behaviour rather than failing.
+        """
+        rng = self.headers.get("Range")
+        if not rng or not rng.strip().lower().startswith("bytes="):
+            return False
+        path = self.translate_path(self.path)
+        if not os.path.isfile(path):
+            return False
+        try:
+            size = os.path.getsize(path)
+            spec = rng.split("=", 1)[1].strip()
+            if "," in spec:                       # multi-range: not worth it
+                return False
+            first, _, last = spec.partition("-")
+            if first == "":                       # suffix form: bytes=-500
+                length = int(last)
+                if length <= 0:
+                    return False
+                start, end = max(0, size - length), size - 1
+            else:
+                start = int(first)
+                end = int(last) if last else size - 1
+            end = min(end, size - 1)
+            if start > end or start >= size:
+                self.send_response(416)
+                self.send_header("content-range", "bytes */%d" % size)
+                self.send_header("content-length", "0")
+                self.end_headers()
+                return True
+        except (ValueError, OSError):
+            return False
+
+        ctype = self.guess_type(path)
+        length = end - start + 1
+        try:
+            f = open(path, "rb")
+        except OSError:
+            return False
+        with f:
+            f.seek(start)
+            self.send_response(206)
+            self.send_header("content-type", ctype)
+            self.send_header("content-range", "bytes %d-%d/%d" % (start, end, size))
+            self.send_header("content-length", str(length))
+            self.send_header("accept-ranges", "bytes")
+            self.end_headers()
+            remaining = length
+            while remaining > 0:
+                chunk = f.read(min(64 * 1024, remaining))
+                if not chunk:
+                    break
+                try:
+                    self.wfile.write(chunk)
+                except (BrokenPipeError, ConnectionResetError):
+                    # the browser seeked away mid-chunk; normal, not an error
+                    return True
+                remaining -= len(chunk)
+        return True
+
+    def end_headers(self):
+        # advertise range support on every static response so the browser will
+        # even try to seek
+        if not self.path.startswith(("/state", "/cmd", "/facelift", "/demo-", "/remote")):
+            self.send_header("accept-ranges", "bytes")
+        super().end_headers()
+
     def _json(self, obj, code=200):
         body = json.dumps(obj).encode()
         self.send_response(code)
@@ -606,6 +687,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 out = list(PENDING)
                 PENDING.clear()
             return self._json({"cmds": out})
+        if self._serve_range():
+            return
         return super().do_GET()
 
     def do_POST(self):
