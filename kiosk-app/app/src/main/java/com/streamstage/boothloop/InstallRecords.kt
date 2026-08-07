@@ -43,7 +43,13 @@ class InstallRecords(private val store: File) {
         val bytes: Long,
         val mtime: Long,
         val sha256: String,
-        val source: String
+        val source: String,
+        /**
+         * sha256 of three 256 KB samples of the file as it was when we confirmed it — see
+         * [UpdateManager.spotHash]. Null for records written before this existed, and for
+         * anything we could not read; both mean "no opinion", never "bad".
+         */
+        val spot: String? = null
     )
 
     private val recs = LinkedHashMap<String, Rec>()
@@ -69,7 +75,8 @@ class InstallRecords(private val store: File) {
                 val mtime = o.optLong("mtime", -1L)
                 val sha = o.optString("sha256", "")
                 if (bytes <= 0L || sha.length != 64) continue
-                recs[name] = Rec(bytes, mtime, sha, o.optString("source", "local"))
+                val spot = o.optString("spot", "").takeIf { it.length == 64 }
+                recs[name] = Rec(bytes, mtime, sha, o.optString("source", "local"), spot)
             }
         }.onFailure {
             recs.clear()
@@ -112,7 +119,8 @@ class InstallRecords(private val store: File) {
                 .put("bytes", r.bytes)
                 .put("mtime", r.mtime)
                 .put("sha256", r.sha256)
-                .put("source", r.source))
+                .put("source", r.source)
+                .apply { r.spot?.let { put("spot", it) } })
         }
         val text = JSONObject().put("files", files).toString(2)
 

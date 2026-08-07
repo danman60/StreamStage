@@ -443,6 +443,7 @@ class BoothLoopActivity : Activity() {
 
         playerView?.player = exo
         player = exo
+        rememberNowPlaying()
         Log.i(TAG, "Playing ${files.size} file(s), starting at index $index")
     }
 
@@ -480,6 +481,7 @@ class BoothLoopActivity : Activity() {
          * ever swapped, so the swap has to happen at a boundary or not at all.
          */
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            rememberNowPlaying()
             applyStagedFilms()
         }
 
@@ -550,49 +552,79 @@ class BoothLoopActivity : Activity() {
         player?.currentMediaItem?.localConfiguration?.uri?.lastPathSegment
 
     /**
+     * The film on screen, mirrored where a background thread can read it. ExoPlayer is confined
+     * to the main thread, so the update worker — which is where the swap now happens — cannot
+     * ask the player directly. Written on the main thread, read from the worker.
+     */
+    @Volatile private var nowPlaying: String? = null
+
+    /** True while a swap is in flight, so overlapping triggers do not stack up. */
+    @Volatile private var applyInFlight = false
+
+    /** Main thread only. */
+    private fun rememberNowPlaying() {
+        nowPlaying = currentlyPlayingName()
+    }
+
+    /**
      * Move verified downloads from `.staging` into the live folder.
      *
      * Called at a media-item transition, when a download finishes, when the panel closes, and
      * from the watchdog when there is no player at all. It never touches the film that is on
      * screen — that one waits for its own boundary.
      *
-     * Everything here is a rename inside one directory plus a small JSON write; on a stick
-     * that is sub-millisecond, which is why it is allowed to happen on the main thread at a
-     * moment when playback is already changing items.
+     * **This used to run on the main thread**, on the grounds that a rename plus a small JSON
+     * write is sub-millisecond. It is not what the swap does any more: it reads the destination
+     * back and hashes it, because a rename reporting success turned out not to mean the film
+     * arrived (see [UpdateManager.PREV_SUFFIX]). That is seconds of work per film, so it goes
+     * to the update worker and the answer comes back to the main thread. The booth's decoder
+     * never waits for it.
      */
     private fun applyStagedFilms() {
-        if (!mayHaveStaged) return
+        if (!mayHaveStaged || applyInFlight) return
         val dir = mediaDir()
         if (!UpdateManager.hasStaged(dir)) {
             mayHaveStaged = false
             return
         }
-        val applied = runCatching { UpdateManager.applyStaged(this, dir, currentlyPlayingName()) }
-            .getOrElse {
+        rememberNowPlaying()
+        applyInFlight = true
+        UpdateManager.run {
+            val applied = runCatching {
+                UpdateManager.applyStaged(this@BoothLoopActivity, dir) { name ->
+                    name == nowPlaying
+                }
+            }.getOrElse {
                 Log.w(TAG, "Applying staged films failed — booth unchanged", it)
-                return
+                UpdateManager.Applied(emptyList(), emptyList())
             }
-        if (applied.names.isEmpty()) return
-        Log.i(TAG, "Applied ${applied.names.joinToString()}")
-        mayHaveStaged = UpdateManager.hasStaged(dir)
-
-        // A film that replaced an existing one needs no rebuild: the path is unchanged, so
-        // ExoPlayer opens the new bytes the next time that item comes round. That is the loop
-        // boundary behaviour we want, and it costs no interruption at all.
-        //
-        // A film that was not on the stick before is a new playlist entry, so the player does
-        // have to be rebuilt for it to be in the reel. Do it off the listener callback, and
-        // resume the same film we were on.
-        // (When there is no player yet — first launch, or an empty stick that just got its
-        // first film — the caller is about to build one anyway, so there is nothing to do.)
-        if (applied.newFilms.isNotEmpty() && player != null) {
             handler.post {
-                val p = player ?: return@post
-                resumeFileName = currentlyPlayingName()
-                startIndex = p.currentMediaItemIndex
-                startPositionMs = p.currentPosition.coerceAtLeast(0L)
-                Log.i(TAG, "Rebuilding reel for new film(s): ${applied.newFilms.joinToString()}")
-                startPlayback()
+                applyInFlight = false
+                mayHaveStaged = UpdateManager.hasStaged(dir)
+                if (applied.failed.isNotEmpty()) {
+                    Log.e(TAG, "Did not verify at their final path, booth rolled back: " +
+                            applied.failed.joinToString())
+                }
+                panel?.onFilmsApplied(applied.names, applied.failed)
+                if (applied.names.isEmpty()) return@post
+                Log.i(TAG, "Applied ${applied.names.joinToString()}")
+
+                // A film that replaced an existing one needs no rebuild: the path is unchanged,
+                // so ExoPlayer opens the new bytes the next time that item comes round. That is
+                // the loop boundary behaviour we want, and it costs no interruption at all.
+                //
+                // A film that was not on the stick before is a new playlist entry, so the
+                // player does have to be rebuilt for it to be in the reel, resuming the same
+                // film we were on. (When there is no player yet — first launch, or an empty
+                // stick that just got its first film — the caller is about to build one anyway.)
+                if (applied.newFilms.isNotEmpty() && player != null) {
+                    val p = player ?: return@post
+                    resumeFileName = currentlyPlayingName()
+                    startIndex = p.currentMediaItemIndex
+                    startPositionMs = p.currentPosition.coerceAtLeast(0L)
+                    Log.i(TAG, "Rebuilding reel for new film(s): ${applied.newFilms.joinToString()}")
+                    startPlayback()
+                }
             }
         }
     }
@@ -600,11 +632,12 @@ class BoothLoopActivity : Activity() {
     private val panelHost = object : UpdatePanelView.Host {
         override fun currentlyPlayingName(): String? = this@BoothLoopActivity.currentlyPlayingName()
 
-        override fun onStagedFilmReady(name: String): Boolean {
+        override fun onStagedFilmReady(name: String) {
             mayHaveStaged = true
+            // Starts the swap; it finishes on the worker and reports back through
+            // onFilmsApplied. There is no honest synchronous answer to "is it live yet"
+            // any more, because going live now includes reading the film back and hashing it.
             applyStagedFilms()
-            // If it is no longer sitting in staging, it is live now.
-            return !File(UpdateManager.stagingDir(mediaDir()), name).isFile
         }
 
         override fun onPanelClosed() = closeUpdatePanel()

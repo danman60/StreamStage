@@ -49,10 +49,13 @@ class UpdatePanelView(
         fun currentlyPlayingName(): String?
 
         /**
-         * A verified film is staged. Apply whatever is safe to apply right now.
-         * @return true if this film went live immediately (it was not the one on screen).
+         * A verified film is staged. Start applying whatever is safe to apply right now.
+         *
+         * Deliberately returns nothing: going live now means renaming the film into place *and
+         * reading it back to prove it arrived*, which happens off the main thread. The outcome
+         * comes back through [onFilmsApplied], per film, success or failure.
          */
-        fun onStagedFilmReady(name: String): Boolean
+        fun onStagedFilmReady(name: String)
 
         /** BACK was pressed. */
         fun onPanelClosed()
@@ -502,10 +505,11 @@ class UpdatePanelView(
                         okCount++
                         ui.post {
                             row.detail = ""
-                            // Swap in anything that is not on screen right now; a film that is
-                            // on screen stays staged and says so.
-                            val live = host.onStagedFilmReady(row.name)
-                            row.status = if (live) Status.APPLIED else Status.STAGED
+                            // Verified and safely in staging. Whether it can go live right now
+                            // depends on what is on screen, and proving it went live takes a
+                            // moment — onFilmsApplied turns this into "updated" or "FAILED".
+                            row.status = Status.STAGED
+                            host.onStagedFilmReady(row.name)
                             render()
                         }
                     }
@@ -539,6 +543,30 @@ class UpdatePanelView(
                 Log.i(TAG, "Update run finished: ok=$okCount fail=$failCount cancelled=$cancelRequested")
             }
         }
+    }
+
+    /**
+     * A swap pass finished. [applied] went live and were read back correct at their final path.
+     * [failed] got there and did not verify, so the booth was put back the way it was.
+     *
+     * A film only ever reads "updated" on this screen once its bytes have been confirmed where
+     * they now live. Main thread.
+     */
+    fun onFilmsApplied(applied: List<String>, failed: List<String>) {
+        if (applied.isEmpty() && failed.isEmpty()) return
+        applied.forEach { name ->
+            rows.firstOrNull { it.name.equals(name, ignoreCase = true) }?.status = Status.APPLIED
+        }
+        failed.forEach { name ->
+            rows.firstOrNull { it.name.equals(name, ignoreCase = true) }?.let {
+                it.status = Status.FAILED
+                it.detail = "did not verify on the stick · old film kept"
+            }
+        }
+        if (failed.isNotEmpty() && !busy) {
+            statusLine = "${failed.size} film(s) could not be replaced — the loop is unaffected"
+        }
+        render()
     }
 
     /** Called by the activity when the panel is being torn down. */

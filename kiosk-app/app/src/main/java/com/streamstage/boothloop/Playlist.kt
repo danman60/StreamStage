@@ -149,11 +149,27 @@ object Playlist {
      * blacklist the booth shows a black screen. Better to notice the damage here, where the
      * only consequence is a shorter reel.
      *
-     * Deliberately cheap: length against the record in `installed.json`, which is microseconds.
-     * There is no hashing on this path — a booth TV waiting 40 seconds to start because the
-     * app is checksumming 350 MB would be a worse failure than the one being prevented. The
-     * hash *is* checked, in full, at the moment a film is downloaded (see [UpdateManager]),
-     * and again on demand from the update panel.
+     * Two checks against the record in `installed.json`:
+     *
+     *  1. **byte count** — microseconds. Catches a truncated push.
+     *  2. **spot hash** — three 256 KB samples, under a megabyte read per film. This is the one
+     *     that catches *contents* changing without the length changing, which is the shape of
+     *     the Fire OS 8 failure documented on [UpdateManager.PREV_SUFFIX]: a live path serving
+     *     a page-by-page mixture of the old and new film, which decodes to `Invalid NAL unit
+     *     size` and black-screens that slot. Length alone happened to catch the one instance
+     *     that occurred, because a stale length came with it; nothing guarantees the next one
+     *     is so obliging.
+     *
+     * **mtime is deliberately not a test.** It reads as an obvious third check and it is a
+     * trap: on the booth stick a live film's mtime was observed changing on its own while its
+     * contents stayed perfect (MediaProvider bookkeeping, after an unrelated file appeared in
+     * `.staging`). Rejecting on that dropped a good film out of the reel. Metadata is a hint;
+     * contents are the evidence, and the spot hash is cheap enough to just look.
+     *
+     * Still no full hash on this path — a booth TV waiting 40 seconds to start because the app
+     * is checksumming 350 MB would be a worse failure than the one being prevented. The full
+     * hash *is* checked at the moment a film is downloaded, again at the moment it is swapped
+     * into place (see [UpdateManager.applyStaged]), and again on demand from the update panel.
      *
      * Only files with a `"manifest"` record are subject to this. A film pushed over adb has
      * no record and behaves exactly as it always did — this cannot reject something it was
@@ -172,12 +188,19 @@ object Playlist {
             when {
                 rec == null -> true                       // never installed by us; not ours to judge
                 rec.source != "manifest" -> true          // a cached hash, not a claim about validity
-                f.length() == rec.bytes -> true           // still the file we verified
-                else -> {
+                f.length() != rec.bytes -> {
                     Log.e(TAG, "${f.name} is ${f.length()} bytes but was installed as " +
                             "${rec.bytes} — damaged, leaving it out of the reel")
                     false
                 }
+                // Null on either side is "no opinion": a record written before spot hashes
+                // existed, or a file we could not sample. Never reject on absence of evidence.
+                rec.spot != null && UpdateManager.spotHash(f).let { it != null && it != rec.spot } -> {
+                    Log.e(TAG, "${f.name} is the right size but its contents are not what we " +
+                            "installed — damaged, leaving it out of the reel")
+                    false
+                }
+                else -> true                              // still the file we verified
             }
         }
         if (good.isEmpty()) {
