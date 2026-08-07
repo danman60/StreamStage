@@ -192,7 +192,7 @@ playlist can never silently hide a film someone just pushed.
 | Stray remote input | Every key on the Fire TV remote is swallowed — D-pad, Select, Back, play/pause, FF/REW, Menu. **Back and Select on their own do nothing at all.** A passer-by cannot pause, seek, or drop the TV to the launcher. |
 | Volume keys | Deliberately **passed through** so staff can set booth level. On most sticks the TV handles these over CEC/IR anyway. |
 | Deliberate exit | **DOWN, DOWN, UP, UP, BACK** on the D-pad within 5 seconds. |
-| HOME | Cannot be intercepted (no app can). Drops to the Fire OS launcher — *not* a black screen. Relaunch from the home row. |
+| HOME | No app can intercept the HOME key. **Set this app as the stick's launcher** and the point becomes moot: HOME returns here instead of leaving. It registers `category.HOME` (the DanTV shape, which is proven on a real stick), so Fire OS offers it as a home app — choose it and tick Always. If you do not, HOME drops to the Fire OS launcher, which is a menu and *not* a black screen; relaunch from the home row. Reversible in Settings > Applications. |
 | Backgrounding | Releases the player on stop, resumes on return — and restores the film and position it was on. |
 | A corrupt film | Skipped, blacklisted for the session, show continues. One bad push cannot stall the booth. |
 | A stall | A 10-second watchdog nudges, then rebuilds the player if playback stops progressing. |

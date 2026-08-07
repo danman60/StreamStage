@@ -55,11 +55,27 @@
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|smallestScreenSize|screenLayout|uiMode|density|touchscreen">
 
             <!-- LEANBACK_LAUNCHER puts it on the Fire TV home row.
-                 LAUNCHER keeps it launchable from a phone/tablet launcher for bench tests. -->
+                 LAUNCHER keeps it launchable from a phone/tablet launcher for bench tests.
+
+                 HOME + DEFAULT are the DanTV shape, and they are the reason DanTV survives on a
+                 real stick. Registering as a home app means the booth stick can be told to use
+                 this as its launcher, which buys two things nothing else can:
+
+                   1. HOME stops being an escape hatch. No app can intercept the HOME key, so
+                      without this a visitor pressing it drops the booth TV to the Fire OS
+                      launcher mid-show. As the home app, HOME just returns here.
+                   2. Autostart after a power cut actually works. Fire OS 8 restricts background
+                      activity starts, so BootReceiver alone is unreliable — but the home app is
+                      started by the system at boot by definition.
+
+                 Fire OS asks which launcher to use the first time and offers "Always". This is a
+                 dedicated booth stick, and it is reversible from Settings > Applications. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
