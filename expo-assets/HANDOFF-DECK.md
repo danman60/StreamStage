@@ -46,8 +46,11 @@ Inter + JetBrains Mono embedded, all speaker-note clocks retimed to the hour.
   `..` = stage direction. He explicitly wants push/pull and buying-back-time to JUMP OUT.
 
 ## How to work the deck
-- Serve it, don't open the file: `cd expo-assets/decks && PRESENTER_PORT=8081 python3 presenter-server.py`
-  then `http://localhost:8081/talk2-ai.html`.
+- Serve it, don't open the file: `cd expo-assets/decks && python3 presenter-server.py`
+  then `http://localhost:8090/talk2-ai.html`.
+  **8090 is the presenter's default now.** It used to be 8080, and this file used to say
+  `PRESENTER_PORT=8081` — do not use either: 8080 and 8081 both belong to the booth kiosk
+  (`expo-assets/kiosk/serve.py`, pages on 8080, telemetry on 8081).
 - Screenshot/audit harness lives in the session scratchpad (`deck2-all.mjs`) — it walks every slide,
   reports `document.fonts` status, JS errors, and any element overflowing 1920×1080. Re-create if gone;
   Playwright is at `/home/danman60/projects/BroadcastBuddy/node_modules/playwright`.
@@ -187,7 +190,7 @@ and the run-of-show. Full table: `expo-assets/rehearsal/COVERAGE.md`.
 - Then regenerate the derived docs — they are generated, never hand-edited:
   `python3 expo-assets/regen-slides.py` and `python3 expo-assets/regen-notes.py`
   (slide outline + the Script / Run of Show / Slide Notes tabs of `talk2.html`).
-- Render check: serve the deck (`PRESENTER_PORT=8081 python3 expo-assets/decks/presenter-server.py`)
+- Render check: serve the deck (`python3 expo-assets/decks/presenter-server.py`, port 8090)
   and run the harness — it walks every slide for JS errors, font status and anything crossing 1920×1080.
   Current state: **38/38 clean, fonts loaded, no JS errors, no overflow at any animation frame.**
 
@@ -373,7 +376,7 @@ Read this before touching anything. Nothing below is broken; it is the list of w
   tabs p0/p1/p2 of `talk2.html`. Tabs **p3/p4/p5 are hand-maintained** — if you change
   `demo-failure-playbook.md` or `live-fill-demo-procedure.md`, you must patch `talk2.html` by hand too
   (this bit me once already).
-- **Verify harness:** `cd expo-assets/decks && PRESENTER_PORT=8081 python3 presenter-server.py`, then
+- **Verify harness:** `cd expo-assets/decks && python3 presenter-server.py` (port 8090), then
   `node deck2-all.mjs` from the session scratchpad. It walks all 38 slides for JS errors, font status
   and overflow. `probe.mjs` checks geometry mid-animation; `coldprobe.mjs` does the 404 test.
   ⚠ **Those .mjs files live in the session scratchpad and will be gone.** Re-create them; they are

@@ -3,8 +3,14 @@
 Presenter remote for the expo decks.
 
 Run this from the folder that holds the deck html, then:
-  - laptop:  http://localhost:8080/talk2-deck.html   (or talk2-ai.html locally)
-  - phone:   http://<laptop-ip>:8080/remote          (join the laptop's hotspot first)
+  - laptop:  http://localhost:8090/talk2-deck.html   (or talk2-ai.html locally)
+  - phone:   http://<laptop-ip>:8090/remote          (join the laptop's hotspot first)
+
+Port 8090, NOT 8080. The booth kiosk (expo-assets/kiosk/serve.py) owns 8080 for
+its pages and 8081 for its telemetry listener, and its address is printed on the
+booth sheet and bookmarked on the Fire Stick, so it is the one that cannot move.
+Both servers now run on one laptop at once. PRESENTER_PORT still overrides this
+— just never set it to 8080 or 8081.
 
 The phone page shows the current slide's beats and has big Prev/Next thumb zones.
 Stdlib only - no pip, no npm, nothing to install at the venue.
@@ -15,7 +21,50 @@ Tap zones instead (and they can't accidentally change your volume mid-talk).
 import http.server, socketserver, json, socket, sys, os, threading, re, subprocess, time
 import tempfile, urllib.request
 
-PORT = int(os.environ.get("PRESENTER_PORT", "8080"))
+DEFAULT_PORT = 8090          # see the module docstring: 8080/8081 belong to the kiosk
+KIOSK_PORTS = (8080, 8081)   # only used to write a helpful error message
+PORT = int(os.environ.get("PRESENTER_PORT", str(DEFAULT_PORT)))
+
+
+def port_free(port):
+    """True if this process can actually take `port` right now.
+
+    Deliberately does NOT set SO_REUSEADDR. socketserver turns SO_REUSEADDR on
+    (Server.allow_reuse_address below), and on WINDOWS — which is the
+    presenting laptop — that flag lets a second process bind a port another
+    process is already listening on. The bind then succeeds and the two servers
+    split incoming connections at random, so the phone remote would talk to the
+    kiosk half the time. A plain exclusive probe means the same thing on
+    Windows and on Linux, so this check is what is trusted, not the bind.
+    """
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):        # Windows only
+        try:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        except OSError:
+            pass
+    try:
+        s.bind(("0.0.0.0", port))
+        return True
+    except OSError:
+        return False
+    finally:
+        s.close()
+
+
+def pick_port(want, tries=20):
+    """First free port at or above `want`, or None if there is no room.
+
+    Skips the kiosk's two ports outright: falling forward onto 8080 or 8081
+    would be the exact collision this exists to avoid.
+    """
+    for i in range(tries):
+        p = want + i
+        if p in KIOSK_PORTS:
+            continue
+        if port_free(p):
+            return p
+    return None
 
 _lock = threading.Lock()
 STATE = {"idx": 0, "total": 0, "title": "", "beats": [], "titles": [], "seq": 0}
@@ -499,12 +548,30 @@ function fitNotes(){
   m.classList.remove('spill');
   for(var px=20; px>=12; px-=0.5){
     m.style.setProperty('--nfs', px+'px');
-    if(m.scrollHeight<=m.clientHeight) return;
+    if(m.scrollHeight<=m.clientHeight) break;
   }
-  m.classList.add('spill');
+  /* Always re-check at the end instead of returning early from the loop. The old version
+     returned the moment a size fitted, so anything that STOLE HEIGHT afterwards left the
+     page clipped by overflow:hidden with no scrollbar and no way to reach the lost lines.
+     Measured on a Pixel 9 Pro at 384dp: scrollHeight 559 vs clientHeight 533 — the last beat
+     was 26px past the fold and unreachable. */
+  if(m.scrollHeight>m.clientHeight) m.classList.add('spill');
 }
 window.addEventListener('resize',fitNotes);
 window.addEventListener('orientationchange',function(){setTimeout(fitNotes,250);});
+/* What steals the height: #flnote is display:none until the first /state poll says the
+   facelift is armed, and #flbar can wrap on a narrow phone. Both sit ABOVE main, so when they
+   appear main gets shorter after fitNotes has already run. Watch the chrome above the notes
+   and re-fit. Deliberately NOT observing main itself — fitNotes resizes main, which would
+   feed straight back into the observer. */
+if(window.ResizeObserver){
+  var refit=new ResizeObserver(function(){fitNotes();});
+  ['header','#flbar','#flnote'].forEach(function(sel){
+    var el=document.querySelector(sel); if(el) refit.observe(el);
+  });
+}
+/* Late-loading font metrics move the same lines on a cold phone. */
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitNotes);
 /* ---- facelift panel ---- */
 var fl=document.getElementById('fl');
 document.getElementById('flbtn').onclick=function(){fl.classList.toggle('open')};
@@ -763,9 +830,41 @@ class Server(socketserver.ThreadingTCPServer):
 if __name__ == "__main__":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     decks = [f for f in os.listdir(".") if f.endswith(".html") and "deck" in f.lower()]
+
+    # ---- ports, settled BEFORE anything is printed, so every address below
+    # ---- is an address that actually answers.
+    WANTED = PORT
+    chosen = pick_port(WANTED)
+    if chosen is None:
+        print("=" * 58)
+        print(" THE PRESENTER REMOTE COULD NOT START — no free port.")
+        print("=" * 58)
+        print(" Nothing between %d and %d is free. Something on this laptop" % (WANTED, WANTED + 19))
+        print(" is using a lot of ports.")
+        print("")
+        print(" What to do:")
+        print("   1. Close any other presenter windows and try again.")
+        print("   2. Or pick a port yourself:  PRESENTER_PORT=9100 python3 presenter-server.py")
+        sys.exit(1)
+    PORT = chosen
+
     print("=" * 58)
     print(" PRESENTER REMOTE")
     print("=" * 58)
+    if PORT != WANTED:
+        print(" PORT %d WAS ALREADY IN USE — the remote moved to %d." % (WANTED, PORT))
+        print("")
+        print(" What is probably already on %d:" % WANTED)
+        print("   - another copy of this presenter server, in a window you left open")
+        if WANTED in KIOSK_PORTS:
+            print("   - the booth kiosk (expo-assets/kiosk/serve.py). It owns 8080 for its")
+            print("     pages and 8081 for telemetry. Do not put the presenter on either.")
+        else:
+            print("   - the booth kiosk, if you started it with --port %d" % WANTED)
+        print("")
+        print(" THE ADDRESSES BELOW ARE THE REAL ONES. Any QR image or bookmark")
+        print(" made for port %d is wrong until you free it and start this again." % WANTED)
+        print("=" * 58)
     for d in sorted(decks):                       # both talks live in this folder now
         print(" laptop :  http://localhost:%d/%s" % (PORT, d))
     here = os.path.dirname(os.path.abspath(__file__))
@@ -783,6 +882,18 @@ if __name__ == "__main__":
     print(" Ctrl-C to stop.\n")
     resume_facelift_poll()
     try:
-        Server(("0.0.0.0", PORT), Handler).serve_forever()
+        srv = Server(("0.0.0.0", PORT), Handler)
+    except OSError as exc:
+        # port_free() said yes a moment ago, so this is a genuine surprise
+        # (a race, or a firewall refusal). Still no stack trace on stage.
+        print("")
+        print(" THE PRESENTER REMOTE COULD NOT START.")
+        print(" It could not open port %d: %s" % (PORT, exc))
+        print(" Most likely something grabbed the port in the last second, or")
+        print(" Windows Firewall blocked it (say YES to 'Allow Python on private")
+        print(" networks'). Try again, or: PRESENTER_PORT=9100 python3 presenter-server.py")
+        sys.exit(1)
+    try:
+        srv.serve_forever()
     except KeyboardInterrupt:
         sys.exit(0)

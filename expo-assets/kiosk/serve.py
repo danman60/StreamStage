@@ -12,6 +12,11 @@ It does three things and nothing else:
   2. Relays the tablet's taps to the TV  — GET /bus is a Server-Sent Events
      stream, POST /bus publishes to it. This is what lets the TV be a Fire
      Stick on the same wifi instead of a second window on the laptop.
+     The operator's PHONE is a third publisher on that same bus: play, pause,
+     resume, stop and the attract order, all POSTed to /bus, all relayed over
+     the same SSE stream. Commands are never retained, and a command that does
+     not say it came from the phone may not start an operator-only film.
+     The exact JSON is phone-app/BUS-CONTRACT.md.
   3. Appends every telemetry event to telemetry/events-YYYY-MM-DD.jsonl,
      flushed and fsync'd on arrival, so two days of floor traffic survive a
      crash, a browser wipe or a flat battery. Emails typed on the tablet land
@@ -22,6 +27,12 @@ It does three things and nothing else:
 There is no internet dependency anywhere. The laptop and the TV only need to
 be on the same local network — a travel router or the laptop's own hotspot is
 enough, and is what you should use, because venue wifi will fail.
+
+Ports: the kiosk takes 8080 (the pages) and 8081 (telemetry, always one above
+the page port). The deck presenter takes 8090. They no longer collide, so the
+booth kiosk and the phone-driven deck remote run on ONE laptop at the SAME
+time. If 8080 is somehow busy anyway, this moves itself up and says so in
+plain English rather than dying in a stack trace.
 """
 
 import argparse
@@ -37,6 +48,16 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TELEMETRY_DIR = os.path.join(HERE, "telemetry")
+
+# The kiosk keeps 8080 because its address is written down in places this file
+# cannot reach: the booth sheet, README-BOOTH.md, and the Fire Stick's bookmark,
+# which is typed on a TV remote and is not something anyone wants to retype at
+# 8am. Telemetry is always DEFAULT_PORT + 1 (see the note in main()).
+#
+# The deck presenter used to default to 8080 too and now defaults to 8090 —
+# see expo-assets/decks/presenter-server.py. Both can run on one laptop.
+DEFAULT_PORT = 8080
+PRESENTER_DEFAULT_PORT = 8090       # only used to write a helpful error message
 
 # ---------------------------------------------------------------------------
 # The relay. Every connected page (tablet, TV, a second TV if he ever adds one)
@@ -57,12 +78,139 @@ RETAINABLE = {"tv"}
 _retained: "dict[str, dict]" = {}
 _retained_lock = threading.Lock()
 
+# ---------------------------------------------------------------------------
+# OPERATOR COMMANDS.
+#
+# The phone (phone-app/) is a third publisher on this same bus: it POSTs to
+# /bus exactly like the tablet does, and the TV actions it. There is no second
+# transport, no websocket and no telemetry on this path. The wire format is
+# owned by phone-app/BUS-CONTRACT.md — read that, not this comment, for the
+# exact JSON.
+#
+# Two kinds of message travel here and they are not the same thing:
+#
+#   STATE    {"type":"tv", ...}     — what a screen IS doing. Retained (above).
+#   COMMAND  {"type":"pause", ...}  — what somebody wants done. NEVER retained,
+#            {"type":"playfilm",...}  because a replayed command makes a screen
+#                                     that joins an hour late start an hour-old
+#                                     film. Measured exactly that way.
+#
+# RETAINABLE is a whitelist and no command type is in it, so nothing below has
+# to remember to exclude them — but command_of() exists so the rule can be
+# asserted rather than inferred.
+COMMANDS = {"play", "playfilm", "pause", "resume", "stop", "playlist", "ping"}
+
+# What marks a command as coming from the OPERATOR rather than from a visitor
+# surface. phone-app/BUS-CONTRACT.md §2 is the authority on the wire format and
+# the phone stamps every command it sends with "src":"phone" — so that field is
+# the marker, and it is now load-bearing rather than decorative.
+#
+# "origin":"operator" is accepted as an equivalent spelling. Neither is a
+# secret and neither is meant to be one: this is a booth on a trade-show floor
+# behind its own travel router, not an authentication boundary. What it does
+# buy is the thing Daniel actually asked for — the visitor tablet, which sends
+# neither field, cannot start the operator-only film even if somebody finds a
+# way to make it publish. Absence means visitor, always.
+OPERATOR_SRC = {"phone", "operator"}
+
+# Films only an OPERATOR may start.
+#
+# streamstage-services.mp4 is StreamStage's own recital-filming film. It is not
+# a product, it has never had a tablet tile, and Daniel was explicit that only
+# the phone in his hand starts it — a visitor tapping it on the booth tablet is
+# a sales pitch nobody asked for, playing to the wrong person.
+#
+# Hiding a tile is not enforcement, so the refusal lives HERE, on the wire: a
+# command that does not say it came from the operator is refused 403 and is
+# never published. tv.html carries the same check, because the tablet and TV
+# also talk over BroadcastChannel when they are two windows on ONE laptop, and
+# that path never reaches this process at all.
+OPERATOR_ONLY_FILMS = {"streamstage-services"}
+
 _log_lock = threading.Lock()
-_counts = {"events": 0, "publishes": 0, "leads": 0}
+_counts = {"events": 0, "publishes": 0, "leads": 0, "refused": 0}
+
+
+def command_of(msg: dict) -> "str | None":
+    """The command a bus message is asking for, or None if it is not one.
+
+    The flat form is the contract: {"type":"pause"}, {"type":"playfilm",...}.
+    {"type":"cmd","cmd":"pause"} is accepted as an equivalent envelope so a
+    future client that prefers a namespace is not locked out — the phone does
+    not send it and nothing depends on it.
+    """
+    if not isinstance(msg, dict):
+        return None
+    t = msg.get("type")
+    if t == "cmd":
+        c = msg.get("cmd")
+        return c if isinstance(c, str) and c in COMMANDS else None
+    return t if t in COMMANDS else None
+
+
+def is_operator(msg: dict) -> bool:
+    """Did this command come from the operator's phone?
+
+    Absence is a visitor. tablet.html has never sent either field and must
+    never gain the operator-only film by omission.
+    """
+    for k in ("src", "origin"):
+        v = msg.get(k)
+        if isinstance(v, str) and v.strip().lower() in OPERATOR_SRC:
+            return True
+    return False
+
+
+def film_of(msg: dict) -> "str | None":
+    """Which film a play command is asking for. `product` is the older name."""
+    for k in ("film", "product"):
+        v = msg.get(k)
+        if isinstance(v, str) and v:
+            return v
+    return None
+
+
+def order_of(msg: dict) -> "list[str]":
+    """The film ids in a playlist command, in order."""
+    v = msg.get("order")
+    if not isinstance(v, list):
+        v = msg.get("films") if isinstance(msg.get("films"), list) else []
+    return [x for x in v if isinstance(x, str)]
+
+
+def refuse_reason(msg: dict) -> "str | None":
+    """Why this command must not be published, or None to let it through.
+
+    This does NOT touch the tablet's email gate and cannot be used to skip it.
+    The gate lives in tablet.html and is raised by the tablet's own first tap;
+    nothing on this wire arms or disarms it, and the tablet stamps
+    src:"tablet" on every command it sends, operator sheet included.
+    """
+    cmd = command_of(msg)
+    if cmd is None or is_operator(msg):
+        return None
+    if cmd in ("play", "playfilm"):
+        film = film_of(msg)
+        if film in OPERATOR_ONLY_FILMS:
+            return "operator-only film: " + film
+    elif cmd == "playlist":
+        # The attract order is an operator control outright, not merely one
+        # that must not name the operator-only film. Nothing on a visitor
+        # surface sends it, the tablet has no UI for it, and naming that film
+        # in an order is the one way a visitor surface could put it on the
+        # screen without ever sending a play. tv.html refuses the same thing on
+        # the local transports, and the two must agree.
+        bad = [f for f in order_of(msg) if f in OPERATOR_ONLY_FILMS]
+        if bad:
+            return "operator-only film in playlist: " + ", ".join(bad)
+        return "playlist is an operator control"
+    return None
 
 
 def publish(msg: dict) -> None:
-    if isinstance(msg, dict) and msg.get("type") in RETAINABLE:
+    # A command is never retained, whatever its type says. RETAINABLE is a
+    # whitelist so this can only ever be belt and braces — which is the point.
+    if isinstance(msg, dict) and msg.get("type") in RETAINABLE and command_of(msg) is None:
         with _retained_lock:
             _retained[msg["type"]] = msg
     payload = "data: " + json.dumps(msg, separators=(",", ":")) + "\n\n"
@@ -143,6 +291,24 @@ def read_events() -> "list[dict]":
     return out
 
 
+def films_on_disk() -> "dict[str, int]":
+    """Which films are actually in media/ right now, id -> bytes.
+
+    Both screens and the phone ask this instead of probing each file, so a film
+    that has not been rendered yet costs one honest answer rather than six 404s
+    in the console.
+    """
+    media = os.path.join(HERE, "media")
+    out: "dict[str, int]" = {}
+    try:
+        for name in os.listdir(media):
+            if name.endswith(".mp4"):
+                out[name[:-4]] = os.path.getsize(os.path.join(media, name))
+    except OSError:
+        pass
+    return out
+
+
 def lan_ip() -> str:
     """Best guess at the address the Fire Stick should be pointed at."""
     try:
@@ -156,6 +322,47 @@ def lan_ip() -> str:
             return socket.gethostbyname(socket.gethostname())
         except Exception:
             return "127.0.0.1"
+
+
+def port_free(port: int) -> bool:
+    """True if this process can actually take `port` right now.
+
+    Deliberately does NOT set SO_REUSEADDR. http.server turns SO_REUSEADDR on
+    by default, and on WINDOWS — which is the booth laptop — that flag lets a
+    second process bind a port another process is already listening on. The
+    bind then succeeds and the two servers split incoming connections at
+    random, which is far worse than a clean refusal. A plain exclusive probe
+    means the same thing on Windows and on Linux, so the check below is the
+    one that is trusted rather than the bind itself.
+    """
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):      # Windows only
+        try:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        except OSError:
+            pass
+    try:
+        s.bind(("0.0.0.0", port))
+        return True
+    except OSError:
+        return False
+    finally:
+        s.close()
+
+
+def pick_ports(want: int, tries: int = 20) -> "int | None":
+    """First page port at or above `want` where BOTH it and it+1 are free.
+
+    Steps by two, so the page/telemetry pair always stays aligned and a fallen
+    -forward kiosk can never land its telemetry port on somebody else's page.
+    Returns None if nothing in range is free — the caller says so in English
+    rather than dying in a bind.
+    """
+    for i in range(tries):
+        p = want + i * 2
+        if port_free(p) and port_free(p + 1):
+            return p
+    return None
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -270,24 +477,29 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/bus":
             return self._sse()
         if path == "/state":
+            # The retained state, unchanged: {"tv": {...}} — the phone and
+            # anything else reading this keeps reading state["tv"].
+            #
+            # `_server` is what only this process knows, added alongside rather
+            # than inside, and underscored so it can never collide with a
+            # retained message type. It saves the phone a second request when
+            # it draws the playlist: what is on disk, and what it is not
+            # allowed to start on a visitor's behalf.
             with _retained_lock:
-                return self._send(200, json.dumps(_retained).encode())
+                out = dict(_retained)
+            out["_server"] = {
+                "films": films_on_disk(),
+                "operatorOnlyFilms": sorted(OPERATOR_ONLY_FILMS),
+                "refused": _counts["refused"],
+                "subscribers": len(_subscribers),
+            }
+            return self._send(200, json.dumps(out).encode())
         if path == "/events":
             return self._send(200, json.dumps(read_events()).encode())
         if path == "/films":
-            # Which films actually exist on disk right now. Both screens ask
-            # this instead of probing each file, so a film that has not been
-            # rendered yet costs one honest answer rather than six 404s in the
-            # console — and so the TV never points a <video> at a missing file.
-            media = os.path.join(HERE, "media")
-            out = {}
-            try:
-                for name in os.listdir(media):
-                    if name.endswith(".mp4"):
-                        out[name[:-4]] = os.path.getsize(os.path.join(media, name))
-            except OSError:
-                pass
-            return self._send(200, json.dumps(out).encode())
+            # What is on disk, so the TV never points a <video> at a missing
+            # file and the tablet never promises a film that is still rendering.
+            return self._send(200, json.dumps(films_on_disk()).encode())
         if path == "/health":
             # `ip` is what the launcher page shows you to type into a Fire Stick.
             return self._send(200, json.dumps({
@@ -297,6 +509,7 @@ class Handler(SimpleHTTPRequestHandler):
                 "subscribers": len(_subscribers),
                 "events": _counts["events"],
                 "leads": _counts["leads"],
+                "refused": _counts["refused"],
                 "telemetryDir": TELEMETRY_DIR,
             }).encode())
 
@@ -348,6 +561,29 @@ class Handler(SimpleHTTPRequestHandler):
             return self._send(400, b'{"ok":false,"error":"bad json"}')
 
         if path == "/bus":
+            why = refuse_reason(data)
+            if why:
+                # Refused BEFORE the relay, so no screen ever sees it. Written
+                # to the day's telemetry too: if a visitor surface ever tries
+                # this, Daniel should be able to read that off the record
+                # rather than take my word for it.
+                _counts["refused"] += 1
+                try:
+                    record({
+                        "t": datetime.now().isoformat(),
+                        "ms": int(time.time() * 1000),
+                        "surface": "server",
+                        "type": "cmd_refused",
+                        "cmd": command_of(data),
+                        "film": film_of(data),
+                        "src": data.get("src") or data.get("origin") or "visitor",
+                        "reason": why,
+                    })
+                except Exception:
+                    pass
+                return self._send(403, json.dumps({
+                    "ok": False, "error": "refused", "reason": why
+                }).encode())
             publish(data)
             return self._send(200, b'{"ok":true}')
 
@@ -381,11 +617,60 @@ class Handler(SimpleHTTPRequestHandler):
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="StreamStage booth kiosk server")
-    ap.add_argument("--port", type=int, default=8080)
+    ap.add_argument("--port", type=int, default=DEFAULT_PORT,
+                    help="page port. Telemetry ALWAYS listens on this + 1. "
+                         "Default %d." % DEFAULT_PORT)
     args = ap.parse_args()
 
     os.makedirs(TELEMETRY_DIR, exist_ok=True)
     ip = lan_ip()
+
+    # ------------------------------------------------------------------
+    # Ports, decided BEFORE anything is printed, so every address on the
+    # banner below is an address that actually answers.
+    # ------------------------------------------------------------------
+    # Which half of the pair was busy, checked before anything is bound, so
+    # the message below can name the real culprit rather than assuming the
+    # page port. Telemetry-only collisions happen and are confusing to read.
+    busy = [p for p in (args.port, args.port + 1) if not port_free(p)]
+
+    port = pick_ports(args.port)
+    if port is None:
+        print(f"""
+{'=' * 66}
+  THE KIOSK COULD NOT START — no free ports.
+
+  It needs TWO ports next to each other (a page port and the telemetry
+  port one above it) and could not find a free pair anywhere between
+  {args.port} and {args.port + 40}. Something on this laptop is using a lot of ports.
+
+  What to do:
+    1. Close any other kiosk or presenter windows and try again.
+    2. Or pick a port yourself:  python3 serve.py --port 9000
+{'=' * 66}
+""")
+        raise SystemExit(1)
+
+    try:
+        httpd = ThreadingHTTPServer(("0.0.0.0", port), Handler)
+        log_srv = ThreadingHTTPServer(("0.0.0.0", port + 1), Handler)
+    except OSError as exc:
+        # port_free() said yes a moment ago, so this is a genuine surprise
+        # (a race, or a permission/firewall refusal). Still no traceback.
+        print(f"""
+{'=' * 66}
+  THE KIOSK COULD NOT START.
+
+  It could not open port {port}: {exc}
+
+  Most likely something grabbed the port in the last second, or Windows
+  Firewall blocked it (say YES to 'Allow Python on private networks').
+  Try again, or pick a port yourself:  python3 serve.py --port 9000
+{'=' * 66}
+""")
+        raise SystemExit(1)
+
+    moved = port != args.port
 
     missing = [
         p["file"] for p in [
@@ -404,12 +689,32 @@ def main() -> None:
 
     line = "=" * 66
     print(f"\n{line}\n  STREAMSTAGE BOOTH KIOSK — Calgary\n{line}")
-    print(f"  TABLET (touch this)   http://localhost:{args.port}/tablet")
-    print(f"  TV     (this laptop)  http://localhost:{args.port}/tv")
+    if moved:
+        # Loud, plain, and above the addresses — because the addresses below
+        # are now different from the ones on the booth sheet.
+        which = " and ".join(str(p) for p in busy) or str(args.port)
+        verb = "ARE" if len(busy) > 1 else "IS"
+        tail = " (the telemetry port, always one above the page)" if busy == [args.port + 1] else ""
+        print(f"""  PORT {which} {verb} ALREADY IN USE{tail}.
+  This kiosk moved to {port} (telemetry {port + 1}) — it needs BOTH halves
+  of a pair, because the pages look for telemetry on page port + 1.
+
+  What is probably already on {which}:
+    - another copy of this kiosk server, in a window you left open
+    - the deck presenter (expo-assets/decks/presenter-server.py). It now
+      defaults to {PRESENTER_DEFAULT_PORT}, so an old copy of it, or an old
+      PRESENTER_PORT={args.port}, is the usual reason.
+
+  THE ADDRESSES BELOW ARE THE REAL ONES. Anything written down for
+  port {args.port} — the booth sheet, the Fire Stick bookmark — is wrong
+  until you close whatever holds {which} and start this again.
+{line}""")
+    print(f"  TABLET (touch this)   http://localhost:{port}/tablet")
+    print(f"  TV     (this laptop)  http://localhost:{port}/tv")
     print(f"\n  TV on a Fire Stick / any device on the same wifi — bookmark:")
-    print(f"      http://{ip}:{args.port}/tv")
-    print(f"  and point the tablet at  http://{ip}:{args.port}/tablet")
-    print(f"\n  Telemetry -> {TELEMETRY_DIR}/events-YYYY-MM-DD.jsonl  (port {args.port + 1})")
+    print(f"      http://{ip}:{port}/tv")
+    print(f"  and point the tablet at  http://{ip}:{port}/tablet")
+    print(f"\n  Telemetry -> {TELEMETRY_DIR}/events-YYYY-MM-DD.jsonl  (port {port + 1})")
     print(f"  Leads     -> {TELEMETRY_DIR}/leads-YYYY-MM-DD.jsonl   (typed on the tablet;")
     print(f"               run flush-leads.py after the day, with internet, to send them)")
     if missing:
@@ -420,11 +725,9 @@ def main() -> None:
             print(f"       {m}")
     print(f"{line}\n  Ctrl-C to stop.\n")
 
-    httpd = ThreadingHTTPServer(("0.0.0.0", args.port), Handler)
-    httpd.daemon_threads = True
-
     # ------------------------------------------------------------------
-    # A SECOND listener, one port up, for telemetry only.
+    # Both listeners were bound above, before the banner. The SECOND one is
+    # one port up and carries telemetry only.
     #
     # A browser allows ~6 connections per HOST. The TV holds one permanent
     # event stream plus a live connection per film, which is the entire budget
@@ -432,8 +735,11 @@ def main() -> None:
     # played, 15 events in the page, 0 on disk. Moving telemetry one port up
     # makes it a different origin with its own connection pool, so the day's
     # record can never be starved by the films.
+    #
+    # This is why pick_ports() steps by TWO: the pages compute the telemetry
+    # origin as location.port + 1 (kiosk.js), so page+1 must always be ours.
     # ------------------------------------------------------------------
-    log_srv = ThreadingHTTPServer(("0.0.0.0", args.port + 1), Handler)
+    httpd.daemon_threads = True
     log_srv.daemon_threads = True
     threading.Thread(target=log_srv.serve_forever, daemon=True).start()
     try:

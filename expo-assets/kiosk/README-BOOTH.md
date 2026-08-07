@@ -25,6 +25,37 @@ That's the whole command. It prints the three addresses you need. Then open:
 | **TV** | `http://localhost:8080/tv` | The big screen. Click once, press **F**, walk away. |
 | Launcher | `http://localhost:8080/` | Setup notes + the Fire Stick address. Open it once. |
 
+**Read the addresses off the window, not off this page.** They are almost always the ones
+above, but if something else on the laptop already holds 8080 the kiosk moves itself up and
+prints a loud block saying so. The window is always right; a printout can be stale.
+
+### Running the deck presenter at the same time
+
+You can. They no longer fight over a port:
+
+| Server | Ports | Start it with |
+|---|---|---|
+| **Booth kiosk** (this) | **8080** pages · **8081** telemetry | `python3 expo-assets/kiosk/serve.py` |
+| **Deck presenter** (phone remote) | **8090** | `cd expo-assets/decks && python3 presenter-server.py` |
+
+The kiosk needs **two ports next to each other** — the pages fetch telemetry from *page port
++ 1*, deliberately a different origin so telemetry can't be starved by the films (see
+"Measured, not assumed"). So 8080 **and** 8081 are the kiosk's; never point anything else at
+either. The presenter used to default to 8080 as well, which is why it moved to 8090.
+
+If a port is taken anyway, neither server dies with a stack trace: each says in plain English
+what is probably holding the port, moves up to the next free one (the kiosk moves the *pair*,
+so telemetry stays page + 1; the presenter refuses to land on 8080 or 8081), and prints the
+real addresses. Two things to know when that happens:
+
+- **The addresses on the window are the real ones.** The Fire Stick bookmark and anything
+  printed for `:8080` are wrong until you free 8080 and start the kiosk again.
+- The usual cause is **a window you left open** — an older kiosk or presenter. Close it,
+  restart, and you are back on 8080.
+
+To force a port yourself: `python3 serve.py --port 9000` (telemetry then goes to 9001), or
+`PRESENTER_PORT=9100 python3 presenter-server.py` for the deck.
+
 On the TV window: **click anywhere once** (this is what lets it play sound — browsers block audio
 until a real click), then press **F** for fullscreen. After that, leave it alone.
 

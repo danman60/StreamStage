@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      THE LAUNCHER LABEL, and it must not say "Presenter".
+
+      This app replaces ~/projects/PhonePresenter (whose label was "PHONEPRESENTER") and now does
+      two jobs: driving the decks AND operating the booth TV. A name that claims only one of them
+      is a name that reads wrong for half of what Daniel uses it for, on the one screen where he
+      is looking for it in a hurry.
+    -->
+    <string name="app_name">StreamStage Toolkit</string>
+</resources>

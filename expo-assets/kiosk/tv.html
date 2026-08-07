@@ -506,6 +506,65 @@
   var timer = null, raf = null, endTimer = null;
   var audioReady = false;
 
+  /* ------------------------------------------------------------------------
+     WHAT THIS SCREEN CAN PLAY.
+
+     The six products, plus StreamStage's OWN recital-filming film. That
+     seventh one is not a product and never gets a tablet tile — it is an
+     attract card here, and now also a film the OPERATOR'S PHONE can start
+     outright. Daniel was explicit: only the phone starts it. A visitor tapping
+     StreamStage's own sales film on the booth tablet is a pitch aimed at the
+     wrong person.
+
+     Enforced twice, deliberately:
+       serve.py refuses a non-operator command for it on the wire, and
+       the bus handler below refuses it again — because the tablet and the TV
+       ALSO talk over BroadcastChannel when they are two windows on one laptop,
+       and that path never touches serve.py at all. A check in only one of the
+       two places is not a check.
+     --------------------------------------------------------------------- */
+  var SVC_FILM = 'streamstage-services';
+
+  var SVC_PRODUCT = {
+    id:      SVC_FILM,
+    name:    'StreamStage',
+    tagline: 'Multi-camera recital video, livestreaming and photography — and you keep 100% of the revenue.',
+    accent:  '#4EC5D4',
+    film:    ['media/' + SVC_FILM + '.mp4'],
+    url:     'https://streamstage.live',
+    // There is no qr/tv/streamstage-services.svg and there should not be: the
+    // recital code already exists and is the same destination.
+    qr:      'recital',
+    qrCap:   'Scan for the details',
+    operatorOnly: true,
+    // This film is a finished, fully-branded StreamStage piece — it carries
+    // its own wordmark and its own lockup exactly where the booth puts its
+    // own. The booth chrome comes off while it is the picture. See
+    // boothChrome(); the attract card has always done the same thing.
+    ownChrome: true,
+    // preload="none", fetched off the port+1 origin. A SEVENTH warm video on
+    // the page origin is the exact thing that measured nine seconds of black
+    // and aborted all six product film loads — see the note further down.
+    cold:    true
+  };
+
+  /* Everything playable, product order first. This is what the phone's
+     playlist is built from and what a play command is resolved against. */
+  var PLAYABLE = CONFIG.products.concat([SVC_PRODUCT]);
+
+  function filmById(id) {
+    for (var i = 0; i < PLAYABLE.length; i++) if (PLAYABLE[i].id === id) return PLAYABLE[i];
+    return null;
+  }
+
+  // The services film borrows the recital QR; everything else is qr/tv/<id>.svg
+  function qrFor(p) { return 'qr/tv/' + (p.qr || p.id) + '.svg'; }
+
+  // The tablet sends -1/1; the phone sends "l"/"r". Both mean the same thing.
+  function dirOf(d) {
+    return (d === -1 || d === '-1' || d === 'l' || d === 'left') ? -1 : 1;
+  }
+
   /* per-play accounting */
   var watched   = 0;           // REAL seconds of picture watched, not wall clock
   var lastTime  = 0;
@@ -539,11 +598,11 @@
   var filmsReady = filmsRaw.then(function (have) {
     if (!have) return null;
     var map = {};
-    CONFIG.products.forEach(function (p) { map[p.id] = !!have[p.id]; });
+    PLAYABLE.forEach(function (p) { map[p.id] = !!have[p.id]; });
     return map;
   });
 
-  CONFIG.products.forEach(function (p) {
+  PLAYABLE.forEach(function (p) {
     var layer = document.createElement('div');
     layer.className = 'layer';
     layer.setAttribute('data-product', p.id);
@@ -551,7 +610,10 @@
     var v = document.createElement('video');
     v.playsInline = true;
     v.muted = true;                 // required to preload/decode without a gesture
-    v.preload = 'auto';
+    // 'auto' for the six warm product layers — that IS the instant start.
+    // 'none' for the cold services layer: it must not hold a socket, and it
+    // must not be a seventh warm video on this origin.
+    v.preload = p.cold ? 'none' : 'auto';
     v.controls = false;
     v.setAttribute('disablepictureinpicture', '');
 
@@ -569,14 +631,22 @@
     // picks it up with no code change.
     filmsReady.then(function (have) {
       if (have && have[p.id] === false) { layer.setAttribute('data-broken', '1'); return; }
-      v.poster = 'media/posters/' + p.id + '.jpg';
-      v.src = tries.shift();
+      // No poster for the cold layer — there is no media/posters entry for it,
+      // and a poster would be a second request for a layer nobody has asked for.
+      if (!p.cold) v.poster = 'media/posters/' + p.id + '.jpg';
+      // The cold layer is fetched from the port+1 origin, which has its own
+      // connection pool, for the same reason the attract card's copy is.
+      v.src = p.cold ? altMedia(tries.shift()) : tries.shift();
     });
 
     // Decode frame 0 so the first painted frame is instant, then sit still.
     v.addEventListener('loadeddata', function once() {
       v.removeEventListener('loadeddata', once);
       try { v.currentTime = 0; } catch (e) {}
+      // The cold layer is not part of the warm count — it loads when it is
+      // asked for, so counting it would make "films ready: 7/6" appear on the
+      // setup screen and mean nothing.
+      if (p.cold) return;
       warm++;
       var w = document.getElementById('warm');
       if (w) w.textContent = 'films ready: ' + warm + '/' + CONFIG.products.length;
@@ -584,16 +654,20 @@
 
     layer.appendChild(v);
 
-    var badge = document.createElement('div');
-    badge.className = 'badge';
-    badge.innerHTML = '<i></i><b>' + p.name + '</b>';
-    layer.appendChild(badge);
+    // A film that carries its own branding does not get the booth's badge on
+    // top of it — see boothChrome().
+    if (!p.ownChrome) {
+      var badge = document.createElement('div');
+      badge.className = 'badge';
+      badge.innerHTML = '<i></i><b>' + p.name + '</b>';
+      layer.appendChild(badge);
+    }
 
     var qr = document.createElement('div');
     qr.className = 'filmqr';
     qr.innerHTML =
-      '<span class="qr-plate"><img src="qr/tv/' + p.id + '.svg" alt="QR code to try ' + p.name + '"></span>' +
-      '<div class="cap">Scan to try it<em>' + shortUrl(p.url) + '</em></div>';
+      '<span class="qr-plate"><img src="' + qrFor(p) + '" alt="QR code to try ' + p.name + '"></span>' +
+      '<div class="cap">' + (p.qrCap || 'Scan to try it') + '<em>' + shortUrl(p.url) + '</em></div>';
     layer.appendChild(qr);
 
     filmWrap.appendChild(layer);
@@ -625,7 +699,7 @@
        Nine seconds of black here, and the instant-start layers cold. Same trick
        telemetry already uses, same reason.
      ===================================================================== */
-  var SVC_FILM = 'streamstage-services';
+  // SVC_FILM is declared at the top of this file, with the catalogue.
   var svcCard  = document.getElementById('svccard');
   var svcVid   = document.getElementById('svcvid');
   var svcOk    = false;
@@ -639,21 +713,33 @@
     svcCard.classList.add('hasfilm');
   });
 
+  /* THE BOOTH'S PERSISTENT CHROME — the wordmark and the community QR — on or
+     off. Off only while StreamStage's own film is the picture, whether that is
+     the attract card playing it or the operator's phone playing it as a film.
+     The film supplies both marks itself; the booth supplying them too printed
+     our own logo on top of itself.
+
+     The community QR's impression clock goes with it: counting seconds while
+     the QR was behind a film would be a number that is simply not true, and
+     this file does not manufacture those. */
+  function boothChrome(on) {
+    document.body.classList.toggle('svcfilm', !on);
+    if (!on) {
+      if (!fbHidden) { fbImp.stop(); fbHidden = true; }   // commits what it really got
+    } else if (fbHidden) {
+      fbHidden = false;
+      fbImp.start();
+    }
+  }
+
   function stopSvc() {
     if (!svcOk) return;
-    document.body.classList.remove('svcfilm');
-    // The community QR is back on screen, so its impression clock starts again.
-    // Counting seconds while it was hidden behind the film would be a number
-    // that is simply not true, and this file does not manufacture those.
-    fbHidden = false;
-    fbImp.start();
+    boothChrome(true);
     try { svcVid.pause(); svcVid.currentTime = 0; svcVid.muted = true; } catch (e) {}
   }
 
   function startSvc() {
-    document.body.classList.add('svcfilm');
-    fbImp.stop();                             // commits the seconds it really got
-    fbHidden = true;
+    boothChrome(false);
     try { svcVid.currentTime = 0; } catch (e) {}
     svcVid.muted = !audioReady;
     var go = svcVid.play();
@@ -669,7 +755,7 @@
     Telemetry.log('services_complete', {
       watchedSeconds: isFinite(svcVid.duration) ? Math.round(svcVid.duration * 10) / 10 : null
     });
-    showCard(idx + 1);
+    advance(1);
   });
 
   svcVid.addEventListener('timeupdate', function () {
@@ -708,6 +794,136 @@
     })(performance.now());
   }
 
+  /* ========================================================================
+     OPERATOR PLAYBACK CONTROL — driven from the phone, over the same bus the
+     tablet has always used. Nothing here is reachable from the visitor tablet.
+
+     PAUSE holds the picture where it is. Nothing auto-advances during a film
+     — the bar is driven by timeupdate and the attract timer was cleared when
+     the film started — so a pause is genuinely still, and a resume picks up on
+     the same frame.
+
+     There is one exception to "leave it exactly where it was": a film left
+     paused for PAUSE_DEADMAN_MS goes back to the attract loop. A booth TV
+     frozen on one frame because somebody got pulled into a conversation is
+     worse than losing his place, and the attract loop is the one thing on this
+     screen that has to survive everything.
+     ===================================================================== */
+  var paused   = false;
+  var pausedAt = 0;
+  var PAUSE_DEADMAN_MS = 5 * 60 * 1000;
+
+  function currentVideo() {
+    return (current && layers[current.id]) ? layers[current.id].video : null;
+  }
+
+  function pauseFilm() {
+    var v = currentVideo();
+    if (state !== 'playing' || !v || v.paused) return;
+    try { v.pause(); } catch (e) {}
+    paused = true;
+    pausedAt = Date.now();
+    Telemetry.log('film_pause', {
+      product: current.id,
+      atSecond: Math.round((v.currentTime || 0) * 10) / 10
+    });
+    push();
+  }
+
+  function resumeFilm() {
+    var v = currentVideo();
+    if (state !== 'playing' || !v || !paused) return;
+    paused = false;
+    pausedAt = 0;
+    v.muted = !audioReady;
+    var go = v.play();
+    if (go && go.catch) go.catch(function () {
+      v.muted = true;                          // sound refused: muted beats nothing
+      v.play().catch(function () {});
+    });
+    Telemetry.log('film_resume', {
+      product: current.id,
+      atSecond: Math.round((v.currentTime || 0) * 10) / 10
+    });
+    push();
+  }
+
+  setInterval(function () {
+    if (!paused || !pausedAt) return;
+    if (Date.now() - pausedAt < PAUSE_DEADMAN_MS) return;
+    Telemetry.log('film_pause_expired', { product: current ? current.id : null });
+    abandon();
+    toAttract();
+  }, 5000);
+
+  /* ========================================================================
+     THE ATTRACT ORDER — what the operator drags into place on the phone.
+
+     BUS-CONTRACT.md §2.4: an ordered list of film ids. Named cards come first,
+     in that order; every other card keeps its existing relative order behind
+     them. Unknown ids are ignored — the phone may know about a film this
+     laptop has not been given yet. It does NOT start playback: a cut to a film
+     is always an explicit play, never a side effect of a drag.
+
+     Applied at the next card BOUNDARY, not on arrival. Reordering the array
+     under a card that is currently on screen would either yank it mid-fade or
+     leave idx pointing at a different card than the one the viewer is looking
+     at. So the new order is parked, and the next advance picks it up — which
+     is at most eleven seconds away.
+     ===================================================================== */
+  var pendingOrder = null;
+
+  function cardKey(c) {
+    if (c === svcCard) return SVC_FILM;
+    return c.getAttribute('data-product') || null;
+  }
+
+  function setOrder(order) {
+    var want = [];
+    (order || []).forEach(function (id) {
+      if (typeof id === 'string' && want.indexOf(id) === -1) want.push(id);
+    });
+    pendingOrder = want;
+    Telemetry.log('order_set', { films: want.join(' ') || null, count: want.length });
+    push();
+  }
+
+  /* Rebuild cards[] and keep idx pointing at the SAME card it pointed at. */
+  function applyOrder() {
+    var want = pendingOrder;
+    pendingOrder = null;
+    if (!want) return;
+
+    var here = (idx >= 0 && idx < cards.length) ? cards[idx] : null;
+    var byKey = {};
+    cards.forEach(function (c) { var k = cardKey(c); if (k) byKey[k] = c; });
+
+    var head = [];
+    want.forEach(function (id) {
+      var c = byKey[id];
+      if (c && head.indexOf(c) === -1) head.push(c);   // unknown id: ignored
+    });
+    var tail = cards.filter(function (c) { return head.indexOf(c) === -1; });
+
+    cards = head.concat(tail);
+    idx = here ? cards.indexOf(here) : -1;
+  }
+
+  /* The order the loop is ACTUALLY running, films only — echoed on the state
+     message so the phone can show drift instead of trusting its own list. */
+  function attractOrder() {
+    var out = [];
+    cards.forEach(function (c) { var k = cardKey(c); if (k) out.push(k); });
+    return out;
+  }
+
+  /* Every advance goes through here, so a parked order can never be applied
+     underneath a card that is on screen. */
+  function advance(step) {
+    applyOrder();
+    showCard(idx + step);
+  }
+
   /* -------------------------------------------------------------- attract */
   function showCard(n) {
     clearTimers();
@@ -739,18 +955,21 @@
       // is the one thing on this screen that has to survive everything.
       startSvc();
       var known = (svcVid.duration && isFinite(svcVid.duration)) ? svcVid.duration : 240;
-      timer = setTimeout(function () { showCard(idx + 1); }, known * 1000 + 10000);
+      timer = setTimeout(function () { advance(1); }, known * 1000 + 10000);
       return;
     }
 
     runBar(hold);
-    timer = setTimeout(function () { showCard(idx + 1); }, hold);
+    timer = setTimeout(function () { advance(1); }, hold);
   }
 
   function toAttract() {
     clearTimers();
     stopProdImp();
     state = 'attract';
+    paused = false;
+    pausedAt = 0;
+    boothChrome(true);          // whatever was up, the booth owns the screen again
     document.body.classList.remove('playing', 'dir-l', 'dir-r');
     endWrap.classList.remove('on', 'vis');
 
@@ -764,6 +983,7 @@
     filmWrap.classList.remove('on');
 
     current = null;
+    applyOrder();
     showCard(idx < 0 ? 0 : idx + 1);
     push();
   }
@@ -776,7 +996,7 @@
     clearTimers();
     stopProdImp();
     stopSvc();                   // a tap always beats the attract loop's own film
-    dir = (dir === -1) ? -1 : 1;
+    dir = dirOf(dir);
 
     var prev = current;
     var L = layers[product.id];
@@ -785,6 +1005,8 @@
     tapAt = performance.now();
     current  = product;
     state    = 'playing';
+    paused   = false;
+    pausedAt = 0;
     reported = false;
     watched  = 0;
     lastTime = 0;
@@ -797,6 +1019,10 @@
     document.body.setAttribute('data-product', product.id);
     filmWrap.classList.add('on');
     bar.style.width = '0%';
+
+    // A film that carries its own StreamStage branding takes the booth chrome
+    // off for its duration; every product film keeps it.
+    boothChrome(!product.ownChrome);
 
     // Park the incoming layer on the side it will arrive from, WITHOUT a
     // transition, then flip the transition on for the actual slide.
@@ -818,6 +1044,15 @@
     L.el.style.transform = '';
     L.el.classList.add('slide', 'active');
 
+    if (product.ownChrome) {
+      // Same as this film's attract-card rendering: its gated QR is up from
+      // the first frame, not a third of the way in. It is the only code on
+      // screen once the booth chrome is off.
+      L.qr.classList.add('show');
+      prodImp = new QrImpression(product.id, 'tv');
+      prodImp.start();
+    }
+
     if (prev && prev.id !== product.id && layers[prev.id]) {
       var O = layers[prev.id];
       O.el.classList.add('slide');
@@ -831,8 +1066,11 @@
     push();
   }
 
-  /* --------------------------------------------- per-video event wiring */
-  CONFIG.products.forEach(function (p) {
+  /* --------------------------------------------- per-video event wiring
+     Every playable film, not just the six products: the StreamStage film gets
+     the same progress bar, the same quartile marks and the same end card when
+     the operator plays it. */
+  PLAYABLE.forEach(function (p) {
     var L = layers[p.id];
     var v = L.video;
 
@@ -924,13 +1162,20 @@
     clearTimers();
     stopProdImp();
     state = 'end';
+    paused = false;
+    pausedAt = 0;
+    // The film is over, so whatever it was carrying, the booth's wordmark and
+    // community QR come back for the end card.
+    boothChrome(true);
     document.body.classList.remove('playing', 'dir-l', 'dir-r');
     document.body.setAttribute('data-product', product.id);
 
     document.getElementById('endname').textContent = product.name;
     document.getElementById('endtl').textContent   = product.tagline;
     document.getElementById('endaddr').textContent = shortUrl(product.url);
-    document.getElementById('endqr').src = 'qr/tv/' + product.id + '.svg';
+    // qrFor(), not the id: the StreamStage film has no qr/tv/<id>.svg of its
+    // own and borrows the recital code, which is the same destination.
+    document.getElementById('endqr').src = qrFor(product);
     document.getElementById('endqr').alt = 'QR code to try ' + product.name;
 
     endWrap.classList.add('on');
@@ -946,6 +1191,12 @@
   }
 
   /* ------------------------------------------------------------------ bus */
+  /* The ONE message this screen publishes, and the only thing serve.py
+     retains. BUS-CONTRACT.md §3: `paused` is the new field, `order` is the
+     optional echo of the attract order actually running. Everything else is
+     exactly as it was — the phone and the tablet both read `state`, `product`,
+     `pos`, `dur` and `at`, and `at` moving every second is how the phone tells
+     a dead screen from a quiet one. */
   function push() {
     var v = current ? layers[current.id].video : null;
     Bus.send({
@@ -956,21 +1207,68 @@
       dur: (v && isFinite(v.duration)) ? v.duration : 0,
       muted: v ? v.muted : true,
       warm: warm,
+      paused: paused,
+      order: attractOrder(),
       at: Date.now()
     });
   }
 
+  /* ------------------------------------------------------------------------
+     COMMANDS OFF THE BUS. BUS-CONTRACT.md §1 and §2.
+
+     `play` carries a product id and is what the tablet has always sent.
+     `playfilm` carries a media basename and is the phone's path to a film that
+     is not a product tile — which is exactly and only the StreamStage film.
+     Both resolve here; the difference that matters is not the verb, it is who
+     sent it.
+
+     WHO SENT IT. serve.py refuses a non-operator command for an operator-only
+     film on the wire, and this check refuses it again. That is not belt and
+     braces for its own sake: Bus has THREE transports (kiosk.js), and when the
+     tablet and the TV are two windows on ONE laptop they talk over
+     BroadcastChannel and localStorage, neither of which goes near serve.py. A
+     check in only one of the two places would hold on a Fire Stick and fall
+     over on the laptop.
+     --------------------------------------------------------------------- */
+  function cmdOf(msg) {
+    if (msg.type === 'cmd') return String(msg.cmd || '');
+    return msg.type;
+  }
+
+  function fromOperator(msg) {
+    var s = String(msg.src || msg.origin || '').toLowerCase();
+    return s === 'phone' || s === 'operator';
+  }
+
   Bus.on(function (msg) {
-    if (!msg) return;
-    if (msg.type === 'play') {
-      var p = productById(msg.product);
+    if (!msg || msg.type === 'tv') return;
+    var cmd = cmdOf(msg);
+
+    if (cmd === 'play' || cmd === 'playfilm') {
+      var p = filmById(msg.film || msg.product);
       if (!p) return;
+      if (p.operatorOnly && !fromOperator(msg)) {
+        // Never silently: if a visitor surface ever asks for this, Daniel
+        // should be able to read it off the day's record.
+        Telemetry.log('cmd_refused', { film: p.id, cmd: cmd, src: msg.src || msg.origin || null });
+        return;
+      }
       abandon();                 // a tap during a film abandons the old one
       play(p, msg.dir);
-    } else if (msg.type === 'stop') {
+    } else if (cmd === 'pause') {
+      pauseFilm();
+    } else if (cmd === 'resume') {
+      resumeFilm();
+    } else if (cmd === 'stop') {
       abandon();
       toAttract();
-    } else if (msg.type === 'ping') {
+    } else if (cmd === 'playlist') {
+      if (!fromOperator(msg)) {
+        Telemetry.log('cmd_refused', { cmd: cmd, src: msg.src || msg.origin || null });
+        return;
+      }
+      setOrder(msg.order);
+    } else if (cmd === 'ping') {
       push();
     }
   });
@@ -1005,9 +1303,9 @@
     } else if (k === 'escape' && state !== 'attract') {
       abandon(); toAttract();
     } else if (state === 'attract' && e.key === 'ArrowRight') {
-      showCard(idx + 1);
+      advance(1);
     } else if (state === 'attract' && e.key === 'ArrowLeft') {
-      showCard(idx - 1);
+      advance(-1);
     }
   });
 

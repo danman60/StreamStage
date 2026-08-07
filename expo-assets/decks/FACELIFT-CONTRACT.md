@@ -55,7 +55,7 @@ Poll is already 400ms via `/state`; nothing new to wire up.
 
 ---
 
-## Endpoints (server side, all on the presenter port, default 8080)
+## Endpoints (server side, all on the presenter port, default 8090)
 
 | Method | Path | Purpose |
 |---|---|---|

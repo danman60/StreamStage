@@ -27,34 +27,41 @@ $ANDROID_HOME/build-tools/35.0.0/aapt dump permissions app/build/outputs/apk/deb
 package: com.streamstage.boothloop
 uses-permission: name='android.permission.WAKE_LOCK'
 uses-permission: name='android.permission.RECEIVE_BOOT_COMPLETED'
+uses-permission: name='android.permission.READ_EXTERNAL_STORAGE' maxSdkVersion='32'
+uses-permission: name='android.permission.READ_MEDIA_VIDEO'
 ```
 
-That is the whole list. `media3-common` tries to add `ACCESS_NETWORK_STATE` via manifest merge;
-it is explicitly stripped with `tools:node="remove"` so the audit stays clean. There is no
-Supabase, no OkHttp, no HTTP data source, no analytics in the dependency graph.
+That is the whole list. The two storage entries are **read-only access to a folder we created
+ourselves** (`/sdcard/Movies/StreamStageBooth`), forced by Fire OS 8 blocking app-private
+storage — they grant no network capability whatsoever.
+
+`media3-common` tries to add `ACCESS_NETWORK_STATE` via manifest merge; it is explicitly
+stripped with `tools:node="remove"` so the audit stays clean. There is no Supabase, no OkHttp,
+no HTTP data source, no analytics in the dependency graph.
 
 **Do not add `INTERNET` to `AndroidManifest.xml`.** It is the single line holding the guarantee up.
 
 ---
 
-## Which Fire Stick this assumes
+## The booth device
 
-**Daniel has never specified the generation, and this was not verified against hardware.** What
-the app assumes, and where a different stick could differ:
+Everything below was run on **the actual booth stick**, not a guess:
 
-| Assumed | Why | If yours differs |
-|---|---|---|
-| Any Fire Stick, 2nd gen or newer | `minSdk 22` covers Fire OS 5 (Android 5.1) and everything after: Fire OS 6 (API 25), 7 (API 28), 8 (API 30) | A 1st-gen stick (Fire OS 3, API 17) will **refuse to install**. |
-| H.264 + AAC video | Exactly what the seven films are (verified 1920×1080 h264 / AAC 48 kHz stereo). Every Fire Stick ever made decodes this in hardware. | Nothing to change — this is the safest possible codec choice. |
-| ≥ 400 MB free storage | 5.2 MB app + ~350 MB films | See storage note below. |
-| 1080p output | Films are true 1920×1080 | A 4K stick upscales; a 720p stick (2nd gen) downscales. Both fine. |
+| | |
+|---|---|
+| Device | **Fire TV Stick 4K Max, 2nd gen** (`ro.product.model=AFTKRT`) |
+| OS | Fire OS 8 / Android 11, **API 30** |
+| adb | `192.168.0.199:5555` |
+| Free space | 11 GB (needs ~360 MB) |
 
-Nothing in the app uses a modern-only API. The one deprecated call (`SCREEN_BRIGHT_WAKE_LOCK`)
-is deliberate — it is what actually holds an old Fire OS awake.
+`minSdk 22` covers Fire OS 5 (Android 5.1) upward, so this APK also installs on older sticks —
+but only the 4K Max 2nd gen has been tested. A 1st-gen stick (Fire OS 3, API 17) will refuse to
+install.
 
-**Storage.** A Fire Stick ships with 8 GB, of which roughly **5 GB is usable** after Fire OS. The
-reel needs **~350 MB of films plus a 5.2 MB app ≈ 360 MB**, which fits comfortably. Check before
-you push:
+The films are 1920×1080 H.264 + AAC 48 kHz stereo — hardware-decoded by every Fire Stick ever
+made, and the safest possible codec choice.
+
+**Storage.** The app is 5.2 MB and the films ~350 MB. Check headroom before pushing:
 
 ```bash
 adb shell df -h /data
@@ -121,25 +128,44 @@ adb -s 192.168.1.42:5555 install -r app/build/outputs/apk/debug/app-debug.apk
 
 ### 5. Push the films
 
+> **Fire OS 8 does NOT allow adb to write app-private external storage.** An earlier version of
+> this project pushed the films to
+> `/sdcard/Android/data/com.streamstage.boothloop/files/media` on the assumption that adb can
+> always write there. **That assumption was wrong**, and it was caught only on real hardware:
+>
+> ```
+> $ adb shell ls /sdcard/Android/data/
+> ls: /sdcard/Android/data/: Permission denied
+> ```
+>
+> Amazon locks that tree down harder than stock Android 11. `/sdcard/Movies/` and
+> `/sdcard/Download/` are freely adb-writable on the same device, so **the films live in
+> `/sdcard/Movies/StreamStageBooth/`** and the app reads them with `READ_EXTERNAL_STORAGE`.
+
 The films are **not in this repo and never will be** (~350 MB). They live in
 `StreamStage/expo-assets/kiosk/media/`, which is itself gitignored. This repo's `.gitignore`
 blocks `*.mp4` and `media/` too.
 
 ```bash
-./tools/push-media.sh 192.168.1.42:5555
+./tools/push-media.sh 192.168.0.199:5555
 ```
 
-That pushes to `/sdcard/Android/data/com.streamstage.boothloop/files/media/` — app-scoped
-external storage, which `adb push` can write on every Android version **with no storage
-permission and no scoped-storage dance**. That is why this path was chosen over `/sdcard/Movies`.
+The script pushes all seven films **and grants the storage read permission** for you.
 
 Manual equivalent:
 
 ```bash
-DEST=/sdcard/Android/data/com.streamstage.boothloop/files/media
+DEST=/sdcard/Movies/StreamStageBooth
 adb shell mkdir -p $DEST
 adb push ~/projects/StreamStage/expo-assets/kiosk/media/*.mp4 $DEST/
+
+# Shared storage needs a read permission. This is a booth device we own, so grant it
+# non-interactively rather than accepting a dialog with the remote:
+adb shell pm grant com.streamstage.boothloop android.permission.READ_EXTERNAL_STORAGE
 ```
+
+**If you forget the grant**, the app does not show a black screen — it says
+*"Storage permission not granted"* on the TV and prints the exact `pm grant` command.
 
 Pushing ~350 MB over Wi-Fi to a stick takes a few minutes. Do it at home, not at the booth.
 
@@ -193,7 +219,9 @@ playlist can never silently hide a film someone just pushed.
 | Volume keys | Deliberately **passed through** so staff can set booth level. On most sticks the TV handles these over CEC/IR anyway. |
 | Deliberate exit | **DOWN, DOWN, UP, UP, BACK** on the D-pad within 5 seconds. |
 | HOME | No app can intercept the HOME key. **Set this app as the stick's launcher** and the point becomes moot: HOME returns here instead of leaving. It registers `category.HOME` (the DanTV shape, which is proven on a real stick), so Fire OS offers it as a home app — choose it and tick Always. If you do not, HOME drops to the Fire OS launcher, which is a menu and *not* a black screen; relaunch from the home row. Reversible in Settings > Applications. |
+| Fire OS system keys | A few keys are handled by Fire OS **above** every app and cannot be swallowed, exactly like HOME. Verified on the stick: `KEYCODE_INFO` raises Amazon's `com.amazon.tv.keypolicymanager/.irfallback.IRFallbackDialog` over the loop. INFO is **not a button on the Fire TV remote** — it only reaches the stick via synthetic injection or an unmapped universal/IR remote. Verified that the app returns to the foreground and resumes playing on its own afterwards. |
 | Backgrounding | Releases the player on stop, resumes on return — and restores the film and position it was on. |
+| Missing storage permission | Says *"Storage permission not granted"* on the TV with the exact `pm grant` command — never a black screen. |
 | A corrupt film | Skipped, blacklisted for the session, show continues. One bad push cannot stall the booth. |
 | A stall | A 10-second watchdog nudges, then rebuilds the player if playback stops progressing. |
 | Empty media dir | Shows the `adb push` instructions on screen; the watchdog starts playing the moment films appear, with no relaunch. |
@@ -202,8 +230,27 @@ playlist can never silently hide a film someone just pushed.
 
 ## What was actually verified
 
-All on an **Android TV emulator** (AOSP TV, 1920×1080, API 34), using the **real seven films**
-(md5-checked after push), not stand-ins:
+### On the real Fire TV Stick 4K Max (AFTKRT, Fire OS 8 / API 30, `192.168.0.199:5555`)
+
+| Check | Result |
+|---|---|
+| Installs | `adb install -r` → `Success` |
+| **Plays the films** | All 7 found in `/sdcard/Movies/StreamStageBooth`, playing full-screen on the TV |
+| Storage fallthrough | Log shows app-private dirs empty (blocked), then `Using 7 file(s) from /storage/emulated/0/Movies/StreamStageBooth` |
+| `pm grant` works | `READ_EXTERNAL_STORAGE granted=true` non-interactively |
+| Audio | `usage=USAGE_MEDIA`, `state:started` |
+| **Fire OS sleep timer DEFEATED** | **23 min 17 s** of continuously-held wake lock (`ACQ 20:27:06.477` → `REL 20:50:23.044`, from `dumpsys power`), display `state=ON` and picture changing throughout. The stick's own timers are `screen_off_timeout=5 min` and `secure sleep_timeout=20 min` — **both outrun.** |
+| Wake lock is real | `SCREEN_BRIGHT_WAKE_LOCK 'StreamStageBoothLoop::KeepAwake' ACQUIRE_CAUSES_WAKEUP (uid=10248)` present in `dumpsys power` for the whole run |
+| Remote key immunity | D-pad, Select, Back, all media keys, Menu → app kept focus every time |
+| Missing-permission screen | Revoked the permission on the stick → TV showed the "Storage permission not granted" screen with the exact `pm grant` command. **Not a black screen.** |
+| Fire OS system key | `KEYCODE_INFO` raises Amazon's `IRFallbackDialog` above the app (uninterceptable, like HOME). App returned to foreground and resumed playing by itself. |
+| No INTERNET | Confirmed on the installed build |
+
+### On an Android TV emulator (AOSP TV, 1920×1080, API 34)
+
+Using the **real seven films** (md5-checked after push), not stand-ins. These are the checks that
+are impractical to run on the stick (airplane mode, frame-accurate transition sampling, corrupt
+media injection):
 
 | Check | Result |
 |---|---|
@@ -228,13 +275,15 @@ All on an **Android TV emulator** (AOSP TV, 1920×1080, API 34), using the **rea
 
 ## Known gaps — read this before trusting it on the floor
 
-### Not verified on a Fire Stick
+### The emulator lied about storage, and it will lie about other things
 
-**No Fire TV hardware was connected to this machine, so nothing here is Fire Stick verified.**
-Everything above was verified on an **Android TV emulator** (AOSP TV, 1920×1080, API 34). Fire OS is a
-fork of Android and is close, but it is not the same — its launcher, sleep timer, HDMI handling
-and background-start policy all differ. **Run the acceptance test on the actual stick before
-Calgary.**
+Build, install, launch, playback and remote handling are now **proven on the real stick**. But the
+single worst bug in this project — the films being pushed to a directory Fire OS forbids — was
+invisible on the emulator and showed up in the first ten seconds on hardware.
+
+Treat every remaining emulator-only row above as provisional. Where Fire OS and stock Android
+differ (storage policy, key handling, the launcher, power management), **the emulator is not
+evidence.**
 
 ### Autostart on boot is UNPROVEN
 
@@ -255,14 +304,20 @@ press it, the app is one click away on the home row.
 
 ### Untested entirely
 
-- **HDMI re-plug.** Cannot be simulated on an emulator. The activity handles the relevant config
-  changes itself and restores position on recreate, but this is reasoned, not measured.
-- **Real power cycle** on Fire TV hardware.
-- **Long-run soak.** Longest continuous verified run is ~7 minutes, not an 8-hour show day. In
-  particular the 20-minute Fire OS sleep timer — the thing the wake lock exists to defeat — has
-  never actually been outrun. Test 2 in the acceptance list is the one that matters most.
-- **Sideloading over adb to a real stick.** The `adb connect` flow above is the documented Fire OS
-  procedure, but it was exercised against an emulator, not a stick on a LAN.
+- **HDMI re-plug.** Still unmeasured — needs someone physically at the TV. The activity handles
+  the relevant config changes itself and restores position on recreate, but this is reasoned, not
+  measured.
+- **Real power cycle** on the stick (mains pulled and restored).
+- **A full show day.** The proven continuous run is 23 min 17 s, not 8 hours. It clears the
+  stick's 20-minute sleep timer, which was the specific unknown, but a Calgary booth day is
+  ~20× longer.
+
+### The soak was fought for, and the stick is shared
+
+Two earlier soak attempts were destroyed by **someone else using the same stick concurrently** —
+Amazon Silk (`com.amazon.cloud9`) was launched over adb from `uid 2000` pointed at
+`http://192.168.0.13:8081`, which killed this app and held the foreground for 15 minutes. If you
+re-run the soak, confirm nothing else is driving `192.168.0.199` or you will measure the browser.
 - **Release build has never been *run*.** `assembleRelease` compiles and passes `lintVital`
   (`app-release-unsigned.apk`, 4.0 MB), but it is unsigned, uninstalled and untested.
   `isMinifyEnabled` is deliberately `false` in release too, so it should behave identically to

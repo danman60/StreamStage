@@ -11,6 +11,11 @@ Open the deck with the `rt` token in the URL. That is the ONLY thing that arms r
 
 **On FIRMAMENT (presenter-server running in `expo-assets/decks/`):**
 
+> Port note: the presenter's **default is 8090** now (8080/8081 belong to the booth kiosk).
+> The `:8080` url below is right only if you started it with `PRESENTER_PORT=8080`, which is
+> what `decks/DART-SETUP.md` tells you to do on stage so the pre-made QRs still scan.
+> Otherwise read `8090`. The server's own startup banner is always the truth.
+
 ```
 http://localhost:8080/talk2-deck.html?rt=a7cb85563ad52b460b26ffe236554b41
 ```

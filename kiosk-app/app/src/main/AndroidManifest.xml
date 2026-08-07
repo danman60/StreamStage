@@ -17,6 +17,21 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!-- Read the films from shared storage (/sdcard/Movies/StreamStageBooth).
+         Required because Fire OS 8 blocks adb from writing app-private external storage, so
+         the films cannot live somewhere permission-free. Verified on the booth stick:
+             adb shell ls /sdcard/Android/data/  ->  Permission denied
+
+         This is a READ permission on a folder we put there ourselves. It grants no network
+         capability of any kind. On the dedicated booth stick it is granted non-interactively:
+             adb shell pm grant com.streamstage.boothloop android.permission.READ_EXTERNAL_STORAGE
+
+         maxSdkVersion 32 because API 33+ replaced it with the per-media-type permission below. -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+
     <!-- androidx.media3:media3-common:1.6.0 declares ACCESS_NETWORK_STATE in its own
          manifest, so the merger silently adds it to ours. It cannot open a socket without
          INTERNET, but a permission we never asked for undermines the audit — anyone reading

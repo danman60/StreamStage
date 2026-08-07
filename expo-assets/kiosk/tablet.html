@@ -984,7 +984,13 @@
     }
 
     Telemetry.log('tap', { product: p.id });
-    Bus.send({ type: 'play', product: p.id, dir: dir });
+    // src:'tablet' is what makes this a VISITOR command on the wire. serve.py
+    // reads it (and tv.html reads it again on the same-laptop transports) to
+    // refuse an operator-only film from this surface. It is stamped here, on
+    // the one send this page makes, so the operator sheet below cannot become
+    // a way around it either — the sheet is on the visitor's tablet, and a
+    // tablet is never the operator. The phone is.
+    Bus.send({ type: 'play', product: p.id, dir: dir, src: 'tablet' });
     showNow(p, dir);
     say(p.name + (hasFilm[p.id] === false ? ' — scan the code' : ' — playing on the big screen'));
 
@@ -1040,7 +1046,7 @@
 
   function backToGrid(quiet) {
     if (nowImp) { nowImp.stop(); nowImp = null; }
-    if (current && !quiet) Bus.send({ type: 'stop' });
+    if (current && !quiet) Bus.send({ type: 'stop', src: 'tablet' });
     current = null;
     now.classList.remove('on', 'ended');
     if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
@@ -1107,6 +1113,14 @@
     // the same person.
     if (msg.state === 'playing' || msg.state === 'end') Visitor.touch();
 
+    // The TV can now be showing a film this tablet has no tile for — the
+    // StreamStage recital film, which only the operator's phone can start.
+    // The visitor surface does not follow it: there is nothing here to show
+    // for it, and leaving the takeover pointed at the last product while the
+    // big screen plays something else would be a lie. Without this the 'end'
+    // branch below also reads .id off a null product.
+    if (msg.product && !productById(msg.product)) return;
+
     if (msg.state === 'playing') {
       var p = productById(msg.product);
       if (p && (!current || current.id !== p.id)) showNow(p, dirTo(p));
@@ -1156,7 +1170,7 @@
     h.className = up ? 'ok' : 'bad';
   });
 
-  Bus.send({ type: 'ping' });
+  Bus.send({ type: 'ping', src: 'tablet' });
 
   /* ==================================================================
      OPERATOR SHEET — Ctrl+Shift+D, or five taps in the top-left corner

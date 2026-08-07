@@ -1,7 +1,9 @@
 package com.streamstage.boothloop
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Color
+import android.os.Build
 import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
@@ -74,6 +76,8 @@ class BoothLoopActivity : Activity() {
 
         const val STATE_ITEM_INDEX = "item_index"
         const val STATE_POSITION_MS = "position_ms"
+
+        const val REQ_STORAGE = 1001
     }
 
     private var player: ExoPlayer? = null
@@ -131,8 +135,52 @@ class BoothLoopActivity : Activity() {
         super.onStart()
         @Suppress("DEPRECATION")
         wakeLock?.takeIf { !it.isHeld }?.acquire()
+
+        // The films live in shared storage on Fire OS 8, so reading them needs a permission.
+        // Ask only if we actually need it — if app-private storage already has the films
+        // (any device that is not a locked-down Fire Stick) we never prompt at all.
+        if (!hasStoragePermission() && !Playlist.anyMediaVisible(this)) {
+            requestStoragePermission()
+        }
+
         startPlayback()
         handler.postDelayed(watchdog, WATCHDOG_INTERVAL_MS)
+    }
+
+    // ---------------------------------------------------------------- permission
+
+    /** The right storage-read permission for this API level. */
+    private fun storagePermission(): String =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            android.Manifest.permission.READ_MEDIA_VIDEO
+        else
+            @Suppress("DEPRECATION") android.Manifest.permission.READ_EXTERNAL_STORAGE
+
+    private fun hasStoragePermission(): Boolean {
+        // Below API 23 permissions are granted at install time.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
+        return checkSelfPermission(storagePermission()) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestStoragePermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
+        Log.i(TAG, "Requesting ${storagePermission()}")
+        runCatching { requestPermissions(arrayOf(storagePermission()), REQ_STORAGE) }
+            .onFailure { Log.w(TAG, "Permission request failed", it) }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQ_STORAGE) {
+            val granted = grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED
+            Log.i(TAG, "Storage permission granted=$granted")
+            // Either way, re-evaluate: granted means the films just became visible.
+            startPlayback()
+        }
     }
 
     override fun onResume() {
@@ -242,18 +290,35 @@ class BoothLoopActivity : Activity() {
         }
     }
 
+    /**
+     * Shown instead of a black screen when there is nothing to play. A black booth TV is the
+     * exact failure this app exists to prevent, so this always says something legible and
+     * actionable — and distinguishes "you forgot the permission" from "you forgot the films",
+     * because those have completely different fixes.
+     */
     private fun showNoMediaMessage() {
         val dirs = Playlist.candidateDirs(this)
-        val target = dirs.firstOrNull()?.absolutePath ?: "(external storage unavailable)"
+        val missingPermission = !hasStoragePermission()
+
         messageView?.text = buildString {
             appendLine("STREAMSTAGE BOOTH LOOP")
             appendLine()
-            appendLine("No video files found.")
-            appendLine()
-            appendLine("Push the films to this device, then relaunch:")
-            appendLine()
-            appendLine("  adb shell mkdir -p $target")
-            appendLine("  adb push *.mp4 $target/")
+            if (missingPermission) {
+                appendLine("Storage permission not granted.")
+                appendLine("The films are on the device but cannot be read.")
+                appendLine()
+                appendLine("Grant it from the laptop, then relaunch:")
+                appendLine()
+                appendLine("  adb shell pm grant $packageName \\")
+                appendLine("      android.permission.${storagePermission().substringAfterLast('.')}")
+            } else {
+                appendLine("No video files found.")
+                appendLine()
+                appendLine("Push the films to this device, then relaunch:")
+                appendLine()
+                appendLine("  adb shell mkdir -p /sdcard/Movies/${Playlist.SHARED_SUBDIR}")
+                appendLine("  adb push *.mp4 /sdcard/Movies/${Playlist.SHARED_SUBDIR}/")
+            }
             appendLine()
             appendLine("Looked in:")
             dirs.forEach { appendLine("  ${it.absolutePath}") }

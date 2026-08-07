@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ================================================================= -->
+    <!-- INTERNET is required — unlike ../kiosk-app, which deliberately has  -->
+    <!-- none. This app's whole job is to talk HTTP to a laptop on the LAN:  -->
+    <!-- the presenter server in PRESENTER mode, the kiosk server in KIOSK   -->
+    <!-- mode. There is no code path anywhere else: every URL is checked     -->
+    <!-- against the connected host in MainActivity.allowed(), and the       -->
+    <!-- dependency graph carries no analytics, crash reporter or SDK that   -->
+    <!-- could phone home. Do not add one.                                   -->
+    <!-- ================================================================= -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- The phone must not sleep in the middle of a talk. FLAG_KEEP_SCREEN_ON is set in code. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- ================================================================= -->
+    <!-- Both carried over from ~/projects/PhonePresenter's manifest, for   -->
+    <!-- VolumeRemoteService and nothing else. That service holds an ACTIVE -->
+    <!-- MediaSession routed to a remote VolumeProvider, which is the only  -->
+    <!-- way Android keeps delivering volume-rocker presses to an app once  -->
+    <!-- the screen is off — Activity.onKeyDown stops firing there.         -->
+    <!--                                                                   -->
+    <!-- It plays no audio and holds no wake lock of its own. It runs ONLY  -->
+    <!-- in PRESENTER mode and is stopped the moment the app switches to    -->
+    <!-- KIOSK, so at the booth the volume buttons are volume buttons.      -->
+    <!-- ================================================================= -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="false"
+        android:theme="@style/Theme.StreamStagePhone"
+        android:networkSecurityConfig="@xml/network_security_config">
+
+        <!-- PORTRAIT-FIRST but not portrait-locked: android:screenOrientation="user" lets Daniel
+             turn the phone if he wants to, and the app opens portrait because that is how a phone
+             is held. Both server pages are responsive.
+
+             android:configChanges — rotating must NOT recreate the Activity. A recreate tears
+             down the WebView, which kills the deck remote's poll loop and the kiosk page's
+             EventSource. Same reasoning as ../tablet-app.
+
+             NO SCREEN PINNING, no lockTaskMode, no startLockTask() anywhere in this source.
+             Daniel rejected pinning on the tablet; it is not here either. -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="user"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|keyboard|navigation|uiMode|density|touchscreen|locale|fontScale"
+            android:windowSoftInputMode="adjustResize"
+            android:resizeableActivity="true"
+            android:theme="@style/Theme.StreamStagePhone">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Lifted from PhonePresenter's manifest verbatim, including the foregroundServiceType,
+             which Android 14+ requires to match the FOREGROUND_SERVICE_MEDIA_PLAYBACK permission
+             above. Not exported: nothing outside this app has any business starting it. -->
+        <service
+            android:name=".VolumeRemoteService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
+    </application>
+
+</manifest>

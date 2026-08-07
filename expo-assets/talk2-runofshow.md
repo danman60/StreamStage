@@ -16,6 +16,8 @@ Rebuilt 2026-07-26 from run-through #2 + the moves directive (prompt-writing / p
 ## Pre-stage
 - [ ] **Start the remote:** double-click `START-REMOTE.bat`, leave the window open, **scan the QR** it prints
 - [ ] Deck open at **`http://localhost:8080/talk2-deck.html`** (served, NOT the file) · fullscreen
+      — that port assumes the stage start command `PRESENTER_PORT=8080` from `decks/DART-SETUP.md`.
+      On the presenter's own default it is **8090**. Read the server window, it prints the address.
 - [ ] Phone on `/remote` — beats + Jump list + Prev/Next. Beats are colour-coded: **amber = must say**, **cyan = near-verbatim**, **grey = stage direction**
 - [ ] ~~Arm routing~~ — **no arming step since 2026-08-03.** Demo routes by the number the text lands on (`+1 587-317-0721`). Run the 8-check pre-flight at `studiosage.ai/demo/operator` instead
 - [ ] Rehearsal text from a **real handset** to `+1 587-317-0721` ≥30 min before — question → got answer. ⚠ No real phone has ever texted this number

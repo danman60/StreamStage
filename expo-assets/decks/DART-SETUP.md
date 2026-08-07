@@ -16,13 +16,32 @@ cellular still reach each other.
 
 | Machine | Tailscale address | Phone URL |
 |---|---|---|
-| DART | `100.90.103.121` | `http://100.90.103.121:8080/remote` |
-| FIRMAMENT | `100.75.112.14` | `http://100.75.112.14:8080/remote` |
+| DART | `100.90.103.121` | `http://100.90.103.121:8090/remote` |
+| FIRMAMENT | `100.75.112.14` | `http://100.75.112.14:8090/remote` |
 
 Those never change when you switch between hotspot, venue wifi, or a hotel. **So the QR is generated
 once and stays valid forever** — no regenerating anything before you go on.
 
-Pre-made and ready: `QR-remote-DART-tailscale.png` · `QR-remote-FIRMAMENT-tailscale.png`.
+Pre-made: `QR-remote-DART-tailscale.png` · `QR-remote-FIRMAMENT-tailscale.png`.
+
+> ### ⚠ Those two QR images still say `:8080` — read this before the talk
+>
+> **The presenter now defaults to port 8090, not 8080.** 8080 and 8081 belong to the booth
+> kiosk (`expo-assets/kiosk/serve.py`), which prints its address on the booth sheet and has it
+> bookmarked on the Fire Stick, so the presenter is the one that moved. The two pre-made PNGs
+> were generated before that and still encode
+> `http://100.90.103.121:8080/remote` / `http://100.75.112.14:8080/remote` (decoded, verified).
+>
+> **The rest of this document therefore starts the server with an explicit
+> `PRESENTER_PORT=8080`**, which is what the QR expects and is safe on stage, because the booth
+> kiosk is not running during a talk. Every `:8080` address below is correct *for that command*.
+>
+> The alternative, if you'd rather have one presenter port everywhere: regenerate the two PNGs
+> at `:8090`, then drop `PRESENTER_PORT` and read `8090` for `8080` throughout this file.
+>
+> **At the booth, never `PRESENTER_PORT=8080`** — the kiosk owns it. If you do it by mistake
+> the presenter will not die: it skips 8080 and 8081, moves to the next free port, and prints
+> a block telling you so. Read the window.
 
 **The one case Tailscale can't cover:** a room with *no internet at all*. Then put the phone on DART's
 hotspot (or DART on the phone's) and type the LAN address the server prints — it always prints every
@@ -68,7 +87,9 @@ if it's unticked the phone silently can't reach the laptop and it looks like Tai
 
 ### 4. Smoke test before you leave the house
 ```
-python presenter-server.py                      :: leave the window open
+set PRESENTER_PORT=8080 && python presenter-server.py    :: leave the window open
+:: 8080 because that is the port the pre-made QRs name (see the warning above).
+:: Without it the presenter comes up on 8090 and the QRs scan to a dead address.
 ```
 - On DART: `http://localhost:8080/talk2-deck.html` — the deck loads, slide 31 plays video.
 - **Open devtools once and confirm ZERO 404s** walking the deck end to end. Verified clean on a cold
@@ -88,6 +109,8 @@ next, down = back. Nothing to rebuild.
 ## Day-of checklist
 - [ ] DART awake, plugged in, **sleep disabled** (a sleeping laptop kills the remote mid-talk)
 - [ ] `tailscale status` shows DART active
+- [ ] Server started with **`PRESENTER_PORT=8080`** — the window's banner must say 8080, not 8090
+      (if it says it "moved to" anything, read that block: something else has the port)
 - [ ] Server window open, deck at `http://localhost:8080/talk2-deck.html`, fullscreen
 - [ ] Phone scanned in and advancing slides — tested over **cellular**, not just wifi
 - [ ] Deck opened with `?rt=<DEMO_RESET_TOKEN>` or audience texts won't route

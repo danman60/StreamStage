@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Black, no action bar. The first frame must be near-black, not a white flash — the deck
+         remote and the kiosk page are both dark. Platform theme only, so the app carries no
+         appcompat/material dependency — same choice as ../tablet-app and ../kiosk-app.
+
+         NOT Fullscreen: this app owns a status strip at the top of its own window and the phone's
+         status bar is useful to a presenter (clock, battery). Immersive is applied selectively in
+         code instead. -->
+    <style name="Theme.StreamStagePhone" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:statusBarColor">#0B0B0F</item>
+        <item name="android:navigationBarColor">#0B0B0F</item>
+    </style>
+</resources>
