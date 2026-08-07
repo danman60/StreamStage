@@ -29,6 +29,7 @@ PRODUCTS = {
     "compsync":     "https://compsync.net",          # UNCONFIRMED — see README-BOOTH.md
     "callboard":    "https://callboard-scheduler.vercel.app",
     "costumecraft": "https://costume-craft.vercel.app",
+    "studiobeat":   "https://www.studiobeat.io",   # confirmed live 2026-08-06
     "reflect":      "https://reflect-vert.vercel.app/demo/login",
 }
 

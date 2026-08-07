@@ -44,42 +44,44 @@
   }
   .lede p{margin-top:.85rem;font-size:1.85rem;color:var(--dim);line-height:1.35;font-weight:500}
 
-  /* -------------------------------------------------------------- tiles */
+  /* -------------------------------------------------------------- tiles
+     PORTRAIT IS THE PRIMARY LAYOUT — the tablet stands upright on the booth
+     counter. Six tiles and the community QR must ALL be visible with zero
+     scrolling: a booth visitor never discovers a tile by scrolling, so a tile
+     below the fold does not exist.
+
+     That is enforced structurally, not by hand-tuned heights: #app is exactly
+     the viewport tall and hides overflow, the grid takes the leftover space
+     with min-height:0, and its six rows are minmax(0,1fr) — so the rows shrink
+     to fit whatever is left instead of pushing the QR off the bottom. Tile
+     internals clip rather than grow. Nothing can escape.                     */
   #grid{
-    flex:1;display:grid;gap:1.5rem;min-height:0;
-    grid-template-columns:repeat(6,1fr);
-    grid-auto-rows:1fr;
+    flex:1;min-height:0;display:grid;gap:1.2rem;
+    grid-template-columns:1fr;
+    grid-template-rows:repeat(6,minmax(0,1fr));
   }
-  /* landscape: 3 up, then 2 centred */
-  .tile{grid-column:span 2}
-  .tile:nth-child(4){grid-column:2/4}
-  .tile:nth-child(5){grid-column:4/6}
 
   .tile{
     position:relative;overflow:hidden;text-align:left;
-    border:1px solid var(--line);border-radius:2rem;
+    border:1px solid var(--line);border-radius:1.8rem;
     background:
-      radial-gradient(120% 100% at 0% 0%, var(--tint), transparent 58%),
+      radial-gradient(120% 140% at 0% 0%, var(--tint), transparent 62%),
       linear-gradient(180deg,rgba(22,30,43,.92),rgba(9,12,18,.96));
     color:var(--ink);font-family:var(--sans);cursor:pointer;
-    padding:1.9rem;
-    /* Grid, not flex: exactly one row is allowed to flex (the text), and it
-       clips. With flex, a long tagline grew its own box and drove the pill
-       out through the bottom of the tile. */
-    display:grid;grid-template-rows:1fr auto;gap:1rem;
+    display:flex;flex-direction:row;align-items:center;gap:1.5rem;
+    padding:1.1rem 1.5rem;
     transition:transform .18s var(--ease-out-back), border-color .25s var(--ease), box-shadow .25s var(--ease);
     touch-action:manipulation;
-    box-shadow:0 1.2rem 3rem -1.6rem rgba(0,0,0,.9);
+    box-shadow:0 1rem 2.4rem -1.4rem rgba(0,0,0,.9);
   }
-  /* the coloured edge that tells five products apart at a glance */
+  /* the coloured edge that tells the products apart at a glance */
   .tile::before{
-    content:"";position:absolute;left:0;right:0;top:0;height:.42rem;
-    background:linear-gradient(90deg,var(--a),var(--b));
+    content:"";position:absolute;left:0;top:0;bottom:0;width:.36rem;
+    background:linear-gradient(180deg,var(--a),var(--b));
   }
-  /* a slow sheen so the grid never looks like a screenshot */
   .tile::after{
     content:"";position:absolute;inset:0;pointer-events:none;
-    background:linear-gradient(105deg,transparent 34%,rgba(255,255,255,.07) 50%,transparent 64%);
+    background:linear-gradient(105deg,transparent 34%,rgba(255,255,255,.06) 50%,transparent 64%);
     transform:translateX(-130%);
     animation:tilesheen 9s var(--ease) infinite;
     animation-delay:var(--d,0s);
@@ -87,36 +89,47 @@
   @keyframes tilesheen{0%,80%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
 
   .tile:active{
-    transform:scale(.955);
+    transform:scale(.975);
     border-color:var(--edge);
-    box-shadow:0 0 0 .35rem var(--tint),
-               0 1.4rem 3.4rem -1.4rem var(--glow);
+    box-shadow:0 0 0 .3rem var(--tint), 0 1.2rem 2.8rem -1.2rem var(--glow);
   }
 
-  /* Landscape: play button parked top-right, text fills, pill sits at the
-     bottom. The text block is the ONLY thing allowed to flex, and its
-     tagline is line-clamped — that is what stops a long line pushing the
-     pill out of the tile. */
-  .tile .txt{min-height:0;overflow:hidden;padding-right:5rem}
-  .tile h2{font-size:3.05rem;line-height:1;letter-spacing:-.03em;font-weight:900}
+  /* ---- the app icon -------------------------------------------------
+     Every product gets the SAME container — a rounded square in its own
+     accent gradient, exactly like an app on a home screen — with a mark
+     drawn in the same stroke language inside it. Consistency lives in the
+     container and the line weight, so the grid reads as one set of six
+     apps rather than a pile of mismatched brand assets.                  */
+  .tile .ic{
+    flex:none;display:grid;place-items:center;
+    width:5.6rem;height:5.6rem;border-radius:28%;
+    background:linear-gradient(135deg,var(--a),var(--b));
+    box-shadow:0 .5rem 1.4rem -.4rem var(--glow), inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .tile .ic svg{
+    width:60%;height:60%;display:block;
+    fill:none;stroke:#080B10;stroke-width:1.9;
+    stroke-linecap:round;stroke-linejoin:round;
+  }
+
+  .tile .txt{flex:1;min-width:0;overflow:hidden}
+  .tile h2{font-size:2.5rem;line-height:1.05;letter-spacing:-.03em;font-weight:900}
   .tile .tl{
-    margin-top:.8rem;font-size:1.5rem;line-height:1.32;color:var(--dim);font-weight:500;
-    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+    margin-top:.35rem;font-size:1.42rem;line-height:1.28;color:var(--dim);font-weight:500;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
   }
-  .tile .go{
-    position:absolute;right:1.9rem;top:2.3rem;
-    display:flex;align-items:center;justify-content:center;
-    width:3.6rem;height:3.6rem;border-radius:50%;
-    background:linear-gradient(120deg,var(--a),var(--b));
-    box-shadow:0 .5rem 1.6rem -.4rem var(--glow);
-  }
-  .tile .go svg{width:1.45rem;height:1.45rem;fill:#06090D;margin-left:.16rem}
   .tile .watch{
-    justify-self:start;align-self:end;white-space:nowrap;
-    font:800 1.1rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+    flex:none;white-space:nowrap;
+    font:800 1.02rem/1 var(--mono);letter-spacing:.11em;text-transform:uppercase;
     color:var(--lite);
-    border:1px solid var(--edge);border-radius:99rem;padding:.7rem 1.2rem;
+    border:1px solid var(--edge);border-radius:99rem;padding:.62rem 1.05rem;
   }
+
+  /* A product whose film has not landed yet is NOT broken and NOT hidden —
+     its QR still works, so the tile simply offers the code instead of a film.
+     The probe re-runs, so the tile lights up on its own the moment
+     sync-media.sh drops the file in. No code change, no restart. */
+  .tile.nofilm .watch{color:var(--faint);border-color:var(--line-hot)}
 
   /* ------------------------------------------------------------- footer */
   footer{flex:none;display:flex;align-items:center;gap:1.8rem}
@@ -234,39 +247,62 @@
     opacity:0;transition:opacity .3s var(--ease),transform .3s var(--ease);pointer-events:none}
   #toast.on{opacity:1;transform:translate(-50%,0)}
 
-  /* ---------------------------------------------------------- portrait */
+  /* ------------------------------------------------- landscape fallback
+     Not the booth's orientation, but it must not break. Six products make a
+     clean 3x2 — no odd centred last row. */
+  @media (orientation:landscape){
+    #grid{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:1.4rem}
+    .tile{flex-direction:column;align-items:flex-start;justify-content:center;gap:.9rem;padding:1.6rem}
+    .tile::before{left:0;right:0;top:0;bottom:auto;width:auto;height:.36rem;
+      background:linear-gradient(90deg,var(--a),var(--b))}
+    .tile .ic{width:5rem;height:5rem}
+    .tile .txt{flex:none;width:100%}
+    .tile h2{font-size:2.5rem}
+    .tile .watch{align-self:flex-start}
+  }
+  /* short landscape (1024x768): buy height back from the lede, never from
+     the product copy */
+  @media (orientation:landscape) and (max-height:820px){
+    #app{padding:1.7rem 2.2rem 1.5rem;gap:1rem}
+    .lede h1{font-size:3.1rem}
+    .lede p{display:none}
+    .tile{padding:1.25rem;gap:.7rem}
+    .tile .ic{width:4.2rem;height:4.2rem}
+    .tile h2{font-size:2.2rem}
+    .tile .tl{font-size:1.32rem;-webkit-line-clamp:2}
+  }
+
+  /* ---------------------------------------------------------- portrait
+     The real booth orientation. The lede shrinks and the paragraph goes
+     entirely — six tiles and the QR outrank a sentence nobody reads. */
   @media (orientation:portrait){
-    #app{padding:3rem 2.6rem}
-    .lede h1{font-size:4.9rem}
-    #grid{grid-template-columns:1fr;gap:1.35rem}
-    .tile,.tile:nth-child(4),.tile:nth-child(5){grid-column:1}
-    /* Portrait turns each tile on its side: play button, then text, then the
-       pill — all real flex children, so nothing can be clipped out of the box. */
-    .tile{display:flex;flex-direction:row;align-items:center;gap:1.8rem;padding:1.7rem 1.9rem}
-    .tile::before{right:auto;bottom:0;width:.42rem;height:auto;
-      background:linear-gradient(180deg,var(--a),var(--b))}
-    .tile .go{position:static;flex:none;width:4.4rem;height:4.4rem}
-    .tile .go svg{width:1.7rem;height:1.7rem}
-    .tile .txt{flex:1;padding-right:0;overflow:hidden}
-    .tile h2{font-size:3.1rem}
-    .tile .tl{font-size:1.55rem;-webkit-line-clamp:2}
-    .tile .watch{flex:none;align-self:center;justify-self:auto}
-    #now .body{flex-direction:column;align-items:stretch;gap:2rem}
+    #app{padding:2.2rem 2.2rem 2rem;gap:1.2rem}
+    .lede h1{font-size:3.6rem}
+    .lede p{display:none}
+    /* Stack, centred. .txt keeps flex:1 in landscape, which in a column would
+       grow and shove the QR to the floor leaving a hole in the middle. */
+    #now .body{flex-direction:column;align-items:stretch;justify-content:center;gap:2.4rem}
+    #now .txt{flex:none}
     #now .scanbox{width:100%;max-width:none;display:flex;align-items:center;gap:2rem;text-align:left}
-    #now .scanbox .qr-plate{width:22rem;flex:none}
+    #now .scanbox .qr-plate{width:27rem;flex:none}
     #now h2{font-size:5.6rem}
     #op .stats{grid-template-columns:repeat(2,1fr)}
   }
-  /* short landscape (1024x768) — keep everything on one screen, no scroll */
-  /* A 1024x768 tablet is SHORT. Buy the tiles their height back by tightening
-     the lede rather than by clipping product copy. */
-  @media (orientation:landscape) and (max-height:820px){
-    #app{padding:1.8rem 2.2rem 1.6rem;gap:1.2rem}
-    .lede h1{font-size:3.4rem}
-    .lede p{display:none}
-    .tile{padding:1.6rem}
-    .tile h2{font-size:2.7rem}
-    .tile .tl{font-size:1.45rem;-webkit-line-clamp:2}
+  /* a SHORT portrait tablet (768x1024) is the tightest case in the building:
+     six rows plus a QR in 1024px. Everything gives a little. */
+  @media (orientation:portrait) and (max-height:1080px){
+    #app{padding:1.8rem 1.9rem 1.6rem;gap:.9rem}
+    .lede h1{font-size:3rem}
+    #grid{gap:.95rem}
+    .tile{padding:.95rem 1.25rem;gap:1.15rem;border-radius:1.5rem}
+    .tile .ic{width:4.8rem;height:4.8rem}
+    .tile h2{font-size:2.15rem}
+    .tile .tl{font-size:1.28rem;-webkit-line-clamp:1}
+    .tile .watch{font-size:.94rem;padding:.55rem .9rem}
+    .fbcard{padding:1rem 1.25rem}
+    .fbcard .qr-plate{width:6.2rem}
+    .fbcard .t{font-size:1.42rem}
+    .fbcard .t em{font-size:1.12rem}
   }
 </style>
 </head>
@@ -288,7 +324,7 @@
 
   <div class="lede">
     <h1>Tap one. <span class="g">Watch it.</span></h1>
-    <p>Five things I built for dance studios &mdash; each one plays on the big screen right here.</p>
+    <p>Six things I built for dance studios &mdash; each one plays on the big screen right here.</p>
   </div>
 
   <div id="grid"><!-- tiles injected from CONFIG.products --></div>
@@ -320,9 +356,9 @@
       <div class="tl" id="nowtl"></div>
       <div class="addr" id="nowaddr"></div>
       <div class="allfive">
-        <span class="qr-plate"><img id="allfiveqr" alt="QR code — get all five films by email"></span>
+        <span class="qr-plate"><img id="allfiveqr" alt="QR code — get all six films by email"></span>
         <span class="t">
-          Want all five?
+          Want all six?
           <em>Scan for the whole set plus the recital checklist, emailed to you.</em>
         </span>
       </div>
@@ -334,7 +370,7 @@
   </div>
 
   <div class="foot">
-    <button class="btn ghost" id="back" type="button">&larr; Back to all five</button>
+    <button class="btn ghost" id="back" type="button">&larr; Back to all six</button>
     <div id="prog"><i id="progi"></i></div>
     <div class="fbmini">
       <span class="qr-plate"><img src="qr/facebook.svg" alt="QR code — Facebook community"></span>
@@ -427,7 +463,56 @@
   setInterval(function () { fbImp.stop(); fbImp.start(); }, 60 * 60 * 1000);
   window.addEventListener('pagehide', function () { fbImp.stop(); if (nowImp) nowImp.stop(); });
 
-  var PLAY_ICON = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+  /* ----------------------------------------------------------------------
+     THE APP ICONS.
+
+     Drawn here as inline SVG rather than pulled from each product's brand
+     folder, and that is deliberate. Real marks exist for only three of the six
+     (StudioSage, CompSync, StudioBeat) and they are wildly different objects —
+     a rendered robot, a colour wordmark, a letter tile. Dropping those into a
+     grid next to three products with nothing would produce exactly the
+     mismatched grid this rework was asked to kill.
+
+     So all six are drawn in one language: single-weight strokes, 24x24, each
+     showing what the product DOES, sitting in an identical accent-gradient
+     rounded square. They stay crisp at any size, need no network, and cannot
+     go missing. Product logos still appear where they belong — inside the
+     films themselves.
+     -------------------------------------------------------------------- */
+  var ICONS = {
+    // a text thread that answers itself
+    studiosage:
+      '<path d="M4 6.6a2.6 2.6 0 0 1 2.6-2.6h10.8A2.6 2.6 0 0 1 20 6.6v6.8a2.6 2.6 0 0 1-2.6 2.6H9.4L5.4 19.4v-3.4H6.6A2.6 2.6 0 0 1 4 13.4z"/>' +
+      '<path d="M12 7.3l.95 2.15L15.1 10.4l-2.15.95L12 13.5l-.95-2.15L8.9 10.4l2.15-.95z"/>',
+    // a trophy: the competition weekend
+    compsync:
+      '<path d="M7.2 4h9.6v3.8a4.8 4.8 0 0 1-9.6 0z"/>' +
+      '<path d="M7.2 5.6H4.6a2.6 2.6 0 0 0 2.6 4.3"/>' +
+      '<path d="M16.8 5.6h2.6a2.6 2.6 0 0 1-2.6 4.3"/>' +
+      '<path d="M12 12.6v3.2"/><path d="M9.6 20h4.8"/><path d="M10.2 15.8h3.6V20h-3.6z"/>',
+    // a calendar slot that has been settled
+    callboard:
+      '<rect x="3.6" y="5.2" width="16.8" height="14.6" rx="2.6"/>' +
+      '<path d="M3.6 9.8h16.8"/><path d="M8.2 3.3v3.6M15.8 3.3v3.6"/>' +
+      '<path d="M9.3 14.6l2 2 3.8-3.8"/>',
+    // a hanger: the costume itself
+    costumecraft:
+      '<path d="M12 7.4a2.15 2.15 0 1 1 2.15-2.15"/><path d="M12 7.4v2"/>' +
+      '<path d="M12 9.4l7.7 5a1.6 1.6 0 0 1-.87 2.94H5.17A1.6 1.6 0 0 1 4.3 14.4z"/>',
+    // a waveform: the beat the studio runs on
+    studiobeat:
+      '<path d="M3 12.4h3.1l2.2-6.6 3.1 12.9 2.35-8.1 1.75 4.2H21"/>',
+    // four rooms on one screen
+    reflect:
+      '<rect x="3.6" y="4.6" width="7" height="6" rx="1.3"/>' +
+      '<rect x="13.4" y="4.6" width="7" height="6" rx="1.3"/>' +
+      '<rect x="3.6" y="13.4" width="7" height="6" rx="1.3"/>' +
+      '<rect x="13.4" y="13.4" width="7" height="6" rx="1.3"/>'
+  };
+
+  function iconFor(id) {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[id] || ICONS.studiobeat) + '</svg>';
+  }
 
   /* ------------------------------------------------------------- tiles */
   CONFIG.products.forEach(function (p, i) {
@@ -438,7 +523,7 @@
     el.style.setProperty('--d', (i * 1.5) + 's');
     el.style.animationDelay = (0.05 + i * 0.07) + 's';
     el.innerHTML =
-      '<span class="go">' + PLAY_ICON + '</span>' +
+      '<span class="ic">' + iconFor(p.id) + '</span>' +
       '<span class="txt">' +
         '<h2>' + p.name + '</h2>' +
         '<span class="tl">' + (p.short || p.tagline) + '</span>' +
@@ -453,6 +538,47 @@
     });
     grid.appendChild(el);
   });
+
+  /* ----------------------------------------------------------------------
+     IS THERE ACTUALLY A FILM?
+
+     StudioBeat's film is still being cut. A tile whose film is missing must
+     not look broken and must not promise something that will not happen — but
+     its QR works perfectly well, so the tile offers the code instead.
+
+     This is a HEAD request per product, re-run on a timer, so the moment
+     sync-media.sh drops media/studiobeat.mp4 in, the tile turns into a normal
+     "tap to watch" tile on its own. No code change, no reload, no restart.
+     -------------------------------------------------------------------- */
+  var hasFilm = {};
+
+  function probeFilms() {
+    if (typeof fetch === 'undefined') return;
+    fetch('/films', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (have) {
+        if (!have) throw 0;
+        CONFIG.products.forEach(function (p) { setFilm(p, !!have[p.id]); });
+      })
+      .catch(function () {
+        // No server to ask (opened as a plain file, or serve.py is down):
+        // assume every film is there rather than crying wolf on all six.
+        CONFIG.products.forEach(function (p) { setFilm(p, true); });
+      });
+  }
+
+  function setFilm(p, ok) {
+    if (hasFilm[p.id] === ok) return;
+    hasFilm[p.id] = ok;
+    var tile = grid.querySelector('.tile[data-product="' + p.id + '"]');
+    if (!tile) return;
+    tile.classList.toggle('nofilm', !ok);
+    var w = tile.querySelector('.watch');
+    if (w) w.textContent = ok ? 'Tap to watch' : 'Tap to scan';
+  }
+
+  probeFilms();
+  setInterval(probeFilms, 30000);
 
   /* Direction to slide toward a product, given whatever is on screen now. */
   function dirTo(p) {
@@ -476,7 +602,7 @@
     Telemetry.log('tap', { product: p.id });
     Bus.send({ type: 'play', product: p.id, dir: dir });
     showNow(p, dir);
-    say(p.name + ' — playing on the big screen');
+    say(p.name + (hasFilm[p.id] === false ? ' — scan the code' : ' — playing on the big screen'));
 
     // How long this screen took to answer the finger. The TV logs its own
     // tap-to-first-frame separately; these are two different numbers and are
@@ -508,7 +634,8 @@
     document.getElementById('allfiveqr').src = 'qr/tablet/leads-' + p.id + '.svg';
     now.classList.remove('ended');
     document.getElementById('nowqr').alt = 'QR code to try ' + p.name;
-    document.getElementById('nowstate').textContent = 'Playing on the big screen';
+    document.getElementById('nowstate').textContent =
+      (hasFilm[p.id] === false) ? 'Scan to see it' : 'Playing on the big screen';
     progi.style.width = '0%';
     now.classList.add('on');
 
@@ -542,6 +669,10 @@
   });
 
   function say(text) {
+    // The takeover IS the confirmation that the tap landed, so a toast on top
+    // of it is duplicate information — and in portrait it landed across the
+    // product name. Grid-level messages still show.
+    if (now.classList.contains('on')) return;
     toast.textContent = text;
     toast.classList.add('on');
     clearTimeout(say._t);

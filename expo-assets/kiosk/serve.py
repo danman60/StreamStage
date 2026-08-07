@@ -147,6 +147,9 @@ class Handler(SimpleHTTPRequestHandler):
     def _send(self, code: int, body: bytes, ctype: str = "application/json") -> None:
         self.send_response(code)
         self.send_header("Content-Type", ctype)
+        # Telemetry is served on its own port (see below), which makes it a
+        # different origin from the page. Same machine, no internet involved.
+        self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
@@ -247,6 +250,20 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(200, json.dumps(_retained).encode())
         if path == "/events":
             return self._send(200, json.dumps(read_events()).encode())
+        if path == "/films":
+            # Which films actually exist on disk right now. Both screens ask
+            # this instead of probing each file, so a film that has not been
+            # rendered yet costs one honest answer rather than six 404s in the
+            # console — and so the TV never points a <video> at a missing file.
+            media = os.path.join(HERE, "media")
+            out = {}
+            try:
+                for name in os.listdir(media):
+                    if name.endswith(".mp4"):
+                        out[name[:-4]] = os.path.getsize(os.path.join(media, name))
+            except OSError:
+                pass
+            return self._send(200, json.dumps(out).encode())
         if path == "/health":
             # `ip` is what the launcher page shows you to type into a Fire Stick.
             return self._send(200, json.dumps({
@@ -310,8 +327,11 @@ class Handler(SimpleHTTPRequestHandler):
             return self._send(200, b'{"ok":true}')
 
         if path == "/log":
+            # One event, or a batch of them. The screens batch to stay under
+            # the browser's per-host connection limit.
             try:
-                record(data)
+                for item in (data if isinstance(data, list) else [data]):
+                    record(item)
             except Exception as exc:      # disk full / permissions — never 500 the booth
                 sys.stderr.write(f"[telemetry] write failed: {exc}\n")
                 return self._send(200, b'{"ok":false,"stored":"browser-only"}')
@@ -334,6 +354,7 @@ def main() -> None:
             {"file": "media/compsync.mp4"},
             {"file": "media/callboard.mp4"},
             {"file": "media/costumecraft.mp4"},
+            {"file": "media/studiobeat.mp4"},
             {"file": "media/reflect.mp4"},
         ] if not os.path.exists(os.path.join(HERE, p["file"]))
     ]
@@ -345,15 +366,31 @@ def main() -> None:
     print(f"\n  TV on a Fire Stick / any device on the same wifi — bookmark:")
     print(f"      http://{ip}:{args.port}/tv")
     print(f"  and point the tablet at  http://{ip}:{args.port}/tablet")
-    print(f"\n  Telemetry -> {TELEMETRY_DIR}/events-YYYY-MM-DD.jsonl")
+    print(f"\n  Telemetry -> {TELEMETRY_DIR}/events-YYYY-MM-DD.jsonl  (port {args.port + 1})")
     if missing:
-        print("\n  !! FILMS MISSING — run ./sync-media.sh")
+        # Not an error: the kiosk probes each film at run time and offers that
+        # product's QR instead until the render lands.
+        print("\n  films not rendered yet (their tiles will show a QR instead):")
         for m in missing:
             print(f"       {m}")
     print(f"{line}\n  Ctrl-C to stop.\n")
 
     httpd = ThreadingHTTPServer(("0.0.0.0", args.port), Handler)
     httpd.daemon_threads = True
+
+    # ------------------------------------------------------------------
+    # A SECOND listener, one port up, for telemetry only.
+    #
+    # A browser allows ~6 connections per HOST. The TV holds one permanent
+    # event stream plus a live connection per film, which is the entire budget
+    # — so telemetry POSTs sat unsent behind the videos. Measured: 15 films
+    # played, 15 events in the page, 0 on disk. Moving telemetry one port up
+    # makes it a different origin with its own connection pool, so the day's
+    # record can never be starved by the films.
+    # ------------------------------------------------------------------
+    log_srv = ThreadingHTTPServer(("0.0.0.0", args.port + 1), Handler)
+    log_srv.daemon_threads = True
+    threading.Thread(target=log_srv.serve_forever, daemon=True).start()
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

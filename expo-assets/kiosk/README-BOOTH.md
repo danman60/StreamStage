@@ -1,6 +1,7 @@
 # Booth kiosk — Calgary Dance Teacher Expo, Aug 11–12 2026
 
-Two screens, one tap. A studio owner taps a tile on the **tablet**; that film plays on the **TV**.
+Two screens, one tap. A studio owner taps a tile on the **tablet** (held **portrait**, six
+products, everything on one screen); that film plays on the **TV**.
 Nobody has to be told how it works, and nothing can get stuck — every screen returns to its idle
 state on its own.
 
@@ -20,7 +21,7 @@ That's the whole command. It prints the three addresses you need. Then open:
 
 | Window | Address | Where it goes |
 |---|---|---|
-| **Tablet** | `http://localhost:8080/tablet` | The booth counter. The only thing anybody touches. |
+| **Tablet** | `http://localhost:8080/tablet` | The booth counter, **in portrait**. The only thing anybody touches. |
 | **TV** | `http://localhost:8080/tv` | The big screen. Click once, press **F**, walk away. |
 | Launcher | `http://localhost:8080/` | Setup notes + the Fire Stick address. Open it once. |
 
@@ -52,7 +53,7 @@ has no moving parts.
 ~/projects/StreamStage/expo-assets/kiosk/sync-media.sh
 ```
 
-It re-copies all five films from `/mnt/data/...` and always prefers the newest cut it can find
+It re-copies all six films from `/mnt/data/...` and always prefers the newest cut it can find
 (`promo-vo.mp4` → `promo.mp4` → the 720p web versions). **When a film is re-rendered — new VO, new
 edit — running this script is the entire deploy.** It also cuts a fresh poster frame for each.
 
@@ -86,8 +87,8 @@ attract loops ran, and the tap-to-picture time. **Export at the end of each day*
 gives you a CSV and a JSON.
 
 Events are also written to disk continuously at
-`expo-assets/kiosk/telemetry/events-YYYY-MM-DD.jsonl`, flushed on every event, so a crash, a dead
-battery or a closed tab loses nothing. Export anyway — it's easier to read.
+`expo-assets/kiosk/telemetry/events-YYYY-MM-DD.jsonl`, so a crash, a dead battery or a closed tab
+loses nothing. Export anyway — it's easier to read.
 
 ### "QR shown" is not "QR scanned"
 
@@ -110,6 +111,21 @@ written at 25/50/75%, so even a view that dies mid-film still contributes what i
 
 ---
 
+## The sixth product, and films that are not cut yet
+
+**StudioBeat** is the sixth tile. Its film was still being cut when this was built, and the kiosk
+handles that on its own — it does not need you to do anything:
+
+- The tablet asks the server which films exist and shows **TAP TO SCAN** on any product whose film
+  is missing, instead of promising a film that will not play. Its QR works normally.
+- The TV never points a video at a missing file, so there is no broken layer and no black screen.
+- `sync-media.sh` looks for StudioBeat's render in both `out/` and `promo/out/`. **When it lands,
+  run the script — the tile becomes a normal "tap to watch" tile within 30 seconds. No code change,
+  no restart, no reload.**
+
+The product is called **StudioBeat** everywhere. The repo is named StudioSync; that is the old name
+and it must never appear on a booth screen.
+
 ## Two things that are assumptions, not facts
 
 1. **The CompSync signup URL was never given.** Its QR currently points at **`compsync.net`** so it
@@ -129,7 +145,7 @@ written at 25/50/75%, so even a view that dies mid-film still contributes what i
 There is **no email gate.** Switching films is free — a gate at a trade show reads as a paywall and
 the person walks, and it would poison the tap numbers besides.
 
-Instead, once a film **finishes**, the tablet adds a *"Want all five?"* card with a QR pointing at
+Instead, once a film **finishes**, the tablet adds a *"Want all six?"* card with a QR pointing at
 your existing form at `streamstage.live/expo-leads.html`, tagged with the product they just watched.
 It opens on **their** phone on **their** data, which is why it still works when the venue wifi is
 dead — a form hosted on the booth laptop would not. The TV's end card points at it in words.
@@ -144,10 +160,10 @@ in conversation, log it with **+1 lead captured** in the operator sheet so the d
 | File | What it is |
 |---|---|
 | `kiosk.js` | **The one place you edit.** Products, film paths, URLs, copy, timings. Also the bus and the telemetry. |
-| `tablet.html` | The controller. Tiles, now-playing takeover, hidden operator sheet. |
+| `tablet.html` | The controller, portrait-first. Six tiles with drawn app icons, now-playing takeover, hidden operator sheet. |
 | `tv.html` | The big screen. Attract loop, warm film layers, end card. |
 | `brand.css` | Shared design system — colours, the wordmark lockup, motion. |
-| `serve.py` | Static files + the cross-device relay + telemetry to disk. Standard library only. |
+| `serve.py` | Static files + the cross-device relay + telemetry to disk (on its own port). Standard library only. |
 | `make-qr.py` | Regenerates every QR. Run after changing any URL. |
 | `sync-media.sh` | Pulls the newest cut of each film. Run after any re-render. |
 | `index.html` | The launcher you open once at setup. |
@@ -163,9 +179,16 @@ concept was replaced; the design was kept.
 
 On a 1920×1080 TV and a 1024×768 tablet, driven over the relay as two separate devices:
 
-- **Tap → first painted frame of the film: median 110 ms, worst 131 ms.** All five films are held
-  open as live `<video>` elements, decoded on frame 0, from page load — a tap slides an already-warm
-  layer in and calls `play()`. Nothing is created, fetched or seeked at tap time.
+- **Tap → first painted frame: median 87 ms, p90 99 ms, worst 121 ms**, measured over 15 plays with
+  all six layers warm. Faster than the five-product build, because telemetry no longer competes with
+  the films for connections (see below).
+- **Portrait fits with zero scroll at 820x1180, 810x1080, 800x1280 and 768x1024** — six tiles plus
+  the community QR fully on screen at every one, verified by measuring each tile's box against the
+  viewport rather than by eye. Landscape 1024x768 also fits, as a clean 3x2.
+- **Telemetry no longer starves.** A browser allows ~6 connections per host; the TV holds an event
+  stream plus a live connection per film, which is the whole budget, so telemetry POSTs sat unsent
+  behind the videos — 15 films played, 15 events in the page, **0 on disk**. Telemetry now has its
+  own port (one above the page's), which is its own connection pool: **15/15 on disk**.
 - Each film layer carries **its own** signup QR, so the QR cannot lag the picture: it arrives with
   the film rather than being swapped into place after it.
 - No horizontal or vertical overflow at 1920×1080, 1024×768 or 820×1180.

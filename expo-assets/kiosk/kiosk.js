@@ -63,6 +63,19 @@ var CONFIG = {
       url:    'https://costume-craft.vercel.app'
     },
     {
+      // The repo is called StudioSync. The PRODUCT is StudioBeat. "StudioSync"
+      // is the old name and must never appear on a booth screen.
+      id:     'studiobeat',
+      name:   'StudioBeat',
+      short:  'The whole studio, in one place.',
+      tagline:'Classes, families, payments and the season calendar — one platform instead of five.',
+      accent: '#C2785C',
+      film:   ['media/studiobeat.mp4'],
+      // Confirmed live 2026-08-06: Vercel project `studiosync` serves this, and
+      // the page title reads "StudioBeat — Studio Management".
+      url:    'https://www.studiobeat.io'
+    },
+    {
       id:     'reflect',
       name:   'Reflect',
       short:  'Every room on one screen.',
@@ -103,6 +116,22 @@ var CONFIG = {
   logEndpoint: '/log',         // serve.py appends to disk. Absent == silent no-op.
   busEndpoint: '/bus'          // serve.py relays taps to a TV on another device.
 };
+
+/* Telemetry goes to its own port, one above the page's.
+
+   A browser allows about six connections per HOST. The TV holds a permanent
+   event stream plus a live connection per film — the whole budget — so
+   telemetry POSTs queued behind the videos and never sent. Measured: fifteen
+   films played, fifteen events in the page, zero on disk. A different port is
+   a different origin with its own pool, so the record cannot be starved by
+   the films. Falls back to same-origin when the port is not knowable. */
+(function () {
+  if (typeof location === 'undefined') return;
+  if (location.protocol.indexOf('http') !== 0 || !location.port) return;
+  var next = parseInt(location.port, 10) + 1;
+  if (!isFinite(next)) return;
+  CONFIG.logEndpoint = location.protocol + '//' + location.hostname + ':' + next + '/log';
+})();
 
 /* Build the QR target for a product, with attribution.  surface is 'tv' or
    'tablet' so Daniel can tell which screen actually earned the scan. */
@@ -243,6 +272,7 @@ var Telemetry = (function () {
   var surface = 'unknown';
   var KEY = function () { return CONFIG.storageKeyPrefix + 'events.' + surface; };
   var sessionId = null;
+  var seq = 0;
 
   function nowIso() { return new Date().toISOString(); }
 
@@ -267,16 +297,79 @@ var Telemetry = (function () {
     }
   }
 
-  function toDisk(ev) {
-    if (!CONFIG.logEndpoint || typeof fetch === 'undefined') return;
+  /* ----------------------------------------------------------------------
+     GETTING EVENTS ONTO DISK.
+
+     Not one POST per event. The TV holds a permanent EventSource plus a live
+     <video> connection per film — six sockets to one origin, which is exactly
+     Chrome's per-host limit, so single-event POSTs queue behind the videos and
+     never send. Measured on a TV eight seconds after load: film_start and
+     film_first_frame were in its own localStorage and the server had received
+     neither. Two days of floor traffic would have quietly stopped reaching the
+     disk the moment the films warmed up. sendBeacon did not fix it either.
+
+     So: localStorage stays the source of truth and is written synchronously as
+     always, and a flusher posts everything not yet acknowledged as ONE batch
+     every few seconds. An event is only marked sent when the server has
+     confirmed it, so a stalled request costs nothing — the next flush carries
+     the backlog. Far fewer requests, and it self-heals.
+     -------------------------------------------------------------------- */
+  var flushing = false;
+
+  function flush() {
+    if (!CONFIG.logEndpoint || typeof fetch === 'undefined' || flushing) return;
+    var key = KEY();
+    var arr = read(key);
+    var out = [];
+    for (var i = 0; i < arr.length; i++) if (!arr[i].sent) out.push(arr[i]);
+    if (!out.length) return;
+
+    /* A flush that STALLS must not wedge the flusher. The whole reason this
+       is batched is that requests can sit unsent behind the video connections;
+       if the in-flight guard never cleared, the first stalled request would
+       block every later event for the rest of the day. So each attempt is
+       given a deadline and then abandoned — the events stay unsent and the
+       next tick tries again. */
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var bail = setTimeout(function () {
+      flushing = false;
+      if (ctrl) { try { ctrl.abort(); } catch (e) {} }
+    }, 6000);
+
+    flushing = true;
+    fetch(CONFIG.logEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },  // safelisted: no preflight
+      body: JSON.stringify(out),
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r) {
+      clearTimeout(bail);
+      flushing = false;
+      if (!r.ok) return;                       // leave them unsent; retry next tick
+      var ids = {};
+      for (var j = 0; j < out.length; j++) ids[out[j].eid] = 1;
+      var now = read(key);
+      for (var k = 0; k < now.length; k++) if (ids[now[k].eid]) now[k].sent = 1;
+      try { localStorage.setItem(key, JSON.stringify(now)); } catch (e) {}
+    }).catch(function () { clearTimeout(bail); flushing = false; });
+  }
+
+  function flushOnExit() {
+    // Last chance as the tab dies. Best effort; localStorage still holds it all.
+    if (!CONFIG.logEndpoint) return;
     try {
-      fetch(CONFIG.logEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(ev),
-        keepalive: true      // survives the tab closing mid-flight
-      }).catch(function () {});
+      var arr = read(KEY()), out = [];
+      for (var i = 0; i < arr.length; i++) if (!arr[i].sent) out.push(arr[i]);
+      if (!out.length) return;
+      if (navigator && typeof navigator.sendBeacon === 'function') {
+        navigator.sendBeacon(CONFIG.logEndpoint, new Blob([JSON.stringify(out)], { type: 'text/plain' }));
+      }
     } catch (e) {}
+  }
+
+  if (typeof window !== 'undefined') {
+    setInterval(flush, 3000);
+    window.addEventListener('pagehide', flushOnExit);
   }
 
   return {
@@ -290,6 +383,7 @@ var Telemetry = (function () {
              attract_cycle | lead_captured | surface_open | export      */
     log: function (type, data) {
       var ev = {
+        eid: Date.now().toString(36) + '-' + (seq++).toString(36),
         t: nowIso(),
         ms: Date.now(),
         surface: surface,
@@ -298,7 +392,7 @@ var Telemetry = (function () {
       };
       for (var k in data) if (Object.prototype.hasOwnProperty.call(data, k)) ev[k] = data[k];
       push(ev);
-      toDisk(ev);
+      flush();
       return ev;
     },
 

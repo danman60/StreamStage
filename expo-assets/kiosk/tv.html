@@ -180,7 +180,7 @@
   <section class="card invite" data-hold="9000">
     <div class="pad">
       <div class="kicker">Calgary Dance Teacher Expo &middot; Aug 11&ndash;12</div>
-      <h1>Five tools<br>for studios.<br><span class="g">Pick one.</span></h1>
+      <h1>Six tools<br>for studios.<br><span class="g">Pick one.</span></h1>
       <div class="arrow"><span class="hand">&#128071;</span><span>Tap the tablet &mdash; it plays right here.</span></div>
     </div>
   </section>
@@ -256,6 +256,22 @@
     <div class="cardqr">
       <span class="qr-plate"><img src="qr/tv/costumecraft.svg" alt="QR code to try CostumeCraft"></span>
       <div class="lbl">Scan to try it<em>Or tap the tablet to watch</em></div>
+    </div>
+  </section>
+
+  <section class="card" data-product="studiobeat" data-hold="11000">
+    <div class="ghost">StudioBeat</div>
+    <div class="pad">
+      <div class="kicker">The whole studio, in one place</div>
+      <h1>StudioBeat</h1>
+      <div class="sub">Classes, families, payments and the season calendar &mdash; one platform
+        instead of five that do not talk to each other.</div>
+      <div class="live">Running in production</div>
+    </div>
+    <div class="url">studiobeat.io</div>
+    <div class="cardqr">
+      <span class="qr-plate"><img src="qr/tv/studiobeat.svg" alt="QR code to see StudioBeat"></span>
+      <div class="lbl">Scan to see it<em>Or tap the tablet to watch</em></div>
     </div>
   </section>
 
@@ -373,6 +389,20 @@
   var layers = {};
   var warm = 0;
 
+  /* Which films are actually on disk. Resolves to null when there is no server
+     to ask, in which case every layer is wired exactly as before. */
+  var filmsReady = (typeof fetch === 'undefined')
+    ? Promise.resolve(null)
+    : fetch('/films', { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (have) {
+          if (!have) return null;
+          var map = {};
+          CONFIG.products.forEach(function (p) { map[p.id] = !!have[p.id]; });
+          return map;
+        })
+        .catch(function () { return null; });
+
   CONFIG.products.forEach(function (p) {
     var layer = document.createElement('div');
     layer.className = 'layer';
@@ -383,7 +413,6 @@
     v.muted = true;                 // required to preload/decode without a gesture
     v.preload = 'auto';
     v.controls = false;
-    v.poster = 'media/posters/' + p.id + '.jpg';
     v.setAttribute('disablepictureinpicture', '');
 
     // film[] is a preference list — an unplayable file falls through to the
@@ -393,7 +422,16 @@
       if (tries.length) { v.src = tries.shift(); v.load(); }
       else { layer.setAttribute('data-broken', '1'); }
     });
-    v.src = tries.shift();
+
+    // Ask the server which films exist before wiring a src. A film still being
+    // rendered (StudioBeat, tonight) would otherwise 404 its video AND its
+    // poster on every single page load. When the render lands, the next reload
+    // picks it up with no code change.
+    filmsReady.then(function (have) {
+      if (have && have[p.id] === false) { layer.setAttribute('data-broken', '1'); return; }
+      v.poster = 'media/posters/' + p.id + '.jpg';
+      v.src = tries.shift();
+    });
 
     // Decode frame 0 so the first painted frame is instant, then sit still.
     v.addEventListener('loadeddata', function once() {
@@ -401,9 +439,7 @@
       try { v.currentTime = 0; } catch (e) {}
       warm++;
       var w = document.getElementById('warm');
-      if (w) w.textContent = warm >= CONFIG.products.length
-        ? 'all five films ready'
-        : 'warming films… ' + warm + '/' + CONFIG.products.length;
+      if (w) w.textContent = 'films ready: ' + warm + '/' + CONFIG.products.length;
     });
 
     layer.appendChild(v);

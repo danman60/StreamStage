@@ -4,8 +4,8 @@
 
    Design language follows the Talk 2 deck the same audience will have just
    watched: near-black ground, Inter, cyan #4EC5D4 and amber #F59E0B as the
-   StreamStage frame. Each of the five products then gets its OWN colour pair,
-   so the tablet reads as five distinct things rather than five grey boxes.
+   StreamStage frame. Each of the six products then gets its OWN colour pair,
+   so the tablet reads as six distinct things rather than six grey boxes.
 
    Motion rules (this has to hold 60fps on a cheap tablet AND on a Fire Stick's
    Silk browser, which is slow):
@@ -45,7 +45,7 @@
   --ease-out-back:cubic-bezier(.34,1.4,.64,1);
 }
 
-/* ---- the five product identities -----------------------------------------
+/* ---- the six product identities ------------------------------------------
    Applied by adding data-product="<id>" to any element. Every tile, badge,
    progress bar and glow reads its colour from here, so re-theming a product
    is a six-line change.
@@ -82,6 +82,14 @@
   --a:#F472B6; --b:#C026D3; --lite:#F9AED4;
   --glow:rgba(244,114,182,.55); --tint:rgba(244,114,182,.22);
   --wash:rgba(244,114,182,.12); --edge:rgba(244,114,182,.60);
+}
+[data-product="studiobeat"]{
+  /* Terracotta — the product's own brand colour (its app icon is #C2785C) and
+     the only earth tone in the set, so it cannot be confused with CompSync's
+     bright amber two tiles above it. */
+  --a:#E08A6B; --b:#C2785C; --lite:#F3C0AC;
+  --glow:rgba(224,138,107,.55); --tint:rgba(224,138,107,.22);
+  --wash:rgba(224,138,107,.12); --edge:rgba(224,138,107,.60);
 }
 [data-product="reflect"]{
   --a:#A78BFA; --b:#7C8CF8; --lite:#CBBBFD;

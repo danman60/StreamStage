@@ -23,11 +23,16 @@ POSTERS="$MEDIA/posters"
 mkdir -p "$MEDIA" "$POSTERS"
 
 # product | source directory
+# A product may list SEVERAL source directories, newest-looking first: the film
+# projects are not consistent about whether a render lands in out/ or promo/out/,
+# and StudioBeat's is still being cut, so its directory may not exist yet at all.
+# A missing directory is not an error here.
 SOURCES=(
   "studiosage|/mnt/data/sagevideo/promo/out"
   "compsync|/mnt/data/compsync-video/promo/out"
   "callboard|/mnt/data/callboard-video/promo/out"
   "costumecraft|/mnt/data/costumecraft-video/out"
+  "studiobeat|/mnt/data/studiobeat-video/out:/mnt/data/studiobeat-video/promo/out"
   "reflect|/mnt/data/reflect-video/out"
 )
 
@@ -44,15 +49,18 @@ echo "  ---------------------------------------------------------------"
 
 for entry in "${SOURCES[@]}"; do
   id="${entry%%|*}"
-  dir="${entry##*|}"
+  dirs="${entry##*|}"
   picked=""
 
-  for c in "${CANDIDATES[@]}"; do
-    if [[ -f "$dir/$c" ]]; then picked="$dir/$c"; break; fi
+  IFS=':' read -r -a dirlist <<< "$dirs"
+  for dir in "${dirlist[@]}"; do
+    for c in "${CANDIDATES[@]}"; do
+      if [[ -f "$dir/$c" ]]; then picked="$dir/$c"; break 2; fi
+    done
   done
 
   if [[ -z "$picked" ]]; then
-    printf "  %-14s MISSING — nothing found in %s\n" "$id" "$dir"
+    printf "  %-14s not rendered yet — looked in %s\n" "$id" "${dirlist[0]}"
     missing=$((missing + 1))
     continue
   fi
@@ -88,10 +96,12 @@ if [[ $have_ffmpeg -eq 0 ]]; then
   echo "  note: ffmpeg not found — no poster frames cut (films still work)."
 fi
 if [[ $missing -gt 0 ]]; then
-  echo "  !! $missing film(s) missing. The kiosk will still run: a product with"
-  echo "     no film goes straight to its signup QR instead of a black screen."
+  echo "  note: $missing film(s) not rendered yet. Not a failure — the kiosk"
+  echo "        checks each film at run time, so that product's tile offers its"
+  echo "        QR instead, and becomes a normal 'tap to watch' tile by itself"
+  echo "        within 30s of the file appearing here."
 else
-  echo "  All five films present."
+  echo "  All six films present."
 fi
 echo
 ls -la "$MEDIA"/*.mp4 2>/dev/null | awk '{printf "     %-10s %s\n", $5, $9}'
