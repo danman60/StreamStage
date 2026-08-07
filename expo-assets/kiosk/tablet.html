@@ -185,17 +185,36 @@
 
   /* The soft email capture. It is ADDITIVE and appears only once a film has
      finished — it never swaps a QR somebody might be mid-scan on, and it is
-     never a gate in front of a second film. */
+     never a gate in front of a second film. Two ways in, same offer: scan the
+     QR (their phone, their data) or type the email right here. */
   #now .allfive{
     display:none;margin-top:2rem;padding:1.3rem 1.5rem;border-radius:1.4rem;
-    align-items:center;gap:1.4rem;
+    flex-direction:column;align-items:stretch;gap:1.15rem;
     background:rgba(78,197,212,.1);border:1px solid rgba(78,197,212,.34);
   }
   #now.ended .allfive{display:flex;animation:rise .5s var(--ease) both}
+  #now .allfive .afrow{display:flex;align-items:center;gap:1.4rem}
   #now .allfive .qr-plate{width:8.4rem;flex:none}
   #now .allfive .t{font:900 1.6rem/1.25 var(--sans)}
   #now .allfive .t em{display:block;font-style:normal;font-weight:600;font-size:1.28rem;
     color:var(--dim);margin-top:.5rem;line-height:1.35}
+  #now .afform{display:flex;align-items:stretch;gap:.9rem}
+  #now .afform input{
+    flex:1;min-width:0;
+    font:600 1.5rem/1.2 var(--sans);color:var(--ink);
+    background:rgba(255,255,255,.06);border:1px solid var(--line-hot);
+    border-radius:99rem;padding:.95rem 1.5rem;outline:none;
+    -webkit-appearance:none;appearance:none;
+  }
+  #now .afform input::placeholder{color:var(--faint)}
+  #now .afform input:focus{border-color:var(--edge);background:rgba(255,255,255,.09)}
+  #now .afform input.bad{border-color:var(--amber);background:rgba(245,158,11,.08)}
+  #now .afform .btn{flex:none;font-size:1.35rem;padding:.9em 1.7em}
+  #now .afdone{display:none;font:800 1.5rem/1.3 var(--sans);color:var(--lite)}
+  #now .afdone em{display:block;font-style:normal;font-weight:600;font-size:1.22rem;
+    color:var(--dim);margin-top:.4rem}
+  #now .allfive.sent .afform{display:none}
+  #now .allfive.sent .afdone{display:block;animation:rise .4s var(--ease) both}
   #now .foot{flex:none;display:flex;align-items:center;gap:1.6rem}
   #prog{flex:1;height:.7rem;border-radius:99rem;background:rgba(255,255,255,.1);overflow:hidden}
   #prog i{display:block;height:100%;width:0;border-radius:99rem;
@@ -230,6 +249,19 @@
     background:linear-gradient(120deg,var(--a),var(--b))}
   #op .ops{display:flex;flex-wrap:wrap;gap:.9rem;margin-bottom:1.6rem}
   #op .ops .btn{font-size:1.4rem;padding:.95em 1.7em}
+  /* type a lead by hand — same queue as the visitor-facing input */
+  #op .leadops{display:flex;gap:.9rem;margin-bottom:1.6rem}
+  #op .leadops input{
+    flex:1;min-width:0;
+    font:600 1.45rem/1.2 var(--sans);color:var(--ink);
+    background:rgba(255,255,255,.06);border:1px solid var(--line-hot);
+    border-radius:99rem;padding:.9rem 1.4rem;outline:none;
+    -webkit-appearance:none;appearance:none;
+  }
+  #op .leadops input::placeholder{color:var(--faint)}
+  #op .leadops input:focus{border-color:var(--edge)}
+  #op .leadops input.bad{border-color:var(--amber);background:rgba(245,158,11,.08)}
+  #op .leadops .btn{flex:none}
   #op .warn{padding:1.2rem 1.4rem;border-radius:1.1rem;font-size:1.35rem;line-height:1.45;
     background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.4);color:#F8D48A;margin-bottom:1rem}
   #op .warn b{color:var(--amber)}
@@ -359,11 +391,19 @@
       <div class="tl" id="nowtl"></div>
       <div class="addr" id="nowaddr"></div>
       <div class="allfive">
-        <span class="qr-plate"><img id="allfiveqr" alt="QR code — get all six films by email"></span>
-        <span class="t">
-          Want all six?
-          <em>Scan for the whole set plus the recital checklist, emailed to you.</em>
-        </span>
+        <div class="afrow">
+          <span class="qr-plate"><img id="allfiveqr" alt="QR code — get all six films by email"></span>
+          <span class="t">
+            Want all six?
+            <em>Scan for the whole set plus the recital checklist, emailed to you.</em>
+          </span>
+        </div>
+        <form class="afform" id="leadform" novalidate autocomplete="off">
+          <input id="leademail" type="email" inputmode="email" enterkeyhint="send"
+                 placeholder="&hellip;or type your email here" aria-label="Email address for all six films">
+          <button class="btn" type="submit">Send them</button>
+        </form>
+        <div class="afdone" id="leaddone" role="status"></div>
       </div>
     </div>
     <div class="scanbox">
@@ -421,6 +461,13 @@
       <span>Relay: <b id="h-srv" class="bad">offline</b></span>
       <span>Events held: <b id="h-ev">0</b></span>
       <span>Leads: <b id="h-lead">0</b></span>
+      <span>Lead queue: <b id="h-leadq">0</b></span>
+    </div>
+
+    <div class="leadops">
+      <input id="op-leademail" type="email" inputmode="email" autocomplete="off"
+             placeholder="type a lead&rsquo;s email &mdash; saved even with no wifi">
+      <button class="btn ghost" id="op-leadsave" type="button">Save lead</button>
     </div>
 
     <div class="ops">
@@ -458,6 +505,102 @@
   var idleTimer = null;
   var tvSeen    = 0;       // last time the TV said anything
   var nowImp    = null;    // QR impression clock for the takeover
+
+  var leademail = document.getElementById('leademail');
+  var EMAIL_RE  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;   // same shape check as /api/expo-leads
+
+  /* ----------------------------------------------------------------------
+     LEAD QUEUE — emails typed on this tablet.
+
+     Mirrors the telemetry path exactly, because that path is the one that is
+     proven on this floor: localStorage first (synchronously, so a dying tab
+     loses nothing), then a batched flush to the TELEMETRY port — /lead lives
+     next to /log so a lead POST can never queue behind the TV's video
+     connections. text/plain keeps it preflight-free cross-port, the 6s abort
+     keeps one stalled request from wedging the flusher, and a lead only
+     leaves the queue when the server confirms it hit the disk. If serve.py
+     is down the queue simply grows and survives reloads; the interval (and
+     the next submit) carries the backlog when it comes back.
+     -------------------------------------------------------------------- */
+  var LeadQueue = (function () {
+    var KEY = CONFIG.storageKeyPrefix + 'leadQueue';
+    var endpoint = (CONFIG.logEndpoint || '/log').replace(/\/log$/, '/lead');
+    var flushing = false;
+
+    function read() {
+      try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
+      catch (e) { return []; }
+    }
+    function write(arr) {
+      try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch (e) {}
+    }
+
+    function flush() {
+      if (typeof fetch === 'undefined' || flushing) return;
+      var out = read();
+      if (!out.length) return;
+
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var bail = setTimeout(function () {
+        flushing = false;
+        if (ctrl) { try { ctrl.abort(); } catch (e) {} }
+      }, 6000);
+
+      flushing = true;
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },  // safelisted: no preflight
+        body: JSON.stringify(out),
+        signal: ctrl ? ctrl.signal : undefined
+      }).then(function (r) {
+        clearTimeout(bail);
+        flushing = false;
+        if (!r.ok) return;                     // keep them queued; retry next tick
+        var ids = {};
+        for (var i = 0; i < out.length; i++) ids[out[i].lid] = 1;
+        // filter, not clear: a lead typed while the POST was in flight stays
+        write(read().filter(function (l) { return !ids[l.lid]; }));
+      }).catch(function () { clearTimeout(bail); flushing = false; });
+    }
+
+    setInterval(flush, 5000);
+
+    return {
+      add: function (lead) {
+        lead.lid = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+        lead.ts = new Date().toISOString();
+        var arr = read();
+        arr.push(lead);
+        write(arr);
+        flush();
+        return lead;
+      },
+      pending: function () { return read().length; }
+    };
+  })();
+
+  function captureLead(input, via) {
+    var email = (input.value || '').trim();
+    if (!EMAIL_RE.test(email)) {
+      input.classList.add('bad');
+      input.focus();
+      return null;
+    }
+    input.classList.remove('bad');
+    LeadQueue.add({ email: email, product: current ? current.id : null, via: via });
+    // The tally counts lead_captured events, so a typed lead shows up in
+    // "Leads" exactly like a +1 — via says which affordance earned it.
+    Telemetry.log('lead_captured', { via: via + '-typed', product: current ? current.id : undefined });
+    return email;
+  }
+
+  /* Somebody mid-type must not have the card yanked away by the TV going
+     back to attract. This defers ONLY the auto-return-home; it never gates a
+     film — a tap on any tile still switches instantly. */
+  function leadBusy() {
+    return now.classList.contains('ended') &&
+           (document.activeElement === leademail || (leademail.value || '').trim().length > 0);
+  }
 
   /* The community QR is on this screen in every state, so its impression
      clock runs for as long as the page is open. */
@@ -630,6 +773,10 @@
     document.getElementById('nowqr').src = 'qr/tablet/' + p.id + '.svg';
     document.getElementById('allfiveqr').src = 'qr/tablet/leads-' + p.id + '.svg';
     now.classList.remove('ended');
+    // fresh card for the next viewer — the form comes back, the input empties
+    now.querySelector('.allfive').classList.remove('sent');
+    leademail.value = '';
+    leademail.classList.remove('bad');
     document.getElementById('nowqr').alt = 'QR code to try ' + p.name;
     document.getElementById('nowstate').textContent =
       (hasFilm[p.id] === false) ? 'Scan to see it' : 'Playing on the big screen';
@@ -652,6 +799,21 @@
   }
 
   document.getElementById('back').addEventListener('click', function () { backToGrid(false); });
+
+  /* ------------------------------------------- typed email on the card */
+  document.getElementById('leadform').addEventListener('submit', function (e) {
+    e.preventDefault();                          // never navigates, never gates
+    var email = captureLead(leademail, 'tablet');
+    if (!email) return;
+    leademail.blur();
+    document.getElementById('leaddone').innerHTML =
+      'Got it &mdash; all six are on their way to <b>' +
+      email.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</b>.' +
+      '<em>Nothing else to do. Enjoy the rest of the expo.</em>';
+    now.querySelector('.allfive').classList.add('sent');
+    resetIdle();
+  });
+  leademail.addEventListener('input', function () { leademail.classList.remove('bad'); });
 
   /* The tablet must never be left sitting on one product when the next
      person walks up. If nothing has been touched for a while, it goes home. */
@@ -699,8 +861,10 @@
         Telemetry.log('offer_shown', { product: pe.id, offer: 'all-five' });
       }
     } else if (msg.state === 'attract') {
-      // The TV finished on its own — bring the tablet home for the next person.
-      if (current) backToGrid(true);
+      // The TV finished on its own — bring the tablet home for the next
+      // person. Unless somebody is typing an email into the card: then the
+      // 90s idle timer takes over instead of cutting them off mid-keystroke.
+      if (current && !leadBusy()) backToGrid(true);
     }
   });
 
@@ -711,6 +875,10 @@
     var h = document.getElementById('h-tv');
     h.textContent = live ? 'connected' : 'not connected';
     h.className = live ? 'ok' : 'bad';
+    // The queue count is read synchronously off localStorage, NOT inside
+    // paint(): paint waits on /events, and a dead server leaves that fetch
+    // pending — the queue number matters most at exactly that moment.
+    document.getElementById('h-leadq').textContent = LeadQueue.pending();
   }, 1000);
 
   Bus.onConnection(function (up) {
@@ -774,6 +942,7 @@
       r.startLatency ? (r.startLatency.medianMs + 'ms') : '—';
     document.getElementById('h-ev').textContent   = events.length;
     document.getElementById('h-lead').textContent = r.leads;
+    document.getElementById('h-leadq').textContent = LeadQueue.pending();
 
     var rows = r.ranked.map(function (b) {
       return '<tr data-product="' + b.id + '">' +
@@ -796,6 +965,21 @@
     Telemetry.log('lead_captured', { via: 'operator' });
     say('Lead logged');
     render();
+  });
+  var opLeadInput = document.getElementById('op-leademail');
+  var opLeadPlaceholder = opLeadInput.placeholder;   // captured ONCE — two quick
+  var opLeadPhTimer = null;                          // saves must not trap "saved —"
+  document.getElementById('op-leadsave').addEventListener('click', function () {
+    var email = captureLead(opLeadInput, 'operator');
+    if (!email) return;
+    opLeadInput.value = '';
+    opLeadInput.placeholder = 'saved — ' + email;
+    if (opLeadPhTimer) clearTimeout(opLeadPhTimer);
+    opLeadPhTimer = setTimeout(function () { opLeadInput.placeholder = opLeadPlaceholder; }, 2500);
+    render();
+  });
+  document.getElementById('op-leademail').addEventListener('input', function () {
+    this.classList.remove('bad');
   });
   document.getElementById('op-form').addEventListener('click', function () {
     // The EXISTING booth form. Needs the attendee's own data or venue wifi —

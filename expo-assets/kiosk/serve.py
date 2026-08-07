@@ -14,7 +14,10 @@ It does three things and nothing else:
      Stick on the same wifi instead of a second window on the laptop.
   3. Appends every telemetry event to telemetry/events-YYYY-MM-DD.jsonl,
      flushed and fsync'd on arrival, so two days of floor traffic survive a
-     crash, a browser wipe or a flat battery.
+     crash, a browser wipe or a flat battery. Emails typed on the tablet land
+     the same way: POST /lead (on the telemetry port) appends to
+     telemetry/leads-YYYY-MM-DD.jsonl. flush-leads.py sends them upstream
+     after the day, when there is internet again.
 
 There is no internet dependency anywhere. The laptop and the TV only need to
 be on the same local network — a travel router or the laptop's own hotspot is
@@ -55,7 +58,7 @@ _retained: "dict[str, dict]" = {}
 _retained_lock = threading.Lock()
 
 _log_lock = threading.Lock()
-_counts = {"events": 0, "publishes": 0}
+_counts = {"events": 0, "publishes": 0, "leads": 0}
 
 
 def publish(msg: dict) -> None:
@@ -87,6 +90,27 @@ def record(event: dict) -> None:
             fh.flush()
             os.fsync(fh.fileno())       # a yanked power cable must not eat the day
     _counts["events"] += 1
+
+
+def record_lead(lead: dict) -> None:
+    """Append one typed lead to today's leads JSONL, durably.
+
+    Same discipline as record(): flushed and fsync'd on arrival, because a
+    typed email is the single most valuable byte the booth produces and a
+    yanked power cable must not eat it. Kept in its OWN file, not mixed into
+    the events stream — flush-leads.py reads leads-*.jsonl and nothing else,
+    so it can never accidentally mail a tap event to the lead route.
+    """
+    os.makedirs(TELEMETRY_DIR, exist_ok=True)
+    day = datetime.now().strftime("%Y-%m-%d")
+    path = os.path.join(TELEMETRY_DIR, f"leads-{day}.jsonl")
+    line = json.dumps(lead, separators=(",", ":")) + "\n"
+    with _log_lock:
+        with open(path, "a", encoding="utf-8") as fh:
+            fh.write(line)
+            fh.flush()
+            os.fsync(fh.fileno())
+    _counts["leads"] += 1
 
 
 def read_events() -> "list[dict]":
@@ -224,7 +248,7 @@ class Handler(SimpleHTTPRequestHandler):
     def end_headers(self):
         # Advertise range support on every static response, so players know
         # they are allowed to seek before they try.
-        if not self.path.startswith(("/bus", "/log", "/health", "/state")):
+        if not self.path.startswith(("/bus", "/log", "/lead", "/health", "/state")):
             self.send_header("Accept-Ranges", "bytes")
         SimpleHTTPRequestHandler.end_headers(self)
 
@@ -272,6 +296,7 @@ class Handler(SimpleHTTPRequestHandler):
                 "port": self.server.server_address[1],
                 "subscribers": len(_subscribers),
                 "events": _counts["events"],
+                "leads": _counts["leads"],
                 "telemetryDir": TELEMETRY_DIR,
             }).encode())
 
@@ -337,6 +362,20 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(200, b'{"ok":false,"stored":"browser-only"}')
             return self._send(200, b'{"ok":true}')
 
+        if path == "/lead":
+            # One typed lead, or a batch — the tablet queues offline and
+            # flushes the backlog in one POST, exactly like telemetry.
+            try:
+                for item in (data if isinstance(data, list) else [data]):
+                    if isinstance(item, dict) and item.get("email"):
+                        record_lead(item)
+            except Exception as exc:  # disk full / permissions — never 500 the booth
+                sys.stderr.write(f"[leads] write failed: {exc}\n")
+                # NOT ok: the tablet must keep the lead queued in localStorage
+                # rather than treat a browser-only copy as safely on disk.
+                return self._send(507, b'{"ok":false,"stored":"browser-only"}')
+            return self._send(200, b'{"ok":true}')
+
         return self._send(404, b'{"ok":false}')
 
 
@@ -367,6 +406,8 @@ def main() -> None:
     print(f"      http://{ip}:{args.port}/tv")
     print(f"  and point the tablet at  http://{ip}:{args.port}/tablet")
     print(f"\n  Telemetry -> {TELEMETRY_DIR}/events-YYYY-MM-DD.jsonl  (port {args.port + 1})")
+    print(f"  Leads     -> {TELEMETRY_DIR}/leads-YYYY-MM-DD.jsonl   (typed on the tablet;")
+    print(f"               run flush-leads.py after the day, with internet, to send them)")
     if missing:
         # Not an error: the kiosk probes each film at run time and offers that
         # product's QR instead until the render lands.

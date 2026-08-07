@@ -157,13 +157,32 @@ assumption.)
 There is **no email gate.** Switching films is free — a gate at a trade show reads as a paywall and
 the person walks, and it would poison the tap numbers besides.
 
-Instead, once a film **finishes**, the tablet adds a *"Want all six?"* card with a QR pointing at
-your existing form at `streamstage.live/expo-leads.html`, tagged with the product they just watched.
-It opens on **their** phone on **their** data, which is why it still works when the venue wifi is
-dead — a form hosted on the booth laptop would not. The TV's end card points at it in words.
+Once a film **finishes**, the tablet adds a *"Want all six?"* card with **two ways in, same offer**:
 
-Nothing new was built for this: it is the same `/api/expo-leads` route as before. If you take a lead
-in conversation, log it with **+1 lead captured** in the operator sheet so the day's numbers match.
+1. **The QR** — points at your existing form at `streamstage.live/expo-leads.html`, tagged with the
+   product they just watched. It opens on **their** phone on **their** data, which is why it still
+   works when the venue wifi is dead. The TV's end card points at it in words. Unchanged.
+2. **A typed email** — an input on the same card, for the visitor who won't scan (or for you,
+   mid-conversation). It needs **no internet at all**: the email is queued in the tablet's
+   localStorage the instant it's typed, then flushed to the laptop over the booth's own network —
+   `serve.py` appends it to `telemetry/leads-YYYY-MM-DD.jsonl`, fsync'd, same as telemetry. If the
+   server is down the queue just waits (it survives reloads) and drains when it's back. The
+   operator sheet shows **Lead queue** — that number should be 0 whenever the relay is online.
+
+The operator sheet also has its own **type a lead's email** input (same queue), next to the old
+**+1 lead captured** button for leads you took on paper. Typed leads count in the **Leads** tally
+automatically.
+
+**At the end of each day, once you're somewhere with internet:**
+
+```bash
+python3 ~/projects/StreamStage/expo-assets/kiosk/flush-leads.py --dry-run   # look first
+python3 ~/projects/StreamStage/expo-assets/kiosk/flush-leads.py             # then send
+```
+
+That POSTs each typed lead to the same `/api/expo-leads` route the form uses, so each arrives as a
+normal lead email. It marks every confirmed send in `telemetry/leads-flushed.json` — **re-running
+it never double-sends**, so run it as often as you like until it reports 0 to send.
 
 ---
 
@@ -175,7 +194,8 @@ in conversation, log it with **+1 lead captured** in the operator sheet so the d
 | `tablet.html` | The controller, portrait-first. Six tiles with drawn app icons, now-playing takeover, hidden operator sheet. |
 | `tv.html` | The big screen. Attract loop, warm film layers, end card. |
 | `brand.css` | Shared design system — colours, the wordmark lockup, motion. |
-| `serve.py` | Static files + the cross-device relay + telemetry to disk (on its own port). Standard library only. |
+| `serve.py` | Static files + the cross-device relay + telemetry and typed leads to disk (on their own port). Standard library only. |
+| `flush-leads.py` | Sends the typed leads to the live `/api/expo-leads` route. Run after each day, with internet. Never double-sends. |
 | `make-qr.py` | Regenerates every QR. Run after changing any URL. |
 | `sync-media.sh` | Pulls the newest cut of each film. Run after any re-render. |
 | `index.html` | The launcher you open once at setup. |
