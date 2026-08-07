@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The booth laptop serves plain HTTP on a private LAN, with no certificate and no DNS name,
+  and the venue has no internet, so there is nothing to get a certificate from. Cleartext is
+  permitted because it is the only thing that can work here.
+
+  This is a blanket cleartext allowance, not a per-domain one, because the laptop's address is
+  discovered at run time (DHCP) and cannot be listed here. The narrowing happens one layer up
+  instead: MainActivity.allowed() refuses every URL — navigation AND subresource — that is not
+  the discovered kiosk host on its own port or the telemetry port one above it.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

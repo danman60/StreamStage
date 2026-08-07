@@ -1,0 +1,16 @@
+# Build output
+build/
+.gradle/
+.kotlin/
+local.properties
+*.apk
+*.aab
+captures/
+.externalNativeBuild/
+.cxx/
+
+# This app ships no media of its own — every pixel comes from the laptop's kiosk page.
+*.mp4
+*.mov
+*.mkv
+*.m4v

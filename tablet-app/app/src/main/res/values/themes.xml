@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Black, fullscreen, no action bar. The first frame on the tablet must be the kiosk's
+         own near-black, not a white flash. Platform theme only, so the app carries no
+         appcompat/material dependency — same choice as ../kiosk-app. -->
+    <style name="Theme.BoothTablet" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+</resources>

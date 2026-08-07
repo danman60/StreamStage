@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ================================================================= -->
+    <!-- INTERNET is required here — unlike ../kiosk-app, which deliberately -->
+    <!-- has none. This app's whole job is to talk HTTP to the booth laptop  -->
+    <!-- over the LAN. There is no code path to anything else: every URL is  -->
+    <!-- checked against the discovered host in MainActivity.allowed(), and  -->
+    <!-- the dependency graph contains no analytics, crash reporter, or SDK  -->
+    <!-- that could phone home. Do not add one.                              -->
+    <!-- ================================================================= -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Screen stays on all show day. FLAG_KEEP_SCREEN_ON is set in code; this covers
+         the tablet's own idle timer while a film is on the takeover. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- A phone will install this fine for bench testing; a tablet is what it is for. -->
+    <uses-feature android:name="android.hardware.touchscreen" android:required="true" />
+    <uses-feature android:name="android.hardware.wifi" android:required="false" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="false"
+        android:theme="@style/Theme.BoothTablet"
+        android:networkSecurityConfig="@xml/network_security_config">
+
+        <!-- android:screenOrientation="fullSensor" — PORTRAIT AND LANDSCAPE BOTH. The kiosk
+             page is portrait-first and was verified at 820x1180, 810x1080, 800x1280,
+             768x1024 and landscape 1024x768; locking an orientation throws half of that away.
+
+             android:configChanges — rotating must NOT recreate the Activity. A recreate tears
+             down the WebView, which kills the page's EventSource and any in-flight lead POST. -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="fullSensor"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|keyboard|navigation|uiMode|density|touchscreen|locale|fontScale"
+            android:windowSoftInputMode="adjustResize"
+            android:resizeableActivity="true"
+            android:theme="@style/Theme.BoothTablet">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Deliberately NOT category.HOME. On the Fire Stick (kiosk-app) taking over HOME
+                 is the right call because that stick is a dedicated appliance. A tablet that
+                 hijacks HOME is a tablet nobody can reset on the floor.
+
+                 AND DELIBERATELY NO SCREEN PINNING. There is no android:lockTaskMode here, no
+                 startLockTask() anywhere in the source, and no Unpin control in the operator
+                 panel — removed on Daniel's instruction ("i dont want screen pinned on tablet").
+                 Do not add any of the three back. What keeps a visitor on the kiosk page is
+                 immersive mode plus MainActivity.allowed(), and that is the whole design now. -->
+        </activity>
+
+    </application>
+
+</manifest>
