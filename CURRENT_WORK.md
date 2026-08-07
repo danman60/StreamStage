@@ -96,6 +96,13 @@ Full detail: `expo-assets/kiosk/NEXT-BUILD-NOTES.md`.
    `presenter-server.py` in a WebView with host-in-SharedPreferences, and a built
    `PHONEPRESENTER.apk` (3.2 MB, 2026-07-26) is on the FIRMAMENT desktop. gradle + Android SDK
    are already installed on SPYBALLOON. Copy that project, point the WebView at /tablet.
+3. **DIRECTION — unified trade-show toolkit.** Daniel plans to merge PhonePresenter + kiosk control
+   into one app, two modes (drive a TALK / drive the BOOTH). Build items 1-2 so they fold into it.
+   **Concrete blocker found 2026-08-07: presenter-server.py and kiosk/serve.py BOTH default to port
+   8080** (`presenter-server.py:18`, `serve.py:345`). At the booth both are wanted on the same
+   laptop at the same time, so the second to start fails to bind. Never tripped because they have
+   never been run together. Merging the two servers is probably right — both are stdlib-only HTTP +
+   SSE relay + JSON state, so they mostly overlap.
 
 ## Active Task
 **Post-expo: improve the talks + decks from the real lapel-mic transcript.**

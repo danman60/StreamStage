@@ -111,8 +111,47 @@ task mode, and whether `WebView` autoplay-with-audio needs a flag.
 
 ---
 
+---
+
+## 3. DIRECTION — a unified trade-show toolkit
+
+Daniel, 2026-08-07: *"I likely plan to integrate PhonePresenter and kiosk control into a unified
+trade show toolkit."* Direction, not a scheduled build. Nothing here is for Calgary.
+
+This is the right shape, and items 1 and 2 above should be built so they fold into it rather than
+having to be unpicked later. What that means concretely:
+
+**One app, two modes.** The tablet/phone is either driving a TALK (deck: beats, jump-to-slide,
+prev/next, the `L` facelift overlay, `G` robot wall, `M` media-fee act) or driving the BOOTH (kiosk:
+pick a film, see the tally). Same install, same LAN discovery, same reconnect logic; different
+screen. Do not ship two APKs.
+
+**⚠ The concrete blocker nobody has hit yet: both servers default to port 8080.**
+- `expo-assets/decks/presenter-server.py:18` — `PORT = env PRESENTER_PORT or 8080`
+- `expo-assets/kiosk/serve.py:345` — `--port` default `8080`
+
+At the Calgary booth these two are wanted **at the same time on the same laptop** — deck on the TV
+for a talk, kiosk on the TV between talks — and today the second one to start will fail to bind.
+Nobody has tripped it only because they have never been run together. Whoever unifies this has to
+either give them distinct default ports or merge them into one server. **Merging is probably right:**
+they are both stdlib-only Python HTTP servers with an SSE relay and a JSON state endpoint, so the
+overlap is most of each file.
+
+Also relevant to the merge:
+- kiosk telemetry deliberately lives on **port+1** (browser per-host connection budget — see
+  `README-BOOTH.md`), so a merged server inherits that constraint.
+- `presenter-server.py` now serves HTTP Range (`29838b1`); `serve.py` already did. Keep it in both.
+- The kiosk SSE relay retains only `tv` state messages. Retaining a `play` made a late-joining screen
+  restart a stale film. A merged relay must keep that rule.
+
+Anti-dup checked 2026-08-07: there is no existing toolkit/tradeshow/booth project under `~/projects`.
+The pieces to unify are `~/projects/PhonePresenter`, `expo-assets/decks/presenter-server.py` and
+`expo-assets/kiosk/`.
+
+---
+
 ## Status
-Both items are **notes only**, recorded 2026-08-07. Nothing has been started.
+All three items are **notes only**, recorded 2026-08-07. Nothing has been started.
 
 One caveat on scheduling, since item 1 is a failure fallback rather than a feature: the current
 browser-based kiosk covers Calgary Aug 11–12 **as long as the laptop connects to the TV.** Item 1 is
