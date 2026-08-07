@@ -26,7 +26,7 @@ FACEBOOK = "https://www.facebook.com/groups/2834366403591742"
 # Keep in lockstep with CONFIG.products in kiosk.js.
 PRODUCTS = {
     "studiosage":   "https://studiosage.ai",
-    "compsync":     "https://compsync.net",          # UNCONFIRMED — see README-BOOTH.md
+    "compsync":     "https://compsync.net",          # confirmed by Daniel 2026-08-07
     "callboard":    "https://callboard-scheduler.vercel.app",
     "costumecraft": "https://costume-craft.vercel.app",
     "studiobeat":   "https://www.studiobeat.io/",  # confirmed live 2026-08-06 (200, Vercel)

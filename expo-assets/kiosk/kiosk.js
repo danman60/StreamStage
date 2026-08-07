@@ -39,10 +39,8 @@ var CONFIG = {
       tagline:'Competition management, from entries through to the livestream.',
       accent: '#F59E0B',
       film:   ['media/compsync.mp4'],
-      url:    'https://compsync.net',
-      // ⚠ Daniel never gave a signup URL for CompSync. compsync.net is an
-      // assumption so the QR is not dead on the floor.  Confirm before Aug 10.
-      urlUnconfirmed: true
+      // Confirmed by Daniel 2026-08-07.
+      url:    'https://compsync.net'
     },
     {
       id:     'callboard',

@@ -139,13 +139,12 @@ handles that on its own — it does not need you to do anything:
 The product is called **StudioBeat** everywhere. The repo is named StudioSync; that is the old name
 and it must never appear on a booth screen.
 
-## Two things that are assumptions, not facts
+## One thing that is an assumption, not a fact
 
-1. **The CompSync signup URL was never given.** Its QR currently points at **`compsync.net`** so it
-   is not a dead code on the floor. If that is wrong, edit `PRODUCTS` in `make-qr.py` and `CONFIG`
-   in `kiosk.js`, re-run `python3 make-qr.py`, and reload. Flagged in the operator sheet too.
+(CompSync's signup URL **`compsync.net`** was confirmed by Daniel 2026-08-07 — no longer an
+assumption.)
 
-2. **Reflect's line was never confirmed by you.** The tile, the attract card and the end card all
+1. **Reflect's line was never confirmed by you.** The tile, the attract card and the end card all
    read *"The system that runs your studio's day — and remembers it."* That is taken **verbatim
    from beat 16 of its own VO script** (`/mnt/data/reflect-video/out/VO-SCRIPT.md`) — it is the
    film's own closing line, not a claim written at the booth. Change `tagline` in `kiosk.js` if you
