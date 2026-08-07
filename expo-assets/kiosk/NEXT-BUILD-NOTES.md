@@ -73,6 +73,24 @@ The **QR destinations** — `studiosage.ai`, `compsync.net`, `studiobeat.io`, th
 and the Facebook group. Those open on a **visitor's phone over their own mobile data**, so they do
 not need booth Wi-Fi. Nothing the booth hardware does requires internet.
 
+### ⚠ ANTI-DUP — do not start a new Android project. One already exists.
+`~/projects/PhonePresenter` is a working Gradle Android app **that already wraps this exact server**:
+- WebView loading `$base/remote` off `presenter-server.py` — the same server family as the kiosk
+- host stored in SharedPreferences behind an `EditText`, so the IP is typed once and remembered
+  (`MainActivity.kt:39-50`)
+- adds volume-button paging via `onKeyDown` plus a MediaSession `VolumeProviderCompat` so it still
+  works with the screen off
+
+Its README says "scaffold only, not built yet", but that is stale — **a built `PHONEPRESENTER.apk`
+(3.2 MB, 2026-07-26 16:14) is on the FIRMAMENT desktop** next to the decks. So the pattern is proven
+end to end on this hardware, not theoretical.
+
+**The Android toolchain is on SPYBALLOON already**: `gradle` at `/usr/local/bin/gradle` and the SDK
+at `~/Android/Sdk`, with `PhonePresenter/local.properties` already pointing at it. Nothing to install.
+
+That reduces the kiosk APK to: copy that project, point the WebView at `/tablet` instead of
+`/remote`, drop the volume-key handling (irrelevant for a kiosk), and add the four things below.
+
 ### What an APK actually has to add
 1. Wrap `tablet.html` so it launches like an app — no browser chrome, no address bar, no chance of a
    visitor tabbing out of it.

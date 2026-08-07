@@ -92,6 +92,10 @@ Full detail: `expo-assets/kiosk/NEXT-BUILD-NOTES.md`.
    the QR destinations, which open on visitors' own phones. The new work is packaging: a WebView
    wrapper, LAN discovery so nobody types an IP, reconnect-on-wake, and lock-task mode.
    Open questions: which tablet, which Android version, WebView wrapper vs native rewrite.
+   **ANTI-DUP:** do NOT start a new Android project. `~/projects/PhonePresenter` already wraps
+   `presenter-server.py` in a WebView with host-in-SharedPreferences, and a built
+   `PHONEPRESENTER.apk` (3.2 MB, 2026-07-26) is on the FIRMAMENT desktop. gradle + Android SDK
+   are already installed on SPYBALLOON. Copy that project, point the WebView at /tablet.
 
 ## Active Task
 **Post-expo: improve the talks + decks from the real lapel-mic transcript.**
