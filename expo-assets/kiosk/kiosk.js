@@ -47,8 +47,8 @@ var CONFIG = {
     {
       id:     'callboard',
       name:   'Callboard',
-      short:  'Scheduling that knows your rules.',
-      tagline:'Rehearsal scheduling that already knows your rules.',
+      short:  'Recital orders that know your rules.',
+      tagline:'Recital running orders that already know your rules — siblings, quick changes, and the gaps in between.',
       accent: '#4EC5D4',
       film:   ['media/callboard.mp4'],
       url:    'https://callboard-scheduler.vercel.app'

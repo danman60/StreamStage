@@ -111,6 +111,9 @@
     fill:none;stroke:#080B10;stroke-width:1.9;
     stroke-linecap:round;stroke-linejoin:round;
   }
+  /* the real marks, cut to one ink and sized to sit on the same optical
+     weight as the drawn ones */
+  .tile .ic img{width:62%;height:62%;display:block;object-fit:contain}
 
   .tile .txt{flex:1;min-width:0;overflow:hidden}
   .tile h2{font-size:2.5rem;line-height:1.05;letter-spacing:-.03em;font-weight:900}
@@ -466,30 +469,26 @@
   /* ----------------------------------------------------------------------
      THE APP ICONS.
 
-     Drawn here as inline SVG rather than pulled from each product's brand
-     folder, and that is deliberate. Real marks exist for only three of the six
-     (StudioSage, CompSync, StudioBeat) and they are wildly different objects —
-     a rendered robot, a colour wordmark, a letter tile. Dropping those into a
-     grid next to three products with nothing would produce exactly the
-     mismatched grid this rework was asked to kill.
+     Where a product HAS a real mark, the real mark is used — StudioSage's
+     robot, CompSync's dancer-S, StudioBeat's layers glyph (the one its own
+     app sidebar and the film's end card use). Only the three products that
+     genuinely have no mark anywhere — Callboard, CostumeCraft, Reflect — get
+     one drawn here, in the same single-weight stroke language.
 
-     So all six are drawn in one language: single-weight strokes, 24x24, each
-     showing what the product DOES, sitting in an identical accent-gradient
-     rounded square. They stay crisp at any size, need no network, and cannot
-     go missing. Product logos still appear where they belong — inside the
-     films themselves.
+     Consistency comes from the TREATMENT, not from throwing the real assets
+     away: every mark is reduced to one ink colour and sits on an identical
+     rounded square in the product's accent gradient. The supplied files could
+     not be dropped in as-is — CompSync's ships on a black plate, StudioBeat's
+     on a copper one, StudioSage's is the full lockup with the wordmark on
+     cream — so brand/icons/ holds silhouettes cut from those originals.
      -------------------------------------------------------------------- */
+  var LOGOS = {
+    studiosage: 'brand/icons/studiosage.png',
+    compsync:   'brand/icons/compsync.png',
+    studiobeat: 'brand/icons/studiobeat.png'
+  };
+
   var ICONS = {
-    // a text thread that answers itself
-    studiosage:
-      '<path d="M4 6.6a2.6 2.6 0 0 1 2.6-2.6h10.8A2.6 2.6 0 0 1 20 6.6v6.8a2.6 2.6 0 0 1-2.6 2.6H9.4L5.4 19.4v-3.4H6.6A2.6 2.6 0 0 1 4 13.4z"/>' +
-      '<path d="M12 7.3l.95 2.15L15.1 10.4l-2.15.95L12 13.5l-.95-2.15L8.9 10.4l2.15-.95z"/>',
-    // a trophy: the competition weekend
-    compsync:
-      '<path d="M7.2 4h9.6v3.8a4.8 4.8 0 0 1-9.6 0z"/>' +
-      '<path d="M7.2 5.6H4.6a2.6 2.6 0 0 0 2.6 4.3"/>' +
-      '<path d="M16.8 5.6h2.6a2.6 2.6 0 0 1-2.6 4.3"/>' +
-      '<path d="M12 12.6v3.2"/><path d="M9.6 20h4.8"/><path d="M10.2 15.8h3.6V20h-3.6z"/>',
     // a calendar slot that has been settled
     callboard:
       '<rect x="3.6" y="5.2" width="16.8" height="14.6" rx="2.6"/>' +
@@ -499,9 +498,6 @@
     costumecraft:
       '<path d="M12 7.4a2.15 2.15 0 1 1 2.15-2.15"/><path d="M12 7.4v2"/>' +
       '<path d="M12 9.4l7.7 5a1.6 1.6 0 0 1-.87 2.94H5.17A1.6 1.6 0 0 1 4.3 14.4z"/>',
-    // a waveform: the beat the studio runs on
-    studiobeat:
-      '<path d="M3 12.4h3.1l2.2-6.6 3.1 12.9 2.35-8.1 1.75 4.2H21"/>',
     // four rooms on one screen
     reflect:
       '<rect x="3.6" y="4.6" width="7" height="6" rx="1.3"/>' +
@@ -511,7 +507,8 @@
   };
 
   function iconFor(id) {
-    return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[id] || ICONS.studiobeat) + '</svg>';
+    if (LOGOS[id]) return '<img src="' + LOGOS[id] + '" alt="" aria-hidden="true">';
+    return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[id] || ICONS.reflect) + '</svg>';
   }
 
   /* ------------------------------------------------------------- tiles */

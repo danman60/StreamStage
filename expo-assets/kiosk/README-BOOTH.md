@@ -111,6 +111,19 @@ written at 25/50/75%, so even a view that dies mid-film still contributes what i
 
 ---
 
+## The tile icons
+
+Where a product has a real mark, the real mark is used: **StudioSage's robot**, **CompSync's
+dancer-S**, and **StudioBeat's layers glyph** — the one its own app sidebar and the film's end card
+use. Only **Callboard, CostumeCraft and Reflect** have icons drawn for the kiosk, because those
+three have no mark anywhere in their repos.
+
+They still read as one set because the *treatment* is shared, not because the assets are: every
+mark is reduced to a single ink colour on an identical rounded square in the product's accent
+gradient. The originals could not be dropped in as they ship — CompSync's sits on a black plate,
+StudioBeat's on a copper one, StudioSage's is the full lockup with the wordmark on cream — so
+`brand/icons/` holds silhouettes cut from those originals. Re-cut them if a logo changes.
+
 ## The sixth product, and films that are not cut yet
 
 **StudioBeat** is the sixth tile. Its film was still being cut when this was built, and the kiosk
