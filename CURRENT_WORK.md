@@ -96,8 +96,17 @@ Full detail: `expo-assets/kiosk/NEXT-BUILD-NOTES.md`.
    `presenter-server.py` in a WebView with host-in-SharedPreferences, and a built
    `PHONEPRESENTER.apk` (3.2 MB, 2026-07-26) is on the FIRMAMENT desktop. gradle + Android SDK
    are already installed on SPYBALLOON. Copy that project, point the WebView at /tablet.
-3. **DIRECTION — unified trade-show toolkit.** Daniel plans to merge PhonePresenter + kiosk control
-   into one app, two modes (drive a TALK / drive the BOOTH). Build items 1-2 so they fold into it.
+3. **DIRECTION — unified trade-show toolkit.** CORRECTED 2026-08-07: it is TWO devices with TWO
+   views at once, not one app in two modes — his PHONE drives the deck from the stage, a TABLET
+   drives the TV at the booth. The TV has no internet.
+   **Fire Stick answer: yes, an app on a stick runs the kiosk TV offline.** HDMI stays (the stick
+   uses the TV port); the LAPTOP leaves the TV path. All six films are 255 MB total, so they
+   side-load onto a stick easily. Reuse `~/projects/TVBOX` (DanTV): `app/app` Fire TV shell,
+   `app/companion` tablet app, `app/installer` LAN installer — all shipping today.
+   ⚠ Do NOT copy DanTV's remote channel: it goes through Supabase over the INTERNET
+   (`SupabaseRemoteApi.kt`). Use the kiosk's LAN-only SSE relay instead. Best shape: let the Fire
+   TV app run the loop unattended so the fallback needs no network at all.
+   He does not trust opening browsers on rented/new TVs — that is the requirement driving this. Build items 1-2 so they fold into it.
    **Concrete blocker found 2026-08-07: presenter-server.py and kiosk/serve.py BOTH default to port
    8080** (`presenter-server.py:18`, `serve.py:345`). At the booth both are wanted on the same
    laptop at the same time, so the second to start fails to bind. Never tripped because they have

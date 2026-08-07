@@ -118,13 +118,52 @@ task mode, and whether `WebView` autoplay-with-audio needs a flag.
 Daniel, 2026-08-07: *"I likely plan to integrate PhonePresenter and kiosk control into a unified
 trade show toolkit."* Direction, not a scheduled build. Nothing here is for Calgary.
 
-This is the right shape, and items 1 and 2 above should be built so they fold into it rather than
-having to be unpicked later. What that means concretely:
+### The actual topology — corrected by Daniel 2026-08-07, do not re-derive it
 
-**One app, two modes.** The tablet/phone is either driving a TALK (deck: beats, jump-to-slide,
-prev/next, the `L` facelift overlay, `G` robot wall, `M` media-fee act) or driving the BOOTH (kiosk:
-pick a film, see the tally). Same install, same LAN discovery, same reconnect logic; different
-screen. Do not ship two APKs.
+Two DIFFERENT devices with two DIFFERENT views running at the same time. Not one app in two modes:
+
+| Device | Drives | View |
+|---|---|---|
+| **His phone**, on stage | the slide deck | PhonePresenter — beats, jump, prev/next, `L`/`G`/`M` |
+| **Tablet**, at the booth | the TV | kiosk controller — pick a film, tally |
+| **The TV** | — | **has no internet**; today it is fed by laptop HDMI |
+
+His words on the TV: *"TV has no Internet so it'll need to be served by a laptop HDMI. Alternatively
+we could load an app onto a Fire Stick... I don't trust opening browsers on rented or new TVs."*
+
+That last point is the requirement, not a preference. A rented booth TV is an unknown machine: an
+unknown browser, someone else's logins, update nags, an unpredictable remote. Bringing your own
+Fire Stick means the display device is one you control and have tested.
+
+### Would a Fire Stick app run the kiosk TV offline? Yes — with three specifics
+
+1. **HDMI does not go away, the LAPTOP does.** The stick still occupies the TV's HDMI port; what
+   disappears is the laptop-to-TV cable and the laptop being pinned to the TV all day.
+2. **The films have to live on the stick.** All six are **255 MB total** (19–58 MB each). That is
+   nothing for a Fire Stick's 8 GB, but it does not belong inside the APK — ship a small app and
+   side-load the media, which is exactly what `TVBOX/app/installer` already does over the LAN.
+3. **The tablet still needs a network to reach the stick.** No internet — but a LAN. A Fire Stick
+   cannot be an access point, so either a cheap travel router lives in the booth bag, or the laptop
+   provides a hotspot (which puts the laptop back in the picture, just not cabled to the TV).
+   **The way out:** make the Fire TV app able to run the loop *by itself* with no controller at all.
+   Then the fallback needs no network whatsoever, and the tablet becomes an upgrade rather than a
+   dependency. That also merges item 1 into this app instead of being a separate rendered video.
+
+### What to reuse from `~/projects/TVBOX` (DanTV) — and the one thing NOT to
+
+DanTV is the same three-piece shape and it ships today:
+- `app/app` — Fire TV app, `com.tvbox.app`, Compose TV UI, LEANBACK_LAUNCHER
+- `app/companion` — companion **tablet** app
+- `app/installer` — **LAN installer** app, the mechanism for getting builds/media onto a stick
+- Built APKs in the repo root (`dantv.apk` 34 MB, `companion.apk` 19 MB), so the toolchain works
+
+⚠ **Do NOT copy DanTV's remote-control channel.** Its companion talks to the TV **through Supabase
+over the internet** (`app/companion/.../data/SupabaseRemoteApi.kt`, OkHttp to the REST URL, with
+`remote_commands`/`dtv_*` tables). That is precisely what cannot work at a booth with no internet.
+
+The kiosk already solves that correctly: `serve.py`'s **SSE relay is LAN-only and needs no internet.**
+So the target build is DanTV's *app shells and installer* with the *kiosk's* control channel —
+not DanTV's cloud remote.
 
 **⚠ The concrete blocker nobody has hit yet: both servers default to port 8080.**
 - `expo-assets/decks/presenter-server.py:18` — `PORT = env PRESENTER_PORT or 8080`
