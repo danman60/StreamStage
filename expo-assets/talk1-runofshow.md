@@ -1,5 +1,5 @@
 # Talk 1 — Run of Show / Presenter Cue Card
-**The Content Day · Calgary Dance Teacher Expo · Wed Aug 12 2026, 10:50, Adapt Stage**
+**The Content Day · ~30 min + Q&A · Calgary Dance Teacher Expo · Wed Aug 12 2026, 10:50, Adapt Stage**
 Pocket version. Cues only. Rebuilt 2026-08-06 against the real deck — the old card listed 13 slides
 against a 26-slide deck and still said "Dance NYC Expo".
 
@@ -41,16 +41,16 @@ against a 26-slide deck and still said "Dance NYC Expo".
 | 11 | 10:30 | What audiences watch | Five cards, five real examples | Keep the caveat honest |
 | 12 | 12:00 | One clip, nine posts | HOLD UP PHONE alongside the slide | The nine reels are **silent** — don't click for audio |
 | 13 | 13:00 | Pro feeds UGC | Mortgage joke + "hostage situation" editing math | 30-sec edit = 2–4 hrs |
-| 14 | 13:30 | **The long game** | Sept/Jan/May · grad class every June · the 5-year profile | "What a great idea, write this down" |
-| 15 | 15:00 | DEMO — the player | Three sources across the top. Click once for sound | Audio checked pre-stage |
-| 16 | 16:00 | Recital → recruiting film | "Recital night is **peak vibes**" | KMSD clip runs ~10 dB quiet |
-| 17 | 17:30 | Reel wall | Two clicks. Pick the two closest to this room | Leave it at 2 clicks |
-| 18 | 19:00 | Video you never make? | Rapid fire, one-line answers | Generous, not salesy |
-| 19 | 20:30 | Cliffhanger | "Who answers the 40 parents who reply?" | Points **BACKWARD** — the AI talk was yesterday |
-| 20 | 25:00 | **StudioSage sting** | **30 SECONDS. Look at a clock.** The snark slider is the laugh | No price, no dashboard, no knowledge base |
-| 21 | 25:30 | Close / CTA | Two asks, read #2 out loud verbatim | **"streamstage.live slash book."** You never said it last time |
+| 14 | 14:30 | **The long game** | Sept/Jan/May · grad class every June · the 5-year profile | "What a great idea, write this down" |
+| 15 | 16:00 | DEMO — the player | Three sources across the top. Click once for sound | Audio checked pre-stage |
+| 16 | 19:30 | Recital → recruiting film | "Recital night is **peak vibes**" | KMSD clip runs ~10 dB quiet |
+| 17 | 21:00 | Reel wall | Two clicks. Pick the two closest to this room | Leave it at 2 clicks |
+| 18 | 22:30 | Video you never make? | Rapid fire, one-line answers | Generous, not salesy |
+| 19 | 24:30 | Cliffhanger | "Who answers the 40 parents who reply?" | Points **BACKWARD** — the AI talk was yesterday |
+| 20 | 26:00 | **StudioSage sting** | **30 SECONDS. Look at a clock.** The snark slider is the laugh | No price, no dashboard, no knowledge base |
+| 21 | 26:30 | Close / CTA | Two asks, read #2 out loud verbatim | **"streamstage.live slash book."** You never said it last time |
 
-## The media-fee act — `M` (4 slides, ~6 min)
+## The media-fee act — `M` (4 slides, +5:30)
 Shoot it like a show · Getting it to every family · **The media fee** · What you hand over.
 
 **Off the main line on purpose.** Calgary's published description for this session is content-day only.
