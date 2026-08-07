@@ -182,8 +182,16 @@ rather than yanking the current card is preferred; the phone does not depend on 
 **As built, all four rules hold.** Named cards move to the front in the order given; every other
 card — including the two that are not films (the "tap the tablet" invite and the closing card) —
 keeps its existing relative order behind them. Unknown ids are ignored. Playback is never started.
-The new order is parked and applied at the next card boundary, so the card on screen is never
-yanked mid-fade; that is at most ~11 s away.
+
+**Applied immediately on arrival, not at the next card boundary** — corrected 2026-08-07 after
+end-to-end testing found a drag doing nothing for 30+ seconds. Deferring to the boundary was wrong
+twice: re-ordering the deck never disturbs the card on screen anyway (the current card keeps its
+place and its timer), and "the next boundary" is **not** ~11 s when the services card is up — that
+card *is* a 181 s film, so the boundary can be three minutes away. `.tv.order` now reflects a drag
+within one heartbeat (~1 s), which is what the phone should show him.
+
+The loop carries on from whatever card is already on screen, so the cards you then see are a
+**rotation** of `order`, not a replay from its first element.
 
 **`playlist` is operator-only.** A `playlist` without `src:"phone"` is refused 403, not merely
 sanitised — nothing on a visitor surface has any business setting the TV's order, and naming
@@ -312,3 +320,4 @@ contract.
 |---|---|---|
 | 2026-08-07 | First version. `pause`, `resume`, `playfilm`, `playlist` defined; `paused` requested on `tv`. | phone-app agent |
 | 2026-08-07 | Implemented on `tv.html` + `serve.py`. **`src` is now load-bearing and `POST /bus` can return 403** (§2). `playfilm` shipped and the `play`-is-dropped bug fixed (§2.3). `playlist` shipped operator-only (§2.4). `paused` **and** `order` shipped on `tv` (§3). Added: 5-minute pause dead-man, `dir:"l"` fixed, `/state._server` (§5). | kiosk agent |
+| 2026-08-07 | **Fix:** `playlist` was accepted but its order was parked until the next card boundary, which is up to 181 s away while the services card plays — on the floor that read as a dead control. Now applied on arrival; `.tv.order` moves within one heartbeat. §2.4 corrected. | kiosk agent |

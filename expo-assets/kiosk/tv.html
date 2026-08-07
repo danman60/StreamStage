@@ -865,11 +865,12 @@
      laptop has not been given yet. It does NOT start playback: a cut to a film
      is always an explicit play, never a side effect of a drag.
 
-     Applied at the next card BOUNDARY, not on arrival. Reordering the array
-     under a card that is currently on screen would either yank it mid-fade or
-     leave idx pointing at a different card than the one the viewer is looking
-     at. So the new order is parked, and the next advance picks it up — which
-     is at most eleven seconds away.
+     Applied THE MOMENT IT ARRIVES. The card on screen is not disturbed —
+     applyOrder() re-points idx at the same element — so there is nothing to
+     defer, and deferring it meant an operator could drag a new order and watch
+     the TV report the old one for up to three minutes (the services card is a
+     181s film, and its "next boundary" is the end of that film). See the long
+     note in setOrder().
      ===================================================================== */
   var pendingOrder = null;
 
@@ -885,10 +886,35 @@
     });
     pendingOrder = want;
     Telemetry.log('order_set', { films: want.join(' ') || null, count: want.length });
+
+    /* APPLY IT NOW, not at the next card boundary.
+       ------------------------------------------------------------------
+       This used to be parked for the next advance, on the theory that
+       rebuilding the deck under a visible card would yank it mid-fade. That
+       theory was wrong twice over:
+
+       1. applyOrder() is visually a NO-OP for the card on screen. It rebuilds
+          the array and re-points idx at the SAME element — the card keeps its
+          classes, keeps its running timer, and nothing moves. There was never
+          a yank to avoid.
+
+       2. "The next boundary is at most ~11s away" was simply false. The
+          services card IS a three-minute film, so when it is up the next
+          boundary is its 181s duration away. Measured: an operator dragged a
+          new order on the phone and the TV still reported the old one 35s
+          later, because the film had 138s left to run. From the floor that is
+          indistinguishable from a control that does not work.
+
+       Applying immediately also makes the `order` echo on the state message
+       honest the moment the drag lands, which is the only thing the phone can
+       show him. */
+    applyOrder();
     push();
   }
 
-  /* Rebuild cards[] and keep idx pointing at the SAME card it pointed at. */
+  /* Rebuild cards[] and keep idx pointing at the SAME card it pointed at.
+     Safe to call at any time, including mid-card and mid-film: the element on
+     screen stays on screen and only the order of what comes NEXT changes. */
   function applyOrder() {
     var want = pendingOrder;
     pendingOrder = null;
@@ -917,8 +943,9 @@
     return out;
   }
 
-  /* Every advance goes through here, so a parked order can never be applied
-     underneath a card that is on screen. */
+  /* Every advance goes through here. setOrder() already applies on arrival, so
+     this is a no-op in the normal case and a backstop if an order is ever
+     parked by some other path. */
   function advance(step) {
     applyOrder();
     showCard(idx + step);
