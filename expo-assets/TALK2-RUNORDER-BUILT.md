@@ -229,14 +229,39 @@ fragment force-revealed:
   I kept it rather than cutting it.
 - **The facelift job is ~21 minutes, not 60–90.** See §1.
 
-### One pre-existing defect found, deliberately not fixed
+### One pre-existing defect found, and now fixed
 
 `POST https://www.studiosage.ai/api/demo/route-all` returns **410 Gone** — verified with curl. The
-deck still fires it as an 8-second heartbeat while on the arm slides (new 26 and 27), so it logs a
-console error every 8 seconds across the two most important slides in the talk. It is harmless —
-the call is caught and the demo now routes purely by the receiving number, so the endpoint is
-vestigial — but the brief said not to touch the demo wiring, so **it is reported, not changed.**
-Deleting the heartbeat is a three-line change if you want it gone before Tuesday.
+deck was firing it as an 8-second presence heartbeat while on the arm slides (26 and 27), logging a
+failed request every 8 seconds across the two slides that matter most in the hour.
+
+It was retired server-side along with `demo_route_state`; routing has been by the **receiving
+number** since 2026-08-03, so nothing in the demo depended on it. **Deleted 2026-08-07.** Removed
+with it:
+
+- `routeBeat` / `startBeat` / `stopBeat`, the `beatTimer`, and the `pagehide` / `beforeunload`
+  'off' beacons
+- `isArm()` and the two arm/disarm calls in `show()`
+- the **hardcoded `x-demo-token`** that shipped in this tracked file — which also closes the
+  standing "rotate `DEMO_RESET_TOKEN`" housekeeping item (punch list #40)
+- the `?rt=` override and its `sessionStorage` entry
+- `body.rt-unarmed`, the `.rtnote` overlay and its CSS — there is no arm state left to report
+- the `route-arm` class on slide 26 — there is no longer an arm zone to be in
+
+**Verified:** parked on slides 26 and 27 for 26 seconds (the old beat fired every 8s) →
+**0 requests to `route-all`, 0 console errors.** All four `<script>` blocks still parse, `O` still
+lands on the animated fallback, and `→` from the wall still skips the cartoon to the Q&A slide.
+
+⚠ Do not reintroduce it without a live endpoint. The demo wiring that **is** load-bearing is
+untouched: `calgary@ingest.studiosage.ai`, +1 587-317-0721, and the 8-check pre-flight at
+`studiosage.ai/demo/operator`.
+
+### The two stale runtime figures are corrected in place
+
+`FACELIFT-CONTRACT.md:115` and `facelift-run.sh:97` both claimed 60–90 / ~75 minutes. Both now
+state the measured ~17–21 min, cite `status.json`, and say plainly that the Toronto reveal failed
+in the reveal path rather than the build. The runner's own budget line now tells a headless run it
+has ~48 minutes and to ship a finished page over a clever unfinished one.
 
 ## 9. Still open
 

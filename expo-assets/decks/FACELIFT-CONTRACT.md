@@ -112,7 +112,18 @@ FACELIFT_FAKE=1 python3 presenter-server.py
 
 ## Known limits (say them out loud rather than discover them on stage)
 
-- A real run takes **60–90 minutes**. Start it at the PLANT slide, not later.
+- A real run takes **about 20 minutes**, not 60–90. ⚠ This line used to say 60–90 and that was
+  wrong; the reorg proposal then used the wrong number as a reason to cut the reveal. Both
+  recorded runs disagree with it:
+  - `alisasdanceacademy.com` — **17 min** to a revealable site (runner exited rc=0 at ~19).
+  - `steppinupdanceco.ca`, the real on-stage run — **21 min**. `facelift-out/status.json`:
+    `started_at` 1785356381 = 2026-07-29 16:19:41 ET, `updated_at` 1785357647 = 16:40:47,
+    `status: ready`, `stage: done`.
+
+  That second run started ~10 minutes into the Toronto talk and was **finished at minute 31**;
+  the reveal was attempted around minute 50 and still failed, so **the failure was in the reveal
+  path, not the build** (he ended up showing their original site served locally). Budget ~20 min,
+  verify the reveal separately, and still start it at the PLANT slide — early costs nothing.
 - One run at a time. A second GO returns 409 until you hit Reset run.
 - The runner writes `facelift-out/claude.log` and `facelift-out/runner.log` — that is where to
   look if status sticks on `running`.

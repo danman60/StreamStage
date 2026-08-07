@@ -56,7 +56,7 @@ say running "starting"
 
 # ---------------------------------------------------------------------------
 # Rehearsal mode: prove the phone -> server -> deck plumbing in ~20s without
-# burning a 75-minute real run. FACELIFT_FAKE=1 ./facelift-run.sh <url> <dir>
+# burning a real run (measured ~21 min). FACELIFT_FAKE=1 ./facelift-run.sh <url> <dir>
 # ---------------------------------------------------------------------------
 if [ "${FACELIFT_FAKE:-}" = "1" ]; then
   say running "scraping (rehearsal)";  sleep 5
@@ -94,8 +94,11 @@ Operator instructions for this run (it is driving a LIVE stage reveal, so read t
       {"status":"running","stage":"<scrape|brand|build|qa|deploy>"}
   and at the end either {"status":"ready","stage":"done"} or {"status":"failed","error":"<why>"}.
   Write it with a tiny python/jq one-liner, not by hand-editing over the top of it.
-- Budget: the reveal happens ~75 minutes after this starts. If you are running long, ship the
-  strongest thing you have at the 60-minute mark rather than polishing.
+- Budget: measured runs take ~17-21 minutes, and the Calgary running order plants this at 6:30
+  and reveals at 54:30, so you have ~48 minutes. That is real headroom, not slack to spend:
+  the ONLY thing that matters is that $SITE holds a finished, self-contained build. If you are
+  somehow still going at the 35-minute mark, ship the strongest thing you have rather than
+  polishing - a plain finished page beats a clever unfinished one on stage.
 EOF
 
 say running "claude session starting"
