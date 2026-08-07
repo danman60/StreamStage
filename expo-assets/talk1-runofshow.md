@@ -42,13 +42,13 @@ against a 26-slide deck and still said "Dance NYC Expo".
 | 12 | 12:00 | One clip, nine posts | HOLD UP PHONE alongside the slide | The nine reels are **silent** — don't click for audio |
 | 13 | 13:00 | Pro feeds UGC | Mortgage joke + "hostage situation" editing math | 30-sec edit = 2–4 hrs |
 | 14 | 14:30 | **The long game** | Sept/Jan/May · grad class every June · the 5-year profile | "What a great idea, write this down" |
-| 15 | 16:00 | DEMO — the player | Three sources across the top. Click once for sound | Audio checked pre-stage |
+| 15 | 16:00 | DEMO — the player | **Five sources. Three full films: CSOD / KMSD / WSDY.** Click once for sound | **Play ONE, not three.** KMSD runs ~10 dB quiet |
 | 16 | 19:30 | Recital → recruiting film | "Recital night is **peak vibes**" | KMSD clip runs ~10 dB quiet |
-| 17 | 21:00 | Reel wall | Two clicks. Pick the two closest to this room | Leave it at 2 clicks |
+| 17 | 21:00 | Reel wall | Three clicks. **Promos row is six now — KMSD, CSOD, WSDY all full length** | Pick the two closest to this room |
 | 18 | 22:30 | Video you never make? | Rapid fire, one-line answers | Generous, not salesy |
 | 19 | 24:30 | Cliffhanger | "Who answers the 40 parents who reply?" | Points **BACKWARD** — the AI talk was yesterday |
 | 20 | 26:00 | **StudioSage sting** | **30 SECONDS. Look at a clock.** The snark slider is the laugh | No price, no dashboard, no knowledge base |
-| 21 | 26:30 | Close / CTA | Two asks, read #2 out loud verbatim | **"streamstage.live slash book."** You never said it last time |
+| 21 | 26:30 | Close / CTA | **Three asks.** 1 checklist · 2 **StudioSage** · 3 bigger-show travel | **Ask 2 is the one to close here.** No price — none is set |
 
 ## The media-fee act — `M` (4 slides, +5:30)
 Shoot it like a show · Getting it to every family · **The media fee** · What you hand over.
@@ -68,6 +68,15 @@ Frame/format/delivery · camera settings. Built because you asked for it on mic.
 - **StudioSage: 30 seconds, one slide, and that is all.** Last time it ran ~7 minutes and ate the Q&A.
 - Silent clips (no audio track, verified): the four recital angles, and seven of the nine reels in the fan.
 
-## Open question for you
-Last time you closed the booking ask with *"only if your studio is here in Ontario."* Calgary is not.
-The slide says nothing about geography — decide before you go on whether you're taking Alberta bookings.
+## The geography, settled
+You are Ontario-based and you **do** travel for bigger shows. Say it once, early, on slide 3 — before
+anyone can wonder. It is what turns the rest of the hour into teaching instead of a pitch they can't buy:
+
+> *"I'm in Ontario. I travel for bigger shows — but I'm not going to be your Tuesday guy. So everything
+> in this hour is built to work whether you run it yourself, hire somebody local, or call me."*
+
+The media-fee act is written as a **buying spec** for exactly this reason — it is the deal to ask *any*
+videographer for, which is also precisely how you quote. It sells you without pitching.
+
+**Still undecided, and deliberately absent from every slide:** how big "bigger show" has to be, and any
+price or offer for StudioSage. Nothing on screen commits you to either. Take both to the booth.
