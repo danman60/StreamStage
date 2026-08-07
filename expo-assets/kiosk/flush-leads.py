@@ -101,10 +101,18 @@ def save_marker(marker: "dict[str, str]") -> None:
 def payload_for(lead: dict) -> dict:
     """Shape one typed lead like an expo-leads.html submission.
 
-    The live route REQUIRES name, studio and email. The booth captured only
-    an email, so the other two carry honest placeholders — the local part of
-    the address as the name, and a label that says plainly this was an
-    email-only capture — rather than invented data.
+    The live route REQUIRES name, studio and email.
+
+    STUDIO. The film gate asks for the studio name along with the email, so
+    most leads now carry a real one and it is used verbatim. Only a capture
+    that genuinely has no studio — the operator's email-only input, or a lead
+    queued before the gate existed — falls back to the honest placeholder.
+    A synthesised studio on a lead that HAS one would be worse than useless:
+    it would overwrite the answer with a label.
+
+    ASSET. A gated lead was promised something ("all six films"). `asset` is
+    what the live route's autoresponder reads to decide what to send, so a
+    lead that goes upstream without it is a promise the booth quietly broke.
 
     The lead's address goes in `email` and `notes` ONLY. Never replyTo.
     """
@@ -112,21 +120,38 @@ def payload_for(lead: dict) -> dict:
     product = str(lead.get("product") or "").strip()
     via = str(lead.get("via") or "tablet").strip()
     ts = str(lead.get("ts") or "unknown time")
+    studio = str(lead.get("studio") or "").strip()
     product_name = PRODUCT_NAMES.get(product, product or "none on screen")
     who = "by booth staff" if via == "operator" else "by the visitor"
-    return {
+
+    interests = ["software"]
+    if product in PRODUCT_NAMES:
+        interests.append(PRODUCT_NAMES[product])
+
+    payload = {
+        # A real name was never asked for at the booth; the local part of the
+        # address is the honest stand-in, and the studio name is the field that
+        # actually identifies them.
         "name": email.split("@", 1)[0],
-        "studio": "(email-only booth capture)",
+        "studio": studio or "(email-only booth capture)",
         "email": email,
         "phone": "",
-        "interests": [PRODUCT_NAMES[product]] if product in PRODUCT_NAMES else [],
-        "source": f"Dance Teacher Expo booth tablet — typed {who}",
+        "interests": interests,
+        # The taxonomy value the leads route validates, not prose. The prose is
+        # in `notes`, which is where Daniel reads it.
+        "source": "booth_tablet",
+        "asset": "sixfilms",
+        "src": "booth_tablet",
+        "p": product or None,
+        "s": "tablet",
         "notes": (
             f"Typed on the booth tablet ({via}) at {ts}. "
             f"Film on screen: {product_name}. "
+            f"Studio: {studio or 'not given (email-only capture)'}. "
             f"Queued offline; sent later by flush-leads.py."
         ),
     }
+    return payload
 
 
 def send(endpoint: str, payload: dict, timeout: float = 20.0) -> "tuple[bool, str]":

@@ -108,6 +108,9 @@ var CONFIG = {
   idle: {
     returnToAttractMs: 6000,   // after a film ends / is stopped, before attract
     tabletResetMs:     90000,  // tablet drops back to the tile grid if untouched
+                               // — and the film gate re-arms for the next visitor
+    gateAbandonMs:     45000,  // a gate nobody finished: back to the tiles, so
+                               // the next person walks up to six tiles, not a form
     attractHoldMs:     11000   // dwell per attract card
   },
 
@@ -126,13 +129,31 @@ var CONFIG = {
    films played, fifteen events in the page, zero on disk. A different port is
    a different origin with its own pool, so the record cannot be starved by
    the films. Falls back to same-origin when the port is not knowable. */
+CONFIG.altOrigin = '';       // the port+1 origin, '' when it is not knowable
+
 (function () {
   if (typeof location === 'undefined') return;
   if (location.protocol.indexOf('http') !== 0 || !location.port) return;
   var next = parseInt(location.port, 10) + 1;
   if (!isFinite(next)) return;
-  CONFIG.logEndpoint = location.protocol + '//' + location.hostname + ':' + next + '/log';
+  CONFIG.altOrigin  = location.protocol + '//' + location.hostname + ':' + next;
+  CONFIG.logEndpoint = CONFIG.altOrigin + '/log';
 })();
+
+/* A file that must NOT compete with the six warm product films for the page
+   origin's ~6 connections. serve.py listens on port+1 as well, serving the same
+   directory with the same Range support, so this is the identical file down a
+   pool of its own.
+
+   Measured, and the reason this exists: with the StreamStage services film on
+   the page origin as a seventh <video>, its request sat NETWORK_LOADING /
+   readyState 0 for nine seconds, and Chrome then ABORTED all six product film
+   loads to free a slot for it. Nine seconds of black on the attract loop, and
+   the six warm layers — the whole instant-start design, measured at 87ms
+   tap-to-frame — cold. Off the page origin, neither happens. */
+function altMedia(path) {
+  return CONFIG.altOrigin ? CONFIG.altOrigin + '/' + path : path;
+}
 
 /* Build the QR target for a product, with attribution.  surface is 'tv' or
    'tablet' so Daniel can tell which screen actually earned the scan. */

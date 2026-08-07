@@ -224,6 +224,60 @@
   #now .fbmini .qr-plate{width:5.4rem;flex:none}
 
   /* ==========================================================================
+     THE FILM GATE — raised by the FIRST tile tap of a visit, then never again
+     for that visitor.
+
+     Per VISITOR, not per film. Six tiles gated individually would mean typing
+     an email four times and the booth would grind to a halt; one gate, then
+     all six unlock until the tablet resets for the next person.
+
+     z-index 50 sits UNDER the operator sheet (60) and the hidden corner (70),
+     so Daniel can always get behind it — a gate that can trap the booth is
+     worse than no gate.
+     ====================================================================== */
+  #gate{
+    position:fixed;inset:0;z-index:50;display:none;
+    flex-direction:column;justify-content:center;overflow:auto;
+    padding:3rem 3rem 3rem;
+    background:
+      radial-gradient(120% 90% at 10% 0%, var(--tint), transparent 58%),
+      radial-gradient(100% 80% at 100% 100%, var(--wash), transparent 60%),
+      #07090C;
+  }
+  #gate.on{display:flex;animation:rise .38s var(--ease) both}
+  #gate .gwrap{width:100%;max-width:62rem;margin:0 auto}
+  /* The community QR is on the tablet in EVERY state — the gate is a takeover,
+     so it has to carry it too, or the one screen a visitor stares at longest is
+     the one state that drops it. It also fills the space the on-screen keyboard
+     takes over the moment they tap a field. */
+  #gate .gatefb{width:100%;max-width:62rem;flex:none;margin:auto auto 0}
+  #gate .ghead{display:flex;align-items:center;justify-content:space-between;gap:2rem;
+    margin-bottom:2.6rem}
+  #gate .gkick{
+    font:900 1.3rem/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:#06090D;
+    background:linear-gradient(120deg,var(--a),var(--b));border-radius:99rem;padding:.85rem 1.5rem;
+  }
+  #gate h2{font-size:4.6rem;line-height:1.02;letter-spacing:-.04em;font-weight:900}
+  #gate h2 .g{
+    background:linear-gradient(105deg,var(--cyan),var(--amber));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  #gate .gsub{margin-top:1.4rem;font-size:1.95rem;line-height:1.32;color:var(--dim);font-weight:500}
+  #gate form{margin-top:2.6rem;display:flex;flex-direction:column;gap:1.1rem}
+  #gate input{
+    font:600 1.75rem/1.2 var(--sans);color:var(--ink);
+    background:rgba(255,255,255,.06);border:1px solid var(--line-hot);
+    border-radius:1.4rem;padding:1.3rem 1.8rem;outline:none;
+    -webkit-appearance:none;appearance:none;
+  }
+  #gate input::placeholder{color:var(--faint)}
+  #gate input:focus{border-color:var(--edge);background:rgba(255,255,255,.09)}
+  #gate input.bad{border-color:var(--amber);background:rgba(245,158,11,.08)}
+  #gate .btn{font-size:1.75rem;padding:1.05em 1.9em;justify-content:center}
+  #gate .gfine{margin-top:1.5rem;font-size:1.35rem;line-height:1.4;color:var(--faint)}
+  #gate .gback{margin-top:2.4rem;font-size:1.35rem;padding:.85em 1.5em}
+
+  /* ==========================================================================
      OPERATOR SHEET — hidden. Ctrl+Shift+D, or five taps in the top-left
      corner. Never a visible button: a studio owner must not find this.
      ====================================================================== */
@@ -322,6 +376,12 @@
     #now .scanbox .qr-plate{width:27rem;flex:none}
     #now h2{font-size:5.6rem}
     #op .stats{grid-template-columns:repeat(2,1fr)}
+    /* Portrait is the booth orientation and portrait is where the on-screen
+       keyboard eats the bottom half of the screen. Pin the gate to the TOP so
+       both inputs and the button stay above the keyboard instead of being
+       centred into it. */
+    #gate{justify-content:flex-start;padding-top:6rem}
+    #gate h2{font-size:4.2rem}
   }
   /* a SHORT portrait tablet (768x1024) is the tightest case in the building:
      six rows plus a QR in 1024px. Everything gives a little. */
@@ -422,6 +482,43 @@
   </div>
 </div>
 
+<!-- ===================== THE FILM GATE ==================================
+     Raised by the FIRST tile tap of a visit. On submit the tapped film plays
+     and ALL SIX unlock, until the tablet resets for the next person.
+-->
+<div id="gate">
+  <div class="gwrap">
+    <div class="ghead">
+      <span class="gkick" id="gkick">Ready to play</span>
+      <div class="ss-mark" style="font-size:2rem">
+        <img src="brand/logo-white.png" alt="StreamStage.live">
+      </div>
+    </div>
+    <h2>Two boxes,<br><span class="g">then all six.</span></h2>
+    <p class="gsub">Tell me where to send them and every film unlocks &mdash;
+      plus the recital video checklist, emailed to you.</p>
+    <form id="gateform" novalidate autocomplete="off">
+      <input id="gstudio" type="text" enterkeyhint="next" autocapitalize="words"
+             placeholder="Studio name" aria-label="Studio name">
+      <input id="gemail" type="email" inputmode="email" enterkeyhint="go"
+             placeholder="Email address" aria-label="Email address">
+      <button class="btn" type="submit">Play it &rarr;</button>
+    </form>
+    <div class="gfine" id="gfine">One email with the six films and the recital checklist.
+      Unsubscribe any time.</div>
+    <button class="btn ghost gback" id="gback" type="button">&larr; Back to all six</button>
+  </div>
+
+  <div class="fbcard glass gatefb">
+    <span class="qr-plate"><img src="qr/facebook.svg" alt="QR code — StreamStage studio community on Facebook"></span>
+    <span class="t">
+      <span class="fbtag">Scan &middot; free</span>
+      Join the studio community
+      <em>Owners and teachers. See what ships next, first.</em>
+    </span>
+  </div>
+</div>
+
 <!-- ===================== OPERATOR SHEET (hidden) ======================= -->
 <div id="op">
   <div class="sheet">
@@ -459,6 +556,7 @@
     <div class="health">
       <span>TV: <b id="h-tv" class="bad">not connected</b></span>
       <span>Relay: <b id="h-srv" class="bad">offline</b></span>
+      <span>Gate: <b id="h-gate">armed</b></span>
       <span>Events held: <b id="h-ev">0</b></span>
       <span>Leads: <b id="h-lead">0</b></span>
       <span>Lead queue: <b id="h-leadq">0</b></span>
@@ -473,6 +571,7 @@
     <div class="ops">
       <button class="btn" id="op-export" type="button">Export today &mdash; CSV + JSON</button>
       <button class="btn ghost" id="op-lead" type="button">+1 lead captured</button>
+      <button class="btn ghost" id="op-unlock" type="button">Unlock films &mdash; skip the gate</button>
       <button class="btn ghost" id="op-form" type="button">Open lead form &#8599;</button>
       <button class="btn ghost" id="op-tv" type="button">Open TV window</button>
       <button class="btn ghost" id="op-close" type="button">Close</button>
@@ -579,7 +678,7 @@
     };
   })();
 
-  function captureLead(input, via) {
+  function captureLead(input, via, extra) {
     var email = (input.value || '').trim();
     if (!EMAIL_RE.test(email)) {
       input.classList.add('bad');
@@ -587,12 +686,78 @@
       return null;
     }
     input.classList.remove('bad');
-    LeadQueue.add({ email: email, product: current ? current.id : null, via: via });
+    extra = extra || {};
+    var product = (extra.product !== undefined) ? extra.product : (current ? current.id : null);
+    LeadQueue.add({
+      email:  email,
+      // The REAL studio name when the gate asked for it, and null otherwise.
+      // Never a placeholder here — flush-leads.py decides what to do with an
+      // absent one, and it can only do that if absent means absent.
+      studio: (extra.studio || '').trim() || null,
+      product: product,
+      via: via
+    });
     // The tally counts lead_captured events, so a typed lead shows up in
     // "Leads" exactly like a +1 — via says which affordance earned it.
-    Telemetry.log('lead_captured', { via: via + '-typed', product: current ? current.id : undefined });
+    Telemetry.log('lead_captured', { via: via + '-typed', product: product || undefined });
     return email;
   }
+
+  /* ----------------------------------------------------------------------
+     THE VISITOR — whoever is standing at the booth right now.
+
+     ONE GATE PER PERSON, not per film. The first tile tap of a visit raises
+     the gate; once they have given a studio name and an email, all six films
+     are theirs until the tablet resets for the next person. Gating each film
+     would mean typing an email four times and the booth would grind to a halt.
+
+     Deliberately NOT persisted. A reload must never hand the next person
+     somebody else's unlock: re-asking after a reload costs one visitor thirty
+     seconds, a leaked unlock costs every lead behind it.
+
+     The session is kept alive by anything that says a human is still here —
+     a touch on the tablet, or the TV reporting a film on screen (they are
+     watching the big screen, not the tablet, for a minute at a time). It ends
+     after CONFIG.idle.tabletResetMs of neither, which is the same idle reset
+     that already takes the tablet home.
+     -------------------------------------------------------------------- */
+  var Visitor = (function () {
+    var who    = null;     // {email, studio}; null when nothing was captured
+    var open   = false;    // unlocked? true without `who` only via the operator override
+    var timer  = null;
+    var enders = [];
+
+    function end() {
+      if (!open) return;
+      open = false;
+      who  = null;
+      if (timer) { clearTimeout(timer); timer = null; }
+      Telemetry.log('visitor_end', {});
+      for (var i = 0; i < enders.length; i++) { try { enders[i](); } catch (e) {} }
+    }
+
+    return {
+      unlocked: function () { return open; },
+      email:    function () { return who ? who.email : null; },
+      studio:   function () { return who ? who.studio : null; },
+
+      start: function (email, studio) {
+        who  = email ? { email: email, studio: studio || null } : null;
+        open = true;
+        this.touch();
+        Telemetry.log('visitor_start', { captured: !!email });
+      },
+
+      touch: function () {
+        if (!open) return;
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(end, CONFIG.idle.tabletResetMs);
+      },
+
+      onEnd: function (fn) { enders.push(fn); },
+      end: end
+    };
+  })();
 
   /* Somebody mid-type must not have the card yanked away by the TV going
      back to attract. This defers ONLY the auto-return-home; it never gates a
@@ -727,8 +892,87 @@
     return (b >= a) ? 1 : -1;
   }
 
+  /* ====================================================================
+     THE GATE ITSELF.
+
+     Raised by pick() on the first tap of a visit; every later tap in that
+     visit goes straight through. It is a takeover, not a dialog, because a
+     dialog on a booth tablet gets dismissed by accident.
+     ================================================================== */
+  var gate      = document.getElementById('gate');
+  var gstudio   = document.getElementById('gstudio');
+  var gemail    = document.getElementById('gemail');
+  var pending   = null;      // the tile that raised the gate: {p, dir}
+  var gateTimer = null;
+
+  function openGate(p, dir) {
+    pending = { p: p, dir: dir };
+    document.getElementById('gkick').textContent = p.name + ' — ready to play';
+    gstudio.classList.remove('bad');
+    gemail.classList.remove('bad');
+    gate.classList.add('on');
+    Telemetry.log('gate_shown', { product: p.id });
+
+    // A gate nobody finished must not be what the next person walks up to —
+    // they should find six tiles, not a stranger's half-filled form.
+    if (gateTimer) clearTimeout(gateTimer);
+    gateTimer = setTimeout(function () { closeGate('abandoned'); }, CONFIG.idle.gateAbandonMs);
+
+    setTimeout(function () { try { gstudio.focus(); } catch (e) {} }, 60);
+  }
+
+  function closeGate(reason) {
+    if (gateTimer) { clearTimeout(gateTimer); gateTimer = null; }
+    if (reason && gate.classList.contains('on')) {
+      Telemetry.log('gate_closed', {
+        reason: reason, product: pending ? pending.p.id : undefined
+      });
+    }
+    gate.classList.remove('on');
+    pending = null;
+    gstudio.value = '';
+    gemail.value  = '';
+    gstudio.classList.remove('bad');
+    gemail.classList.remove('bad');
+  }
+
+  document.getElementById('gateform').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var studio = (gstudio.value || '').trim();
+    if (!studio) { gstudio.classList.add('bad'); gstudio.focus(); return; }
+
+    var want = pending;                       // closeGate() clears it
+    var email = captureLead(gemail, 'gate', {
+      studio: studio, product: want ? want.p.id : null
+    });
+    if (!email) return;                       // captureLead already flagged the field
+
+    // Unlocked the instant the lead is IN THE QUEUE, not when the server
+    // acknowledges it. LeadQueue.add() writes localStorage synchronously, so
+    // this works with no wifi, no relay and no laptop — which is the point.
+    Visitor.start(email, studio);
+    try { gemail.blur(); gstudio.blur(); } catch (err) {}
+    closeGate();
+    if (want) pick(want.p, want.dir);
+  });
+
+  gstudio.addEventListener('input', function () { this.classList.remove('bad'); });
+  gemail.addEventListener('input',  function () { this.classList.remove('bad'); });
+  document.getElementById('gback').addEventListener('click', function () { closeGate('back'); });
+
+  // When the visitor session ends, whatever is on screen goes home too.
+  Visitor.onEnd(function () {
+    closeGate();
+    if (current) backToGrid(true);
+  });
+
   /* --------------------------------------------------------------- tap */
   function pick(p, dir) {
+    // FIRST tap of a visit: gate. Every tap after that, for this visitor,
+    // goes straight to the film.
+    if (!Visitor.unlocked()) { openGate(p, dir); return; }
+    Visitor.touch();
+
     var t0 = performance.now();
 
     // Once a product is already up, direction follows the order of the five
@@ -777,6 +1021,10 @@
     now.querySelector('.allfive').classList.remove('sent');
     leademail.value = '';
     leademail.classList.remove('bad');
+    // ...unless this visitor already gave the address at the gate. Asking the
+    // same person for the same email after every film is how a booth annoys
+    // the one visitor who already said yes.
+    if (Visitor.email()) markLeadSent(Visitor.email());
     document.getElementById('nowqr').alt = 'QR code to try ' + p.name;
     document.getElementById('nowstate').textContent =
       (hasFilm[p.id] === false) ? 'Scan to see it' : 'Playing on the big screen';
@@ -801,16 +1049,22 @@
   document.getElementById('back').addEventListener('click', function () { backToGrid(false); });
 
   /* ------------------------------------------- typed email on the card */
-  document.getElementById('leadform').addEventListener('submit', function (e) {
-    e.preventDefault();                          // never navigates, never gates
-    var email = captureLead(leademail, 'tablet');
-    if (!email) return;
-    leademail.blur();
+  function markLeadSent(email) {
     document.getElementById('leaddone').innerHTML =
       'Got it &mdash; all six are on their way to <b>' +
-      email.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</b>.' +
+      String(email).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</b>.' +
       '<em>Nothing else to do. Enjoy the rest of the expo.</em>';
     now.querySelector('.allfive').classList.add('sent');
+  }
+
+  document.getElementById('leadform').addEventListener('submit', function (e) {
+    e.preventDefault();                          // never navigates, never gates
+    // Carries the studio name if the gate already has one, so a second address
+    // typed by the same visitor is not filed as an anonymous capture.
+    var email = captureLead(leademail, 'tablet', { studio: Visitor.studio() });
+    if (!email) return;
+    leademail.blur();
+    markLeadSent(email);
     resetIdle();
   });
   leademail.addEventListener('input', function () { leademail.classList.remove('bad'); });
@@ -824,7 +1078,10 @@
     }, CONFIG.idle.tabletResetMs);
   }
   ['pointerdown', 'keydown'].forEach(function (ev) {
-    document.addEventListener(ev, function () { if (current) resetIdle(); }, true);
+    document.addEventListener(ev, function () {
+      Visitor.touch();                 // a hand on the tablet = still the same person
+      if (current) resetIdle();
+    }, true);
   });
 
   function say(text) {
@@ -843,6 +1100,12 @@
     if (!msg || msg.type !== 'tv') return;
     tvSeen = Date.now();
     document.body.classList.add('tvlive');
+
+    // A film on the big screen means the visitor is still here — they are
+    // watching the TV, not touching the tablet, for a minute at a time. Without
+    // this their session would expire mid-film and the next tap would re-gate
+    // the same person.
+    if (msg.state === 'playing' || msg.state === 'end') Visitor.touch();
 
     if (msg.state === 'playing') {
       var p = productById(msg.product);
@@ -879,6 +1142,11 @@
     // paint(): paint waits on /events, and a dead server leaves that fetch
     // pending — the queue number matters most at exactly that moment.
     document.getElementById('h-leadq').textContent = LeadQueue.pending();
+
+    var g = document.getElementById('h-gate');
+    g.textContent = !Visitor.unlocked() ? 'armed'
+                  : (Visitor.email() ? 'unlocked — ' + Visitor.email() : 'unlocked (operator)');
+    g.className = Visitor.unlocked() ? 'ok' : '';
   }, 1000);
 
   Bus.onConnection(function (up) {
@@ -964,6 +1232,18 @@
   document.getElementById('op-lead').addEventListener('click', function () {
     Telemetry.log('lead_captured', { via: 'operator' });
     say('Lead logged');
+    render();
+  });
+  /* The way out of a gate that is in the way — somebody who genuinely will not
+     type an email, a stuck keyboard, a queue building up behind them. It is in
+     HERE, five taps deep, so a visitor can never find it: a visible "skip"
+     would be the whole gate, gone. Unlocks the six films for this visitor only;
+     the next visitor is gated normally. */
+  document.getElementById('op-unlock').addEventListener('click', function () {
+    Visitor.start(null, null);
+    closeGate();
+    Telemetry.log('gate_override', {});
+    say('Films unlocked for this visitor');
     render();
   });
   var opLeadInput = document.getElementById('op-leademail');

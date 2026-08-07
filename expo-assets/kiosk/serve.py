@@ -395,6 +395,10 @@ def main() -> None:
             {"file": "media/costumecraft.mp4"},
             {"file": "media/studiobeat.mp4"},
             {"file": "media/reflect.mp4"},
+            # Not a product — StreamStage's own recital filming / livestream
+            # film, which plays as a card in the TV attract loop. Missing is not
+            # an error: the card falls back to text plus its QR.
+            {"file": "media/streamstage-services.mp4"},
         ] if not os.path.exists(os.path.join(HERE, p["file"]))
     ]
 

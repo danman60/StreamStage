@@ -9,10 +9,25 @@ Everything is written to expo-assets/kiosk/qr/ and committed. No network at
 run time, no CDN, no <script> QR library — the booth machine will not have
 internet and a QR that fails to render is a dead booth.
 
-The product QRs carry ?src=booth-calgary&p=<product>&s=<screen> so a REAL scan
-is countable on the destination side. The Facebook QR is deliberately clean:
-Daniel cannot read a query string off a group join, so tagging it would only
-manufacture a number nobody can check.
+Two kinds of QR, and the difference is deliberate:
+
+  PRODUCT QRs (qr/tv/<product>.svg, qr/tablet/<product>.svg) go STRAIGHT to the
+  product. We want a studio owner in the app, not behind a form. They keep their
+  ?src=booth-calgary&p=<product>&s=<screen> tags, so a REAL scan is countable on
+  the destination side.
+
+  MATERIAL QRs (the "all six films" offer, the recital-services card) go to the
+  gated landing page https://streamstage.live/g — nothing we give away is given
+  away without capturing the email and studio name. They carry
+  ?a=<asset>&src=booth_tablet|booth_tv&p=<product>&s=<surface>, which is the
+  taxonomy `src` values the leads route already validates.
+
+  /g is extensionless on purpose and it resolves: checked 2026-08-07, the live
+  site answers 200 for /checklist as well as /checklist.html, so public/g.html
+  is reachable at /g.
+
+The Facebook QR is deliberately clean: Daniel cannot read a query string off a
+group join, so tagging it would only manufacture a number nobody can check.
 """
 
 import os
@@ -35,16 +50,27 @@ PRODUCTS = {
 
 SRC = "booth-calgary"
 
-# The soft email capture: offered on the tablet AFTER a film finishes, never as
-# a gate in front of one. Points at the EXISTING booth form on streamstage.live
-# so it opens on the attendee's own phone, on their own cell data — which is the
-# only reason it still works when the venue wifi is dead.
-LEADS = "https://streamstage.live/expo-leads.html"
+# The gated landing page. Every material QR lands here — it asks for name,
+# studio and email, then emails the asset. Opens on the attendee's own phone on
+# their own cell data, which is why it still works when the venue wifi is dead.
+GATE = "https://streamstage.live/g"
+
+# The `src` taxonomy the leads route validates. Underscored, not the hyphenated
+# booth-calgary tag the product QRs carry — those two are different fields with
+# different readers and must not be conflated.
+SRC_TABLET = "booth_tablet"
+SRC_TV = "booth_tv"
 
 
 def tagged(url: str, product: str, surface: str) -> str:
+    """A PRODUCT QR: straight to the product, attribution appended."""
     sep = "?" if "?" not in url else "&"
     return f"{url}{sep}src={SRC}&p={product}&s={surface}"
+
+
+def gated(asset: str, src: str, product: str, surface: str) -> str:
+    """A MATERIAL QR: the gate, carrying what was promised and where it was scanned."""
+    return f"{GATE}?a={asset}&src={src}&p={product}&s={surface}"
 
 
 def svg(data: str, quiet: int = 3) -> str:
@@ -105,9 +131,14 @@ def main() -> None:
         for product, url in PRODUCTS.items():
             write(f"{surface}/{product}.svg", tagged(url, product, surface))
             count += 1
+    # The "want all six?" offer on the tablet, after a film ends. Gated.
     for product in PRODUCTS:
-        write(f"tablet/leads-{product}.svg", tagged(LEADS, product, "tablet"))
+        write(f"tablet/leads-{product}.svg", gated("sixfilms", SRC_TABLET, product, "tablet"))
         count += 1
+    # The StreamStage services card on the TV attract loop (recital filming and
+    # livestream). TV ONLY — this is deliberately NOT a seventh tablet tile.
+    write("tv/recital.svg", gated("recital", SRC_TV, "recital", "tv"))
+    count += 1
     print(f"\n{count} QR codes written to {OUT}")
 
 

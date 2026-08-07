@@ -134,6 +134,44 @@
   .filmqr .cap em{display:block;font-style:normal;font-size:1.6rem;color:var(--dim);
     margin-top:.7rem;font-weight:600;word-break:break-all}
 
+  /* ---- the StreamStage services card ---------------------------------
+     StreamStage's OWN film — recital filming and livestream — in the attract
+     rotation. It is NOT a seventh product: there is no tablet tile for it and
+     the tablet stays at six. Daniel was explicit.
+
+     Two renderings of one card, chosen at run time by the same /films probe
+     the product layers use:
+       - film on disk  -> `.hasfilm`: the film IS the card, full frame, with a
+         gated QR pinned bottom-right (bottom-right, not right-centre: the
+         community QR is fixed top-right from 5rem to 21.8rem and a panel there
+         would collide with it).
+       - film missing  -> an ordinary text attract card carrying the same QR,
+         exactly how a product whose film has not landed still shows its code.
+     ------------------------------------------------------------------- */
+  .svc video{display:none}
+  .svc.hasfilm video{position:absolute;inset:0;display:block;
+    width:100%;height:100%;object-fit:contain;background:#000}
+  .svc.hasfilm .pad,
+  .svc.hasfilm .url{display:none}
+  .svc .svcqr{display:none}
+  /* No fade-in: the card itself is already fading in, and a second staggered
+     transition on top of it just reads as lag. */
+  .svc.hasfilm .svcqr{display:block;opacity:1;transform:none}
+
+  /* While the services film is up, the persistent chrome comes OFF.
+
+     Unlike the six product films — 16:9 product footage with empty corners —
+     this one is a finished, fully-branded StreamStage piece that carries its
+     own wordmark top-left and its own StreamStage.live lockup top-right. The
+     booth wordmark landed directly on the first and the community QR panel on
+     the second: two unreadable overlaps, and one of them was our own logo
+     printed twice on top of itself. The film supplies both, so the booth stops
+     supplying them for those three minutes. The one thing the film does NOT
+     carry — the gated recital QR — stays, bottom-right, in the same slot the
+     product films put theirs. */
+  body.svcfilm #brandbar,
+  body.svcfilm #fb{display:none}
+
   /* ---- end card ------------------------------------------------------ */
   #end{position:fixed;inset:0;z-index:6;display:none;opacity:0;
     transition:opacity .5s var(--ease);
@@ -351,6 +389,40 @@
     <div class="url">reflect-vert.vercel.app</div>
   </section>
 
+  <!-- StreamStage's own services film. TV ONLY — not a seventh tablet tile. -->
+  <section class="card svc" id="svccard" data-hold="12000">
+    <video id="svcvid" playsinline preload="none" muted disablepictureinpicture></video>
+
+    <div class="pad">
+      <div class="copy">
+        <div class="kicker">StreamStage &middot; the film crew half of this booth</div>
+        <h1>We film<br><span class="g">your recital.</span></h1>
+        <div class="sub">Multi-camera recital video, livestreaming and photography &mdash;
+          transparent per-dancer pricing, and you keep 100% of the revenue.</div>
+        <div class="live">Ask me at the booth</div>
+      </div>
+      <div class="side">
+        <!-- A drawn mark, in the same single-weight stroke language as the
+             Callboard / CostumeCraft / Reflect icons. The StreamStage logo
+             files are all WHITE, and the emblem plate is a light cyan-to-amber
+             gradient — a white mark on it is invisible. A camera and the two
+             broadcast arcs say the same thing and are legible. -->
+        <span class="emblem"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.6" y="7.4" width="12.4" height="9.2" rx="2.2"/><path d="M15 11.4l4.9-2.8a.8.8 0 0 1 1.2.7v5.4a.8.8 0 0 1-1.2.7L15 12.6z"/><path d="M6.2 4.6a4.4 4.4 0 0 1 5.4 0"/></svg></span>
+        <div class="cardqr">
+          <span class="qr-plate"><img src="qr/tv/recital.svg" alt="QR code — recital filming and livestream details"></span>
+          <div class="lbl">Scan for the details<em>Emailed to you</em></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="filmqr svcqr">
+      <span class="qr-plate"><img src="qr/tv/recital.svg" alt="QR code — recital filming and livestream details"></span>
+      <div class="cap">Scan for the details<em>Recital filming &amp; livestream</em></div>
+    </div>
+
+    <div class="url">streamstage.live</div>
+  </section>
+
   <section class="card" data-hold="12000">
     <div class="pad">
       <div class="copy">
@@ -376,7 +448,9 @@
     <h2 id="endname"></h2>
     <div class="tl" id="endtl"></div>
     <div class="addr" id="endaddr"></div>
-    <div class="alsoget">Want all five films and the recital checklist?
+    <!-- SIX. There are six products and six films; "five" was left over from
+         the five-product build and was wrong on the big screen. -->
+    <div class="alsoget">Want all six films and the recital checklist?
       <b>Scan the code on the tablet.</b></div>
   </div>
   <div class="right">
@@ -451,18 +525,23 @@
   var warm = 0;
 
   /* Which films are actually on disk. Resolves to null when there is no server
-     to ask, in which case every layer is wired exactly as before. */
-  var filmsReady = (typeof fetch === 'undefined')
+     to ask, in which case every layer is wired exactly as before.
+
+     filmsRaw is the server's whole answer — it knows about films that are not
+     products, which the services film is. filmsReady is the products-only view
+     the layers have always used. */
+  var filmsRaw = (typeof fetch === 'undefined')
     ? Promise.resolve(null)
     : fetch('/films', { cache: 'no-store' })
         .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (have) {
-          if (!have) return null;
-          var map = {};
-          CONFIG.products.forEach(function (p) { map[p.id] = !!have[p.id]; });
-          return map;
-        })
         .catch(function () { return null; });
+
+  var filmsReady = filmsRaw.then(function (have) {
+    if (!have) return null;
+    var map = {};
+    CONFIG.products.forEach(function (p) { map[p.id] = !!have[p.id]; });
+    return map;
+  });
 
   CONFIG.products.forEach(function (p) {
     var layer = document.createElement('div');
@@ -523,11 +602,91 @@
 
   function shortUrl(u) { return u.replace(/^https?:\/\//, '').replace(/\/$/, ''); }
 
+  /* ========================================================================
+     THE STREAMSTAGE SERVICES CARD — recital filming and livestream.
+
+     One attract card, two renderings, decided by the same /films probe the
+     product layers use. If media/streamstage-services.mp4 is on disk the film
+     IS the card and the loop advances when it ends; if it is not, the card
+     stays a normal text card with the same gated QR and its normal 12s hold.
+     That is exactly how a product whose film has not been rendered behaves,
+     which is the degrade path this was asked to match.
+
+     TWO things keep this film away from the six warm product layers, and both
+     are load-bearing:
+
+       preload="none" — it loads when its card comes up, not from page load, so
+       it is not holding a socket for the 90% of the time it is not on screen.
+
+       altMedia() — it is fetched from the port+1 origin, which has its own
+       connection pool. On the page origin it was a seventh <video> competing
+       for ~6 connections: measured, its request sat readyState 0 for NINE
+       seconds and Chrome then aborted all six product film loads to make room.
+       Nine seconds of black here, and the instant-start layers cold. Same trick
+       telemetry already uses, same reason.
+     ===================================================================== */
+  var SVC_FILM = 'streamstage-services';
+  var svcCard  = document.getElementById('svccard');
+  var svcVid   = document.getElementById('svcvid');
+  var svcOk    = false;
+
+  filmsRaw.then(function (have) {
+    // No server to ask (file://, or serve.py down): stay on the static card
+    // rather than point a <video> at a file that may not be there.
+    if (!have || !have[SVC_FILM]) return;
+    svcVid.src = altMedia('media/' + SVC_FILM + '.mp4');
+    svcOk = true;
+    svcCard.classList.add('hasfilm');
+  });
+
+  function stopSvc() {
+    if (!svcOk) return;
+    document.body.classList.remove('svcfilm');
+    // The community QR is back on screen, so its impression clock starts again.
+    // Counting seconds while it was hidden behind the film would be a number
+    // that is simply not true, and this file does not manufacture those.
+    fbHidden = false;
+    fbImp.start();
+    try { svcVid.pause(); svcVid.currentTime = 0; svcVid.muted = true; } catch (e) {}
+  }
+
+  function startSvc() {
+    document.body.classList.add('svcfilm');
+    fbImp.stop();                             // commits the seconds it really got
+    fbHidden = true;
+    try { svcVid.currentTime = 0; } catch (e) {}
+    svcVid.muted = !audioReady;
+    var go = svcVid.play();
+    if (go && go.catch) go.catch(function () {
+      svcVid.muted = true;                    // sound refused: muted beats nothing
+      svcVid.play().catch(function () {});
+    });
+    Telemetry.log('services_start', {});
+  }
+
+  svcVid.addEventListener('ended', function () {
+    if (state !== 'attract' || cards[idx] !== svcCard) return;
+    Telemetry.log('services_complete', {
+      watchedSeconds: isFinite(svcVid.duration) ? Math.round(svcVid.duration * 10) / 10 : null
+    });
+    showCard(idx + 1);
+  });
+
+  svcVid.addEventListener('timeupdate', function () {
+    if (state !== 'attract' || cards[idx] !== svcCard) return;
+    if (svcVid.duration && isFinite(svcVid.duration)) {
+      bar.style.width = ((svcVid.currentTime / svcVid.duration) * 100).toFixed(2) + '%';
+    }
+  });
+
   /* The community QR is on screen in EVERY state, so its impression clock runs
      from load to unload. Rolled hourly so a crash never eats the whole day. */
   var fbImp = new QrImpression('facebook', 'tv');
+  var fbHidden = false;              // true only while the services film is up
   fbImp.start();
-  setInterval(function () { fbImp.stop(); fbImp.start(); }, 60 * 60 * 1000);
+  // The hourly roll must not restart the clock on a QR that is currently behind
+  // the services film — that would invent seconds nobody could have scanned in.
+  setInterval(function () { fbImp.stop(); if (!fbHidden) fbImp.start(); }, 60 * 60 * 1000);
   window.addEventListener('pagehide', function () { fbImp.stop(); abandon(); });
   window.addEventListener('beforeunload', function () { fbImp.stop(); });
 
@@ -553,6 +712,7 @@
   function showCard(n) {
     clearTimers();
     stopProdImp();
+    stopSvc();
     if (idx >= 0) cards[idx].classList.remove('vis', 'on');
     idx = (n + cards.length) % cards.length;
     var c = cards[idx];
@@ -571,6 +731,18 @@
     if (idx === 0) Telemetry.log('attract_cycle', {});
 
     var hold = parseInt(c.getAttribute('data-hold') || CONFIG.idle.attractHoldMs, 10);
+
+    if (c === svcCard && svcOk) {
+      // The film runs the card: 'ended' advances the loop and timeupdate drives
+      // the bar. The timer here is only a dead-man's switch — a file that
+      // stalls, or never fires 'ended', must never stop the attract loop, which
+      // is the one thing on this screen that has to survive everything.
+      startSvc();
+      var known = (svcVid.duration && isFinite(svcVid.duration)) ? svcVid.duration : 240;
+      timer = setTimeout(function () { showCard(idx + 1); }, known * 1000 + 10000);
+      return;
+    }
+
     runBar(hold);
     timer = setTimeout(function () { showCard(idx + 1); }, hold);
   }
@@ -603,6 +775,7 @@
   function play(product, dir) {
     clearTimers();
     stopProdImp();
+    stopSvc();                   // a tap always beats the attract loop's own film
     dir = (dir === -1) ? -1 : 1;
 
     var prev = current;
@@ -811,6 +984,9 @@
     audioReady = true;
     unlock.classList.add('gone');
     if (current && layers[current.id]) layers[current.id].video.muted = false;
+    // If the services film happens to be mid-play when Daniel does the one-time
+    // click, it gets its sound immediately rather than at the next loop.
+    if (svcOk && state === 'attract' && cards[idx] === svcCard) svcVid.muted = false;
   }
   unlock.addEventListener('click', doUnlock);
 

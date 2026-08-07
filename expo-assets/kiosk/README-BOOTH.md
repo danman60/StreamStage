@@ -100,6 +100,12 @@ The real scan count exists, on the other side. Every product QR carries
 people arrived from the booth, from which film, and from which screen. Check the Vercel analytics
 for each product after the show — that is the honest number.
 
+**Two kinds of QR, on purpose.** A **product** QR goes straight to the product — we want a studio
+owner *in the app*, not behind a form. A **material** QR (the "all six films" offer, the recital
+services card on the TV) goes to the gated landing page `streamstage.live/g`, because nothing we
+give away goes out without an email and a studio name against it. Material QRs carry
+`?a=<asset>&src=booth_tablet|booth_tv&p=<product>&s=<surface>`.
+
 The Facebook QR is deliberately **not** tagged: you have no way to read a query string off a group
 join, so a tag there would only invent a number nobody can verify.
 
@@ -139,6 +145,24 @@ handles that on its own — it does not need you to do anything:
 The product is called **StudioBeat** everywhere. The repo is named StudioSync; that is the old name
 and it must never appear on a booth screen.
 
+## The StreamStage services card (TV only)
+
+The TV attract loop carries one card that is **not a product**: StreamStage's own recital filming and
+livestream film, `media/streamstage-services.mp4` (1920×1080, 3:01, with audio). It sits between
+Reflect and the closing card, plays right through, and carries its own gated QR
+(`qr/tv/recital.svg` → `/g?a=recital`). The loop moves on when the film ends.
+
+**The tablet stays at six tiles.** This is not a seventh product and there is nothing to tap for it.
+
+If `media/streamstage-services.mp4` is missing, the card degrades the same way a product with no
+film does: it becomes an ordinary text attract card with the same QR, on the normal 12-second hold.
+Nothing to configure — the card asks the server which films exist, exactly like the film layers do.
+
+It is served from the **telemetry port** (`8081`, one above the page), not the page port. That is not
+a detail you can change casually: on the page port it was a seventh video competing for the browser's
+~6 connections, and it sat unloaded for nine seconds while Chrome **aborted all six warm product
+films** to make room for it. Measured. Off the page origin, neither happens.
+
 ## One thing that is an assumption, not a fact
 
 (CompSync's signup URL **`compsync.net`** was confirmed by Daniel 2026-08-07 — no longer an
@@ -152,16 +176,41 @@ assumption.)
 
 ---
 
-## Email capture
+## Email capture — the film gate
 
-There is **no email gate.** Switching films is free — a gate at a trade show reads as a paywall and
-the person walks, and it would poison the tap numbers besides.
+**The films are gated, once per visitor.** The first tile somebody taps raises a card asking for a
+**studio name and an email**; on submit that film starts and **all six unlock** for that person.
+Every tap after that goes straight to the film — nobody types an email twice.
 
-Once a film **finishes**, the tablet adds a *"Want all six?"* card with **two ways in, same offer**:
+The gate re-arms for the next person when the tablet resets, which is **90 seconds with nobody
+touching it and no film on the TV** (`CONFIG.idle.tabletResetMs`). A film playing on the big screen
+counts as "they're still here", so a session never expires out from under someone mid-film. A gate
+nobody finishes clears itself after 45 seconds (`CONFIG.idle.gateAbandonMs`), so the next visitor
+walks up to six tiles and not a stranger's half-filled form.
 
-1. **The QR** — points at your existing form at `streamstage.live/expo-leads.html`, tagged with the
-   product they just watched. It opens on **their** phone on **their** data, which is why it still
-   works when the venue wifi is dead. The TV's end card points at it in words. Unchanged.
+**It works with no internet and no laptop.** The capture is written to the tablet's own localStorage
+the instant Submit is pressed — the films unlock off that write, not off any server answering. The
+lead then flushes over the booth's LAN to `telemetry/leads-YYYY-MM-DD.jsonl`, and `flush-leads.py`
+sends it upstream later, when there is internet.
+
+**If the gate is ever in the way** — someone genuinely will not type an email, the keyboard is stuck,
+there's a queue building — open the operator sheet (five taps top-left) and press **"Unlock films —
+skip the gate"**. That unlocks the six films for the person standing there and nobody else; the next
+visitor is gated normally. It is deliberately five taps deep: a visible "skip" button would be the
+whole gate, gone.
+
+The operator sheet's **Gate** line tells you which state you are in: `armed`, or `unlocked — <email>`.
+
+### After a film finishes
+
+Once a film **finishes**, the tablet still shows the *"Want all six?"* card. If the visitor came
+through the gate it is already answered in their name — they are not asked twice. Otherwise it
+offers **two ways in, same offer**:
+
+1. **The QR** — points at the gated landing page `streamstage.live/g?a=sixfilms`, tagged with the
+   product they just watched and the screen they scanned from. It opens on **their** phone on
+   **their** data, which is why it still works when the venue wifi is dead. The TV's end card points
+   at it in words.
 2. **A typed email** — an input on the same card, for the visitor who won't scan (or for you,
    mid-conversation). It needs **no internet at all**: the email is queued in the tablet's
    localStorage the instant it's typed, then flushed to the laptop over the booth's own network —
