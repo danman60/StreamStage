@@ -71,9 +71,12 @@ var CONFIG = {
       tagline:'Classes, families, payments and the season calendar — one platform instead of five.',
       accent: '#C2785C',
       film:   ['media/studiobeat.mp4'],
-      // Confirmed live 2026-08-06: Vercel project `studiosync` serves this, and
-      // the page title reads "StudioBeat — Studio Management".
-      url:    'https://www.studiobeat.io'
+      // Confirmed live 2026-08-06 (HTTP 200, Vercel, title "StudioBeat — Studio
+      // Management"). Trailing slash is deliberate: without it the QR encodes
+      // https://www.studiobeat.io?src=... — a query hung straight off the
+      // authority, which is legal but not canonical. With it you get the
+      // ordinary https://www.studiobeat.io/?src=... that every scanner expects.
+      url:    'https://www.studiobeat.io/'
     },
     {
       id:     'reflect',

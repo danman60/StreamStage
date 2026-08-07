@@ -80,10 +80,20 @@ for entry in "${SOURCES[@]}"; do
     printf "  %-14s copied      (%s, %s)\n" "$id" "$(basename "$picked")" "$size"
   fi
 
-  # Poster = frame 0, so the still that shows before playback is exactly the
-  # frame the film opens on. Any other frame would visibly pop on tap.
-  if [[ $have_ffmpeg -eq 1 ]]; then
-    poster="$POSTERS/$id.jpg"
+  # Poster. If the film's own project shipped one, that wins: a purpose-made
+  # poster is a designed frame, where frame 0 is often nothing. StudioBeat's
+  # film literally opens on a blank cream frame before its mark lands, so the
+  # cut-from-frame-0 poster was an empty rectangle while the delivered
+  # poster.jpg is the wordmark lockup.
+  poster="$POSTERS/$id.jpg"
+  srcdir="$(dirname "$picked")"
+  if [[ -f "$srcdir/poster.jpg" ]]; then
+    if ! cmp -s "$srcdir/poster.jpg" "$poster"; then
+      cp -f "$srcdir/poster.jpg" "$poster"
+      printf "  %-14s poster      (supplied by the film project)\n" ""
+    fi
+  # Otherwise cut frame 0, so the still matches the frame the film opens on.
+  elif [[ $have_ffmpeg -eq 1 ]]; then
     if [[ ! -f "$poster" || "$dest" -nt "$poster" ]]; then
       ffmpeg -y -loglevel error -i "$dest" -frames:v 1 -q:v 3 "$poster" </dev/null 2>/dev/null \
         && printf "  %-14s poster\n" ""
