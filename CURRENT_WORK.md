@@ -81,6 +81,23 @@ VO + BG audio pulled from FIRMAMENT Downloads to `/mnt/data/vo-drop/`.
 Each session told to SPLIT the VO at beat boundaries and place per timecode — the ElevenLabs
 renders are continuous spoken-beats only, so they are shorter than the films by design.
 
+## TRADE-SHOW TOOLKIT — FULL PLAN WRITTEN 2026-08-07, NOT BUILT
+**`docs/plans/2026-08-07-tradeshow-toolkit.md` is the executable plan. A fresh session should read
+that FIRST — it has the topology, the reuse map, the verified constraints and the acceptance tests.**
+
+ONE app, installed everywhere, role chosen at runtime: Fire Stick = booth display, tablet =
+controller, phone = presenter, and later the Fire Stick can be user-selected as the DECK display
+("omnipresence"). Any LAN including a phone hotspot; **no internet on the critical path, ever.**
+Driving requirement, his words: *"I don't trust opening browsers on rented or new TVs."*
+
+Phase 1 is the fallback that cannot fail — Fire TV app plays the pre-rendered loop by itself with no
+controller and no network. Everything else builds on that floor.
+
+Reuse (verified): `~/projects/TVBOX` gives the Fire TV shell, the companion tablet app and the LAN
+installer; `~/projects/PhonePresenter` gives the WebView shell; the kiosk gives the content and the
+LAN-only SSE relay. ⚠ Do NOT reuse DanTV's remote channel — it goes through Supabase over the
+INTERNET (`SupabaseRemoteApi.kt`). gradle + Android SDK already installed here.
+
 ## KIOSK — TWO THINGS NOTED 2026-08-07, NOT BUILT
 Full detail: `expo-assets/kiosk/NEXT-BUILD-NOTES.md`.
 1. **Rendered kiosk video** — six software products in floating panes, one film centre-screen at a
