@@ -391,6 +391,54 @@
 (function(){
   var KEY='ss_checklist_unlocked';
   var b=document.body;
+
+  // ---- pending-lead queue (shared with g.html) -----------------------------
+  // A failed POST used to be written to localStorage and NEVER retried, which
+  // is a permanently lost lead. Everything queued here is re-sent on the next
+  // load of either gated page and only dropped once the server has taken it.
+  var QKEY='ss_lead_queue', LEGACY='ss_checklist_pending', MEKEY='ss_lead_me';
+  function qRead(){try{var v=JSON.parse(localStorage.getItem(QKEY)||'[]');return Array.isArray(v)?v:[];}catch(e){return[];}}
+  function qWrite(a){try{localStorage.setItem(QKEY,JSON.stringify(a.slice(-25)));}catch(e){}}
+  function qPush(p){var a=qRead();a.push(p);qWrite(a);}
+  function post(p){return fetch('/api/expo-leads',{method:'POST',
+    headers:{'content-type':'application/json'},body:JSON.stringify(p)});}
+  function flush(){
+    // Adopt the old single-slot stash so leads already stranded on a device get
+    // sent instead of sitting there forever.
+    try{
+      var old=localStorage.getItem(LEGACY);
+      if(old){
+        var o=JSON.parse(old);
+        if(o&&o.email){ if(!o.asset)o.asset='checklist'; if(!o.source)o.source='checklist'; qPush(o); }
+        localStorage.removeItem(LEGACY);
+      }
+    }catch(e){}
+    var q=qRead(); if(!q.length) return;
+    qWrite([]);                       // take the batch; failures go back on
+    var keep=[], done=0;
+    q.forEach(function(p){
+      post(p).then(function(r){
+        // 400 = the server will never accept this payload; anything else —
+        // offline, 500, timeout — is worth another go.
+        return r.ok||r.status===400;
+      },function(){return false;})
+      .then(function(ok){
+        if(!ok) keep.push(p);
+        if(++done===q.length && keep.length) qWrite(qRead().concat(keep));
+      });
+    });
+  }
+  try{ flush(); }catch(e){}   // runs even for an already-unlocked device
+
+  // Attribution the QR carried: which surface, which placement, which slot.
+  // Mirrors VALID_SOURCES in src/app/api/expo-leads/route.ts so a talk QR is
+  // recorded as talk1/talk2 rather than collapsing to expo_form.
+  var SOURCES=["booth_tablet","booth_tv","checklist","handout","expo_form","moves",
+               "sms_demo","booth","signup","tv1","tv2","talk1","talk2","facelift"];
+  var qs=new URLSearchParams(location.search);
+  function pick(k){return (qs.get(k)||'').trim().slice(0,60);}
+  var src=pick('src'), pp=pick('p'), ss=pick('s');
+
   // Already unlocked on this device? Never gate the same person twice.
   try{ if(localStorage.getItem(KEY)){ return; } }catch(e){}
   b.classList.add('locked');
@@ -415,15 +463,25 @@
     if(!name||!studio||!email){ err.textContent='Name, studio and email are all needed.'; return; }
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent='That email does not look right.'; return; }
     err.textContent=''; btn.disabled=true; btn.textContent='Opening…';
-    fetch('/api/expo-leads',{method:'POST',headers:{'content-type':'application/json'},
-      body:JSON.stringify({name:name,studio:studio,email:email,
-        interests:['recital video checklist'],source:'Checklist QR — talk handout'})})
+    var payload={name:name,studio:studio,email:email,
+      interests:['recital video checklist'],
+      // `asset` is what makes the visitor actually receive an email — without
+      // it the route notifies Daniel and sends the scanner nothing.
+      asset:'checklist',
+      // Taxonomy source: the QR's own src if it declared one (talk1/talk2/
+      // handout), otherwise this page.
+      source:(SOURCES.indexOf(src)>=0?src:'checklist'),
+      src:src||undefined, p:pp||undefined, s:ss||undefined,
+      path:location.pathname+location.search,
+      referrer:document.referrer||undefined};
+    try{ localStorage.setItem(MEKEY,JSON.stringify({name:name,studio:studio,email:email})); }catch(e){}
+    post(payload)
       .then(function(r){ return r.ok ? r.json() : Promise.reject(r); })
       .then(unlock)
       .catch(function(){
         // Never trap someone behind a venue-wifi blip — they scanned in good faith.
-        // Open it anyway and keep the address locally so it is recoverable.
-        try{ localStorage.setItem('ss_checklist_pending',JSON.stringify({name:name,studio:studio,email:email})); }catch(e){}
+        // Open it anyway and queue the lead so the next load re-sends it.
+        qPush(payload);
         unlock();
       });
   });

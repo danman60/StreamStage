@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StreamStage — where should we send it?</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="Tell us where to send it and it is in your inbox in a minute.">
+<style>
+  /* Same tokens as checklist.html. One design language, not two. */
+  :root{--ink:#12212f;--blue:#12466e;--cy:#1898b4;--am:#b8791a;--rule:#d8e2ea;--dim:#5d6f7d}
+  *{box-sizing:border-box}
+  body{margin:0;background:#f4f7f9;color:var(--ink);
+    font:17px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .page{max-width:820px;margin:0 auto;background:#fff;padding:46px 48px 60px;
+    box-shadow:0 2px 30px rgba(18,33,47,.08);min-height:100vh}
+  .eyebrow{font:800 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--cy)}
+  h1{margin:14px 0 0;font-size:42px;line-height:1.05;letter-spacing:-.02em;color:var(--blue)}
+  h1 span{display:block;color:var(--cy)}
+  .lede{margin:14px 0 0;color:var(--dim);font-size:18px}
+  .callout{margin:26px 0 34px;padding:14px 18px;background:#eef5fa;border:1px solid #d3e3ee;
+    border-radius:8px;font-size:16px}
+  .close{margin-top:40px;background:var(--blue);color:#fff;border-radius:10px;padding:24px 26px}
+  .close h3{margin:0 0 8px;font-size:24px;color:#fff}
+  .close p{margin:0;color:#cfe3f2;font-size:16px}
+  .close a{color:#fff;font-weight:700}
+  footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--rule);
+    display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;color:var(--dim);font-size:14px}
+  footer a{color:var(--cy);text-decoration:none;font-weight:700}
+  @media(max-width:600px){.page{padding:28px 20px 44px}h1{font-size:32px}}
+  /* ---- email gate ---------------------------------------------------------
+     Identical mechanics to checklist.html: the page sits blurred behind the
+     overlay until name/studio/email are in. Here the page behind IS the
+     confirmation — nothing is given away before the capture. */
+  body.locked{overflow:hidden}
+  body.locked .page{filter:blur(7px);pointer-events:none;user-select:none}
+  #gate{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;
+    padding:20px;background:rgba(10,26,40,.72);backdrop-filter:blur(2px)}
+  body.locked #gate{display:flex}
+  #gatecard{width:100%;max-width:430px;max-height:100vh;overflow-y:auto;background:#fff;
+    border-radius:16px;padding:28px 26px;box-shadow:0 30px 80px rgba(8,22,36,.45)}
+  #gatecard .eyebrow{margin:0 0 10px}
+  #gatecard h2{margin:0 0 6px;font-size:25px;color:var(--blue);letter-spacing:-.01em}
+  #gatecard p{margin:0 0 18px;color:var(--dim);font-size:15.5px;line-height:1.5}
+  #gatecard p#gatecaveat{margin:-8px 0 18px;font-size:14px;color:var(--am)}
+  #gatecard input{width:100%;margin:0 0 11px;padding:14px 14px;font-size:16px;color:var(--ink);
+    border:1px solid #c6d6e2;border-radius:10px;background:#fbfdff}
+  #gatecard input:focus{outline:none;border-color:var(--cy);box-shadow:0 0 0 3px rgba(24,152,180,.16)}
+  #gatego{width:100%;padding:15px 0;font-size:17px;font-weight:800;color:#fff;background:var(--cy);
+    border:0;border-radius:11px;cursor:pointer}
+  #gatego[disabled]{opacity:.6}
+  #gateerr{margin:10px 0 0;font-size:14px;color:#b4462f;min-height:19px}
+  #gatefine{margin:14px 0 0;font-size:12.5px;color:#8b9aa6;line-height:1.45}
+</style>
+</head>
+<body class="locked">
+<div class="page">
+  <div class="eyebrow">StreamStage &nbsp;|&nbsp; Dance Teacher Expo</div>
+  <h1 id="dhead">Check your inbox<span id="dsub">It is on its way.</span></h1>
+  <p class="lede" id="dbody">Thanks — that is sent.</p>
+
+  <div class="callout" id="dnote">It comes from <b>leads@streamstage.live</b>. If it is not there in
+    a minute or two, look in your spam folder and mark it as safe so the next one lands.</div>
+
+  <div class="close">
+    <h3>While you are here</h3>
+    <p>If you would rather have the cameras, audio, interviews, titles and parent delivery handled end
+      to end, that is what StreamStage does &mdash;
+      <a href="https://streamstage.live/dancerecital">recital filming and livestream</a>.</p>
+  </div>
+
+  <footer>
+    <span>Daniel Abrahamson &nbsp;|&nbsp; StreamStage &nbsp;|&nbsp; Reliable recital films and livestreams.</span>
+    <a href="https://streamstage.live">streamstage.live</a>
+  </footer>
+</div>
+
+<div id="gate" role="dialog" aria-modal="true" aria-labelledby="gatetitle">
+  <div id="gatecard">
+    <div class="eyebrow" id="gatelabel">StreamStage</div>
+    <h2 id="gatetitle">Where should we send it?</h2>
+    <p id="gatesentence"></p>
+    <p id="gatecaveat" hidden></p>
+    <form id="gateform" novalidate>
+      <input id="gname"   type="text"  autocomplete="name"         placeholder="Your name" required>
+      <input id="gstudio" type="text"  autocomplete="organization" placeholder="Studio name" required>
+      <input id="gemail"  type="email" autocomplete="email" inputmode="email"
+             autocapitalize="off" spellcheck="false" placeholder="you@yourstudio.com" required>
+      <button id="gatego" type="submit">Email it to me</button>
+      <p id="gateerr" role="alert"></p>
+    </form>
+    <p id="gatefine">We will send occasional studio video tips. Unsubscribe any time.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---- the assets --------------------------------------------------------
+  // MIRROR OF src/lib/lead-assets.ts. These are static files with no build
+  // step, so the copy is duplicated on purpose. If you change a sentence,
+  // caveat or label THERE, change it HERE — the email and the page must
+  // promise the same thing. Do not rewrite product descriptions in one place.
+  var ASSETS={
+    checklist:{label:"Recital video checklist",
+      sentence:"The full recital video checklist — what to shoot, what to ask, and what to hand your videographer before recital day."},
+    interviews:{label:"Interview questions",
+      sentence:"The interview questions that get dancers, parents and staff to say something worth keeping — part two of the recital video checklist."},
+    videographer:{label:"Videographer brief",
+      sentence:"The one-page brief to hand your videographer before recital day — part four of the recital video checklist."},
+    planner:{label:"Content day planner",
+      sentence:"The content day planner — how to plan one shoot day that feeds a season of posts.",
+      caveat:"The planner is not posted online yet, so Daniel is sending it to you directly — your request goes straight to his inbox."},
+    sixfilms:{label:"The six booth films",
+      sentence:"The six short films we were playing at the booth — StudioSage, CompSync, Callboard, CostumeCraft, StudioBeat and Reflect.",
+      caveat:"They are not posted on the site yet, so Daniel is sending you the links directly — your request goes straight to his inbox."},
+    moves:{label:"5 free AI moves",
+      sentence:"Five things you can do with AI in your studio this week — no new software, no setup."},
+    recital:{label:"Recital filming + livestream",
+      sentence:"Recital filming and livestream by StreamStage — cameras, audio, interviews, titles and the parent delivery link, handled end to end."}
+  };
+  // Taxonomy mirror of VALID_SOURCES in src/app/api/expo-leads/route.ts. Kept
+  // here only so a mistyped QR cannot turn a real source into expo_form.
+  var SOURCES=["booth_tablet","booth_tv","checklist","handout","expo_form","moves",
+               "sms_demo","booth","signup","tv1","tv2","talk1","talk2","facelift"];
+
+  // ---- pending-lead queue (shared with checklist.html) --------------------
+  // A failed POST used to be written to localStorage and NEVER retried
+  // (ss_checklist_pending) — a permanently lost lead. Everything queued here is
+  // re-sent on the next load of either gated page, and only dropped once the
+  // server has actually taken it.
+  var QKEY='ss_lead_queue', LEGACY='ss_checklist_pending', MEKEY='ss_lead_me';
+  function qRead(){try{var v=JSON.parse(localStorage.getItem(QKEY)||'[]');return Array.isArray(v)?v:[];}catch(e){return[];}}
+  function qWrite(a){try{localStorage.setItem(QKEY,JSON.stringify(a.slice(-25)));}catch(e){}}
+  function qPush(p){var a=qRead();a.push(p);qWrite(a);}
+  function post(p){return fetch('/api/expo-leads',{method:'POST',
+    headers:{'content-type':'application/json'},body:JSON.stringify(p)});}
+  function flush(){
+    // Adopt the old single-slot stash so leads already stranded on a device get
+    // sent instead of sitting there forever.
+    try{
+      var old=localStorage.getItem(LEGACY);
+      if(old){
+        var o=JSON.parse(old);
+        if(o&&o.email){ if(!o.asset)o.asset='checklist'; if(!o.source)o.source='checklist'; qPush(o); }
+        localStorage.removeItem(LEGACY);
+      }
+    }catch(e){}
+    var q=qRead(); if(!q.length) return;
+    qWrite([]);                       // take the batch; failures go back on
+    var keep=[], done=0;
+    q.forEach(function(p){
+      post(p).then(function(r){
+        // 400 = the server will never accept this payload (bad email, missing
+        // field); retrying it forever would just block the queue. Everything
+        // else — offline, 500, timeout — is worth another go.
+        return r.ok||r.status===400;
+      },function(){return false;})
+      .then(function(ok){
+        if(!ok) keep.push(p);
+        if(++done===q.length && keep.length) qWrite(qRead().concat(keep));
+      });
+    });
+  }
+  try{ flush(); }catch(e){}
+
+  // ---- this scan ---------------------------------------------------------
+  var qs=new URLSearchParams(location.search);
+  function pick(k){return (qs.get(k)||'').trim().slice(0,60);}
+  var akey=pick('a').toLowerCase();
+  // An unknown or missing ?a= still has to deliver something real, so it falls
+  // back to the checklist — the one asset every QR at this show can honour.
+  if(!ASSETS[akey]) akey='checklist';
+  var asset=ASSETS[akey];
+  var src=pick('src'), p=pick('p'), s=pick('s');
+
+  document.getElementById('gatelabel').textContent=asset.label;
+  document.getElementById('gatesentence').textContent=asset.sentence;
+  if(asset.caveat){var cv=document.getElementById('gatecaveat');cv.textContent=asset.caveat;cv.hidden=false;}
+  document.title=asset.label+' — StreamStage';
+  // Do not pitch recital filming to someone who just asked for recital filming.
+  if(akey==='recital'){var cl=document.querySelector('.close'); if(cl) cl.style.display='none';}
+
+  // Prefill from the last capture on this device: a second QR at the same show
+  // should not mean typing the same address again.
+  try{
+    var me=JSON.parse(localStorage.getItem(MEKEY)||'null');
+    if(me&&me.email){
+      document.getElementById('gname').value=me.name||'';
+      document.getElementById('gstudio').value=me.studio||'';
+      document.getElementById('gemail').value=me.email||'';
+    }
+  }catch(e){}
+
+  var b=document.body,
+      f=document.getElementById('gateform'),
+      btn=document.getElementById('gatego'),
+      err=document.getElementById('gateerr');
+
+  function confirmState(head,sub,body,note){
+    document.getElementById('dhead').firstChild.nodeValue=head;
+    document.getElementById('dsub').textContent=sub;
+    document.getElementById('dbody').textContent=body;
+    document.getElementById('dnote').innerHTML=note;
+    b.classList.remove('locked');
+    window.scrollTo(0,0);
+  }
+
+  f.addEventListener('submit',function(ev){
+    ev.preventDefault();
+    var name=document.getElementById('gname').value.trim(),
+        studio=document.getElementById('gstudio').value.trim(),
+        email=document.getElementById('gemail').value.trim();
+    if(!name||!studio||!email){ err.textContent='Name, studio and email are all needed.'; return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent='That email does not look right.'; return; }
+    err.textContent=''; btn.disabled=true; btn.textContent='Sending…';
+
+    var payload={name:name,studio:studio,email:email,
+      asset:akey,   // the route derives interests[] from this — see LEAD_ASSETS
+      src:src||undefined, p:p||undefined, s:s||undefined,
+      path:location.pathname+location.search,
+      referrer:document.referrer||undefined};
+    if(SOURCES.indexOf(src)>=0) payload.source=src;   // where they came in from
+    try{ localStorage.setItem(MEKEY,JSON.stringify({name:name,studio:studio,email:email})); }catch(e){}
+
+    post(payload).then(function(r){ return r.ok?r.json():Promise.reject(r); })
+      .then(function(j){
+        if(j&&j.sent===false){
+          // Captured, but the delivery email did not leave. Do not promise an
+          // inbox that has nothing coming.
+          confirmState('You are on the list',asset.label,
+            'Our mail is running slow this minute, so Daniel is sending it to '+email+' himself.',
+            'Nothing is lost — your request is already with him.');
+        }else{
+          confirmState('Check your inbox',asset.label,
+            'Sent to '+email+'.',
+            'It comes from <b>leads@streamstage.live</b>. If it is not there in a minute or two, look in your spam folder and mark it as safe so the next one lands.');
+        }
+      })
+      .catch(function(){
+        // Never trap someone behind a venue-wifi blip — they scanned in good
+        // faith. Confirm, queue, and re-send on the next load.
+        qPush(payload);
+        confirmState('You are on the list',asset.label,
+          'The signal in here is patchy, so your request is saved on this phone and sends itself the moment you have a connection.',
+          'Nothing is lost. If you would rather not wait, email <b>daniel@streamstage.live</b> and he will send '+asset.label+' straight over.');
+      });
+  });
+})();
+</script>
+</body>
+</html>

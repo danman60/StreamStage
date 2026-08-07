@@ -14,6 +14,11 @@ import { escapeHtml } from "@/lib/mailer";
  *   https://streamstage.live/checklist.html#interviews   200 (anchor present in live HTML)
  *   https://streamstage.live/checklist.html#videographer 200 (anchor present in live HTML)
  *   https://www.studiosage.ai/moves                      200
+ *   https://streamstage.live/dancerecital                200
+ *
+ * The sentences here are mirrored verbatim in `public/g.html` (a static file
+ * with no build step). Change one, change the other — the landing page and the
+ * email have to promise the same thing.
  */
 
 const CHECKLIST = "https://streamstage.live/checklist.html";
@@ -79,6 +84,17 @@ export const LEAD_ASSETS = {
     caveat:
       "They are not posted on the site yet, so Daniel is sending you the links directly — your request is already in his inbox. In the meantime, here is the recital video checklist.",
     interests: ["video", "booth films"],
+  },
+  // StreamStage's own video service, not a download. The wording is taken from
+  // the close of the checklist ("cameras, audio, interviews, titles and parent
+  // delivery handled end to end") — no new claims are made here.
+  recital: {
+    label: "Recital filming + livestream",
+    url: "https://streamstage.live/dancerecital",
+    cta: "See how recital filming works",
+    sentence:
+      "Recital filming and livestream by StreamStage — cameras, audio, interviews, titles and the parent delivery link, handled end to end.",
+    interests: ["video", "recital filming"],
   },
   moves: {
     label: "5 free AI moves",
