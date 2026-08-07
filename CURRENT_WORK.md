@@ -21,10 +21,10 @@ kiosk-app, the ten-and-ten). Both pushed.
   server**. TV page: zero console errors.
 
 ### Open — do not assume done
-1. **Drag-to-reorder does not take effect on the TV.** The phone sends `playlist` correctly and
-   `serve.py` logs `order_set`, but `.tv.order` never changes (watched 32s + a full card cycle).
-   Reproduced with plain curl, so it is the TV handler (`tv.html:881 setOrder` / `:892 applyOrder`),
-   not the phone. Handed back to the kiosk agent.
+1. ~~Drag-to-reorder does not take effect on the TV.~~ **FIXED, `55b3156`.** The order was parked
+   until the next attract-card boundary, and the card on screen was the **181-second** StreamStage
+   film, so the boundary was up to three minutes away. It now applies on arrival. Verified from the
+   real Pixel: dragging CompSync above StudioSage changed `.tv.order` within seconds.
 2. **DART's presenter server is serving a STALE deck** — `192.168.0.13:8080/state` says 38 slides;
    the repo's talk2 is 32. Same for `192.168.0.12:8080`, which is the phone's saved presenter host.
    Those are Daniel's processes; they need restarting on the current deck. NOT done, his call.
