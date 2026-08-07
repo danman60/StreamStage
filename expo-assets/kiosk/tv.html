@@ -39,7 +39,8 @@
   .card.on{display:block}
   .card.vis{opacity:1}
   .pad{position:absolute;left:0;right:0;top:0;bottom:0;
-       padding:14rem 11rem 11rem;display:flex;flex-direction:column;justify-content:center}
+       padding:14rem 11rem 11rem;display:flex;align-items:center;gap:7rem}
+  .copy{flex:1;min-width:0}
   .card .kicker{font-size:2.6rem;margin-bottom:2.6rem}
   h1{font-size:11rem;line-height:.98;letter-spacing:-.03em;font-weight:900}
   h1 .q{color:var(--faint)}
@@ -54,12 +55,35 @@
   .live{margin-top:4.4rem;font-size:3rem;padding:1.5rem 3.2rem}
   .url{position:absolute;left:11rem;bottom:8rem;font:900 3.4rem/1 var(--mono);color:var(--lite)}
 
-  /* the per-product QR sitting on the attract card — a passer-by can scan a
-     product without anybody touching the tablet at all */
-  .cardqr{position:absolute;right:11rem;bottom:8rem;width:30rem;text-align:center}
+  /* right column of a product card: the product's mark and a QR big enough to
+     scan from a step back — a passer-by can scan a product without anybody
+     touching the tablet at all. Accent-tinted plate in the same radial-gradient
+     language as the end card; long-hand rgba only (Silk).
+
+     Pinned from the TOP, not centred: the community QR is fixed at 5rem and runs
+     to 21.8rem, so a centred panel collides with it. -5rem right margin pulls the
+     edge out to 6rem from the screen, lining it up with that card and mirroring
+     the wordmark's left margin. */
+  .side{flex:none;width:50rem;align-self:flex-start;margin-top:12rem;margin-right:-5rem;
+    display:flex;flex-direction:column;align-items:center;gap:3.4rem;
+    padding:4rem 4.4rem 3.6rem;border-radius:3rem;border:1px solid var(--line);
+    background:
+      radial-gradient(90% 90% at 14% 0%, var(--tint), rgba(0,0,0,0) 62%),
+      radial-gradient(80% 80% at 100% 100%, var(--wash), rgba(0,0,0,0) 60%),
+      rgba(7,9,12,.55)}
+  /* the product mark — same rounded-square accent plate as the tablet tiles,
+     silhouette or single-weight stroke inside */
+  .emblem{display:grid;place-items:center;flex:none;
+    width:15rem;height:15rem;border-radius:28%;
+    background:linear-gradient(135deg,var(--a),var(--b));
+    box-shadow:0 1.2rem 3.4rem -1rem var(--glow), inset 0 1px 0 rgba(255,255,255,.35)}
+  .emblem img{width:62%;height:62%;display:block;object-fit:contain}
+  .emblem svg{width:60%;height:60%;display:block;fill:none;stroke:#080B10;stroke-width:1.9;
+    stroke-linecap:round;stroke-linejoin:round}
+  .cardqr{width:100%;text-align:center}
   .cardqr .qr-plate{width:100%}
-  .cardqr .lbl{margin-top:1.4rem;font:900 2.2rem/1.2 var(--sans)}
-  .cardqr .lbl em{display:block;font-style:normal;font-weight:600;font-size:1.7rem;
+  .cardqr .lbl{margin-top:1.6rem;font:900 2.4rem/1.2 var(--sans)}
+  .cardqr .lbl em{display:block;font-style:normal;font-weight:600;font-size:1.8rem;
     color:var(--dim);margin-top:.6rem}
 
   /* the "go tap it" card — the only instruction anywhere in the booth */
@@ -179,126 +203,163 @@
   -->
   <section class="card invite" data-hold="9000">
     <div class="pad">
-      <div class="kicker">Calgary Dance Teacher Expo &middot; Aug 11&ndash;12</div>
-      <h1>Six tools<br>for studios.<br><span class="g">Pick one.</span></h1>
-      <div class="arrow"><span class="hand">&#128071;</span><span>Tap the tablet &mdash; it plays right here.</span></div>
+      <div class="copy">
+        <div class="kicker">Calgary Dance Teacher Expo &middot; Aug 11&ndash;12</div>
+        <h1>Six tools<br>for studios.<br><span class="g">Pick one.</span></h1>
+        <div class="arrow"><span class="hand">&#128071;</span><span>Tap the tablet &mdash; it plays right here.</span></div>
+      </div>
     </div>
   </section>
 
   <section class="card" data-product="studiosage" data-hold="11000">
     <div class="ghost">StudioSage</div>
     <div class="pad">
-      <div class="kicker">The AI front desk</div>
-      <h1>StudioSage</h1>
-      <div class="sub">Parents text the studio. It answers &mdash; from your own emails, in your own
-        words, at eleven at night when you are not there.</div>
-      <div class="live">Running in production</div>
+      <div class="copy">
+        <div class="kicker">The AI front desk</div>
+        <h1>StudioSage</h1>
+        <div class="sub">Parents text the studio. It answers &mdash; from your own emails, in your own
+          words, at eleven at night when you are not there.</div>
+        <div class="live">Running in production</div>
+      </div>
+      <div class="side">
+        <span class="emblem"><img src="brand/icons/studiosage.png" alt="" aria-hidden="true"></span>
+        <div class="cardqr">
+          <span class="qr-plate"><img src="qr/tv/studiosage.svg" alt="QR code to try StudioSage"></span>
+          <div class="lbl">Scan to try it<em>Or tap the tablet to watch</em></div>
+        </div>
+      </div>
     </div>
     <div class="url">studiosage.ai</div>
-    <div class="cardqr">
-      <span class="qr-plate"><img src="qr/tv/studiosage.svg" alt="QR code to try StudioSage"></span>
-      <div class="lbl">Scan to try it<em>Or tap the tablet to watch</em></div>
-    </div>
   </section>
 
   <section class="card" data-product="compsync" data-hold="11000">
     <div class="ghost">CompSync</div>
     <div class="pad">
-      <div class="kicker amber">Competition management</div>
-      <h1>CompSync</h1>
-      <div class="sub">Entries, scheduling, tabulation, backstage and the livestream &mdash;
-        one weekend, one system, instead of six spreadsheets and a walkie-talkie.</div>
-      <div class="live amber">Running in production</div>
+      <div class="copy">
+        <div class="kicker amber">Competition management</div>
+        <h1>CompSync</h1>
+        <div class="sub">Entries, scheduling, tabulation, backstage and the livestream &mdash;
+          one weekend, one system, instead of six spreadsheets and a walkie-talkie.</div>
+        <div class="live amber">Running in production</div>
+      </div>
+      <div class="side">
+        <span class="emblem"><img src="brand/icons/compsync.png" alt="" aria-hidden="true"></span>
+        <div class="cardqr">
+          <span class="qr-plate"><img src="qr/tv/compsync.svg" alt="QR code to CompSync"></span>
+          <div class="lbl">Scan to see it<em>Or tap the tablet to watch</em></div>
+        </div>
+      </div>
     </div>
     <div class="url">compsync.net</div>
-    <div class="cardqr">
-      <span class="qr-plate"><img src="qr/tv/compsync.svg" alt="QR code to CompSync"></span>
-      <div class="lbl">Scan to see it<em>Or tap the tablet to watch</em></div>
-    </div>
   </section>
 
   <section class="card" data-product="callboard" data-hold="11000">
     <div class="ghost">Callboard</div>
     <div class="pad">
-      <div class="kicker">Recital orders &middot; live now</div>
-      <h1>Callboard</h1>
-      <div class="sub">Recital running orders that already know the rules. Siblings on the same day.
-        A duet partner who also has a solo. No room double-booked. No three-hour gap.</div>
-      <div class="rows">
-        <div class="row"><span class="dot"></span><span>You set which rules are <b>hard</b>,
-          which are <b>soft</b>, and which are <b>off</b> &mdash; per show.</span></div>
+      <div class="copy">
+        <div class="kicker">Recital orders &middot; live now</div>
+        <h1>Callboard</h1>
+        <div class="sub">Recital running orders that already know the rules. Siblings on the same day.
+          A duet partner who also has a solo. No room double-booked. No three-hour gap.</div>
+        <div class="rows">
+          <div class="row"><span class="dot"></span><span>You set which rules are <b>hard</b>,
+            which are <b>soft</b>, and which are <b>off</b> &mdash; per show.</span></div>
+        </div>
+        <div class="live">Running in production</div>
       </div>
-      <div class="live">Running in production</div>
+      <div class="side">
+        <!-- same single-weight mark the tablet tile draws for Callboard -->
+        <span class="emblem"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.6" y="5.2" width="16.8" height="14.6" rx="2.6"/><path d="M3.6 9.8h16.8"/><path d="M8.2 3.3v3.6M15.8 3.3v3.6"/><path d="M9.3 14.6l2 2 3.8-3.8"/></svg></span>
+        <div class="cardqr">
+          <span class="qr-plate"><img src="qr/tv/callboard.svg" alt="QR code to try Callboard"></span>
+          <div class="lbl">Scan to try it<em>Or tap the tablet to watch</em></div>
+        </div>
+      </div>
     </div>
     <div class="url">callboard-scheduler.vercel.app</div>
-    <div class="cardqr">
-      <span class="qr-plate"><img src="qr/tv/callboard.svg" alt="QR code to try Callboard"></span>
-      <div class="lbl">Scan to try it<em>Or tap the tablet to watch</em></div>
-    </div>
   </section>
 
   <section class="card" data-product="costumecraft" data-hold="11000">
     <div class="ghost">CostumeCraft</div>
     <div class="pad">
-      <div class="kicker">Early access &middot; live now</div>
-      <h1>CostumeCraft</h1>
-      <div class="sub">Design, measurements and per-class quantities in one place &mdash; instead of
-        a costuming console that only takes the order.</div>
-      <div class="rows">
-        <div class="row"><span class="dot"></span><span>Design the look, then hold the
-          <b>measurements</b> against it</span></div>
-        <div class="row"><span class="dot"></span><span>How many of that costume, for which class,
-          by when</span></div>
+      <div class="copy">
+        <div class="kicker">Early access &middot; live now</div>
+        <h1>CostumeCraft</h1>
+        <div class="sub">Design, measurements and per-class quantities in one place &mdash; instead of
+          a costuming console that only takes the order.</div>
+        <div class="rows">
+          <div class="row"><span class="dot"></span><span>Design the look, then hold the
+            <b>measurements</b> against it</span></div>
+          <div class="row"><span class="dot"></span><span>How many of that costume, for which class,
+            by when</span></div>
+        </div>
+        <div class="live">Running in production</div>
       </div>
-      <div class="live">Running in production</div>
+      <div class="side">
+        <!-- same single-weight mark the tablet tile draws for CostumeCraft -->
+        <span class="emblem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.4a2.15 2.15 0 1 1 2.15-2.15"/><path d="M12 7.4v2"/><path d="M12 9.4l7.7 5a1.6 1.6 0 0 1-.87 2.94H5.17A1.6 1.6 0 0 1 4.3 14.4z"/></svg></span>
+        <div class="cardqr">
+          <span class="qr-plate"><img src="qr/tv/costumecraft.svg" alt="QR code to try CostumeCraft"></span>
+          <div class="lbl">Scan to try it<em>Or tap the tablet to watch</em></div>
+        </div>
+      </div>
     </div>
     <div class="url">costume-craft.vercel.app</div>
-    <div class="cardqr">
-      <span class="qr-plate"><img src="qr/tv/costumecraft.svg" alt="QR code to try CostumeCraft"></span>
-      <div class="lbl">Scan to try it<em>Or tap the tablet to watch</em></div>
-    </div>
   </section>
 
   <section class="card" data-product="studiobeat" data-hold="11000">
     <div class="ghost">StudioBeat</div>
     <div class="pad">
-      <div class="kicker">The whole studio, in one place</div>
-      <h1>StudioBeat</h1>
-      <div class="sub">Classes, families, payments and the season calendar &mdash; one platform
-        instead of five that do not talk to each other.</div>
-      <div class="live">Running in production</div>
+      <div class="copy">
+        <div class="kicker">The whole studio, in one place</div>
+        <h1>StudioBeat</h1>
+        <div class="sub">Classes, families, payments and the season calendar &mdash; one platform
+          instead of five that do not talk to each other.</div>
+        <div class="live">Running in production</div>
+      </div>
+      <div class="side">
+        <span class="emblem"><img src="brand/icons/studiobeat.png" alt="" aria-hidden="true"></span>
+        <div class="cardqr">
+          <span class="qr-plate"><img src="qr/tv/studiobeat.svg" alt="QR code to see StudioBeat"></span>
+          <div class="lbl">Scan to see it<em>Or tap the tablet to watch</em></div>
+        </div>
+      </div>
     </div>
     <div class="url">studiobeat.io</div>
-    <div class="cardqr">
-      <span class="qr-plate"><img src="qr/tv/studiobeat.svg" alt="QR code to see StudioBeat"></span>
-      <div class="lbl">Scan to see it<em>Or tap the tablet to watch</em></div>
-    </div>
   </section>
 
   <section class="card" data-product="reflect" data-hold="11000">
     <div class="ghost">Reflect</div>
     <div class="pad">
-      <div class="kicker">Every room. At once.</div>
-      <h1>Reflect</h1>
-      <!-- Verbatim from the film's own closing line (VO-SCRIPT.md, beat 16).
-           No claim invented at the booth. -->
-      <div class="sub">The system that runs your studio&rsquo;s day &mdash; and remembers it.</div>
-      <div class="live">Ask me for a demo login</div>
+      <div class="copy">
+        <div class="kicker">Every room. At once.</div>
+        <h1>Reflect</h1>
+        <!-- Verbatim from the film's own closing line (VO-SCRIPT.md, beat 16).
+             No claim invented at the booth. -->
+        <div class="sub">The system that runs your studio&rsquo;s day &mdash; and remembers it.</div>
+        <div class="live">Ask me for a demo login</div>
+      </div>
+      <div class="side">
+        <!-- same single-weight mark the tablet tile draws for Reflect -->
+        <span class="emblem"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.6" y="4.6" width="7" height="6" rx="1.3"/><rect x="13.4" y="4.6" width="7" height="6" rx="1.3"/><rect x="3.6" y="13.4" width="7" height="6" rx="1.3"/><rect x="13.4" y="13.4" width="7" height="6" rx="1.3"/></svg></span>
+        <div class="cardqr">
+          <span class="qr-plate"><img src="qr/tv/reflect.svg" alt="QR code to see Reflect"></span>
+          <div class="lbl">Scan to see it<em>Or tap the tablet to watch</em></div>
+        </div>
+      </div>
     </div>
     <div class="url">reflect-vert.vercel.app</div>
-    <div class="cardqr">
-      <span class="qr-plate"><img src="qr/tv/reflect.svg" alt="QR code to see Reflect"></span>
-      <div class="lbl">Scan to see it<em>Or tap the tablet to watch</em></div>
-    </div>
   </section>
 
   <section class="card" data-hold="12000">
     <div class="pad">
-      <div class="kicker">One guy, one letter apart</div>
-      <h1>Built for studios.<br><span class="q">Not sold to them yet.</span></h1>
-      <div class="sub">Everything on this screen is running in production today. Early studios get in
-        first, and shape what gets built next.</div>
-      <div class="live">Come talk to me &mdash; I answer my own email</div>
+      <div class="copy">
+        <div class="kicker">One guy, one letter apart</div>
+        <h1>Built for studios.<br><span class="q">Not sold to them yet.</span></h1>
+        <div class="sub">Everything on this screen is running in production today. Early studios get in
+          first, and shape what gets built next.</div>
+        <div class="live">Come talk to me &mdash; I answer my own email</div>
+      </div>
     </div>
     <div class="url">daniel@streamstage.live</div>
   </section>
