@@ -1,5 +1,61 @@
 # Current Work - StreamStage
 
+## SESSION REFRESHED 2026-08-07 09:40 ET (/fresh — long expo session: decks, films, kiosk, toolkit plan)
+
+### NEXT SESSION: the trade-show toolkit is the live thread
+**Read `docs/plans/2026-08-07-tradeshow-toolkit.md` FIRST.** It is the executable plan and it holds
+the topology, the reuse map, the six hard-won constraints and the acceptance tests. Daniel said
+verbatim: *"You're going to be given a fresh session to continue this build so make sure you're
+storing all this."* NOTHING of it is built yet. Do not start it without reading that file, and do
+not start a new Android project — three shells already exist and are catalogued in the plan.
+
+### What landed 2026-08-06 → 08-07 (all committed and pushed)
+- **Talk 2 rebuilt** to the approved running order — 32 sections, clock closes 0:00→60:00
+  (`cd5496c`). Slide 1: 11:04 PM is now a real status bar ON the phone, and the title types on /
+  holds / clears to show the robot wall, looping only while `body.gathering` (`6ae5e6c`).
+- **Robot wall fixed twice** — `.ph.bleed` was painting over it (`78f7547`), and the wall was
+  one-shot per page load where ANY click killed it permanently and every later G press returned
+  silently. Both reproduced, fixed, re-verified.
+- **Dead `route-all` heartbeat deleted** (`1f47918`) — it was throwing a console error every 8s on
+  the two live-demo slides.
+- **Talk 1 rebuilt** — 27 slides, punch-list items 21–27, media-fee act moved off the main line
+  behind the `M` key, `V` audio preflight, re-timed clock (`551c59d`, `86b02cc`).
+- **Three studio films at full length** behind one player on slide 15 — CSOD 63.9s, KMSD 60.3s,
+  WSDY 65.6s (`d48455b`). WSDY was a 12-second SILENT teaser; the real 4K master was pulled off
+  FIRMAMENT and transcoded to 1080p.
+- **Calgary reframe** — every video pitch and the booking CTA rebuilt for a room he cannot serve
+  from Ontario. The videographer brief now has a live home as Part four of `checklist.html`
+  (`2347164`, `2b7880c`).
+- **`presenter-server.py` now serves HTTP Range** (`29838b1`) — it was answering 200 with the whole
+  37.8 MB file, so video could not seek and Safari-class clients refuse `<video>` without 206.
+- **StudioBeat film delivered** with Daniel's VO + bed, all 8 beats inside their windows, placement
+  sample-accurate to 1.68 frames. Six films now exist.
+- **Kiosk was holding the SILENT StudioBeat cut** (synced 01:34, an hour before the VO landed).
+  Re-synced; `media/studiobeat.mp4` now matches the master byte-for-byte with audio present.
+- **`/t/` click-to-text fixed** in StudioSage (`713ab90`) — it returned 200 and handed out the
+  PRODUCTION number to demo-tenant visitors.
+- Both decks synced to FIRMAMENT, md5 matched both sides, presenter server running detached.
+
+### Verified independently (my own headless walk, not the builders' self-reports)
+- Talk 2: 32 slides, zero overflow, zero page scroll, no media errors.
+- Talk 1: 27 slides, zero page scroll, no media errors, only two ambient beams that overflow by
+  design. All three film sources load with real durations.
+
+### STILL OPEN — Daniel's calls, deliberately not taken
+1. **The production demo reset.** `POST /api/demo/reset {"seeds":true}`. The Class Schedule seed is
+   DEPLOYED but the live demo tenant still has **15** knowledge-base entries and no class schedule —
+   so the jazz-class question that failed the live-fire test still fails. Held because it rewrites
+   demo data on production.
+2. **The deal calculator** for an out-of-area room. `/dancerecital` and `/videoproduction` both
+   price Ontario services. He said "I'm still not sure how to handle this" — parked.
+3. **Suite pricing.** He floated $5–50/mo for the whole suite; his own 2026-08-03 GTM doc says
+   modules $20–40 and suite $100–150, and he said $20/mo for StudioSage alone on a stage in
+   Toronto. He called it a discussion point — do NOT invent an offer.
+4. **First five signups** — Kerry Moore signed up the day BEFORE the talk, so version A (Kerry in,
+   Just4Kicks out) vs version B (Kerry out, Just4Kicks in). StudioSage-2 is holding on his answer.
+5. **Reflect's tagline** — verbatim from beat 16 of its own VO script, never confirmed by him.
+
+
 ## SESSION REFRESHED 2026-08-06 21:56 ET (/fresh — long kiosk build session, context rot)
 
 ### What this window (StreamStage-1) finished before the refresh
@@ -181,7 +237,7 @@ Fixed in the product 2026-08-03; the DECK was still pointing at the old rig. Now
   `POST /api/demo/reset {"seeds":true}` -> 15 entries
 
 ### STILL UNVERIFIED for Calgary (from the StudioSage plan's own open list)
-1. **No real handset has ever texted `+1 587-317-0721`** — webhook tests only.
+1. ~~No real handset has ever texted `+1 587-317-0721`~~ **VERIFIED Aug 5 15:31–15:37 ET** (Twilio log): +1 647-883-3307 sent 4 texts, 4 replies delivered. Jazz-class question still answers "no class schedule" — blocked on the demo reset (open item 1).
 2. SES->S3->SNS latency unmeasured; needs one real email to calgary@ingest.studiosage.ai.
 3. Number not prewarmed — a cold long code taking a 40-phone burst can trip Canadian
    carrier filtering.
