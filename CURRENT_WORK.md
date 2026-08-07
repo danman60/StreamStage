@@ -81,6 +81,18 @@ VO + BG audio pulled from FIRMAMENT Downloads to `/mnt/data/vo-drop/`.
 Each session told to SPLIT the VO at beat boundaries and place per timecode — the ElevenLabs
 renders are continuous spoken-beats only, so they are shorter than the films by design.
 
+## KIOSK — TWO THINGS NOTED 2026-08-07, NOT BUILT
+Full detail: `expo-assets/kiosk/NEXT-BUILD-NOTES.md`.
+1. **Rendered kiosk video** — six software products in floating panes, one film centre-screen at a
+   time with audio + its QR, looping. Purpose in his words: *"for when the laptop can't be connected
+   to the kiosk and we don't want the kiosk to be blank."* It is a FALLBACK against a black TV, not a
+   second product. Look reference: `kiosk-tv/TV2-streamstage-kiosk.mp4` on FIRMAMENT.
+2. **Tablet APK** for the existing live kiosk. Topology stays laptop→TV, tablet on the same Wi-Fi.
+   Must work with no internet — it already does; every asset is local and the only online things are
+   the QR destinations, which open on visitors' own phones. The new work is packaging: a WebView
+   wrapper, LAN discovery so nobody types an IP, reconnect-on-wake, and lock-task mode.
+   Open questions: which tablet, which Android version, WebView wrapper vs native rewrite.
+
 ## Active Task
 **Post-expo: improve the talks + decks from the real lapel-mic transcript.**
 Primary source `/mnt/firmament/ExpoMic.txt`. Grounded read-out delivered
