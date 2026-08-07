@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Black, fullscreen, no action bar, no window animations. The first frame the TV shows
+         must be black rather than a white flash on a rented panel. Platform theme only, so
+         the app carries no appcompat/material dependency. -->
+    <style name="Theme.BoothLoop" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+</resources>

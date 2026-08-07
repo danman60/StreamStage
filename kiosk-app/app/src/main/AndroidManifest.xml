@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ================================================================= -->
+    <!-- THERE IS DELIBERATELY NO android.permission.INTERNET HERE.         -->
+    <!-- This is the load-bearing line of the whole app. Without it the     -->
+    <!-- kernel refuses socket creation for this UID, so no library, no     -->
+    <!-- transitive dependency and no future edit can reach the network     -->
+    <!-- without someone consciously adding the permission back.            -->
+    <!-- Works in airplane mode because it cannot do anything else.         -->
+    <!-- Do not add INTERNET or ACCESS_NETWORK_STATE to this file.          -->
+    <!-- ================================================================= -->
+
+    <!-- Keeps the stick from hitting its own sleep timer mid-show.
+         FLAG_KEEP_SCREEN_ON alone is not enough on Fire OS — see BoothLoopActivity. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- androidx.media3:media3-common:1.6.0 declares ACCESS_NETWORK_STATE in its own
+         manifest, so the merger silently adds it to ours. It cannot open a socket without
+         INTERNET, but a permission we never asked for undermines the audit — anyone reading
+         `aapt dump permissions` should see a network-free app and not have to reason about
+         it. Stripped. Verified absent from the built APK. -->
+    <uses-permission
+        android:name="android.permission.ACCESS_NETWORK_STATE"
+        tools:node="remove" />
+
+    <!-- Leanback declared so Fire TV / Android TV treat this as a TV app, but NOT required,
+         so the same APK still installs on a phone or tablet for bench testing. -->
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
+    <application
+        android:allowBackup="false"
+        android:banner="@drawable/app_banner"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="false"
+        android:theme="@style/Theme.BoothLoop">
+
+        <activity
+            android:name=".BoothLoopActivity"
+            android:exported="true"
+            android:banner="@drawable/app_banner"
+            android:launchMode="singleTask"
+            android:screenOrientation="landscape"
+            android:resizeableActivity="false"
+            android:theme="@style/Theme.BoothLoop"
+            android:excludeFromRecents="false"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|smallestScreenSize|screenLayout|uiMode|density|touchscreen">
+
+            <!-- LEANBACK_LAUNCHER puts it on the Fire TV home row.
+                 LAUNCHER keeps it launchable from a phone/tablet launcher for bench tests. -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Best-effort autostart after a power cycle. See README: background activity
+             starts are restricted on Android 10+ / Fire OS 8, so this is NOT guaranteed
+             and is NOT the primary recovery path. -->
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:directBootAware="false">
+            <intent-filter android:priority="999">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <!-- Fire OS / older devices also emit these. Harmless where unsupported. -->
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>

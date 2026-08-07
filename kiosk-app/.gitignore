@@ -1,0 +1,21 @@
+# Build output
+build/
+.gradle/
+.kotlin/
+local.properties
+*.apk
+*.aab
+captures/
+.externalNativeBuild/
+.cxx/
+
+# ------------------------------------------------------------------
+# THE FILMS NEVER ENTER GIT.
+# ~360 MB of video. They live in expo-assets/kiosk/media/ (itself gitignored)
+# and are side-loaded onto the stick with tools/push-media.sh.
+# ------------------------------------------------------------------
+media/
+*.mp4
+*.mov
+*.mkv
+*.m4v
