@@ -36,7 +36,19 @@ over real Wi-Fi, no adb scaffold.
 Lead durability: sent once, re-run sends 0, `forwarded:false` and no-internet both KEEP the queue,
 survives a kiosk restart. All to a LOCAL sink; the flushed-marker was cleared afterwards.
 
-### OPEN DEFECT — power-on shows the Amazon home screen
+### Cold-boot procedure — TESTED, and it is one step
+Power-cycled the stick and ran the whole chain from cold: launch the app once (Fire TV home-row
+tile, or `am start -n com.streamstage.boothloop/.BoothLoopActivity`) -> the reel owns the TV ->
+tablet tap played CostumeCraft on it -> the lead landed on DART's disk verbatim. Daniel's call:
+launching it by hand is fine, so the launcher is NOT being replaced.
+
+**Correction to the note below:** this bench stick has NO REMOTE PAIRED, so Fire OS shows a
+"We cannot detect your remote" dialog over everything after every boot. That dialog is in the
+first post-reboot screenshot and it is a property of this stick, not of the app. With a paired
+remote at the booth it should not appear. What survives that correction is the logcat, twice:
+the boot-time activity start really is refused.
+
+### OPEN DEFECT — power-on does not put the reel on screen by itself
 Android 11 refuses `BootReceiver`'s activity start (`isBgStartWhitelisted:false`). On plug-in the
 app boots and plays the reel **with sound behind the Amazon launcher** (Netflix/Prime/Luna tiles).
 `SYSTEM_ALERT_WINDOW` was granted via appops and re-tested — still refused. Proven to win the
