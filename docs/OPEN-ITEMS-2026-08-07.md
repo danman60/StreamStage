@@ -67,9 +67,14 @@ Anything marked **DANIEL** is a decision, not a task.
    Chain proven: `Manifest v3, 7 film(s)` → panel showed `studiosage-v3.mp4 — not on this stick ·
    15.8 MB to fetch` → `verified and staged` (hash gate) → deferred install *"swaps in when it next
    comes around"* → renamed to its final versioned path, staging empty → `installed.json` records
-   `source=manifest` → it PLAYED (`pos 41.55 → 46.55`) → reel stayed **7 films, no duplicate**
-   (`FilmVersions` collapsed them). Cleaned up after; `SYSTEM_ALERT_WINDOW granted=true` re-checked
-   so zero-touch boot is intact.
+   `source=manifest` → it PLAYED (`pos 41.55 → 46.55`). Cleaned up after;
+   `SYSTEM_ALERT_WINDOW granted=true` re-checked so zero-touch boot is intact.
+
+   > ~~reel stayed 7 films, no duplicate (`FilmVersions` collapsed them)~~ — **RETRACTED by
+   > StreamStage-4.** That reading came from a PRE-RESCAN `/state`, and the test film was published
+   > under a *different* logical name (`logicalName` only strips the `__hextag`), so this run never
+   > exercised collapse at all. See the corrected entry below for the run that actually proves it.
+   > A wrong proof is worse than no proof: it stops anyone re-testing.
 
    **NEW, non-fatal defect found doing it:** a `play` landing right after a version swap throws
    `IllegalStateException: Handler … on a dead thread` from `ExoPlayerImpl.prepare` at
@@ -239,12 +244,21 @@ tablet, DART, R2 or the decks without saying so on the collab channel first.**
 
 ## Closed since the list above was written
 
-- **Item 5, ON-DEVICE half — DONE (StreamStage-4).** Ran the whole chain on the real stick against a
-  LOCAL manifest v3 over `adb reverse` (the loopback branch `localOverride` allows), with a film
-  byte-identical to the live one so booth content could not change. Hash gate passed, deferred
-  install swapped it in, `installed.json` recorded it as manifest-sourced, it PLAYED, and the reel
-  stayed 7 films with no duplicate. Cleaned up after; zero-touch boot re-confirmed intact.
-  **The production bucket was never touched.**
+- **Item 5, ON-DEVICE half — DONE (StreamStage-4), with one claim STRUCK.** The first run proved
+  the download chain on the real stick against a LOCAL manifest over `adb reverse`: hash gate
+  passed, deferred install swapped it in, `installed.json` recorded it as manifest-sourced, and it
+  played. The production bucket was never touched.
+  **Its "reel stayed 7 films with no duplicate" is RETRACTED** — a pre-rescan `/state` reading, and
+  the test film carried a different logical name, so collapse was never exercised.
+  **The valid evidence is the SECOND run, against the merged versionCode 3 build**, using a true
+  new version (same `studiosage.mp4` filename, different bytes via an ffmpeg remux): 9 files on
+  disk, three of them studiosage-logical, and the reel showed **studiosage exactly once** —
+  pointer `studiosage.mp4 -> studiosage__9b8e2a33810c.mp4` — and it played. **Rollback works too**
+  ("Rolled studiosage.mp4 back to studiosage.mp4"). So `FilmVersions` collapse survives the merge,
+  which was the behaviour most likely to break silently.
+- **The released-ExoPlayer guard (`e8b6801`) — CONFIRMED ON THE DEVICE.** Zero dead-thread traces
+  on a `play` landing immediately after a version swap: the exact overlap that produced the
+  original `IllegalStateException`.
 - **Item G — DONE (StreamStage-4), verified by StreamStage-5.** `a@b.ca` / "Test Studio" and the
   `TEST — ignore this row` row backed up then deleted. Re-checked four ways from this window
   (`a@b.ca`, `studio ilike TEST`, `studio ilike Bright`, `name ilike TEST`) — **0 rows each.**
