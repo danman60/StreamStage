@@ -227,3 +227,81 @@ Anything marked **DANIEL** is a decision, not a task.
   dialog after every boot. Not an app bug.
 - **Do not harden `kiosk-app`'s `network_security_config.xml` back to loopback-only.** That was
   the bug that stopped the tablet driving the stick at all.
+
+---
+
+# COORDINATED STATE — 2026-08-08, three windows, one ledger
+
+Daniel asked the StreamStage windows to agree a lead and drive this to zero. **StreamStage-5 leads**
+(agreed by StreamStage-3 and StreamStage-4); this file is the single source of truth. Standing rule
+while three sessions share one repo three days out: **nobody touches the Fire Stick, the Fire
+tablet, DART, R2 or the decks without saying so on the collab channel first.**
+
+## Closed since the list above was written
+
+- **Item 5, ON-DEVICE half — DONE (StreamStage-4).** Ran the whole chain on the real stick against a
+  LOCAL manifest v3 over `adb reverse` (the loopback branch `localOverride` allows), with a film
+  byte-identical to the live one so booth content could not change. Hash gate passed, deferred
+  install swapped it in, `installed.json` recorded it as manifest-sourced, it PLAYED, and the reel
+  stayed 7 films with no duplicate. Cleaned up after; zero-touch boot re-confirmed intact.
+  **The production bucket was never touched.**
+- **Item G — DONE (StreamStage-4), verified by StreamStage-5.** `a@b.ca` / "Test Studio" and the
+  `TEST — ignore this row` row backed up then deleted. Re-checked four ways from this window
+  (`a@b.ca`, `studio ilike TEST`, `studio ilike Bright`, `name ilike TEST`) — **0 rows each.**
+- **Item E — effectively closed.** The D4 handout QRs were already correct; decoded from the inline
+  SVG path data (what prints, not what a renderer guesses):
+  `handout-videographer-brief.html` → `/g?a=videographer&src=handout&p=print`, and
+  `handout-interview-questions.html` → `/g?a=interviews&src=handout&p=print`. Both 200, both `a=`
+  keys real.
+- **The `/events` emergency channel — NOT outstanding.** StreamStage-3 flagged a 14 MB `/events`
+  killing `sethost`/`rediscover`/`reload`/`diag` at the venue. Measured on DART: **8,652 bytes, 46
+  entries, valid JSON, 18 ms**, and the running `serve.py` already has `MAX_EVENTS_BYTES = 320*1024`,
+  the `/applog` split and `?since=`. The fix landed and is deployed.
+- **`flush-leads.py` strictness — closed.** Production is at `2a4e497`, which contains `431742a`, so
+  the route returns `forwarded` and the flusher's strict branch is the one that runs.
+- **Full booth suite — 44 passed, 0 failed, 2 skipped** (`DART=192.168.0.13 ./tests/e2e-booth.sh`).
+  All 7 R2 films serve; repo == publish-set for all 7; all 7 decode; the stick has 7 films matching
+  the published set with a clean staging dir; presenter reports a shipping deck count, so the
+  stale-deck alarm is silent. The 2 skips are the tablet and phone not being on adb.
+
+## STILL OPEN — and every one of these is now a decision or a blocked-on-hardware, not unknown work
+
+**DANIEL'S CALL:**
+1. **The 21 uncommitted files.** Ownership settled: `tablet-app/` (5) and `phone-app/` (7) are
+   StreamStage-3's, hardware-verified, and it is committing them now. **`kiosk-app/` (6 + new
+   `FilmVersions.kt` + `docs/`) is 1,602 insertions of a STOPPED agent's partial work, written
+   BEFORE `e6dfa99`/`378ea3e`/`5193cc0` landed** — committing it as-is risks clobbering the fixes
+   that made the stick work. StreamStage-3 recommends discarding and redoing versioned filenames
+   deliberately after the show. **Held in place, untouched, pending your answer.**
+2. **The re-rendered StreamStage film** (StreamStage-3, 8 chunks done, audio mux finishing). It
+   carries two things you asked for by name — the defocused tile wall and the gold oval speaker
+   portrait — plus a QR repoint that your production 307 has since made redundant. Caveat measured
+   during the render: the longer gated URL **costs QR defocus margin** (fails at Gaussian σ=1.8
+   where the old one read). Ship it to the stick, or leave the current film?
+3. **Slide 21 still PRINTS `streamstage.live/checklist` (6×) and `/book` (4×)** as readable text,
+   bypassing the gate its QR now enforces.
+4. **Items 13, 16, 17, 18** — StudioSage merge-on-email, ten-and-ten picks, Reflect's tagline, the
+   CompSync signup URL.
+
+**BLOCKED ON HARDWARE:**
+5. **The Pixel is PIN-locked** and `wm dismiss-keyguard` will not open it, so the phone console and
+   the **cellular** presenter path stay unverified. Needs you to unlock it once.
+6. **The Fire tablet is off the network** (`192.168.0.11` — no route to host). The tablet
+   double-flash fix is deployed to DART but needs a page reload and a real thumb on "back". Also
+   worth checking: a synthetic click on `#back` was intercepted by the card body at 1200×1900, so
+   the hit target may be a near miss.
+
+**NEW, FOUND WHILE COORDINATING:**
+7. **A stale ExoPlayer is prepared when a `play` lands right after a version swap.**
+   `IllegalStateException: sending message to a Handler on a dead thread` at
+   `ExoPlayerImpl.prepare` ← `BoothLoopActivity.obey()` (`p.prepare()`, BoothLoopActivity.kt:281).
+   Playback recovered, so it is a warning today — but it is on the booth's only playback path.
+   NOT fixed: it is kiosk-app code, entangled with item 1 above.
+8. **A dead TV keeps serving its last state for ~84 s.** `/state` on DART went on returning the old
+   `tv` object — including a film list that no longer existed — while `/health` already read
+   `hasTv:false`. Anything trusting `/state` alone (phone console, tablet badge) will show a
+   confident, wrong picture of a screen that is gone. `health.hasTv` and `tvLastSeenMs` are the
+   honest signals.
+9. **The presenter on DART is not persistent.** It survives only while a session holds it; Task
+   Scheduler would not run it cleanly, so the documented procedure is to double-click
+   `start-presenter.bat` on DART and leave the window open.
