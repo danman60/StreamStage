@@ -90,6 +90,15 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
     private var tv: KioskBus.TvState? = null
 
     /**
+     * A play is out on the wire. Every control that can start a film is dead while it is true, so
+     * the second half of a double-tap has nothing to hit — the first half is the ~1.2s gate in
+     * MainActivity.playGateOpen. Two halves because they fail differently: the gate catches a fast
+     * thumb on a fast relay, this catches a slow relay where the button would otherwise sit live
+     * and inviting for a second or two.
+     */
+    private var sending = false
+
+    /**
      * Starts a drag when the ⠿ handle is touched. Declared HERE, above `init`, because the
      * ItemTouchHelper that fills it in is created inside `init` and Kotlin initialises properties
      * in declaration order — a property declared below `init` cannot be assigned from it.
@@ -128,10 +137,11 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
         }
         playBtn.setOnClickListener {
             // One button, two meanings, decided by what the TV last said: held on a frame ->
-            // resume it; anything else -> re-cut the last film he chose.
+            // resume it; anything else -> re-cut the last film he chose. Resume is idempotent on
+            // the TV; a re-cut is NOT, so it goes through the same guard as every other play.
             val s = tv
             if (s != null && s.isPaused) onResume?.invoke()
-            else lastPlayed?.let { onPlay?.invoke(it) } ?: onResume?.invoke()
+            else if (!sending) lastPlayed?.let { onPlay?.invoke(it) } ?: onResume?.invoke()
         }
         pauseBtn.setOnClickListener { onPause?.invoke() }
         stopBtn.setOnClickListener { onStop?.invoke() }
@@ -150,7 +160,7 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
             minimumHeight = dp(64)
             text = "▶  StreamStage film — recital filming & livestream"
             visibility = View.GONE
-            setOnClickListener { featureFilm?.let { onPlay?.invoke(it) } }
+            setOnClickListener { if (!sending) featureFilm?.let { onPlay?.invoke(it) } }
         }
         addView(featureBtn, wide(dp(10), dp(12)))
 
@@ -309,13 +319,39 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
         posBar.setBackgroundColor(if (tv?.isPaused == true) WARN else ACCENT)
     }
 
+    /**
+     * A play/playfilm is on the wire, or it has come back.
+     *
+     * Everything that can START a film goes visibly dead in between, which is the honest thing to
+     * show and the thing that stops the second tap. Pause/Stop stay live — they are idempotent on
+     * the TV side and are exactly what someone reaches for when a play is taking too long. The
+     * [releaseSend] safety net exists because a control that gets stuck disabled at a booth is
+     * worse than the bug it was guarding against.
+     */
+    fun setSending(on: Boolean) {
+        sending = on
+        ui.removeCallbacks(releaseSend)
+        if (on) ui.postDelayed(releaseSend, SEND_RELEASE_MS)
+        featureBtn.alpha = if (on || featureFilm == null) 0.4f else 1f
+        renderTransport()
+    }
+
+    private val releaseSend = Runnable {
+        if (sending) {
+            sending = false
+            featureBtn.alpha = if (featureFilm == null) 0.4f else 1f
+            renderTransport()
+        }
+    }
+
     /** Buttons reflect what the TV can actually do right now, so a dead tap is impossible. */
     private fun renderTransport() {
         val s = tv
         val playing = s?.isPlaying == true
         val paused = s?.isPaused == true
         playBtn.text = if (paused) "▶  Resume" else "▶  Play"
-        enable(playBtn, paused || lastPlayed != null)
+        // Resume is idempotent, so it stays available even mid-send; a re-cut does not.
+        enable(playBtn, paused || (!sending && lastPlayed != null))
         enable(pauseBtn, playing && !paused)
         enable(stopBtn, playing || s?.state == "end")
     }
@@ -378,7 +414,8 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
         override fun onBindViewHolder(holder: FilmVH, position: Int) {
             val f = items[position]
             holder.bind(f, f.id == playingId)
-            holder.itemView.setOnClickListener { onPlay?.invoke(f) }
+            // Dead while a play is in flight — see [sending].
+            holder.itemView.setOnClickListener { if (!sending) onPlay?.invoke(f) }
         }
     }
 
@@ -443,6 +480,16 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
      */
     private inner class DragCallback : ItemTouchHelper.Callback() {
 
+        /**
+         * The order as it was when this drag STARTED, or null when no drag is under way.
+         *
+         * clearView() fires on every release, including a grab that moved nothing and a drag that
+         * wandered down and came back to the same slot. Publishing those sent a `playlist` message
+         * to the TV that said exactly what it already knew — a POST on the kiosk's connection
+         * budget, and a log line that looks like the operator changed something when he did not.
+         */
+        private var orderAtGrab: List<String>? = null
+
         override fun isLongPressDragEnabled() = false
         override fun isItemViewSwipeEnabled() = false
 
@@ -462,7 +509,10 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
 
         override fun onSelectedChanged(vh: RecyclerView.ViewHolder?, actionState: Int) {
             super.onSelectedChanged(vh, actionState)
-            if (actionState == ItemTouchHelper.ACTION_STATE_DRAG) vh?.itemView?.alpha = 0.7f
+            if (actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
+                vh?.itemView?.alpha = 0.7f
+                orderAtGrab = adapter.items.map { it.id }
+            }
         }
 
         /**
@@ -473,6 +523,10 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
         override fun clearView(rv: RecyclerView, vh: RecyclerView.ViewHolder) {
             super.clearView(rv, vh)
             vh.itemView.alpha = 1f
+            val before = orderAtGrab
+            orderAtGrab = null
+            val after = adapter.items.map { it.id }
+            if (before == null || before == after) return    // nothing actually moved
             onReorder?.invoke(currentOrder())
         }
     }
@@ -524,5 +578,12 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
         private val DIM = Color.parseColor("#9BA3B4")
         private val WARN = Color.parseColor("#F0A73B")
         private val ACCENT = Color.parseColor("#4F8DF7")
+
+        /**
+         * Longest the play controls may stay disabled waiting for a relay that never answers.
+         * KioskBus's own timeouts are shorter than this, so in practice the reply re-enables them
+         * first; this only exists so a lost callback can never leave a booth control dead.
+         */
+        private const val SEND_RELEASE_MS = 4_000L
     }
 }

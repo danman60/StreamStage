@@ -94,6 +94,29 @@ class RemoteControl(
 
     // ------------------------------------------------------------------ shipping
 
+    /**
+     * THE ENVELOPE EVERY EVENT THIS APP SHIPS CARRIES — and the reason `ms` is in it.
+     *
+     * serve.py's read_events() sorts the day with `key=lambda e: e.get("ms", 0)` and its
+     * `?since=<ms>` filter keeps only events whose `ms` is greater than the cursor. serve.py's
+     * record() does NOT stamp anything on arrival, so an event that ships only an ISO string
+     * sorts to position zero of the whole day and is invisible to every since-poll. The phone's
+     * log lines were doing exactly that.
+     *
+     * `ms` and `t` are formatted from the SAME instant, so the sortable field and the readable
+     * field can never disagree, and `t` is now genuinely UTC (see Diag.iso).
+     */
+    private fun event(type: String): JSONObject {
+        val now = System.currentTimeMillis()
+        return JSONObject()
+            .put("type", type)
+            .put("surface", "phoneapp")
+            .put("device", Diag.deviceId)
+            .put("app", Diag.appVersion)
+            .put("ms", now)
+            .put("t", Diag.iso(now))
+    }
+
     private fun ship() {
         val h = sink() ?: return
         if (!busy.compareAndSet(false, true)) return
@@ -101,15 +124,7 @@ class RemoteControl(
             val lines = Diag.drainForShipping(40)
             val batch = JSONArray()
             for (l in lines) {
-                batch.put(
-                    JSONObject()
-                        .put("type", "phone_log")
-                        .put("surface", "phoneapp")
-                        .put("device", Diag.deviceId)
-                        .put("app", Diag.appVersion)
-                        .put("t", Diag.nowIso())
-                        .put("msg", l)
-                )
+                batch.put(event("phone_log").put("msg", l))
             }
             if (shipCount++ % statusEveryNShips == 0) batch.put(statusEvent(h))
             if (batch.length() == 0) return
@@ -119,12 +134,7 @@ class RemoteControl(
         }
     }
 
-    private fun statusEvent(h: ServerHost?): JSONObject = JSONObject()
-        .put("type", "phone_status")
-        .put("surface", "phoneapp")
-        .put("device", Diag.deviceId)
-        .put("app", Diag.appVersion)
-        .put("t", Diag.nowIso())
+    private fun statusEvent(h: ServerHost?): JSONObject = event("phone_status")
         .put("mode", Diag.mode.label)
         .put("host", h?.toString() ?: "none")
         .put("state", stateLine)
@@ -139,12 +149,7 @@ class RemoteControl(
             return
         }
         safely {
-            val body = JSONObject()
-                .put("type", "phone_diag")
-                .put("surface", "phoneapp")
-                .put("device", Diag.deviceId)
-                .put("app", Diag.appVersion)
-                .put("t", Diag.nowIso())
+            val body = event("phone_diag")
                 .put("mode", Diag.mode.label)
                 .put("report", Diag.fullReport(header))
             Net.postJson("http://${h.host}:${h.telemetryPort}/log", body.toString())

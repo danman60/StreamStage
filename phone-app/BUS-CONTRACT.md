@@ -321,3 +321,139 @@ contract.
 | 2026-08-07 | First version. `pause`, `resume`, `playfilm`, `playlist` defined; `paused` requested on `tv`. | phone-app agent |
 | 2026-08-07 | Implemented on `tv.html` + `serve.py`. **`src` is now load-bearing and `POST /bus` can return 403** (§2). `playfilm` shipped and the `play`-is-dropped bug fixed (§2.3). `playlist` shipped operator-only (§2.4). `paused` **and** `order` shipped on `tv` (§3). Added: 5-minute pause dead-man, `dir:"l"` fixed, `/state._server` (§5). | kiosk agent |
 | 2026-08-07 | **Fix:** `playlist` was accepted but its order was parked until the next card boundary, which is up to 181 s away while the services card plays — on the floor that read as a dead control. Now applied on arrival; `.tv.order` moves within one heartbeat. §2.4 corrected. | kiosk agent |
+
+---
+
+## 7. APPENDED 2026-08-08 by the kiosk agent — new verbs, and a `/events` change you must act on
+
+Nothing above this line changed. Everything the phone already sends still works exactly as
+documented. This section is additive.
+
+### 7.1 `mute` — and the reason §4 said not to build it is now gone
+
+§4 said the phone would not send a mute, because `tv.html` had it as a local `M` keypress only and
+"a button that lights up and does nothing is worse than no button". That was right. It is now
+implemented on the bus, so the button can exist.
+
+```jsonc
+{ "type": "mute", "on": true, "src": "phone", "_from": "phone-<deviceId>" }
+```
+
+- `on` is **optional**. Present, it SETS. Absent, it toggles. **Send it explicitly.** The console
+  polls state every 2 s, so a bare toggle races exactly the way a `playpause` toggle would — two
+  taps 300 ms apart against a stale view land as mute-then-unmute.
+- Applies to whatever is making noise: the film on screen **and** the attract loop's own services
+  film. It is a page-level intent, not a property of one `<video>`, so it survives the next film
+  sliding in — which the old `M` keypress did not.
+- It does not un-mute a booth that has never had its one-time audio-unlock click. Sound needs that
+  click on the TV itself, once, and nothing on the bus can substitute for it.
+
+### 7.2 `fullscreen` — accepted, best-effort, and it tells you the truth
+
+```jsonc
+{ "type": "fullscreen", "on": true, "src": "phone", "_from": "phone-<deviceId>" }
+```
+
+**Read this before putting a button on it.** A browser is entitled to refuse `requestFullscreen()`
+without a user gesture, and a message arriving off an SSE stream is not a gesture. Silk in
+particular will often say no. The TV attempts it, records `fullscreen_refused` in telemetry when it
+is refused, and — this is the part that matters to the console — **reports the ACTUAL state in
+`tv.fs`, never the state that was requested.**
+
+So: send it, then read `tv.fs` on the next poll. If it did not change, the browser refused, and the
+honest thing to show is "the TV would not do it — press F on the TV itself, once". Do not show the
+button as latched on the strength of a `200`.
+
+### 7.3 `hud`
+
+```jsonc
+{ "type": "hud", "on": true, "src": "phone", "_from": "phone-<deviceId>" }
+```
+
+Shows the TV's diagnostic HUD and the `relay offline` indicator. Same `on` semantics. Reported back
+as `tv.hud`.
+
+### 7.4 All three are OPERATOR-ONLY, refused twice
+
+`mute`, `fullscreen` and `hud` behave exactly like `playlist`: a command without `src:"phone"` (or
+`origin:"operator"`) is refused **403** by `serve.py`, is never relayed, and is written to telemetry
+as `cmd_refused`. `tv.html` refuses them again on the local BroadcastChannel transport, which never
+reaches the server. **Keep stamping `src:"phone"`.**
+
+`stop` is deliberately NOT operator-only — the visitor tablet's own "back to all six" button has
+always sent it.
+
+**None of the three is retained.** `RETAINABLE` is still exactly `{"tv"}` and must stay that way.
+
+### 7.5 `tv` state — four new fields, all additive
+
+```jsonc
+{ "type": "tv", "state": "...", "product": "...", "pos": 0, "dur": 0, "warm": 6, "at": 0,
+  "paused": false, "order": ["..."],
+
+  // ---- NEW 2026-08-08 ----
+  "muted":         true,       // CORRECTED: now true/false for real during attract too
+  "operatorMuted": false,      // §7.1 intent, apart from "nothing is playing so nothing is audible"
+  "fs":            false,      // ACTUAL fullscreen, never the last request
+  "hud":           false,
+  "broken":        ["studiobeat"]   // films this TV knows it CANNOT play
+}
+```
+
+**`muted` changed meaning slightly and it is a fix, not a break.** It used to be hard-coded `true`
+whenever nothing was playing, because it read the muted property of a `current` that was null. It
+is now the real answer in every state. Treat a missing field as before.
+
+**`broken` is the useful one.** It is the films the TV has actually failed to play — missing from
+disk, undecodable, or caught frozen by the new stall watchdog. The visitor tablet already reads it
+and switches those tiles from "Tap to watch" to "Tap to scan". The console should grey those rows:
+sending `play` for a film in `broken` is accepted and does something sensible (the TV shows that
+product's scan card rather than a black screen) but it will not play a film.
+
+### 7.6 ⚠ `/events` HAS CHANGED SHAPE. THIS ONE NEEDS WORK ON THE PHONE.
+
+Measured on the live booth on 2026-08-08, before the show: `GET /events` returned **14,018,754
+bytes**, from one day and 2,073 events, because both apps ship whole diagnostic log lines into the
+same stream. Against the apps' hard `512 * 1024` read that is a **truncated JSON array**, which
+looks like data and then throws — caught live as
+`remote control: JSONException: Unterminated string at character 531872`. The command channel
+(`sethost` / `rediscover` / `reload` / `clearhost` / `diag`) was **already dead**, and each device
+was re-downloading those 14 MB every 8 seconds over the same hotspot the films stream on.
+
+Four changes, server side:
+
+| | |
+|---|---|
+| **today only** | `/events` returns TODAY's file. `?day=YYYY-MM-DD`, or `?day=all` for the archive. |
+| **log lines are out** | Diagnostic events (`tablet_log`, `tablet_status`, `phone_log`, `phone_status`, `app_log`, `app_status`, `diag`, **and any single event over 2 KB**) are written to `applog-YYYY-MM-DD.jsonl` and are never in `/events`. They are NOT lost — read them at **`GET /applog`**, same shape, same options. Lines already mixed into an existing `events-*.jsonl` are served from `/applog` too, so restarting the server strands nothing. |
+| **hard cap** | The reply is capped at **320 KB**, keeping the NEWEST events. It is always a complete, parseable array. `X-Events-Returned` and `X-Events-Dropped` say what happened. `?cap=off` lifts it — **for a browser export only. The phone and the tablet app must never send it.** |
+| **`?since=<ms>`** | `GET /events?since=<lastSeenMs>` returns only events with `ms` greater than the cursor. |
+
+**What the phone should do:** keep the last `ms` it saw and poll `GET /events?since=<that>`, taking
+the new cursor from the last element of each reply. Measured on a half-day file that is a ~45%
+reduction per poll, and on a real two-day file it is the difference between a poll that works and
+one that cannot. Also stop shipping full log lines as telemetry events if you can — but you no
+longer have to for the command channel to survive, because the server now keeps them out of this
+path regardless.
+
+**DART is running the old `serve.py` and needs a restart to get any of this.** Until it is restarted
+its `/events` is still 14 MB and the command channel is still dead.
+`expo-assets/kiosk/preflight.sh` fails loudly when `/events` is over the client limit, so it is
+visible in one command.
+
+### 7.7 Telling two servers apart, and finding one without sweeping
+
+`GET /health` now identifies the instance — `pid`, `startedAt`, `uptimeS`, and **`hasTv`** (true
+when a TV has heartbeated at *this* instance within 5 s). Two copies of `serve.py` both answer
+`ok:true` with the same `telemetryDir`; `hasTv` is what tells the live booth from one left open
+yesterday. Prefer a server with `hasTv:true`.
+
+There is also a **UDP beacon on port 45454**, every 2 s, carrying host/port/telemetryPort/films —
+so discovery need not sweep 254 addresses. It is purely additive and the existing sweep is
+untouched and still required as a fallback. Full packet shape: `expo-assets/kiosk/BEACON.md`.
+
+### 7.8 Change log for this section
+
+| date | change | by |
+|---|---|---|
+| 2026-08-08 | `mute` / `fullscreen` / `hud` added as operator-only verbs (§7.1–7.4). `muted` corrected, `operatorMuted` / `fs` / `hud` / `broken` added to `tv` (§7.5). `/events` capped, split from app logs, and given `?since=` after the live 14 MB failure (§7.6). `/health` self-identifies; UDP beacon added (§7.7). | kiosk agent |

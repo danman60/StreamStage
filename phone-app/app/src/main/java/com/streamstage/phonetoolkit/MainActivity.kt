@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
@@ -90,8 +91,25 @@ class MainActivity : Activity() {
     @Volatile private var connecting = false
 
     private var pageLoaded = false
+
+    /**
+     * Consecutive failed health probes, SHARED by the watchdog and onResume. One miss on a venue
+     * hotspot is noise; two consecutive misses is a laptop that has actually gone. onResume used
+     * to act on ONE, which meant every screen-off/screen-on reloaded the deck remote mid-talk.
+     */
     private var healthMisses = 0
-    private var manualAttempt: String? = null
+
+    /**
+     * The last play/playfilm this app sent, and whether one is still in flight.
+     *
+     * `pause` and `resume` are idempotent on the TV side; `play` is NOT — tv.html sets
+     * currentTime = 0 on every play it receives, including a repeat of the film already running.
+     * So a double-tap in front of a prospect restarts the film. This gate is on the CLICK path,
+     * which is where the double-tap happens; FilmPanel.setSending is the second half (the control
+     * is visibly dead while the request is out).
+     */
+    private var lastPlayAt = 0L
+    private var playInFlight = false
 
     // ------------------------------------------------------------------ lifecycle
 
@@ -132,6 +150,7 @@ class MainActivity : Activity() {
 
         overlay = SetupOverlay(this).apply {
             onConnect = { text -> connectManually(text) }
+            onForce = { text -> forceHost(text) }
             onRescan = { startConnect(force = true) }
             onReload = { reloadCurrentSurface() }
             onSwitchMode = { hide(); showSwitcher() }
@@ -196,7 +215,7 @@ class MainActivity : Activity() {
         web.loadUrl("about:blank")
         pageLoaded = false
         healthMisses = 0
-        manualAttempt = null
+        playInFlight = false
         current = null
 
         mode = target
@@ -355,16 +374,27 @@ class MainActivity : Activity() {
     private fun buildFilmPanel(): FilmPanel = FilmPanel(this).apply {
         onPlay = { f ->
             val h = current
-            if (h == null) {
-                Diag.e("tapped ${f.id} with no kiosk connected")
-                showSendFailed(f.display)
-            } else {
-                // Straight to the relay. No gate, no confirmation — see KioskBus.
-                Diag.i("TAP play ${f.id} -> ${h.origin}/bus")
-                showRequested(f)
-                io.execute {
-                    val ok = KioskBus.play(h, f.id)
-                    if (!ok) ui.post { showSendFailed(f.display) }
+            when {
+                h == null -> {
+                    Diag.e("tapped ${f.id} with no kiosk connected")
+                    showSendFailed(f.display)
+                }
+                // THE DOUBLE-TAP GUARD. tv.html seeks to 0 on every play it receives, so a second
+                // tap inside the gate would restart the film in front of whoever is watching it.
+                !playGateOpen(f.id) -> Unit
+                else -> {
+                    // Straight to the relay. No gate, no confirmation — see KioskBus.
+                    Diag.i("TAP play ${f.id} -> ${h.origin}/bus")
+                    showRequested(f)
+                    setSending(true)
+                    io.execute {
+                        val ok = KioskBus.play(h, f.id)
+                        ui.post {
+                            playInFlight = false
+                            setSending(false)
+                            if (!ok) showSendFailed(f.display)
+                        }
+                    }
                 }
             }
         }
@@ -403,6 +433,31 @@ class MainActivity : Activity() {
                 }
             }
         }
+    }
+
+    /**
+     * ONE play per [PLAY_GATE_MS], and never two at once.
+     *
+     * Two independent conditions, because they fail differently: `playInFlight` covers a slow
+     * relay (the request is out, the button is dead, a second tap must not queue behind it), and
+     * the elapsed-time gate covers the fast case (the request came back in 40ms and a thumb
+     * bouncing on a booth floor sends the second tap anyway). Both are refused silently apart from
+     * a log line — an error toast for "you tapped twice" would be worse than the double tap.
+     */
+    private fun playGateOpen(what: String): Boolean {
+        val now = SystemClock.elapsedRealtime()
+        if (playInFlight) {
+            Diag.w("ignoring play $what — a play is still in flight")
+            return false
+        }
+        if (now - lastPlayAt < PLAY_GATE_MS) {
+            Diag.w("ignoring play $what — ${now - lastPlayAt}ms after the last one " +
+                "(gate is ${PLAY_GATE_MS}ms; the TV restarts a film on every play it receives)")
+            return false
+        }
+        lastPlayAt = now
+        playInFlight = true
+        return true
     }
 
     private fun refreshFilms() {
@@ -686,10 +741,19 @@ class MainActivity : Activity() {
         cancelScan.set(false)
         remote.stateLine = "searching"
         overlay.setMode(mode)
-        overlay.showBusy(
-            (if (force) "Reconnecting to " else "Looking for ") +
-                "${mode.serverName} for ${mode.label} mode…"
-        )
+        // DO NOT BLANK A WORKING SURFACE TO ANNOUNCE A RE-CHECK. If the search fails,
+        // showFailurePanel puts the overlay up with everything on it; if it succeeds on the same
+        // host, nothing on screen ever moved — which matters most when the deck remote is in his
+        // hand mid-talk. The status row in the bar still says "searching…".
+        val surfaceIsUp = if (mode == Mode.KIOSK) current != null else pageLoaded
+        if (surfaceIsUp && !overlay.isShowing) {
+            Diag.i("re-checking in the background — the ${mode.label} surface is up, so it stays on screen")
+        } else {
+            overlay.showBusy(
+                (if (force) "Reconnecting to " else "Looking for ") +
+                    "${mode.serverName} for ${mode.label} mode…"
+            )
+        }
         renderBar("searching…")
 
         val saved = store.saved(mode)
@@ -705,7 +769,18 @@ class MainActivity : Activity() {
                 connecting = false
                 if (found != null) {
                     store.save(found)
-                    connectTo(found)
+                    if (sameEndpoint(found, current) && pageLoaded && web.visibility == View.VISIBLE) {
+                        // Re-discovery landed on the very server the deck remote is already open
+                        // on. Reloading it here would be a visible stumble mid-talk for no gain —
+                        // a reload is justified only when the host changed or the page is dead.
+                        Diag.i("discovery returned the same host $found and the page is already " +
+                            "loaded — leaving it alone (no reload)")
+                        remote.stateLine = "on page (unchanged after re-check)"
+                        overlay.hide()
+                        renderBar(barDetail())
+                    } else {
+                        connectTo(found)
+                    }
                 } else {
                     remote.stateLine = "nothing found"
                     showFailurePanel(saved)
@@ -797,8 +872,14 @@ class MainActivity : Activity() {
     }
 
     /**
-     * Operator typed an address. Verified first; a SECOND tap opens it regardless — the human at
-     * the booth beats the probe. This is the guaranteed way in, in both modes.
+     * Operator typed an address. It is PROBED, and it is remembered ONLY if it answered.
+     *
+     * Tapping Connect a second time on the same string used to `store.save(parsed)` with nothing
+     * but the operator's insistence behind it — the only place in this app that ever wrote an
+     * unverified host. Because HostStore.parse also accepts a bare hostname, typing a machine name
+     * and tapping twice saved a name Android cannot resolve, re-probed and port-walked at every
+     * launch of that mode. Forcing is still one tap away: the separate, labelled "Open it anyway"
+     * button, which does not write to the store.
      */
     private fun connectManually(text: String) {
         val parsed = HostStore.parse(mode, text)
@@ -812,28 +893,74 @@ class MainActivity : Activity() {
         overlay.showBusy("Checking $parsed…")
         val forMode = mode
         io.execute {
+            // Say the unresolvable-name case FAST and in plain words, rather than making the
+            // operator watch a probe time out on a name that can never work.
+            if (!Discovery.resolves(parsed.host)) {
+                ui.post {
+                    if (forMode != mode) return@post
+                    overlay.showFailure(
+                        "'${parsed.host}' is a name, not an address",
+                        "This phone cannot look up computer names on this network — Android has " +
+                            "no NetBIOS and no mDNS for a Windows machine name. Type the laptop's " +
+                            "IP address instead, e.g. 192.168.0.13:${mode.seedPorts.first()}.",
+                        parsed.toString()
+                    )
+                }
+                return@execute
+            }
             val hit = Discovery.probe(forMode, parsed.host, parsed.port)
             ui.post {
                 if (forMode != mode) return@post
                 if (hit != null) {
-                    manualAttempt = null
-                    store.save(hit)
+                    store.save(hit)                  // verified, so it is worth remembering
                     connectTo(hit)
-                } else if (manualAttempt == parsed.toString()) {
-                    Diag.w("manual entry: $parsed did not answer — opening it anyway on the operator's insistence")
-                    manualAttempt = null
-                    store.save(parsed)
-                    connectTo(parsed)
                 } else {
-                    manualAttempt = parsed.toString()
                     overlay.showFailure(
                         "Nothing answered at $parsed",
-                        "Tap Connect again to use it anyway, or check the address.",
+                        "Check the address, or open it anyway with the button below. An address " +
+                            "that has not answered is never remembered — it is used for this " +
+                            "session only.",
                         parsed.toString()
                     )
+                    overlay.offerForce(parsed.toString())
                 }
             }
         }
+    }
+
+    /**
+     * FORCE. The operator insists on an address the probe could not verify.
+     *
+     * Deliberate, separately labelled, and DELIBERATELY NOT SAVED — if it turns out to work, the
+     * watchdog's next successful probe remembers it (see [rememberIfVerified]); if it does not,
+     * nothing is left behind to slow down the next launch of this mode.
+     */
+    private fun forceHost(text: String) {
+        val parsed = HostStore.parse(mode, text)
+        if (parsed == null) {
+            overlay.setStatus("That is not an address. Try 192.168.0.13:${mode.seedPorts.first()}")
+            return
+        }
+        cancelScan.set(true)
+        Diag.w("FORCED (${mode.label}): opening $parsed although nothing answered it. Not saved — " +
+            "it will be remembered only if it starts answering.")
+        connectTo(parsed)
+    }
+
+    /** Same mode, same machine, same port. `ServerHost` also carries reportedIp, which must not count. */
+    private fun sameEndpoint(a: ServerHost?, b: ServerHost?): Boolean =
+        a != null && b != null && a.mode == b.mode &&
+            a.host.equals(b.host, ignoreCase = true) && a.port == b.port
+
+    /**
+     * A host that has just answered its mode's probe is verified by definition, so if it is not
+     * the saved one, save it now. This is what turns a successful FORCE into a remembered address
+     * without ever writing an unverified one.
+     */
+    private fun rememberIfVerified(h: ServerHost) {
+        if (sameEndpoint(store.saved(h.mode), h)) return
+        store.save(h)
+        Diag.i("remembering $h for ${h.mode.label} mode — it answered a probe")
     }
 
     private fun openPanel() {
@@ -889,28 +1016,49 @@ class MainActivity : Activity() {
      * current surface is left alone while the server still answers; when it stops answering twice
      * running we re-probe and, if the laptop moved, sweep again.
      */
+    /**
+     * ONE health check, used by the watchdog AND by onResume, so the two cannot drift apart.
+     *
+     *   - answered, surface fine       -> DO NOTHING AT ALL. In PRESENTER mode that is a deck
+     *                                     remote mid-talk; reloading it is a visible stumble.
+     *   - answered, page dead          -> reload it; that is a genuinely dead page.
+     *   - no answer, first miss        -> say so and wait. One dropped packet on a venue hotspot
+     *                                     is not a reason to blank the screen.
+     *   - no answer, second in a row   -> the server really has gone; re-discover.
+     */
+    private fun healthCheck(reason: String) {
+        val h = current ?: return
+        if (connecting) return
+        val forMode = mode
+        io.execute {
+            val ok = Discovery.probe(forMode, h.host, h.port, 1200, 1800) != null
+            ui.post {
+                if (forMode != mode || !sameEndpoint(h, current)) return@post
+                if (ok) {
+                    healthMisses = 0
+                    rememberIfVerified(h)
+                    if (web.visibility == View.VISIBLE && !pageLoaded && !connecting) {
+                        Diag.i("$reason: $h is answering but the page is not loaded — loading it")
+                        loadPage(h)
+                    }
+                } else if (++healthMisses >= 2) {
+                    healthMisses = 0
+                    Diag.w("$reason: $h missed 2 health checks, re-discovering")
+                    startConnect(force = true)
+                } else {
+                    Diag.w("$reason: $h missed a health check ($healthMisses/2) — leaving the " +
+                        "surface alone until it misses again")
+                }
+                renderBar(barDetail())
+            }
+        }
+    }
+
     private val watchdog = object : Runnable {
         override fun run() {
             val h = current
-            val forMode = mode
             if (h != null && !connecting) {
-                io.execute {
-                    val ok = Discovery.probe(forMode, h.host, h.port, 1200, 1800) != null
-                    ui.post {
-                        if (forMode != mode) return@post
-                        if (ok) {
-                            healthMisses = 0
-                            if (web.visibility == View.VISIBLE && !pageLoaded && !connecting) loadPage(h)
-                        } else if (++healthMisses >= 2) {
-                            healthMisses = 0
-                            Diag.w("WATCHDOG: $h missed 2 health checks, re-discovering")
-                            startConnect(force = true)
-                        } else {
-                            Diag.w("WATCHDOG: $h missed a health check ($healthMisses/2)")
-                        }
-                        renderBar(barDetail())
-                    }
-                }
+                healthCheck("WATCHDOG")
             } else if (h == null && !connecting && !overlay.isShowing) {
                 startConnect(force = true)
             }
@@ -927,18 +1075,10 @@ class MainActivity : Activity() {
             refreshFilms()
         }
 
-        // Straight after a wake, do not wait a whole watchdog cycle.
-        val h = current
-        val forMode = mode
-        if (h != null) {
-            io.execute {
-                val ok = Discovery.probe(forMode, h.host, h.port, 1200, 1800) != null
-                ui.post {
-                    if (forMode != mode) return@post
-                    if (!ok || (web.visibility == View.VISIBLE && !pageLoaded)) startConnect(force = true)
-                }
-            }
-        }
+        // Straight after a wake, do not wait a whole watchdog cycle — but run the SAME check the
+        // watchdog runs. This used to be its own one-miss-and-reconnect rule, so every screen-off
+        // and every app switch could reload the surface out from under whatever was on it.
+        healthCheck("WAKE")
         ui.removeCallbacks(watchdog)
         ui.postDelayed(watchdog, WATCHDOG_MS)
     }
@@ -983,6 +1123,14 @@ class MainActivity : Activity() {
 
     companion object {
         private const val WATCHDOG_MS = 15_000L
+
+        /**
+         * How long the play/playfilm click path stays shut after a play. Long enough to swallow a
+         * double-tap and a bounced thumb, short enough that cutting deliberately from one film to
+         * the next in a live demo never feels blocked.
+         */
+        private const val PLAY_GATE_MS = 1_200L
+
         private val BG = Color.parseColor("#0B0B0F")
     }
 }
