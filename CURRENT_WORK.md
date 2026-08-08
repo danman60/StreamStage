@@ -4,6 +4,19 @@
 
 Commits `e6dfa99` + `378ea3e`, pushed.
 
+**THE TESTED FLOW, FUNCTION BY FUNCTION: `docs/BOOTH-TESTED-FLOW-2026-08-07.md`.**
+Read that before touching the booth. It marks every step tested / not tested, and it lists what
+must NOT be claimed.
+
+**Zero-touch power-on: a research subagent was mid-flight when this session was refreshed and its
+result did NOT carry over.** The question it was answering: how to make the app own the screen at
+power-on with no human touch on a Fire Stick (AFTKRT, Android 11) — device-owner provisioning via
+`dpm set-device-owner` + LockTask, `cmd package set-home-activity` argument syntax, real
+`canDrawOverlays` vs the appop, a foreground service from BOOT_COMPLETED, Amazon's own signage
+programmes, and disabling `com.amazon.tv.launcher`. Re-run that research; do not assume an answer.
+Daniel has already said pressing the app once is acceptable, so this is an improvement, not a
+blocker.
+
 ### The bug that made the whole app pointless
 `kiosk-app`'s `network_security_config.xml` permitted cleartext HTTP **to 127.0.0.1 only**. The
 booth kiosk is a laptop on a DHCP LAN address serving plain HTTP, so **every `BoothBus` health
