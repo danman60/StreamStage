@@ -224,7 +224,26 @@ def main() -> int:
                     help="print what would be sent; touch nothing, send nothing")
     ap.add_argument("--endpoint", default=ENDPOINT,
                     help=f"override the target route (default {ENDPOINT})")
+    # A queue that has been typed into on a bench holds lines nobody wants
+    # upstream: a tester's "fdd@dhs.com", an address at a .test domain that can
+    # never receive mail. Sending those creates studios in the live database
+    # that never existed, which is exactly the mess this booth already had to
+    # clean up once. So the operator can name what goes and what is retired.
+    ap.add_argument("--only", metavar="LID", action="append", default=[],
+                    help="send ONLY these lead ids (repeatable). Everything else is left queued.")
+    ap.add_argument("--retire", metavar="LID", action="append", default=[],
+                    help="mark these lead ids as done WITHOUT sending them (repeatable). "
+                         "For bench lines that must never reach the live route.")
     args = ap.parse_args()
+
+    # SAY WHERE THIS IS ABOUT TO POST, BEFORE IT POSTS. A previous harness
+    # defaulted quietly at a production route and put fabricated leads in a
+    # real inbox. The destination is never a thing you have to go and read.
+    live = args.endpoint == ENDPOINT
+    print(f"\n  TARGET: {args.endpoint}"
+          f"{'   <-- THE LIVE ROUTE. Real email, real database row.' if live else '   (override)'}")
+    if args.dry_run:
+        print("  DRY RUN — nothing will be sent.")
 
     # "0 lead(s) on disk" from the wrong directory looked exactly like
     # "everything is already sent", which is the one thing it must not look
@@ -241,7 +260,33 @@ def main() -> int:
     marker = load_marker()
     todo = [l for l in leads if l["_lid"] not in marker]
 
-    print(f"  {len(leads)} lead(s) on disk, {len(leads) - len(todo)} already flushed, {len(todo)} to send")
+    # Retiring happens before anything is sent, and is recorded with a reason
+    # so a later reader can tell "we chose not to send this" from "this was
+    # delivered". Both keep the lead out of the next run; only one of them
+    # means a studio got their films.
+    if args.retire:
+        retired = 0
+        for lead in list(todo):
+            if lead["_lid"] in args.retire:
+                if not args.dry_run:
+                    marker[lead["_lid"]] = "RETIRED-NOT-SENT " + time.strftime("%Y-%m-%dT%H:%M:%S%z")
+                todo.remove(lead)
+                retired += 1
+                print(f"  {'would retire' if args.dry_run else 'RETIRED'} {lead.get('email')} "
+                      f"(lid {lead['_lid']}) — NOT sent, will never be sent")
+        if retired and not args.dry_run:
+            save_marker(marker)
+
+    if args.only:
+        skipped = [l for l in todo if l["_lid"] not in args.only]
+        todo = [l for l in todo if l["_lid"] in args.only]
+        missing = [lid for lid in args.only if lid not in {l["_lid"] for l in todo}]
+        if missing:
+            print(f"  ! --only named {len(missing)} id(s) that are not queued: {', '.join(missing)}")
+        if skipped:
+            print(f"  --only: {len(skipped)} other queued lead(s) left untouched, still queued")
+
+    print(f"  {len(leads)} lead(s) on disk, {len(leads) - len(todo)} not being sent, {len(todo)} to send")
     if not todo:
         return 0
 

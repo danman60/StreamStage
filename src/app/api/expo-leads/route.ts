@@ -289,7 +289,18 @@ export async function POST(request: Request) {
 
     // `sent` = the visitor's asset email actually left the building. A gated page
     // can use it to say "check your inbox" only when that is true.
-    return NextResponse.json({ success: true, sent: assetSent });
+    //
+    // `forwarded` = the row is IN the leads table. The booth's flush-leads.py
+    // reads exactly this to decide whether a queued lead may be marked done, and
+    // until now the field was computed here and then thrown away — so the flush
+    // could only fall back to "a 200 probably means it stored", which is the
+    // failure it was written to prevent: the Supabase forward has a 4s timeout a
+    // cold start can lose, and a lead marked done that never landed is a studio
+    // owner who typed their address and got nothing. Reporting it makes the
+    // queue strict with no change on the booth side.
+    // `notified` = Daniel's own copy went out. A response where forwarded is
+    // false but notified is true still means the lead exists, in his inbox only.
+    return NextResponse.json({ success: true, sent: assetSent, forwarded, notified });
   } catch (error) {
     console.error("expo-leads error:", error instanceof Error ? error.message : error);
     return NextResponse.json(
