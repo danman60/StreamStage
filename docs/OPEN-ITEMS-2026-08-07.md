@@ -60,8 +60,23 @@ Anything marked **DANIEL** is a decision, not a task.
    same instant, so playback never stopped. Still playing at 07:54 the next morning: **8 h 43 m
    continuous.**
 
-5. **The R2 film-update path (`UpdateManager.kt`) — the BUCKET half is now tested, the DEVICE
-   half is not.** Tested, read-only, nothing on the stick touched:
+5. ~~**The R2 film-update path — the DEVICE half.**~~ **DONE 2026-08-08 13:00, on the real
+   stick, production bucket never touched.** Local manifest v3 served over `adb reverse` to
+   `http://127.0.0.1:8500/` via a `.update-base` loopback override, publishing a film byte-identical
+   to the live `studiosage.mp4` under a new name — so the booth's content could not change.
+   Chain proven: `Manifest v3, 7 film(s)` → panel showed `studiosage-v3.mp4 — not on this stick ·
+   15.8 MB to fetch` → `verified and staged` (hash gate) → deferred install *"swaps in when it next
+   comes around"* → renamed to its final versioned path, staging empty → `installed.json` records
+   `source=manifest` → it PLAYED (`pos 41.55 → 46.55`) → reel stayed **7 films, no duplicate**
+   (`FilmVersions` collapsed them). Cleaned up after; `SYSTEM_ALERT_WINDOW granted=true` re-checked
+   so zero-touch boot is intact.
+
+   **NEW, non-fatal defect found doing it:** a `play` landing right after a version swap throws
+   `IllegalStateException: Handler … on a dead thread` from `ExoPlayerImpl.prepare` at
+   `BoothLoopActivity.kt:281` — a released player still being prepared. Playback recovered and the
+   film ran to the end, but it is on the booth's only playback path. NOT fixed.
+
+   **Superseded detail (the bucket half, already verified):** Tested, read-only, nothing on the stick touched:
    - `manifest.json` is live and well-formed — version 2, 7 films, each with bytes + sha256.
    - All 7 films answer **200**, every `Content-Length` matches its manifest entry, and every one
      advertises `Accept-Ranges: bytes` — which is what the resume-a-`.part` logic depends on.
@@ -116,7 +131,11 @@ Anything marked **DANIEL** is a decision, not a task.
    `a=checklist` and `a=videographer` are real keys in `lead-assets.ts`; rendered in a browser they
    display "Recital video checklist" and "Videographer brief". Four of the five carried no
    attribution at all, so a scan from the room was uncountable. StudioSage commit `e3272e0`.
-   **Left alone:** the D4 videographer-brief *handout* itself, and one mismatch worth knowing —
+   **D4 handout QRs: VERIFIED CORRECT 2026-08-08** — decoded straight from the inline SVG path
+   data (no renderer, so what was read is what prints): the videographer brief carries
+   `/g?a=videographer&src=handout&p=print` and the interview sheet `/g?a=interviews&src=handout&p=print`.
+   Both 200; both `a=` keys real in `lead-assets.ts`. Decoder kept at `/tmp/booth-shots/decode_inline_qr.py`.
+   **Left alone:** the handout artefact's own wording, and one mismatch worth knowing —
    slide 21 still prints `streamstage.live/checklist` as readable text 6 times and
    `streamstage.live/book` 4 times. Those remain ungated, so a reader who types the URL bypasses
    the gate the QR now enforces. Changing slide copy is a content decision, not mine.
@@ -147,8 +166,10 @@ Anything marked **DANIEL** is a decision, not a task.
     merge-on-email behaviour observed rather than argued. Backed up to
     `scratchpad/deleted-fabricated-leads.json`, then deleted; absence confirmed two ways
     (`email=eq.…` and `studio=ilike.*Bright*`, both empty).
-    **Still in the DB and NOT removed** (say the word): `a@b.ca` / "Test Studio" from the same
-    harness, and the self-labelled `TEST — pre-Calgary verification` row. The emails already in
+    ~~**Still in the DB and NOT removed**~~ **BOTH DELETED 2026-08-08** by StreamStage-4:
+    `a@b.ca` / "Test Studio" and the self-labelled `TEST — pre-Calgary verification` row. Backed up
+    to `scratchpad/deleted-test-leads-2026-08-08.json` first; a re-query for `a@b.ca` / `%TEST%` /
+    `%Bright%` now returns **0**. The emails already in
     the inbox are untouched — deleting mail is yours to do.
 
 13. **StudioSage merges leads on email** — two proposals from one studio collapse to one row and
