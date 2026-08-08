@@ -4,6 +4,10 @@
 
 Commits `e6dfa99` + `378ea3e`, pushed.
 
+**OPEN ITEMS: `docs/OPEN-ITEMS-2026-08-07.md`** — everything still outstanding, ordered by what
+can hurt at the booth. Two are BLOCKING: the lead-route fix is committed but **NOT DEPLOYED**, so
+a real booth flush would 400 today; and six unflushed leads sit on DART waiting on that deploy.
+
 **THE TESTED FLOW, FUNCTION BY FUNCTION: `docs/BOOTH-TESTED-FLOW-2026-08-07.md`.**
 Read that before touching the booth. It marks every step tested / not tested, and it lists what
 must NOT be claimed.
