@@ -1097,9 +1097,32 @@
     resetIdle();
   }
 
+  /* The film the visitor has just walked away from.
+     ------------------------------------------------------------------
+     Leaving the card is instant here, but the TV only finds out when its
+     `stop` arrives, and it goes on publishing `playing` for that film about
+     once a second until it does. The takeover re-opens on the state branch
+     below, because its "has the TV moved to a different film?" guard is
+     `!current || current.id !== p.id` — and backToGrid() has just set
+     `current` to null, so `!current` matches ANY film, including the one the
+     visitor is in the middle of dismissing.
+     Measured: the card closed, re-opened 660 ms later with its slide-in
+     animation, and stayed up for a further 3 s until the TV finally said
+     `attract`. That is the double flash.
+     So remember which film was dismissed and ignore only that one. A film the
+     visitor did NOT dismiss still opens the takeover, which is what makes the
+     tablet follow the operator when he cuts to another film from his phone. */
+  var dismissed = null;
+
   function backToGrid(quiet) {
     if (nowImp) { nowImp.stop(); nowImp = null; }
     if (current && !quiet) Bus.send({ type: 'stop', src: 'tablet' });
+    // ONLY a visitor who tapped back counts as dismissing a film. The `quiet`
+    // path is the TV telling us it went to attract on its own, and marking the
+    // film dismissed there is actively wrong: a stale `attract` tick can land
+    // between the tap and the film starting, and the takeover would then stay
+    // shut for the very film the visitor just asked for. Caught in test.
+    if (!quiet) dismissed = current ? current.id : dismissed;
     current = null;
     now.classList.remove('on', 'ended');
     if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
@@ -1186,6 +1209,18 @@
     // big screen plays something else would be a lie. Without this the 'end'
     // branch below also reads .id off a null product.
     if (msg.product && !productById(msg.product)) return;
+
+    // A film the visitor has already walked away from. The TV has not been
+    // told yet, or has not caught up; either way this tablet is not going to
+    // re-open a card somebody just closed. Any OTHER film clears the memory —
+    // that is the operator cutting to something else, and the tablet follows.
+    if (dismissed) {
+      if (msg.state === 'attract' || (msg.product && msg.product !== dismissed)) {
+        dismissed = null;
+      } else if (msg.product === dismissed) {
+        return;
+      }
+    }
 
     if (msg.state === 'playing') {
       var p = productById(msg.product);
