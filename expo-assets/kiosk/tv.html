@@ -221,6 +221,13 @@
     animation:pulse 1.9s var(--ease) infinite}
   #warm{font:700 1.9rem/1 var(--mono);color:var(--faint);letter-spacing:.1em;text-transform:uppercase}
 
+  /* The end card, borrowed to say a film could not play. Same layout, same
+     QR, amber kicker instead of cyan — dignified, not an error dialog. A
+     passer-by should read "here is the code" and never "this booth is broken".
+     There is no red anywhere and no word like FAILED on a 65-inch screen. */
+  #end.fallback .kicker{color:var(--amber)}
+  #end.fallback .addr{color:var(--amber)}
+
   #hud{position:fixed;left:6rem;bottom:2.6rem;z-index:60;font:700 1.9rem/1 var(--mono);
     color:#33414d;opacity:0}
   body.showhud #hud{opacity:1}
@@ -373,8 +380,14 @@
         <div class="kicker">Every room. At once.</div>
         <h1>Reflect</h1>
         <!-- Verbatim from the film's own closing line (VO-SCRIPT.md, beat 16).
-             No claim invented at the booth. -->
-        <div class="sub">The system that runs your studio&rsquo;s day &mdash; and remembers it.</div>
+             No claim invented at the booth.
+
+             data-copy="tagline" means this line is OVERWRITTEN from
+             CONFIG.products at boot. It was byte-duplicated between here and
+             kiosk.js, which is how two copies of one sentence start to drift.
+             The text left in the markup is what shows if the script never
+             runs — so it stays correct, it just is not the source any more. -->
+        <div class="sub" data-copy="tagline">The system that runs your studio&rsquo;s day &mdash; and remembers it.</div>
         <div class="live">Ask me for a demo login</div>
       </div>
       <div class="side">
@@ -449,8 +462,9 @@
     <div class="tl" id="endtl"></div>
     <div class="addr" id="endaddr"></div>
     <!-- SIX. There are six products and six films; "five" was left over from
-         the five-product build and was wrong on the big screen. -->
-    <div class="alsoget">Want all six films and the recital checklist?
+         the five-product build and was wrong on the big screen.
+         Rewritten by showFallback() when a film could not play — see there. -->
+    <div class="alsoget" id="endalso">Want all six films and the recital checklist?
       <b>Scan the code on the tablet.</b></div>
   </div>
   <div class="right">
@@ -529,7 +543,11 @@
     id:      SVC_FILM,
     name:    'StreamStage',
     tagline: 'Multi-camera recital video, livestreaming and photography — and you keep 100% of the revenue.',
-    accent:  '#4EC5D4',
+    // No `accent`. brand.css owns every product colour behind a
+    // [data-product] selector; the accent fields in CONFIG were never read by
+    // anything and four of the six disagreed with the stylesheet. Removed
+    // rather than corrected, because a second source of truth for a colour is
+    // the problem, not the wrong value in it.
     film:    ['media/' + SVC_FILM + '.mp4'],
     url:     'https://streamstage.live',
     // There is no qr/tv/streamstage-services.svg and there should not be: the
@@ -583,6 +601,55 @@
   var layers = {};
   var warm = 0;
 
+  /* ========================================================================
+     BROKEN FILMS — a state that now exists.
+
+     `data-broken` was written in two places and read by nobody, so a film
+     that would not decode, or a file that was never rendered, produced a
+     black screen with a QR on it for as long as anybody left it there — while
+     the tablet across the counter went on saying "Tap to watch".
+
+     brokenWhy holds the reason in plain English, keyed by film id. Three
+     things put an entry in it, and all three are things that actually
+     happened rather than things that were predicted:
+
+       - the server says the file is not on disk,
+       - every source in film[] raised an error,
+       - the watchdog below caught a picture that was not moving.
+
+     Three things read it: play() (which shows the scan card instead of a
+     black rectangle), the state message (so the tablet stops promising a film
+     the TV cannot play), and the re-probe (which clears an entry the moment
+     the file appears, exactly as the tablet's tiles already do).
+     ===================================================================== */
+  var brokenWhy = {};
+
+  function markBroken(id, why) {
+    var already = brokenWhy[id];
+    brokenWhy[id] = why;
+    var L = layers[id];
+    if (L) L.el.setAttribute('data-broken', '1');
+    if (!already) {
+      Telemetry.log('film_broken', { product: id, reason: why });
+      push();
+    }
+  }
+
+  function clearBroken(id) {
+    if (!brokenWhy[id]) return;
+    delete brokenWhy[id];
+    var L = layers[id];
+    if (L) L.el.removeAttribute('data-broken');
+    Telemetry.log('film_recovered', { product: id });
+    push();
+  }
+
+  function brokenIds() {
+    var out = [];
+    for (var k in brokenWhy) if (Object.prototype.hasOwnProperty.call(brokenWhy, k)) out.push(k);
+    return out;
+  }
+
   /* Which films are actually on disk. Resolves to null when there is no server
      to ask, in which case every layer is wired exactly as before.
 
@@ -622,7 +689,7 @@
     var tries = p.film.slice();
     v.addEventListener('error', function () {
       if (tries.length) { v.src = tries.shift(); v.load(); }
-      else { layer.setAttribute('data-broken', '1'); }
+      else { markBroken(p.id, 'the file would not load'); }
     });
 
     // Ask the server which films exist before wiring a src. A film still being
@@ -630,7 +697,7 @@
     // poster on every single page load. When the render lands, the next reload
     // picks it up with no code change.
     filmsReady.then(function (have) {
-      if (have && have[p.id] === false) { layer.setAttribute('data-broken', '1'); return; }
+      if (have && have[p.id] === false) { markBroken(p.id, 'not on the laptop yet'); return; }
       // No poster for the cold layer — there is no media/posters entry for it,
       // and a poster would be a second request for a layer nobody has asked for.
       if (!p.cold) v.poster = 'media/posters/' + p.id + '.jpg';
@@ -677,6 +744,39 @@
   function shortUrl(u) { return u.replace(/^https?:\/\//, '').replace(/\/$/, ''); }
 
   /* ========================================================================
+     THE ATTRACT CARDS STOP HOLDING THEIR OWN COPY OF THE FACTS.
+
+     kiosk.js claims to be "the one place you edit". It was not true for this
+     screen: the cards below are hand-written, and two of the things on them —
+     the address line and, on Reflect, the tagline — were a second copy of
+     something CONFIG already held. They had already drifted. CONFIG said
+     `https://www.studiobeat.io/` and the big screen printed `studiobeat.io`,
+     which is a different address from the one baked into the QR under it.
+
+     This does NOT try to generate the cards. Their headline, kicker, sub and
+     bullet rows are bespoke per product and CONFIG has never held them; a
+     rewrite that moved all of that into CONFIG is a redesign, four days before
+     a show, of the screen the whole booth points at. So only the duplicated
+     facts are converged, and they are converged by OVERWRITING at boot:
+
+       .url                       <- shortUrl(product.url)
+       [data-copy="tagline"]      <- product.tagline
+
+     The markup keeps correct text as a fallback, so a card is right even if
+     this never runs. What it stops being is a second SOURCE.
+     ===================================================================== */
+  function convergeCardCopy() {
+    cards.forEach(function (c) {
+      var p = (c === svcCard) ? SVC_PRODUCT : productById(c.getAttribute('data-product'));
+      if (!p) return;                     // the invite and closing cards own their copy
+      var u = c.querySelector('.url');
+      if (u && p.url) u.textContent = shortUrl(p.url);
+      var t = c.querySelector('[data-copy="tagline"]');
+      if (t && p.tagline) t.textContent = p.tagline;
+    });
+  }
+
+  /* ========================================================================
      THE STREAMSTAGE SERVICES CARD — recital filming and livestream.
 
      One attract card, two renderings, decided by the same /films probe the
@@ -713,6 +813,76 @@
     svcCard.classList.add('hasfilm');
   });
 
+  /* ========================================================================
+     RE-PROBE /films, THE WAY THE TABLET ALREADY DOES.
+
+     This screen asked once, at load, and then believed the answer for the
+     rest of the day. The tablet re-asks every 30 seconds, which is why a tile
+     lights up on its own the moment sync-media.sh drops a file in — and why
+     the two screens could disagree about what exists for hours.
+
+     Now they agree, and the disagreement that mattered is gone: a film that
+     lands mid-show becomes playable here without a reload, and a film that
+     goes away stops being offered.
+
+     A re-probe with no server (fetch fails, or the answer is not JSON) changes
+     NOTHING. Silence is not evidence that the films vanished, and a booth that
+     blanked its own catalogue every time the relay hiccuped would be worse
+     than one that never re-probed at all.
+     ===================================================================== */
+  var PROBE_MS = 30000;
+  var RECOVERY_TRIES = 2;         // then it stays broken until the page reloads
+  var recoveryTries = {};
+
+  function reprobeFilms() {
+    if (typeof fetch === 'undefined') return;
+    fetch('/films', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (have) {
+        if (!have) return;
+        PLAYABLE.forEach(function (p) {
+          var L = layers[p.id];
+          if (!L) return;
+
+          if (!have[p.id]) { markBroken(p.id, 'not on the laptop yet'); return; }
+
+          // It is there. Wire a layer that never got a src because it was
+          // missing at load — the same self-healing the tablet tiles have.
+          if (!L.video.getAttribute('src')) {
+            if (!p.cold) L.video.poster = 'media/posters/' + p.id + '.jpg';
+            L.video.src = p.cold ? altMedia(p.film[0]) : p.film[0];
+            try { L.video.load(); } catch (e) {}
+          }
+
+          if (!brokenWhy[p.id]) return;
+          if (brokenWhy[p.id] === 'not on the laptop yet') { clearBroken(p.id); return; }
+
+          // It was broken for a reason the file being present does not
+          // explain — it stalled, or it would not decode. Give it a bounded
+          // number of fresh starts and then leave it alone: a file that fails
+          // every time must not flap between working and broken all day in
+          // front of studio owners. Same shape as the Fire Stick's watchdog,
+          // which rebuilds the player twice and then blacklists the file.
+          if ((recoveryTries[p.id] || 0) >= RECOVERY_TRIES) return;
+          recoveryTries[p.id] = (recoveryTries[p.id] || 0) + 1;
+          try { L.video.load(); } catch (e) {}
+          clearBroken(p.id);
+        });
+
+        // The services card only IS a film while the file is on disk.
+        if (have[SVC_FILM] && !svcOk && !brokenWhy[SVC_FILM]) {
+          svcVid.src = altMedia('media/' + SVC_FILM + '.mp4');
+          svcOk = true;
+          svcCard.classList.add('hasfilm');
+        } else if (!have[SVC_FILM] && svcOk) {
+          svcOk = false;
+          svcCard.classList.remove('hasfilm');
+        }
+      })
+      .catch(function () { /* no server to ask: change nothing */ });
+  }
+  setInterval(reprobeFilms, PROBE_MS);
+
   /* THE BOOTH'S PERSISTENT CHROME — the wordmark and the community QR — on or
      off. Off only while StreamStage's own film is the picture, whether that is
      the attract card playing it or the operator's phone playing it as a film.
@@ -741,7 +911,7 @@
   function startSvc() {
     boothChrome(false);
     try { svcVid.currentTime = 0; } catch (e) {}
-    svcVid.muted = !audioReady;
+    svcVid.muted = wantMuted();
     var go = svcVid.play();
     if (go && go.catch) go.catch(function () {
       svcVid.muted = true;                    // sound refused: muted beats nothing
@@ -817,6 +987,79 @@
     return (current && layers[current.id]) ? layers[current.id].video : null;
   }
 
+  /* ========================================================================
+     MUTE, FULLSCREEN AND THE HUD — the three recovery actions.
+
+     README-BOOTH.md has always told Daniel to press M, F and Esc on the TV
+     when something goes wrong. The TV is a Fire Stick running Silk. It has no
+     keyboard. Every documented recovery action was, in the room, physically
+     unreachable — the instructions were correct and could not be followed.
+
+     So the keys and the bus now call the SAME three functions. Nothing here is
+     a second implementation of a keypress: the keydown handler at the bottom
+     of this file calls these, and so does the bus handler. They cannot drift.
+
+     `operatorMuted` is a page-level intent, not a property of one <video>.
+     Muting used to poke `current`'s element directly, so it was forgotten the
+     moment the next film slid in and did nothing at all during the attract
+     loop — which is exactly when a booth needs to go quiet, because that is
+     when the person you are talking to is standing in front of you.
+     ===================================================================== */
+  var operatorMuted = false;
+
+  function wantMuted() {
+    // Muted until the one-time click allows sound, and muted whenever the
+    // operator has asked for silence. Both, always, everywhere.
+    return !audioReady || operatorMuted;
+  }
+
+  function applyMute() {
+    // Only two elements are ever allowed to make a noise: the film on screen
+    // and the attract loop's own film. Every parked layer is already muted by
+    // toAttract() and stays that way.
+    var m = wantMuted();
+    var v = currentVideo();
+    if (v) { try { v.muted = m; } catch (e) {} }
+    try { svcVid.muted = m; } catch (e) {}
+    push();
+  }
+
+  function setMuted(on) {
+    operatorMuted = (on === undefined || on === null) ? !operatorMuted : !!on;
+    Telemetry.log('mute_set', { muted: operatorMuted });
+    applyMute();
+  }
+
+  function setFullscreen(on) {
+    // Honest about what a browser will actually do: requestFullscreen()
+    // normally needs a user gesture, and a message off the bus is not one.
+    // Silk may simply refuse. So the attempt is made, the refusal is recorded
+    // rather than swallowed, and the TRUE state travels on the state message —
+    // the phone shows what the screen is, never what it was asked to be.
+    var want = (on === undefined || on === null) ? !document.fullscreenElement : !!on;
+    try {
+      if (want && !document.fullscreenElement) {
+        var go = document.documentElement.requestFullscreen();
+        if (go && go.catch) go.catch(function () {
+          Telemetry.log('fullscreen_refused', { wanted: true });
+          push();
+        });
+      } else if (!want && document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+    } catch (e) {
+      Telemetry.log('fullscreen_refused', { wanted: want });
+    }
+    setTimeout(push, 300);
+  }
+
+  function setHud(on) {
+    var want = (on === undefined || on === null)
+      ? !document.body.classList.contains('showhud') : !!on;
+    document.body.classList.toggle('showhud', want);
+    push();
+  }
+
   function pauseFilm() {
     var v = currentVideo();
     if (state !== 'playing' || !v || v.paused) return;
@@ -835,7 +1078,7 @@
     if (state !== 'playing' || !v || !paused) return;
     paused = false;
     pausedAt = 0;
-    v.muted = !audioReady;
+    v.muted = wantMuted();
     var go = v.play();
     if (go && go.catch) go.catch(function () {
       v.muted = true;                          // sound refused: muted beats nothing
@@ -855,6 +1098,104 @@
     abandon();
     toAttract();
   }, 5000);
+
+  /* ========================================================================
+     THE STALL WATCHDOG.
+
+     Until now play() had no deadline of any kind. A film that never started,
+     or one that stopped mid-way, left a black rectangle on a 65-inch screen
+     for as long as nobody happened to walk past — and the documented fix was
+     to press Esc, on a Fire Stick, which has no keyboard. That is not a
+     recovery path, it is a hope.
+
+     So the picture is watched. Two failures are distinguished because they
+     need different patience:
+
+       IT NEVER STARTED. Measured tap-to-first-painted-frame on the warm
+       layers is 93ms median, 236ms worst. Seven seconds is thirty times the
+       worst case, so nothing healthy can trip it.
+
+       IT STOPPED MOVING. Three consecutive ticks — six seconds — of
+       currentTime not advancing while the film is playing and not paused.
+       One tick would fire on an ordinary rebuffer.
+
+     The services film gets its own, slacker clock: it is 92MB, preload="none"
+     and cold by design, so it is genuinely allowed to take fifteen seconds to
+     get going before anyone calls it stuck.
+
+     What happens then is not an error dialog. The film is marked broken, the
+     end card comes up with that product's QR and a line saying it is not
+     playing right now, and six seconds later the attract loop carries on —
+     because the attract loop is the one thing on this screen that has to
+     survive everything.
+     ===================================================================== */
+  var WATCHDOG_MS       = 2000;
+  var START_DEADLINE_MS = 7000;    // tap -> a moving picture, on a warm layer
+  var SVC_START_MS      = 15000;   // the cold 92MB film is allowed longer
+  var STALL_TICKS       = 3;       // x WATCHDOG_MS of a frozen picture
+
+  var lastPos      = 0;
+  var stalledTicks = 0;
+  var svcPos       = 0;
+  var svcTicks     = 0;
+  var svcShownAt   = 0;
+
+  function stallOut(p, why) {
+    stalledTicks = 0;
+    var v = layers[p.id] ? layers[p.id].video : null;
+    Telemetry.log('film_stalled', {
+      product: p.id,
+      atSecond: (v && isFinite(v.currentTime)) ? Math.round(v.currentTime * 10) / 10 : 0,
+      reason: why
+    });
+    markBroken(p.id, why);
+    abandon();                     // the view really did end; record it as one
+    try { if (v) v.pause(); } catch (e) {}
+    showEnd(p, why);               // the scan card, not a black screen
+  }
+
+  setInterval(function () {
+    /* ---- the attract loop's own film ---------------------------------- */
+    if (state === 'attract') {
+      stalledTicks = 0;
+      if (!svcOk || cards[idx] !== svcCard) { svcTicks = 0; svcPos = 0; return; }
+      if (svcVid.ended) { svcTicks = 0; return; }
+      if (svcVid.currentTime > svcPos + 0.05) { svcPos = svcVid.currentTime; svcTicks = 0; return; }
+      // Still on zero and inside its generous cold start: not stuck, loading.
+      if (!svcVid.currentTime && (Date.now() - svcShownAt) < SVC_START_MS) return;
+      if (++svcTicks < STALL_TICKS) return;
+
+      svcTicks = 0;
+      Telemetry.log('film_stalled', {
+        product: SVC_FILM,
+        atSecond: isFinite(svcVid.currentTime) ? Math.round(svcVid.currentTime * 10) / 10 : 0,
+        reason: 'stalled in the attract loop'
+      });
+      markBroken(SVC_FILM, 'the picture stopped moving');
+      // Fall back to the rendering this card has always had when the film is
+      // not on disk: an ordinary text card carrying the same gated QR.
+      svcOk = false;
+      svcCard.classList.remove('hasfilm');
+      try { svcVid.pause(); } catch (e) {}
+      boothChrome(true);
+      advance(1);
+      return;
+    }
+
+    /* ---- a film somebody asked for ------------------------------------ */
+    if (state !== 'playing' || paused) { stalledTicks = 0; return; }
+    var p = current, v = currentVideo();
+    if (!p || !v) return;
+
+    if (!firstFrameLogged) {
+      if (performance.now() - tapAt > START_DEADLINE_MS) stallOut(p, 'it never started');
+      return;
+    }
+    if (v.ended) { stalledTicks = 0; return; }
+    if (v.currentTime > lastPos + 0.05) { lastPos = v.currentTime; stalledTicks = 0; return; }
+    if (++stalledTicks < STALL_TICKS) return;
+    stallOut(p, 'the picture stopped moving');
+  }, WATCHDOG_MS);
 
   /* ========================================================================
      THE ATTRACT ORDER — what the operator drags into place on the phone.
@@ -980,6 +1321,11 @@
       // the bar. The timer here is only a dead-man's switch — a file that
       // stalls, or never fires 'ended', must never stop the attract loop, which
       // is the one thing on this screen that has to survive everything.
+      // The watchdog above now gets there in ~20s instead of ~250s; this timer
+      // stays as the backstop behind it.
+      svcShownAt = Date.now();
+      svcPos = 0;
+      svcTicks = 0;
       startSvc();
       var known = (svcVid.duration && isFinite(svcVid.duration)) ? svcVid.duration : 240;
       timer = setTimeout(function () { advance(1); }, known * 1000 + 10000);
@@ -1029,6 +1375,27 @@
     var L = layers[product.id];
     if (!L) return;
 
+    /* A FILM WE ALREADY KNOW WILL NOT PLAY.
+
+       This is the state that used to be written and never read. The file is
+       missing, or it would not decode, or the watchdog caught it stalled — and
+       the old behaviour was to slide a black rectangle into place anyway and
+       leave it there. Somebody at the counter has just tapped a tile and is
+       looking at the big screen.
+
+       So they get the card that was always the honest answer for a product
+       whose film has not landed: the name, the line, the address, and a QR big
+       enough to scan from a step back. The booth still works; it just is not
+       showing a film. */
+    if (brokenWhy[product.id]) {
+      Telemetry.log('film_unavailable', {
+        product: product.id, reason: brokenWhy[product.id]
+      });
+      current = product;
+      showEnd(product, brokenWhy[product.id]);
+      return;
+    }
+
     tapAt = performance.now();
     current  = product;
     state    = 'playing';
@@ -1039,6 +1406,8 @@
     lastTime = 0;
     quartiles = {};
     firstFrameLogged = false;
+    lastPos      = 0;            // fresh stall accounting for a fresh film
+    stalledTicks = 0;
 
     document.body.classList.add('playing');
     document.body.classList.remove('dir-l', 'dir-r');
@@ -1059,7 +1428,7 @@
 
     // Start the picture BEFORE the slide, so what slides in is already moving.
     try { L.video.currentTime = 0; } catch (e) {}
-    L.video.muted = !audioReady;
+    L.video.muted = wantMuted();
     var go = L.video.play();
     if (go && go.catch) go.catch(function () {
       L.video.muted = true;                 // sound refused: muted beats nothing
@@ -1184,13 +1553,39 @@
     });
   }
 
-  /* ------------------------------------------------------------- end card */
-  function showEnd(product) {
+  /* ------------------------------------------------------------- end card
+     ONE card, two jobs, because they want the same pixels.
+
+     Normally: the film just finished, here is where to get it.
+     With `why`: the film could NOT play, here is where to get it anyway.
+
+     Deliberately the same layout — the product's name, its line, its address
+     and its QR at the same size. A booth on a trade-show floor does not need
+     an error state; it needs the scan target it was always going to show
+     thirty seconds later. The only difference is an amber kicker saying so in
+     one short sentence, and the line underneath telling them what to do. No
+     red, no word like "error" or "failed", nothing a passer-by reads as a
+     broken booth.                                                          */
+  function showEnd(product, why) {
     clearTimers();
     stopProdImp();
     state = 'end';
     paused = false;
     pausedAt = 0;
+
+    var kick = document.getElementById('endkick');
+    var also = document.getElementById('endalso');
+    if (why) {
+      endWrap.classList.add('fallback');
+      kick.textContent = 'Not playing right now — ' + why;
+      also.innerHTML = 'Scan the code and it opens on your phone. ' +
+                       '<b>Or ask me and I will walk you through it.</b>';
+    } else {
+      endWrap.classList.remove('fallback');
+      kick.textContent = 'Running in production';
+      also.innerHTML = 'Want all six films and the recital checklist? ' +
+                       '<b>Scan the code on the tablet.</b>';
+    }
     // The film is over, so whatever it was carrying, the booth's wordmark and
     // community QR come back for the end card.
     boothChrome(true);
@@ -1232,10 +1627,25 @@
       product: current ? current.id : null,
       pos: (v && isFinite(v.currentTime)) ? v.currentTime : 0,
       dur: (v && isFinite(v.duration)) ? v.duration : 0,
-      muted: v ? v.muted : true,
+      // The TRUTH about sound, not the intent. During attract there is no
+      // `current`, and the old expression reported `true` regardless of what
+      // the booth was actually doing — so the phone could not tell a muted
+      // booth from a quiet one. operatorMuted is sent alongside so the console
+      // can show "he muted it" apart from "nothing is playing".
+      muted: v ? v.muted : wantMuted(),
+      operatorMuted: operatorMuted,
+      // Actual fullscreen, never the last thing that was asked for. A browser
+      // is entitled to refuse requestFullscreen() without a user gesture and
+      // Silk does; reporting the request would be reporting a wish.
+      fs: !!document.fullscreenElement,
+      hud: document.body.classList.contains('showhud'),
       warm: warm,
       paused: paused,
       order: attractOrder(),
+      // Films this screen knows it CANNOT play — missing, undecodable, or
+      // caught stalled by the watchdog. The tablet reads this and stops
+      // offering "Tap to watch" for a film the TV would only show black for.
+      broken: brokenIds(),
       at: Date.now()
     });
   }
@@ -1295,6 +1705,25 @@
         return;
       }
       setOrder(msg.order);
+
+    /* ---- the three recovery controls, BUS-CONTRACT.md §7 ---------------
+       Operator-only, refused here as well as on the wire, for the same
+       reason every other operator command is: when the tablet and the TV are
+       two windows on ONE laptop they talk over BroadcastChannel, which never
+       touches serve.py. A check in only one of the two places is not a check.
+
+       `on` is optional. Present, it SETS; absent, it toggles. The phone polls
+       state on a 2-second cycle, so a bare toggle races exactly the way
+       playpause did — send `on` explicitly and it cannot invert by accident. */
+    } else if (cmd === 'mute' || cmd === 'fullscreen' || cmd === 'hud') {
+      if (!fromOperator(msg)) {
+        Telemetry.log('cmd_refused', { cmd: cmd, src: msg.src || msg.origin || null });
+        return;
+      }
+      if (cmd === 'mute')            setMuted(msg.on);
+      else if (cmd === 'fullscreen') setFullscreen(msg.on);
+      else                           setHud(msg.on);
+
     } else if (cmd === 'ping') {
       push();
     }
@@ -1308,10 +1737,10 @@
   function doUnlock() {
     audioReady = true;
     unlock.classList.add('gone');
-    if (current && layers[current.id]) layers[current.id].video.muted = false;
-    // If the services film happens to be mid-play when Daniel does the one-time
-    // click, it gets its sound immediately rather than at the next loop.
-    if (svcOk && state === 'attract' && cards[idx] === svcCard) svcVid.muted = false;
+    // applyMute() covers both the film on screen and the services film, so a
+    // one-time click mid-loop gets sound immediately rather than at the next
+    // card — and it still respects an operator mute rather than overriding it.
+    applyMute();
   }
   unlock.addEventListener('click', doUnlock);
 
@@ -1319,14 +1748,15 @@
     var k = (e.key || '').toLowerCase();
     if (!audioReady && (k === 'f' || k === 'enter' || e.code === 'Space')) doUnlock();
 
+    // The keys and the bus verbs are the SAME three functions, so what the
+    // booth sheet says to press and what the phone sends can never diverge.
     if (k === 'f') {
       e.preventDefault();
-      if (document.fullscreenElement) document.exitFullscreen();
-      else document.documentElement.requestFullscreen();
+      setFullscreen();
     } else if (k === 'm') {
-      if (current) { var v = layers[current.id].video; v.muted = !v.muted; push(); }
+      setMuted();
     } else if (k === 'h') {
-      document.body.classList.toggle('showhud');
+      setHud();
     } else if (k === 'escape' && state !== 'attract') {
       abandon(); toAttract();
     } else if (state === 'attract' && e.key === 'ArrowRight') {
@@ -1335,6 +1765,11 @@
       advance(-1);
     }
   });
+
+  // Runs here, not where it is defined: svcCard is declared further down and
+  // is still undefined at that point, so calling it earlier would silently
+  // skip the one card whose address is not in CONFIG.products.
+  convergeCardCopy();
 
   toAttract();
 })();

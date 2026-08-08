@@ -5,18 +5,31 @@ Anything marked **DANIEL** is a decision, not a task.
 
 ---
 
-## BLOCKING — a real booth lead would fail today
+## BLOCKING — nothing here is blocking any more
 
-1. **The lead-route fix is committed but NOT DEPLOYED.**
-   `/api/expo-leads` was changed so a booth capture (`src` starts with `booth`) no longer needs a
-   person's name, and `flush-leads.py` no longer invents one. The real email was verified against
-   a **locally-run copy** of the route. **Production still runs the old code, which requires a
-   name — so a real booth flush today would 400 every lead.** Needs a deploy before the show.
-   Files: `src/app/api/expo-leads/route.ts`, `expo-assets/kiosk/flush-leads.py`. Commit `e6dfa99`.
+1. ~~**The lead-route fix is committed but NOT DEPLOYED.**~~ **DONE — it was already live when
+   this was written.** Pushing `2b1378f` auto-deployed it: production deployment
+   `dpl_882L2meKxDqrMNgqQeXvBPdJLQ4y`, commit `2b1378f`, aliased to `streamstage.live`, READY.
+   Checked at the Vercel API, not inferred. Nothing needed doing.
 
-2. **Six leads are sitting unflushed on DART** (`telemetry/leads-2026-08-07.jsonl`), including
-   Daniel's own booth tests. The flushed-marker was deliberately cleared, so nothing is recorded
-   as sent. They go nowhere until item 1 is deployed and a flush is run against the live route.
+2. ~~**Six leads are sitting unflushed on DART.**~~ **DONE, and only ONE of them was real.**
+   Read before sending, the queue was bench data: `fdd@dhs.com`/"Xjs", `cf@sdd.com`/"Ecr",
+   `vvvv@fgg.com`, and two `@example-studio.test` synthetics that can never receive mail.
+   Flushing all six would have created six studios in the live database that never existed —
+   item 12 again. Daniel's call: send his own capture, retire the rest.
+   - **Sent:** `daniel+booth0808@streamstage.live` / "Northgate Dance Academy", through the LIVE
+     route. Verified at BOTH ends: the email in the inbox (Studio + Email rows, **no Name row**)
+     and the `leads` row — `2026-08-08T03:18:51 | booth_tablet | name=None`.
+   - **Retired, never to be sent:** the other five, marked `RETIRED-NOT-SENT` in
+     `leads-flushed.json` so a flush at the booth cannot fire them.
+   - `flush-leads.py` gained `--only` / `--retire` and now prints its destination before posting.
+     Commit `431742a`.
+
+3. **The route answered 200 without saying whether the row landed.** `/api/expo-leads` computed
+   `forwarded` and threw it away, so `flush-leads.py` could only treat a 200 as storage — the
+   exact silent loss its `send()` was written to prevent (the Supabase forward has a 4 s timeout a
+   cold start loses). It now returns `forwarded` and `notified`; the queue becomes strict with no
+   change on the booth side. Typecheck + build pass. Commit `431742a`.
 
 ---
 
@@ -53,8 +66,22 @@ Anything marked **DANIEL** is a decision, not a task.
 ## Content on screen
 
 7. **The StreamStage film's baked-in QR points at `expo-leads.html`, not the gated `/g` page.**
-   Decoded independently off the stick in an earlier session. Fixing it means re-rendering the
-   film. Not verified or fixed on 08-07.
+   **RE-VERIFIED 2026-08-07, and it is worse than "wrong page".** 60 frames sampled across the
+   film (1 per 3 s, the local file byte-identical to the one on the stick, 92,837,907 B): the QR
+   decodes to `https://streamstage.live/expo-leads.html` in **all 60** — it is on screen for the
+   whole 177 s. Both destinations are live (200), but:
+   - `/g` carries `a=sixfilms`, which is what the route's autoresponder reads to actually SEND the
+     six films. `expo-leads.html` carries nothing, so **a visitor who scans the TV never receives
+     the films they were promised.**
+   - `expo-leads.html` also marks **name as required** — the very field the booth deliberately
+     stopped demanding.
+   - Every one of the 20 *generated* booth QRs is correct (decoded: all go to `/g` with the right
+     `a=`/`src=`/`p=`/`s=`). Only the baked-in one is wrong.
+   **DANIEL'S CALL, three options:** (a) re-render the film with the right QR — accurate, hours of
+   render, and a chunked render is already occupying the box; (b) redirect `/expo-leads.html` →
+   `/g?a=sixfilms&src=booth_tv&p=streamstage&s=tv` — one line, fixes every baked and printed
+   artefact at once, but changes that page for its other users (it is the fuller form, with the
+   passcode field); (c) leave it and accept that TV scans get the long form and no films.
 
 8. **Deck QRs (D2) and the videographer-brief handout QR (D4)** — not repointed / still absent.
 
@@ -67,17 +94,26 @@ Anything marked **DANIEL** is a decision, not a task.
 
 ## Lead plumbing, non-blocking
 
-10. **The tablet browser's own offline lead queue (localStorage) has never been drained.** It only
-    retries if the visitor reopens the page. Only the kiosk's disk queue was tested.
+10. ~~**The tablet browser's own offline lead queue has never been drained.**~~ **TESTED — and the
+    claim was wrong.** It does NOT need the visitor to reopen the page: `LeadQueue` runs
+    `setInterval(flush, 5000)`. Driven through the real gate on an isolated local kiosk (never
+    DART): with the server refusing connections the lead sat in `localStorage` (queue=1, nothing
+    on disk); with the server restored and **the page never reloaded and never touched again**,
+    the queue drained to 0 and the lead reached disk verbatim within 15 s.
 
-11. **Booth leads are mislabelled in attribution.** `source`/`src` are sent as `booth_tablet`,
-    which is not in the route's `VALID_SOURCES`, so `taxonomySource` falls through to
-    `expo_form`. The email says "Came in from booth_tablet" in the body but the taxonomy value is
-    wrong. Cosmetic until someone reports on it.
+11. ~~**Booth leads are mislabelled in attribution.**~~ **STALE — the premise is false.**
+    `booth_tablet` IS in `VALID_SOURCES` on both sides: `expo-leads/route.ts:18` and StudioSage's
+    `api/leads/route.ts:29`. Confirmed at the destination, not by reading code alone — the row
+    written tonight reads `source = booth_tablet`, not `expo_form`.
 
-12. **Four fabricated leads reached the live inbox and possibly the database** — `jen@brightstepdance.ca`
-    / "Bright Step Dance", 00:39–00:56 on 08-08 UTC, from the previous session's test harness.
-    **DANIEL may want those rows removed** so they never look like real studios.
+12. ~~**Four fabricated leads reached the live inbox and possibly the database.**~~ **DONE.**
+    There was **one** row, not four — the four emails collapsed to a single row, which is item 13's
+    merge-on-email behaviour observed rather than argued. Backed up to
+    `scratchpad/deleted-fabricated-leads.json`, then deleted; absence confirmed two ways
+    (`email=eq.…` and `studio=ilike.*Bright*`, both empty).
+    **Still in the DB and NOT removed** (say the word): `a@b.ca` / "Test Studio" from the same
+    harness, and the self-labelled `TEST — pre-Calgary verification` row. The emails already in
+    the inbox are untouched — deleting mail is yours to do.
 
 13. **StudioSage merges leads on email** — two proposals from one studio collapse to one row and
     the earlier notes are overwritten. Flagged in StudioSage's INBOX. **DANIEL's call.**
@@ -86,12 +122,29 @@ Anything marked **DANIEL** is a decision, not a task.
 
 ## Presenter / decks (Daniel's own machines)
 
-14. **DART's presenter server is serving a STALE deck** — `192.168.0.13:8080/state` reports 38
-    slides; the repo's talk 2 is 32. Same for `192.168.0.12:8080`, which is the phone's saved
-    presenter host. Those are Daniel's processes and **they need restarting on the current deck.**
+14. ~~**DART's presenter server is serving a STALE deck.**~~ **DONE — both decks are current on
+    DART and drivable by phone.** `talk2-deck.html` **32** slides, `talk1-deck.html` **27**,
+    counted on DART. Talk 1's 35 referenced assets (209 MB) shipped too; all six of its videos
+    answer 206 with range support. Both decks were loaded over the LAN and reported the right
+    count with no stale alarm; a phone-shaped `/cmd` `next` advanced the deck and `prev` returned
+    it. Reachable on the LAN **and** over Tailscale. `.12` is FIRMAMENT, not a second DART.
 
-15. **The presenter-notes fit fix is in the repo but DART is still running the old process**, so
-    the phone sees the old clipped page until that server restarts.
+15. ~~**The presenter-notes fit fix is in the repo but DART runs the old process.**~~ **DONE** —
+    DART now runs the current `presenter-server.py`, restarted.
+
+    **Two real defects found while doing it:**
+    - **`PRESENTER_PORT=8080` can never work.** `pick_port()` skips 8080/8081 unconditionally, so
+      the request is refused by our own file, not by the OS — and the banner said "PORT 8080 WAS
+      ALREADY IN USE", which sends a reader hunting a process that does not exist. The banner now
+      says RESERVED, and `DART-SETUP.md`'s day-of checklist no longer instructs a state that
+      cannot happen. **The presenter runs on 8090.**
+    - **Both pre-made presenter QRs were dead.** Decoded: `:8080/remote` — a port nothing can
+      bind. Renamed `DEAD-port8080-*`; replaced with decode-verified `:8090` PNGs, named so the
+      server prints "scan this" next to the matching address.
+    - A Windows Firewall rule ("StreamStage Presenter", python.exe, TCP 8080/8083/8090, all
+      profiles) was added — without it the server listened and every phone request timed out,
+      because a headless start never shows §3's prompt.
+    **Not verified:** the physical Pixel driving it, and the cellular path rather than the LAN.
 
 ---
 

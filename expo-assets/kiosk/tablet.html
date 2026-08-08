@@ -288,6 +288,18 @@
   #op h3{font-size:3rem;font-weight:900;letter-spacing:-.03em;margin-bottom:.4rem}
   #op .note{color:var(--faint);font-size:1.35rem;line-height:1.45;margin-bottom:1.8rem}
   #op .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.6rem}
+  /* The gate's own row. Same tiles, cyan edge, because these five are the
+     numbers the gate is judged on and they should not be hunted for among
+     the playback ones. */
+  #op .stats.gate .stat{border-color:rgba(78,197,212,.34);background:rgba(78,197,212,.07)}
+  #op h4{font-size:1.5rem;font-weight:900;letter-spacing:-.01em;margin:0 0 .7rem}
+  #op .plain{margin-bottom:1.6rem;padding:1.3rem 1.5rem;border-radius:1.2rem;
+    background:rgba(255,255,255,.045);border:1px solid var(--line)}
+  #op .plain li{list-style:none;font-size:1.42rem;line-height:1.45;color:var(--ink);
+    padding:.34rem 0 .34rem 1.4rem;position:relative}
+  #op .plain li:before{content:"";position:absolute;left:0;top:1.05rem;
+    width:.5rem;height:.5rem;border-radius:50%;background:var(--cyan)}
+  #op .plain li em{font-style:normal;color:var(--dim)}
   #op .stat{padding:1.3rem;border-radius:1.2rem;background:rgba(255,255,255,.045);border:1px solid var(--line)}
   #op .stat b{display:block;font-size:3.1rem;font-weight:900;letter-spacing:-.03em;line-height:1}
   #op .stat span{display:block;margin-top:.5rem;font:800 1.05rem/1.2 var(--mono);
@@ -536,6 +548,22 @@
       <div class="stat"><b id="s-lat">&mdash;</b><span>Tap &rarr; picture</span></div>
     </div>
 
+    <!-- ==================================================================
+         THE GATE. The question the booth was rebuilt to answer, answered.
+         Ten event types were being written to disk all day and none of them
+         were rolled up, so the one number that says whether asking for an
+         email before the first film was worth doing did not exist anywhere.
+         ================================================================== -->
+    <h4>Did the gate cost leads, or capture them?</h4>
+    <div class="stats gate">
+      <div class="stat"><b id="g-shown">0</b><span>Saw the form</span></div>
+      <div class="stat"><b id="g-done">0</b><span>Finished it</span></div>
+      <div class="stat"><b id="g-conv">&mdash;</b><span>Conversion</span></div>
+      <div class="stat"><b id="g-cost">0</b><span>Did not finish</span></div>
+      <div class="stat"><b id="g-tpv">&mdash;</b><span>Taps per visitor</span></div>
+    </div>
+    <ul class="plain" id="g-plain"></ul>
+
     <table>
       <thead><tr><th>Product</th><th>Taps</th><th>Started</th><th>Finished</th><th>Left early</th><th>Watch mins</th><th>QR shown</th></tr></thead>
       <tbody id="s-rows"></tbody>
@@ -547,11 +575,11 @@
       the destination side: every product QR carries
       <code>?src=booth-calgary&amp;p=&lt;product&gt;&amp;s=tv|tablet</code>.
     </div>
-    <div class="warn" id="w-compsync">
-      <b>CompSync signup URL was never confirmed.</b> The QR currently points at
-      <code>compsync.net</code> &mdash; an assumption, so the code is not dead on the floor.
-      Confirm it and re-run <code>make-qr.py</code>.
-    </div>
+    <!-- The CompSync "URL never confirmed" warning lived here. It is gone,
+         not hidden: Daniel confirmed compsync.net on 2026-08-07 (kiosk.js),
+         and the only code that could have shown it tested cs.urlUnconfirmed —
+         a field that has never existed on any product — so it had been
+         unreachable markup describing a resolved problem. -->
 
     <div class="health">
       <span>TV: <b id="h-tv" class="bad">not connected</b></span>
@@ -855,7 +883,40 @@
      sync-media.sh drops media/studiobeat.mp4 in, the tile turns into a normal
      "tap to watch" tile on its own. No code change, no reload, no restart.
      -------------------------------------------------------------------- */
-  var hasFilm = {};
+  /* TWO sources, and they are not the same question.
+
+     probeOk  — what /films says: is the FILE on the laptop's disk?
+     tvBroken — what the TV says: can it actually PLAY that file? It knows
+                things /films cannot — a file that will not decode, and a film
+                the stall watchdog caught frozen mid-play.
+
+     The TV's answer wins, because the TV is the thing that has to show it.
+     This is the disagreement that used to sit there for the whole show: the
+     TV probed once at load and gave up on a film silently, while this screen
+     went on promising "Tap to watch" for a film that would only ever be a
+     black rectangle. Now the TV publishes what it cannot play on its state
+     message, and the tile says "Tap to scan" — which is true, and which still
+     gets the visitor the thing they wanted. */
+  var probeOk  = {};
+  var tvBroken = {};
+
+  function playable(p) {
+    if (tvBroken[p.id]) return false;
+    return probeOk[p.id] !== false;
+  }
+
+  function refreshTiles() {
+    CONFIG.products.forEach(function (p) {
+      var ok = playable(p);
+      var tile = grid.querySelector('.tile[data-product="' + p.id + '"]');
+      if (!tile) return;
+      if (tile.getAttribute('data-playable') === String(ok)) return;   // no churn
+      tile.setAttribute('data-playable', String(ok));
+      tile.classList.toggle('nofilm', !ok);
+      var w = tile.querySelector('.watch');
+      if (w) w.textContent = ok ? 'Tap to watch' : 'Tap to scan';
+    });
+  }
 
   function probeFilms() {
     if (typeof fetch === 'undefined') return;
@@ -863,23 +924,15 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (have) {
         if (!have) throw 0;
-        CONFIG.products.forEach(function (p) { setFilm(p, !!have[p.id]); });
+        CONFIG.products.forEach(function (p) { probeOk[p.id] = !!have[p.id]; });
+        refreshTiles();
       })
       .catch(function () {
         // No server to ask (opened as a plain file, or serve.py is down):
         // assume every film is there rather than crying wolf on all six.
-        CONFIG.products.forEach(function (p) { setFilm(p, true); });
+        CONFIG.products.forEach(function (p) { probeOk[p.id] = true; });
+        refreshTiles();
       });
-  }
-
-  function setFilm(p, ok) {
-    if (hasFilm[p.id] === ok) return;
-    hasFilm[p.id] = ok;
-    var tile = grid.querySelector('.tile[data-product="' + p.id + '"]');
-    if (!tile) return;
-    tile.classList.toggle('nofilm', !ok);
-    var w = tile.querySelector('.watch');
-    if (w) w.textContent = ok ? 'Tap to watch' : 'Tap to scan';
   }
 
   probeFilms();
@@ -992,7 +1045,7 @@
     // tablet is never the operator. The phone is.
     Bus.send({ type: 'play', product: p.id, dir: dir, src: 'tablet' });
     showNow(p, dir);
-    say(p.name + (hasFilm[p.id] === false ? ' — scan the code' : ' — playing on the big screen'));
+    say(p.name + (playable(p) ? ' — playing on the big screen' : ' — scan the code'));
 
     // How long this screen took to answer the finger. The TV logs its own
     // tap-to-first-frame separately; these are two different numbers and are
@@ -1033,7 +1086,7 @@
     if (Visitor.email()) markLeadSent(Visitor.email());
     document.getElementById('nowqr').alt = 'QR code to try ' + p.name;
     document.getElementById('nowstate').textContent =
-      (hasFilm[p.id] === false) ? 'Scan to see it' : 'Playing on the big screen';
+      playable(p) ? 'Playing on the big screen' : 'Scan to see it';
     progi.style.width = '0%';
     now.classList.add('on');
 
@@ -1112,6 +1165,19 @@
     // this their session would expire mid-film and the next tap would re-gate
     // the same person.
     if (msg.state === 'playing' || msg.state === 'end') Visitor.touch();
+
+    /* WHAT THE TV CANNOT PLAY. Replaced wholesale each heartbeat rather than
+       merged, so a film the TV recovers stops being marked here within a
+       second — the TV is the authority on this and the tablet holds no
+       opinion of its own. An older TV that does not send the field leaves the
+       map exactly as it was rather than clearing it: absence of the field is
+       an old screen, not a claim that everything is fine. */
+    if (Object.prototype.toString.call(msg.broken) === '[object Array]') {
+      var next = {};
+      for (var bi = 0; bi < msg.broken.length; bi++) next[msg.broken[bi]] = 1;
+      tvBroken = next;
+      refreshTiles();
+    }
 
     // The TV can now be showing a film this tablet has no tile for — the
     // StreamStage recital film, which only the operator's phone can start.
@@ -1205,12 +1271,8 @@
   // The tally must show BOTH screens. With a Fire Stick TV those events live
   // on another device, so the numbers come from the server's record when it
   // is reachable and from local storage when it is not.
-  var lastEvents = [];
   function render() {
-    Report.load().then(function (events) {
-      lastEvents = events;
-      paint(events);
-    });
+    Report.load().then(paint);
   }
 
   function paint(events) {
@@ -1226,6 +1288,22 @@
     document.getElementById('h-lead').textContent = r.leads;
     document.getElementById('h-leadq').textContent = LeadQueue.pending();
 
+    /* THE GATE, in five numbers and then in sentences.
+       An em-dash rather than 0% before anybody has met the form: a booth that
+       has not opened yet has no conversion rate, and "0%" reads as a failure
+       instead of as a quiet morning. */
+    document.getElementById('g-shown').textContent = r.gateShown;
+    document.getElementById('g-done').textContent  = r.gateCompleted;
+    document.getElementById('g-conv').textContent  =
+      (r.gateConversion === null) ? '—' : (r.gateConversion + '%');
+    document.getElementById('g-cost').textContent  = r.gateUnfinished;
+    document.getElementById('g-tpv').textContent   =
+      (r.tapsPerVisitor === null) ? '—' : r.tapsPerVisitor;
+    document.getElementById('g-plain').innerHTML =
+      (r.plain || []).map(function (line) {
+        return '<li>' + line.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</li>';
+      }).join('');
+
     var rows = r.ranked.map(function (b) {
       return '<tr data-product="' + b.id + '">' +
         '<td><span class="sw"></span>' + b.name + '</td>' +
@@ -1237,7 +1315,10 @@
   }
 
   document.getElementById('op-export').addEventListener('click', function () {
-    Report.load().then(function (events) {
+    // {all:true} — the tally above is today, but an export is the whole show.
+    // /events defaults to one day now (it has to; the Android clients cap the
+    // read at 512KB), so the export is the one caller that asks for both.
+    Report.load({ all: true }).then(function (events) {
       Report.exportAll(events);
       say('Exported ' + events.length + ' events');
       render();
@@ -1284,13 +1365,6 @@
   document.getElementById('op-tv').addEventListener('click', function () {
     window.open('tv.html', 'ss-tv');
   });
-
-  // Only warn about CompSync while the URL really is the unconfirmed one.
-  var cs = productById('compsync');
-  if (!cs || !cs.urlUnconfirmed) {
-    var w = document.getElementById('w-compsync');
-    if (w) w.style.display = 'none';
-  }
 })();
 </script>
 </body>
