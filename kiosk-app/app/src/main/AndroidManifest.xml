@@ -33,6 +33,43 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- Added 2026-08-08, for the booth bus (BoothBus.kt): the stick subscribes to the kiosk's
+         GET /bus so the tablet and the phone can drive it, and publishes its own state back.
+
+         ACCESS_WIFI_STATE + CHANGE_WIFI_MULTICAST_STATE are for ONE thing: receiving the kiosk's
+         UDP discovery beacon (expo-assets/kiosk/BEACON.md). Android wifi drivers filter broadcast
+         frames out to save power unless an app holds a MulticastLock — and a Fire Stick sitting
+         still playing a reel is exactly the idle state that filtering targets. Without the lock
+         the beacon arrives on some devices and silently never arrives on others.
+
+         Neither grants any capability beyond what INTERNET already does, and neither is on the
+         playback path. With no kiosk, no wifi and no beacon, the reel plays exactly as it does
+         with none of this present. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+
+    <!-- Added 2026-08-07, and it is the difference between a booth TV and an advertisement for
+         Netflix. This stick runs Fire OS on Android 11 (SDK 30), which BLOCKS an activity start
+         from a BOOT_COMPLETED receiver: the app boots, plays the reel with sound, and the Amazon
+         home screen sits on top of it. Measured on the real stick — the reel was at 61.8s while
+         the TV showed "Discover original episodes" and a row of Netflix/Prime/Luna tiles.
+
+         SYSTEM_ALERT_WINDOW is the documented exemption from that rule, granted on the bench with
+
+             adb shell appops set com.streamstage.boothloop SYSTEM_ALERT_WINDOW allow
+
+         MEASURED RESULT ON THIS STICK: NOT SUFFICIENT. With the appop set to "allow", a reboot
+         still logged `isBgStartWhitelisted: false` and the Amazon launcher still owned the
+         screen. The permission is kept because it is the right lever and behaves differently
+         across Fire OS builds, but DO NOT read its presence as "boot autostart works" — it does
+         not, and BOOT-AUTOSTART IS AN OPEN DEFECT. See kiosk-app/README.md.
+
+         What IS proven to work, instantly, every time:
+             adb shell am start -n com.streamstage.boothloop/.BoothLoopActivity
+         and selecting the app once on the Fire TV remote. Either wins the screen back. -->
+    <!-- Nothing in this app draws an overlay. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
     <!-- Keeps the stick from hitting its own sleep timer mid-show.
          FLAG_KEEP_SCREEN_ON alone is not enough on Fire OS — see BoothLoopActivity. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
