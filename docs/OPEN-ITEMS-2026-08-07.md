@@ -332,3 +332,15 @@ Daniel's instruction was to check these rather than ask cold. Results:
   Interests are safely unioned; these two are not. Fix is ready and small (keep existing values when
   the incoming ones are empty; append notes with a separator instead of replacing). **Not applied —
   it is another project's live lead route and Daniel flagged it as his call.**
+
+
+## Stick ground truth, re-measured by StreamStage-5 after all device work (2026-08-08 13:37 ET)
+
+Not inherited — read off the device and the kiosk just now, per rule 9:
+```
+versionCode=3  versionName=1.1.1        app foreground: BoothLoopActivity
+SYSTEM_ALERT_WINDOW: granted=true  AND  appops: allow   (both halves — install -r drops these)
+7 films on disk, no versioned leftovers, no .update-base, .staging empty (0)
+kiosk /state: streamstage-services playing, order=7 films, _stale=false
+kiosk /health: hasTv=true
+```
