@@ -12,8 +12,8 @@ android {
         // Fire OS 5 (Fire TV Stick 2nd gen) is Android 5.1 / API 22. Anything newer is covered.
         minSdk = 22
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "1.1.1"
     }
 
     buildTypes {
@@ -22,6 +22,19 @@ android {
             // starts and plays. R8 stripping a Media3 renderer at a trade show is not a
             // trade worth making.
             isMinifyEnabled = false
+
+            // Signed with the debug key, deliberately.
+            //
+            // This APK is never published anywhere — it goes on one dedicated Fire Stick over
+            // adb, and it will never be updated from a store. What the signature has to do here
+            // is exactly one thing: match whatever is already installed, so `adb install -r`
+            // upgrades in place and the app keeps its own `/data` (installed.json, films.json —
+            // which is what knows which version of each film is current, and what to roll back
+            // to). A fresh release key would force an uninstall, and an uninstall on show
+            // morning would silently reset every pointer on the stick.
+            //
+            // An unsigned release APK, which is the default, simply cannot be installed at all.
+            signingConfig = signingConfigs.getByName("debug")
         }
         debug {
             isMinifyEnabled = false

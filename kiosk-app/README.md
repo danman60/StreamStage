@@ -254,16 +254,69 @@ nothing at all — that is what keeps a curious visitor out. **BACK** closes it.
    The first check on a stick whose films arrived by `adb push` hashes them once (~90 s for the
    whole reel, throttled so it cannot make the video stutter) and caches the answer, so every
    later check is instant.
-2. Nothing downloads until you choose **UPDATE ALL CHANGED FILMS** or a single film.
-3. A download goes to `Movies/StreamStageBooth/.staging/<file>.part`. The live film is never
-   opened for writing.
-4. It goes live only after **both** the byte count and the sha256 match the published manifest,
-   and then only by a single atomic `rename()` in the same directory. A truncated hotel-wifi
-   download fails here — this is the failure `push-media.sh` cannot catch.
-5. **A film that is on screen is never swapped.** It waits in `.staging` and goes live at the
+2. Nothing downloads until you choose **UPDATE ALL CHANGED FILMS**, or a single film from its
+   own row.
+3. Before the first byte: free space and power are checked. Not enough room and it refuses
+   *now*, on screen, with the numbers — not at 80% of a 90 MB download.
+4. A download goes to `Movies/StreamStageBooth/.staging/<file>__<hash>.mp4.part`. The live film
+   is never opened for writing. A dropped connection **keeps** the `.part`; pressing update
+   again resumes from where it stopped with a `Range` request rather than starting over.
+5. It goes live only after **both** the byte count and the sha256 match the published manifest —
+   and then by a single atomic `rename()` into **its own new filename** (see below). The
+   destination is then read back and hashed before any success is recorded.
+6. **A film that is on screen is never swapped.** It waits in `.staging` and goes live at the
    next loop boundary for that film.
-6. Any failure leaves the booth byte-for-byte as it was, and says so in plain English
+7. Any failure leaves the booth byte-for-byte as it was, and says so in plain English
    ("no network — the loop is unaffected"). Never a stack trace.
+
+### Films are versioned, and that is what makes this safe
+
+Every downloaded version lands at its own filename, derived from the sha256 the manifest already
+publishes:
+
+    costumecraft.mp4   ->   costumecraft__03fcba88a2a4.mp4
+
+A local pointer file, `films.json` in app-private storage, records which version is current for
+each film and which one was current before it. The name on the server never changes, so nothing
+about publishing changed.
+
+This exists because of the corruption fixed in `a1e9ace`. `/sdcard` on a Fire Stick is a FUSE
+mount served by MediaProvider. Renaming a new film **over a live path that ExoPlayer still has
+open** — and it always has the next film in the reel open, because it pre-buffers it — succeeds on
+the ext4 underneath while every reader on the device carries on seeing the old file's cached size,
+mtime and a page-granular *mixture* of the two films (measured 83.8% new / 16.2% old). `a1e9ace`
+made that detectable by reading the destination back and hashing it. Versioned filenames make it
+**unreachable**: the destination of a swap is a path that has never existed on the device, so
+nothing can have it open and there is no stale cache entry for it. The read-back check is still
+there, as belt and braces.
+
+Two things follow from it that matter at a booth:
+
+- **Each film goes live as it lands.** Nothing waits for the rest of the batch.
+- **The previous version stays on the stick**, which is what makes rollback instant.
+
+Superseded versions are deleted only 30 s after a later reel rebuild, never while they could be
+open, and the immediately previous version is never deleted at all.
+
+### Roll back
+
+`PUT EVERY FILM BACK TO ITS PREVIOUS VERSION`, or the same from any film's own row. It flips a
+name in `films.json` — **no network, no download, no hashing, nothing copied**, because both
+versions are already on the stick. Seconds, with a remote, on a venue with no wifi. This is the
+recovery path for the likeliest bad outcome at a booth: not a dropped connection, but a render
+that looks wrong on the TV.
+
+### Check my stick
+
+`CHECK MY STICK` re-reads every film off the flash, hashes it, and reports in English whether it
+matches the published list — or, with no network, what this stick recorded installing. ~100 s for
+the whole 350 MB reel, and **it transfers nothing**. This is the 8am "is this thing right?"
+question, answered without a re-download.
+
+### Per-film actions
+
+SELECT on any film row opens a menu for just that film: update it, roll it back, check it. A row
+that failed to download says **TRY THIS FILM AGAIN** and carries on from where it stopped.
 
 **Manifest:** `https://pub-626d1637ca4c4f34a7916019aaa3efce.r2.dev/booth/manifest.json`,
 published by `tools/publish-films.sh`. The films are fetched from the manifest's own `base`
@@ -299,8 +352,9 @@ For bench testing against a laptop rather than R2: `adb reverse tcp:8000 tcp:800
 | Missing storage permission | Says *"Storage permission not granted"* on the TV with the exact `pm grant` command — never a black screen. |
 | No network | Only ever noticed if you open the update panel, which then says *"no network — the loop is unaffected"*. Cold-starting in airplane mode plays the reel with nothing on screen about it. |
 | A truncated film | A film this app installed is checked (length vs. what was verified at install) on every launch and left out of the reel if it no longer matches, instead of becoming a decoder error and a blacklist entry. Films pushed by adb are untouched by this check. |
-| A corrupt film | Skipped, blacklisted for the session, show continues. One bad push cannot stall the booth. |
-| A stall | A 10-second watchdog nudges, then rebuilds the player if playback stops progressing. |
+| A corrupt film | Skipped, taken out of the reel, show continues. One bad push cannot stall the booth. **The exclusion expires after 20 minutes** and the film is tried again — a single bad read no longer costs the film for the whole day, and there is no need to power-cycle to get it back. |
+| A stall | A 10-second watchdog nudges at ~20 s, **skips the offending film at ~30 s**, and rebuilds the player at ~40 s. A frozen player reports no error, so nothing else would ever take that film out of rotation — this is what stops a booth TV sitting on one frame. |
+| A film that will not play after an update | Confirmed, not assumed. 12 s after any update or rollback rebuild, the app checks that the position actually moved; if it did not, that film is dropped and the reel carries on. Verified bytes are not the same claim as a decoder accepting them. |
 | Empty media dir | Shows the `adb push` instructions on screen; the watchdog starts playing the moment films appear, with no relaunch. |
 
 ---
@@ -342,6 +396,33 @@ Baseline `sha256` of all seven films was recorded before any of this and compare
 | **Cold start in airplane mode** | Airplane mode on + `svc wifi disable` + `am force-stop` → app restarted and played the reel with **nothing on screen about a network** |
 | **Panel with no network** | Every film `unknown (no network)`, header `no network — the loop is unaffected`, no Update offered |
 | Scoped storage | Without `MANAGE_EXTERNAL_STORAGE` the panel says the stick cannot replace films and prints the `appops` command; with it, downloads and swaps work |
+
+### Versioned films, rollback and check-my-stick — RELEASE build, same stick, 2026-08-08
+
+Everything below was done on `192.168.0.199:5555` against a **release** APK (v1.1.0, `versionCode`
+2), installed with `adb install -r` over the debug build that was on it. `sha256` of all seven
+films was recorded before and after: **byte-identical**, and the stick was left in exactly the
+state it started in — seven plain-named films, `.staging` empty, reel playing.
+
+Films were served from a laptop over `adb reverse` + a `.update-base` loopback override. **Nothing
+was published to R2.**
+
+| Check | Result |
+|---|---|
+| **Migration — legacy films untouched** | Release APK installed over the debug build, app relaunched: `Using 7 file(s) … streamstage-services.mp4, studiosage.mp4, …` — the seven plain-named adb-pushed films, correct running order, no pointer file, nothing rewritten |
+| Upgrade keeps app data | Release signed with the debug key so `adb install -r` upgrades in place; `films.json` / `installed.json` survive. An unsigned release APK cannot be installed at all. |
+| `appops` grant survives the upgrade | `MANAGE_EXTERNAL_STORAGE: allow` still set after `install -r` |
+| **A new version lands at its own filename** | `studiosage__3993a572732a.mp4` written alongside the original; `Applied studiosage.mp4 as studiosage__3993a572732a.mp4 — confirmed at its final path`. The original `studiosage.mp4` **kept**, untouched, as the rollback. |
+| Nothing else touched | The other six films kept their original mtimes and sizes through every test |
+| **Reel rebuilds at a film boundary** | `Rebuilding reel for a version change` → `Using 7 file(s) … studiosage__3993a572732a.mp4 …` in the correct running-order slot (ordering is by *logical* name, so the version tag is invisible to `playlist.txt` and the preferred order) |
+| **Playback confirmed after the update** | `Playback confirmed after the rebuild (pos=11607)` — the post-update probe proving the picture actually moved, not just that the bytes verified |
+| **Rollback** | Per-film rollback from the film's own row: `Rolled studiosage.mp4 back to studiosage.mp4`, panel said *"put back · plays from the next time round"*, reel rebuilt to the original film. **No network involved, no bytes moved, instant.** |
+| **Check my stick** | `all 7 film(s) are correct and match the published list` — full sha256 of 350 MB in ~100 s, **zero bytes transferred** |
+| **Resumable download** | 92 MB film, connection dropped at 8 MB by the test server → `.part` **kept** at 8,000,000 bytes and survived an app reinstall. Pressing update again: `Resuming reflect__220793e2100f.mp4 at 8000000 of 92837907`, server logged `RANGE REQUEST bytes=8000000- -> 206`, and the completed file passed the full sha256 gate — which is what proves the resumed bytes were joined correctly. |
+| **Preflight refuses before downloading** | Manifest claiming 11,185 MB against 10,721 MB free → *"not starting — not enough room — 11185 MB to fetch, 10721 MB free / roll a film back, or free space, then try again"*, `.staging` empty, **nothing downloaded** |
+| Per-film menu | SELECT on any row opens update / roll back / check for that film alone |
+| A failed row can be retried | A download that stopped short shows **TRY THIS FILM AGAIN** and resumes. (Found and fixed during this session: a `FAILED` row used to disable its own update action, which made the "press update again to resume" message impossible to act on.) |
+| **Release-build soak** | See the soak table below |
 
 ### On an Android TV emulator (AOSP TV, 1920×1080, API 34)
 

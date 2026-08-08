@@ -1,6 +1,9 @@
 package com.streamstage.boothloop
 
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
 import android.os.Build
 import android.os.StatFs
 import android.util.Log
@@ -8,6 +11,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.io.RandomAccessFile
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
@@ -27,17 +31,18 @@ import java.util.concurrent.Executors
  *
  *  - Nothing here runs unless Daniel opens the panel on the remote. No boot check, no poll,
  *    no `WorkManager`, no alarm, no timer. Look for one — there isn't one to find.
- *  - Downloads land in `<media>/.staging/<file>.part`. The live file is not opened for
- *    writing at any point.
- *  - A `.part` is promoted to `<media>/.staging/<file>` only after **both** the byte count
+ *  - Downloads land in `<media>/.staging/<versioned>.part`. No live film is ever opened for
+ *    writing, and no live *path* is ever written to at all.
+ *  - A `.part` is promoted to `<media>/.staging/<versioned>` only after **both** the byte count
  *    and the sha256 match the manifest. A hotel-wifi truncation dies here, which is the one
  *    failure `push-media.sh` cannot catch.
- *  - Going live is a single `rename()` within one directory — atomic. There is no window in
- *    which the film is missing or half-written.
- *  - A film that is on screen is never swapped. It waits in `.staging` for the next loop
- *    boundary (see [BoothLoopActivity.applyStagedFilms]).
- *  - Any leftover `.part` from a killed download is deleted on the next check, so a stick
- *    that lost power mid-download does not accumulate junk.
+ *  - Going live is a single `rename()` within one filesystem, into a filename that has never
+ *    existed on this device — see [FilmVersions]. There is no window in which a film is missing
+ *    or half-written, and no path is ever replaced underneath a reader.
+ *  - The destination is then **read back and hashed** before any success is recorded. That check
+ *    caught the Fire OS FUSE corruption on 2026-08-07 and it stays, even though versioned
+ *    filenames mean it should now never have anything to catch.
+ *  - Any leftover `.part` from a killed download is resumed, not restarted — R2 serves `Range`.
  */
 object UpdateManager {
 
@@ -50,31 +55,33 @@ object UpdateManager {
     const val STAGING_DIR = ".staging"
 
     /**
-     * Suffix for the copy of a live film that has been moved aside during a swap. It lives in
-     * `.staging` so it is on the same filesystem as both the live folder and the new film, which
-     * is what makes every step of the swap an atomic `rename()`.
+     * Suffix for a copy of a live film moved aside during a swap.
      *
-     * ## Why the swap moves the old film aside instead of renaming on top of it
+     * **Nothing produces one of these any more.** Films are versioned now ([FilmVersions]): a new
+     * version is written to its own filename, so there is no live path to move out of the way and
+     * no rollback file to leave behind. The constant survives so [sweepPartials] can clear one
+     * left by the previous build, which is the state a stick upgraded from `a1e9ace` starts in.
      *
-     * Renaming straight over the live path is the obvious implementation and it is what this
-     * did originally. On Fire OS 8 it is not safe. `/sdcard` is not a real filesystem: it is
-     * a FUSE mount served by MediaProvider (`/dev/fuse on /storage/emulated`, verified on the
-     * booth stick). When a `rename()` replaces a path that something still has **open** through
-     * that mount — and ExoPlayer always has the *next* film in the reel open, because it
-     * pre-buffers it — the rename succeeds on the ext4 underneath, but the FUSE layer carries
-     * on serving that path from the previous file's cached size, cached mtime and cached pages.
+     * ## The failure it used to defend against, kept because it explains the design
+     *
+     * Renaming straight over the live path is the obvious implementation and it is what this did
+     * originally. On Fire OS 8 it is not safe. `/sdcard` is not a real filesystem: it is a FUSE
+     * mount served by MediaProvider (`/dev/fuse on /storage/emulated`, verified on the booth
+     * stick). When a `rename()` replaces a path something still has **open** through that mount —
+     * and ExoPlayer always has the *next* film in the reel open, because it pre-buffers it — the
+     * rename succeeds on the ext4 underneath, but the FUSE layer carries on serving that path from
+     * the previous file's cached size, cached mtime and cached pages.
      *
      * Every reader on the device then sees a file that does not exist anywhere: the old byte
-     * count, the old mtime, and a 4 KB-page-granular *mixture* of the old and new films.
-     * Measured on the booth stick 2026-08-07: 83.8% of pages the new film, 16.2% still the old
-     * one. It decodes to `Invalid NAL unit size`. Restarting MediaProvider dropped the caches
-     * and the same path immediately read back as the correct new film, byte for byte — proof
-     * that the disk was always right and only the view of it was wrong.
+     * count, the old mtime, and a 4 KB-page-granular *mixture* of the old and new films. Measured
+     * on the booth stick 2026-08-07: 83.8% of pages the new film, 16.2% still the old one. It
+     * decodes to `Invalid NAL unit size`. Restarting MediaProvider dropped the caches and the same
+     * path immediately read back as the correct new film, byte for byte — proof that the disk was
+     * always right and only the view of it was wrong.
      *
-     * Moving the old film to a different path first means the live path is *created* by the
-     * swap rather than overwritten, so there is no previous cache entry for it to be confused
-     * with. [confirm] then proves the result either way; this only makes success the normal
-     * outcome instead of a rollback every time.
+     * Moving the old film aside first made success the normal outcome instead of a rollback every
+     * time. Giving every version its own filename removes the question: the destination of a swap
+     * is now a path nothing has ever opened.
      */
     const val PREV_SUFFIX = ".prev"
 
@@ -85,7 +92,14 @@ object UpdateManager {
     private const val READ_TIMEOUT_MS = 20_000
 
     /** Headroom kept free on /sdcard after a download, so the stick never fills up. */
-    private const val FREE_SPACE_MARGIN = 64L * 1024 * 1024
+    private const val FREE_SPACE_MARGIN = 256L * 1024 * 1024
+
+    /**
+     * Below this, on battery, an update is refused. A Fire Stick is mains-powered and reports no
+     * battery at all, so this only ever bites on a phone or tablet used for bench testing — which
+     * is exactly where a download dying at 80% is most likely.
+     */
+    private const val MIN_BATTERY_PCT = 25
 
     /**
      * One worker, at background priority. Two downloads at once on booth wifi helps nobody,
@@ -183,7 +197,8 @@ object UpdateManager {
 
     /**
      * A file in `.staging` that is a film waiting to go live — as opposed to a half-finished
-     * download (`.part`), a film moved aside mid-swap ([PREV_SUFFIX]), or the write probe.
+     * download (`.part`), a film moved aside by the pre-versioning swap ([PREV_SUFFIX]), or the
+     * write probe.
      */
     private fun isStagedFilm(f: File): Boolean =
         f.isFile &&
@@ -192,24 +207,60 @@ object UpdateManager {
             !f.name.startsWith(".")
 
     /**
-     * Deletes half-finished downloads left by a power cut or a cancelled update, and any film
-     * left moved-aside by a swap that was interrupted part way.
+     * Clears junk out of staging: a film left moved-aside by the old swap, and any `.part` too
+     * stale to be worth resuming.
      *
-     * A `.prev` is only ever the *old* copy of a film that has already been replaced, so it is
-     * safe to drop: either the swap completed (the new film is live and the backup is dead
-     * weight) or it rolled back (the backup was renamed into place and this one no longer
-     * exists). It is only reached at all if the process died between those two moments, and by
-     * then the live path is whatever it is — see [restoreOrReport].
+     * A `.part` is **not** swept just for existing any more — it is the resume point for a
+     * download that hotel wifi interrupted, and throwing it away is the 46 MB restart this build
+     * exists partly to stop (see [download]). It is only swept when it has been sitting there for
+     * more than [PART_MAX_AGE_MS], by which time the version it belongs to has probably been
+     * superseded anyway. A `.part` is named for the version's hash, so a stale one can never be
+     * confused with the current version's.
      */
     fun sweepPartials(mediaDir: File) {
+        val now = System.currentTimeMillis()
         runCatching {
-            stagingDir(mediaDir).listFiles()
-                ?.filter { it.isFile && (it.name.endsWith(".part") || it.name.endsWith(PREV_SUFFIX)) }
-                ?.forEach {
-                    Log.i(TAG, "Sweeping stale ${it.name}")
-                    it.delete()
+            stagingDir(mediaDir).listFiles()?.forEach { f ->
+                if (!f.isFile) return@forEach
+                when {
+                    f.name.endsWith(PREV_SUFFIX) -> {
+                        Log.i(TAG, "Sweeping ${f.name} left by an older build")
+                        f.delete()
+                    }
+                    f.name.endsWith(".part") && now - f.lastModified() > PART_MAX_AGE_MS -> {
+                        Log.i(TAG, "Sweeping stale ${f.name}")
+                        f.delete()
+                    }
                 }
+            }
         }
+    }
+
+    /** A week. Long enough to survive a show, short enough not to be a disk leak. */
+    private const val PART_MAX_AGE_MS = 7L * 24 * 60 * 60 * 1000
+
+    /**
+     * Deletes versions that are neither current nor the rollback.
+     *
+     * **Timing is the whole safety argument.** This must only ever run when the caller knows the
+     * player is not holding the file — which in practice means after a reel rebuild has dropped it
+     * from the item list. [protectedNames] is the caller's belt and braces on top of that.
+     */
+    fun sweepSuperseded(context: Context, mediaDir: File, protectedNames: Set<String>): Int {
+        val files = runCatching { mediaDir.listFiles()?.filter { it.isFile }.orEmpty() }
+            .getOrElse { return 0 }
+        val doomed = FilmVersions.supersededFiles(
+            FilmVersions.pointers(context), files, protectedNames
+        )
+        var n = 0
+        for (f in doomed) {
+            if (f.delete()) {
+                Log.i(TAG, "Removed superseded ${f.name}")
+                InstallRecords.installed(context).remove(f.name)
+                n++
+            }
+        }
+        return n
     }
 
     // ------------------------------------------------------------------ manifest
@@ -245,6 +296,66 @@ object UpdateManager {
         }
     }
 
+    // ------------------------------------------------------------------ preflight
+
+    /**
+     * Everything that would make a download fail half way, asked *before* the first byte.
+     *
+     * The booth failure this prevents is not subtle: Daniel presses Update All at 8:40am, watches
+     * a progress bar crawl for four minutes, and gets "not enough space on the stick" — having
+     * spent the bandwidth and the four minutes. A refusal is only useful if it is instant.
+     *
+     * @return null when it is safe to start, otherwise a sentence for the TV.
+     */
+    fun preflight(context: Context, mediaDir: File, entries: List<FilmEntry>): String? {
+        if (!canWriteMedia(mediaDir)) return "this stick cannot replace films"
+
+        // Versions coexist by design, so a download needs room for the new film on top of the old
+        // one — not the difference between them. Anything already staged costs nothing more.
+        val staging = stagingDir(mediaDir)
+        val needed = entries.sumOf { e ->
+            val target = File(staging, FilmVersions.versionedName(e.file, e.sha256))
+            val already = if (target.isFile) target.length() else
+                File(staging, target.name + ".part").let { if (it.isFile) it.length() else 0L }
+            (e.bytes - already).coerceAtLeast(0L)
+        }
+        val free = freeSpace(mediaDir)
+        if (free != Long.MAX_VALUE && free < needed + FREE_SPACE_MARGIN) {
+            return "not enough room — ${mb(needed)} to fetch, ${mb(free)} free\n" +
+                "  roll a film back, or free space, then try again"
+        }
+
+        battery(context)?.let { (pct, charging) ->
+            if (!charging && pct in 0 until MIN_BATTERY_PCT) {
+                return "battery is $pct% and not charging — plug in before updating"
+            }
+        }
+        return null
+    }
+
+    /**
+     * @return percent and whether it is on power, or null on a device with no battery at all —
+     *         which is every Fire Stick, and is the answer "mains, carry on".
+     */
+    private fun battery(context: Context): Pair<Int, Boolean>? = runCatching {
+        val i: Intent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+            ?: return null
+        if (!i.getBooleanExtra(BatteryManager.EXTRA_PRESENT, false)) return null
+        val level = i.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+        val scale = i.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+        if (level < 0 || scale <= 0) return null
+        val plugged = i.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0
+        val status = i.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
+        val charging = plugged ||
+            status == BatteryManager.BATTERY_STATUS_CHARGING ||
+            status == BatteryManager.BATTERY_STATUS_FULL
+        (level * 100 / scale) to charging
+    }.getOrNull()
+
+    /** Free space on the films volume, for the panel. */
+    fun freeSpaceText(mediaDir: File): String =
+        freeSpace(mediaDir).let { if (it == Long.MAX_VALUE) "unknown" else mb(it) }
+
     // ------------------------------------------------------------------ download
 
     sealed class DownloadResult {
@@ -257,7 +368,20 @@ object UpdateManager {
      * Downloads one film into staging and verifies it. Blocking. Worker thread only.
      *
      * Nothing outside `<media>/.staging/` is touched by this function, whatever happens.
-     * On any failure the `.part` is deleted and the booth is byte-identical to before.
+     *
+     * ## Resume
+     *
+     * R2 serves `Range` (`206 Partial Content`, `Accept-Ranges: bytes` — verified against the
+     * live bucket). A `.part` left by a dropped connection is continued from its current length
+     * with the sha256 seeded from the bytes already on disk, so a hotel wifi that dies at 80% of
+     * a 46 MB film costs 9 MB to recover, not 46.
+     *
+     * The reason that is safe rather than terrifying: **the `.part` is named for the version's
+     * hash**. A partial file under `costumecraft__03fcba88a2a4.mp4.part` can only ever be bytes of
+     * the film whose sha256 starts `03fcba88a2a4`. There is no way to resume one film's download
+     * into another's, which is the mistake that makes naive resume produce garbage. And if the
+     * bytes on disk are garbage anyway, the whole-file hash at the end refuses them exactly as it
+     * refuses a truncated download.
      */
     fun download(
         context: Context,
@@ -271,39 +395,81 @@ object UpdateManager {
         if (!staging.mkdirs() && !staging.isDirectory) {
             return DownloadResult.Failed("cannot write to the films folder")
         }
+
+        val targetName = FilmVersions.versionedName(entry.file, entry.sha256)
+        val part = File(staging, "$targetName.part")
+        val done = File(staging, targetName)
+
+        // Already fetched and waiting, or already installed: nothing to do. Free, and it makes
+        // "update all" after a partial run cheap instead of 350 MB.
+        if (done.isFile && done.length() == entry.bytes) {
+            return vouch(context, done, entry)
+        }
+        val live = File(mediaDir, targetName)
+        if (live.isFile && live.length() == entry.bytes) {
+            Log.i(TAG, "$targetName is already on the stick")
+            return DownloadResult.Staged
+        }
+
         if (freeSpace(mediaDir) < entry.bytes + FREE_SPACE_MARGIN) {
             return DownloadResult.Failed("not enough space on the stick")
         }
 
-        val part = File(staging, entry.file + ".part")
-        val done = File(staging, entry.file)
-        part.delete()
-        done.delete()
+        val digest = MessageDigest.getInstance("SHA-256")
+        var have = if (part.isFile) part.length() else 0L
+        if (have >= entry.bytes) {
+            // A .part at or past the full length is not a resume point, it is a mistake.
+            part.delete()
+            have = 0L
+        }
+        if (have > 0L && !seedDigest(digest, part, have)) {
+            Log.w(TAG, "Could not re-read ${part.name} — restarting the download")
+            part.delete()
+            have = 0L
+        }
+        if (have > 0L) Log.i(TAG, "Resuming $targetName at $have of ${entry.bytes}")
 
         var conn: HttpURLConnection? = null
         try {
-            conn = open(base + entry.file)
+            conn = open(base + entry.file, rangeFrom = have)
             val code = conn.responseCode
             if (code == 404) return DownloadResult.Failed("that film is not on the server")
-            if (code != 200) return DownloadResult.Failed("server said $code — nothing changed")
 
-            // If the server tells us a length and it disagrees with the manifest, the two
-            // sides are out of step. Stop before spending 90 MB of booth wifi on it.
+            var written = have
+            var append = have > 0L
+            if (have > 0L && code == 200) {
+                // Server ignored the Range and is sending the whole file. Honest fallback:
+                // start again from zero rather than glue an offset stream onto a prefix.
+                Log.i(TAG, "Server ignored Range — restarting $targetName from the top")
+                digest.reset()
+                written = 0L
+                append = false
+            } else if (have > 0L && code != 206) {
+                return DownloadResult.Failed("server would not resume — nothing changed")
+            } else if (have == 0L && code != 200) {
+                return DownloadResult.Failed("server said $code — nothing changed")
+            }
+
+            // If the server tells us a length and it disagrees with what is still outstanding,
+            // the two sides are out of step. Stop before spending 90 MB of booth wifi on it.
             val declared = conn.contentLengthLong
-            if (declared > 0 && declared != entry.bytes) {
+            val outstanding = entry.bytes - written
+            if (declared > 0 && declared != outstanding) {
                 return DownloadResult.Failed("server copy is a different size")
             }
 
-            val digest = MessageDigest.getInstance("SHA-256")
-            var written = 0L
             var lastReport = 0L
+            onProgress(written, entry.bytes)
 
             conn.inputStream.use { input ->
-                FileOutputStream(part).use { out ->
+                FileOutputStream(part, append).use { out ->
                     val buf = ByteArray(64 * 1024)
                     while (true) {
                         if (isCancelled()) {
-                            part.delete()
+                            // The .part is kept, deliberately. Stopping is not the same as
+                            // discarding, and the next attempt resumes from here.
+                            out.flush()
+                            out.fd.sync()
                             return DownloadResult.Cancelled
                         }
                         val n = input.read(buf)
@@ -331,8 +497,8 @@ object UpdateManager {
             // ---- the gate. Both checks, or it does not go live. ----
             if (written != entry.bytes) {
                 Log.w(TAG, "${entry.file}: got $written bytes, expected ${entry.bytes}")
-                part.delete()
-                return DownloadResult.Failed("stopped short — nothing changed")
+                // Short means the connection dropped. Keep the .part: that is the resume point.
+                return DownloadResult.Failed("the network dropped — press update again to resume")
             }
             val got = digest.digest().toHex()
             if (got != entry.sha256) {
@@ -346,36 +512,75 @@ object UpdateManager {
                 return DownloadResult.Failed("staged file is the wrong size")
             }
 
+            done.delete()
             if (!part.renameTo(done)) {
                 part.delete()
                 return DownloadResult.Failed("could not stage the film")
             }
 
-            // Remember what it is, so the boundary swap can record it without re-hashing.
-            InstallRecords.pending(context).put(
-                entry.file,
-                InstallRecords.Rec(entry.bytes, done.lastModified(), entry.sha256, "manifest")
-            )
-            Log.i(TAG, "${entry.file} verified and staged")
-            return DownloadResult.Staged
+            return vouch(context, done, entry)
         } catch (t: Throwable) {
             Log.w(TAG, "Download failed for ${entry.file}", t)
-            runCatching { part.delete() }
+            // The .part stays. Whatever arrived is a resume point, and the hash gate means a
+            // corrupt one can never reach the reel.
             return DownloadResult.Failed(friendlyNetworkError(t))
         } finally {
             runCatching { conn?.disconnect() }
         }
     }
 
+    /**
+     * Writes down what a staged film is, and **fails the download if that cannot be written.**
+     *
+     * This looks like bookkeeping and it is not. [applyStaged] refuses to install a staged file it
+     * has no record for — correctly, because a file in `.staging` with nothing vouching for it
+     * could be anything — and it deletes it. So a `pending.json` write that quietly failed used to
+     * produce this, at a venue: the panel says "ready · swaps in when it next comes round", the
+     * film is deleted at the next loop boundary, the row never changes, nothing appears on screen,
+     * and no error is shown anywhere. Pressing Update again re-downloads 90 MB and loses it again.
+     *
+     * `InstallRecords.put` already returns whether it persisted; the whole bug was ignoring it.
+     * Now an unwritable record means the staged file goes immediately, while there is still
+     * somebody looking at the screen to be told why.
+     */
+    private fun vouch(context: Context, done: File, entry: FilmEntry): DownloadResult {
+        val ok = InstallRecords.pending(context).put(
+            done.name,
+            InstallRecords.Rec(entry.bytes, done.lastModified(), entry.sha256, "manifest")
+        )
+        if (!ok) {
+            Log.e(TAG, "Could not record ${done.name} as staged — discarding it rather than " +
+                    "leaving a film nothing can vouch for")
+            done.delete()
+            return DownloadResult.Failed("this stick could not save its own notes — nothing changed")
+        }
+        Log.i(TAG, "${done.name} verified and staged")
+        return DownloadResult.Staged
+    }
+
+    /** Feeds the bytes already on disk into [digest] so a resumed download still hashes right. */
+    private fun seedDigest(digest: MessageDigest, part: File, count: Long): Boolean = runCatching {
+        RandomAccessFile(part, "r").use { raf ->
+            val buf = ByteArray(256 * 1024)
+            var left = count
+            while (left > 0) {
+                val n = raf.read(buf, 0, minOf(buf.size.toLong(), left).toInt())
+                if (n <= 0) return false
+                digest.update(buf, 0, n)
+                left -= n
+            }
+        }
+        true
+    }.getOrElse { false }
+
     // ------------------------------------------------------------------ apply
 
     data class Applied(
+        /** Logical film names that are now live — `costumecraft.mp4`, not the versioned file. */
         val names: List<String>,
-        val newFilms: List<String>,
         /**
-         * Films that reached the live path but did not read back correctly there, and were
-         * rolled back to the film that was playing before. Never empty silently: the panel
-         * says so and no success is recorded for any of them.
+         * Films that reached their final path and did not read back correctly there. Never empty
+         * silently: the panel says so and no success is recorded for any of them.
          */
         val failed: List<String> = emptyList()
     )
@@ -384,100 +589,145 @@ object UpdateManager {
      * Promotes verified staged films into the live folder — and then **proves** it, by reading
      * the destination back and hashing it.
      *
-     * **Blocking and slow. Worker thread only.** It hashes every film it swaps, which is
-     * seconds per film. It used to run on the main thread on the grounds that a rename is
-     * sub-millisecond; that is no longer what this does, and [BoothLoopActivity.applyStagedFilms]
-     * hands it to the update worker instead.
+     * **Blocking and slow. Worker thread only.** It hashes every film it swaps, which is seconds
+     * per film.
      *
-     * [isOnScreen] is asked, per film, immediately before that film is touched — the film
-     * currently on screen is left in staging and picked up at the next loop boundary. That is
-     * rule 5: never swap what a visitor is watching. It is a callback rather than a name
-     * because this function is now slow enough that the answer can change while it runs.
+     * Per film:
      *
-     * The swap, per film:
+     *  1. rename the verified staged film to `<media>/<name>__<hash>.<ext>` — a path that has
+     *     never existed on this device, so nothing can have it open and no FUSE cache entry can
+     *     be stale for it;
+     *  2. **read that path back** and check its byte count and sha256 against the manifest;
+     *  3. only then point `films.json` at it and record the success.
      *
-     *  1. move the live film aside to `.staging/<file>.prev` — atomic, and it is *kept*, not
-     *     deleted, so there is always a copy of what the booth was playing;
-     *  2. rename the verified staged film into the live path;
-     *  3. **read the live path back** and check its byte count and sha256 against the manifest;
-     *  4. only then delete the backup and record a success.
+     * If step 1 or 2 fails, the new file is deleted and the pointer is untouched: the booth is
+     * byte-for-byte and frame-for-frame exactly what it was. Step 2 is the check added in
+     * `a1e9ace` after the Fire OS FUSE corruption, and it is kept even though versioned filenames
+     * should mean it never has anything to catch. **A success is only ever recorded for bytes that
+     * were read back from the final path.**
      *
-     * If step 2 or 3 fails, the backup goes back and the booth is exactly what it was. Step 3
-     * is the whole point: before it existed, a swap that reported success was assumed to have
-     * happened, and on Fire OS 8 that assumption was wrong (see [PREV_SUFFIX]) — the app wrote
-     * `installed.json` saying "46,858,558 bytes, sha256 03fcba88…" for a path that was serving
-     * a corrupt mixture of two films. **A success is now only ever recorded for bytes that were
-     * read back from the final path.**
+     * [isOnScreen] is asked, per film, before it is touched. With versioned filenames the film on
+     * screen is not at risk — its file is not the destination of anything — so this now only
+     * declines to *point away* from a film mid-play, which would otherwise strand the reel on a
+     * path the next rebuild removes. The visible behaviour is unchanged: what you are watching is
+     * what you keep watching until it comes round again.
      */
     fun applyStaged(context: Context, mediaDir: File, isOnScreen: (String) -> Boolean): Applied {
         val staging = stagingDir(mediaDir)
         val ready = staging.listFiles()?.filter { isStagedFilm(it) }
-            ?: return Applied(emptyList(), emptyList())
-        if (ready.isEmpty()) return Applied(emptyList(), emptyList())
+            ?: return Applied(emptyList())
+        if (ready.isEmpty()) return Applied(emptyList())
 
         val pending = InstallRecords.pending(context)
         val installed = InstallRecords.installed(context)
+        val pointers = FilmVersions.pointers(context)
         val applied = mutableListOf<String>()
-        val brandNew = mutableListOf<String>()
         val failed = mutableListOf<String>()
 
         for (staged in ready) {
+            val logical = FilmVersions.logicalName(staged.name)
             if (isOnScreen(staged.name)) continue
+
             val rec = pending.get(staged.name)
             if (rec == null || staged.length() != rec.bytes) {
-                // Staged without a record, or changed since: we cannot vouch for it, so it
-                // does not go anywhere near the live folder.
-                Log.w(TAG, "Discarding unvouched staged file ${staged.name}")
+                // Staged without a record, or changed since: we cannot vouch for it, so it does
+                // not go anywhere near the live folder.
+                //
+                // It is also **reported**. Deleting a film somebody watched download, and saying
+                // nothing, is the worst outcome available here: the panel would sit on "ready"
+                // for a film that no longer exists. [vouch] should make this unreachable; if it
+                // happens anyway, it says so on the TV.
+                Log.e(TAG, "Discarding unvouched staged file ${staged.name}")
                 staged.delete()
+                failed += logical
                 continue
             }
 
             val live = File(mediaDir, staged.name)
-            val backup = File(staging, staged.name + PREV_SUFFIX)
-            val wasThere = live.isFile
-
-            backup.delete()
-            if (wasThere && !live.renameTo(backup)) {
-                Log.w(TAG, "Could not move ${staged.name} aside — leaving the old film in place")
-                continue
+            if (live.isFile) {
+                // Same version already installed — the download short-circuit should have caught
+                // this, but if a previous run died between the rename and the pointer write, this
+                // is how it heals. Never overwrite: confirm what is there and move on.
+                if (confirm(live, rec) == null) {
+                    staged.delete()
+                    promote(pointers, installed, mediaDir, logical, live, rec)
+                    pending.remove(staged.name)
+                    applied += logical
+                    Log.i(TAG, "$logical was already installed as ${live.name} — pointer updated")
+                    continue
+                }
+                // It is there and it is wrong. Whether it can be removed depends on whether
+                // anything could still be reading it: a file some pointer names is a file the
+                // reel may have open right now, and unlinking one of those is the whole family of
+                // failure this versioning scheme exists to avoid. Leave it, report it, change
+                // nothing. The staged copy stays for a later attempt.
+                if (isReferenced(pointers, live.name)) {
+                    Log.e(TAG, "${live.name} is in use and does not verify — leaving it alone")
+                    failed += logical
+                    continue
+                }
+                Log.w(TAG, "${live.name} is unreferenced and does not verify — replacing it")
+                live.delete()
             }
+
             if (!staged.renameTo(live)) {
-                Log.w(TAG, "Could not swap in ${staged.name} — restoring the old film")
-                if (wasThere) restoreOrReport(backup, live)
+                Log.w(TAG, "Could not put ${staged.name} in place — nothing changed")
                 continue
             }
 
             val problem = confirm(live, rec)
             if (problem != null) {
                 Log.e(TAG, "${staged.name} did not verify at its final path ($problem) — " +
-                        "rolling the booth back, nothing is recorded")
+                        "removing it, the booth is unchanged")
                 live.delete()
-                if (wasThere) restoreOrReport(backup, live)
                 // No record, in either file. A film we could not confirm must leave no trace
-                // claiming we could.
+                // claiming we could. The pointer is untouched, so the reel never saw it.
                 pending.remove(staged.name)
                 installed.remove(staged.name)
-                failed += staged.name
+                failed += logical
                 continue
             }
 
-            backup.delete()
-            installed.put(
-                staged.name,
-                InstallRecords.Rec(
-                    rec.bytes,
-                    live.lastModified(),
-                    rec.sha256,
-                    "manifest",
-                    spotHash(live)
-                )
-            )
+            promote(pointers, installed, mediaDir, logical, live, rec)
             pending.remove(staged.name)
-            applied += staged.name
-            if (!wasThere) brandNew += staged.name
-            Log.i(TAG, "Applied ${staged.name} (new=${!wasThere}) — confirmed at its final path")
+            applied += logical
+            Log.i(TAG, "Applied $logical as ${live.name} — confirmed at its final path")
         }
-        return Applied(applied, brandNew, failed)
+        return Applied(applied.distinct(), failed.distinct())
+    }
+
+    /**
+     * True when some film's pointer names this file — as its current version or its rollback.
+     *
+     * The one question worth asking before unlinking anything in the media folder: a referenced
+     * file is one the reel can have open, and on this device removing a file out from under an
+     * open fd is how the 2026-08-07 corruption started.
+     */
+    private fun isReferenced(pointers: FilmVersions.Pointers, name: String): Boolean =
+        pointers.all().values.any { it.current == name || it.previous == name }
+
+    /**
+     * Records the confirmed file and makes it the current version.
+     *
+     * The pointer flip is the last thing that happens, after the bytes are on disk and have been
+     * read back. Until it happens the new file is inert — present in the folder, in nobody's reel.
+     */
+    private fun promote(
+        pointers: FilmVersions.Pointers,
+        installed: InstallRecords,
+        mediaDir: File,
+        logical: String,
+        live: File,
+        rec: InstallRecords.Rec
+    ) {
+        installed.put(
+            live.name,
+            InstallRecords.Rec(rec.bytes, live.lastModified(), rec.sha256, "manifest", spotHash(live))
+        )
+        // First update for a film that arrived over adb: the plain file already on the stick is
+        // what "roll back" has to mean, so it is recorded as the previous version.
+        val legacy = File(mediaDir, logical).takeIf { it.isFile && it.name != live.name }?.name
+        pointers.promote(logical, live.name, rec.sha256, rec.mtime.toString(), legacy)
     }
 
     /**
@@ -495,21 +745,122 @@ object UpdateManager {
         return null
     }
 
-    /** Puts the old film back after a failed swap, and says so loudly if it cannot. */
-    private fun restoreOrReport(backup: File, live: File) {
-        if (backup.renameTo(live)) {
-            Log.i(TAG, "Restored the previous ${live.name}")
-            return
-        }
-        // Nothing left to try that would not risk making it worse. Say it plainly: Playlist
-        // will drop the film from the reel rather than play something it cannot vouch for,
-        // and the booth carries on with the films it still has.
-        Log.e(TAG, "Could not restore the previous ${live.name} — it is left out of the reel")
-    }
-
-    /** True when something is sitting in staging waiting for a loop boundary. */
+    /** True when something is sitting in staging waiting to be put in place. */
     fun hasStaged(mediaDir: File): Boolean =
         stagingDir(mediaDir).listFiles()?.any { isStagedFilm(it) } == true
+
+    // ------------------------------------------------------------------ rollback
+
+    /**
+     * Put a film back to the version before it. No network, no download, no hashing, no file
+     * copied — both versions are already on the stick and this moves a name in `films.json`.
+     *
+     * This is the recovery path for the failure that is actually most likely at a booth: not a
+     * dropped connection, but a render Daniel looks at on the TV and does not like. It has to be
+     * possible in seconds, with a remote, with the wifi off.
+     *
+     * @return the description of what is now current, or null if there was nothing to go back to.
+     */
+    fun rollback(context: Context, logical: String): String? {
+        val pointers = FilmVersions.pointers(context)
+        val now = pointers.rollback(logical) ?: return null
+        Log.i(TAG, "Rolled $logical back to $now")
+        return now
+    }
+
+    /** @return every logical film that has a previous version on this stick to go back to. */
+    fun rollbackable(context: Context, mediaDir: File): List<String> {
+        val pointers = FilmVersions.pointers(context)
+        return pointers.all().filter { (_, p) ->
+            p.previous != null && File(mediaDir, p.previous).isFile
+        }.keys.toList()
+    }
+
+    // ------------------------------------------------------------------ check my stick
+
+    /** One line of the "check my stick" report, already written for a TV. */
+    data class CheckLine(val name: String, val ok: Boolean, val text: String)
+
+    /**
+     * Re-hashes every film on the stick and says, in English, whether it is right.
+     *
+     * This is the 8am question — *is this thing correct?* — and it is answered without moving a
+     * byte over the network beyond the few kilobytes of manifest. It deliberately ignores the
+     * cached hashes in `installed.json`: a cache that agrees with itself is not evidence. Every
+     * film is read off the flash and hashed, which is where damage actually shows up.
+     *
+     * With a manifest it compares against what is published. Without one — no wifi at the venue,
+     * which is the normal case — it compares against what this stick recorded installing, and says
+     * which of the two it did. Both are useful; conflating them would not be.
+     *
+     * Blocking and slow (tens of seconds for 350 MB, throttled so the reel does not stutter).
+     * Worker thread only.
+     */
+    fun checkStick(
+        context: Context,
+        mediaDir: File,
+        manifest: FilmManifest?,
+        onProgress: (done: Int, total: Int, name: String) -> Unit,
+        isCancelled: () -> Boolean
+    ): List<CheckLine> {
+        val pointers = FilmVersions.pointers(context)
+        val installed = InstallRecords.installed(context)
+        val onDisk = runCatching {
+            mediaDir.listFiles()?.filter {
+                it.isFile && !it.name.startsWith(".") &&
+                    it.extension.lowercase() in setOf("mp4", "m4v", "mkv", "webm", "mov", "ts")
+            }.orEmpty()
+        }.getOrElse { emptyList() }
+
+        val current = FilmVersions.currentFiles(pointers, onDisk).associateBy {
+            FilmVersions.logicalName(it.name)
+        }
+        val names = (manifest?.films?.map { it.file }.orEmpty() + current.keys).distinct().sorted()
+
+        val out = mutableListOf<CheckLine>()
+        names.forEachIndexed { i, logical ->
+            if (isCancelled()) return out
+            onProgress(i, names.size, logical)
+            val file = current[logical]
+            val entry = manifest?.films?.firstOrNull { it.file.equals(logical, true) }
+
+            if (file == null) {
+                out += CheckLine(logical, false, "MISSING — not on this stick")
+                return@forEachIndexed
+            }
+            val want = entry?.sha256 ?: installed.get(file.name)?.sha256
+            val wantBytes = entry?.bytes ?: installed.get(file.name)?.bytes
+            if (wantBytes != null && file.length() != wantBytes) {
+                out += CheckLine(
+                    logical, false,
+                    "DAMAGED — ${mb(file.length())} on the stick, ${mb(wantBytes)} expected"
+                )
+                return@forEachIndexed
+            }
+            if (want == null) {
+                out += CheckLine(logical, true, "on this stick only — nothing to compare it to")
+                return@forEachIndexed
+            }
+            val sha = hashFile(file) { isCancelled() }
+            if (isCancelled()) return out
+            when {
+                sha == null -> out += CheckLine(logical, false, "could not be read")
+                sha == want -> out += CheckLine(
+                    logical, true,
+                    if (entry != null) "correct — matches the published film"
+                    else "correct — matches what this stick installed"
+                )
+                entry != null -> out += CheckLine(
+                    logical, false, "OLD OR CHANGED — not the published version"
+                )
+                else -> out += CheckLine(
+                    logical, false, "CHANGED since this stick installed it — damaged"
+                )
+            }
+        }
+        onProgress(names.size, names.size, "")
+        return out
+    }
 
     // ------------------------------------------------------------------ hashing
 
@@ -601,7 +952,7 @@ object UpdateManager {
 
     // ------------------------------------------------------------------ plumbing
 
-    private fun open(url: String): HttpURLConnection {
+    private fun open(url: String, rangeFrom: Long = 0L): HttpURLConnection {
         val conn = URL(url).openConnection() as HttpURLConnection
         conn.requestMethod = "GET"
         conn.connectTimeout = CONNECT_TIMEOUT_MS
@@ -611,6 +962,7 @@ object UpdateManager {
         // No gzip: we are counting bytes against a manifest and comparing them to a hash.
         conn.setRequestProperty("Accept-Encoding", "identity")
         conn.setRequestProperty("User-Agent", "StreamStageBoothLoop")
+        if (rangeFrom > 0L) conn.setRequestProperty("Range", "bytes=$rangeFrom-")
         conn.connect()
         return conn
     }
@@ -637,6 +989,9 @@ object UpdateManager {
         Long.MAX_VALUE
     }
 
+    private fun mb(bytes: Long): String =
+        if (bytes <= 0) "0 MB" else String.format("%.0f MB", bytes / 1024.0 / 1024.0)
+
     /**
      * Turns an exception into something worth putting on a booth TV. The rule for every
      * string in here: it says what happened and reassures that the loop is fine. It never
@@ -646,9 +1001,9 @@ object UpdateManager {
         is java.net.UnknownHostException,
         is java.net.ConnectException,
         is java.net.NoRouteToHostException -> "no network — the loop is unaffected"
-        is java.net.SocketTimeoutException -> "network too slow — nothing changed"
+        is java.net.SocketTimeoutException -> "network too slow — press update again to resume"
         is javax.net.ssl.SSLException -> "could not secure the connection"
-        is java.io.IOException -> "the network dropped — nothing changed"
+        is java.io.IOException -> "the network dropped — press update again to resume"
         else -> "could not reach the film server"
     }
 

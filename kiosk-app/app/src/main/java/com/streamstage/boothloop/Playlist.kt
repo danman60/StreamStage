@@ -38,6 +38,15 @@ import java.io.File
  *    lines ignored. Lines naming a file that is not present are skipped (so a half-pushed
  *    stick still plays what it has instead of failing).
  *  - Otherwise: the known StreamStage running order first, then anything else alphabetically.
+ *
+ * ## Versions
+ *
+ * A film can be on the stick in more than one version at once — `costumecraft.mp4` and
+ * `costumecraft__03fcba88a2a4.mp4` — because that is how an update avoids ever writing over a
+ * path the player has open (see [FilmVersions]). Exactly one of them is in the reel: the one
+ * `films.json` points at. Everything here — the running order, `playlist.txt`, the preferred
+ * order — is written in terms of the *logical* film name, so none of it had to learn about
+ * versions, and a stick that has never taken an update behaves precisely as it always did.
  */
 object Playlist {
 
@@ -95,6 +104,14 @@ object Playlist {
         candidateDirs(context).any { videosIn(it).isNotEmpty() }
 
     /**
+     * Every version of every film sitting in the active folder, current or not.
+     *
+     * Used by the housekeeping that deletes superseded versions, which needs to see the ones the
+     * reel deliberately does not.
+     */
+    fun allVideoFiles(dir: File): List<File> = videosIn(dir)
+
+    /**
      * The directory the booth is actually playing from — and therefore the one the updater
      * downloads into. If nothing is anywhere yet (a fresh stick), this is the folder films
      * *should* go in, so the first download has somewhere to land.
@@ -112,8 +129,14 @@ object Playlist {
      * @return the ordered list of playable files, or empty if nothing was found anywhere.
      */
     fun resolve(context: Context): List<File> {
+        val pointers = runCatching { FilmVersions.pointers(context) }.getOrNull()
         for (dir in candidateDirs(context)) {
-            val files = verified(context, videosIn(dir))
+            val present = videosIn(dir)
+            // One file per film: the version films.json points at, or — for the seven films that
+            // were pushed over adb and have no pointer — the file that is simply there.
+            val chosen = if (pointers == null) present
+            else runCatching { FilmVersions.currentFiles(pointers, present) }.getOrElse { present }
+            val files = verified(context, chosen)
             if (files.isNotEmpty()) {
                 val ordered = order(dir, files)
                 Log.i(TAG, "Using ${ordered.size} file(s) from ${dir.absolutePath}: " +
@@ -210,8 +233,12 @@ object Playlist {
         return good
     }
 
+    /**
+     * Keyed by *logical* name, so `playlist.txt` and [PREFERRED_ORDER] keep naming films the way
+     * a human does — `costumecraft.mp4` — whichever version of it happens to be current.
+     */
     private fun order(dir: File, files: List<File>): List<File> {
-        val byName = files.associateBy { it.name.lowercase() }
+        val byName = files.associateBy { FilmVersions.logicalName(it.name).lowercase() }
 
         // 1. Explicit playlist.txt wins.
         val manifest = File(dir, "playlist.txt")
@@ -228,14 +255,16 @@ object Playlist {
             if (named.isNotEmpty()) {
                 // Anything on disk but absent from playlist.txt is appended, never dropped —
                 // a stale playlist.txt should not silently hide a film someone just pushed.
-                val rest = files.filterNot { it in named }.sortedBy { it.name.lowercase() }
+                val rest = files.filterNot { it in named }
+                    .sortedBy { FilmVersions.logicalName(it.name).lowercase() }
                 return named + rest
             }
         }
 
         // 2. Known booth order, then the rest alphabetically.
         val preferred = PREFERRED_ORDER.mapNotNull { byName[it.lowercase()] }
-        val rest = files.filterNot { it in preferred }.sortedBy { it.name.lowercase() }
+        val rest = files.filterNot { it in preferred }
+            .sortedBy { FilmVersions.logicalName(it.name).lowercase() }
         return preferred + rest
     }
 }
