@@ -234,12 +234,32 @@ def normalise_url(raw):
     return u if URL_RE.match(u) else ""
 
 
+# How old a facelift run may be before the phone stops calling it "ready".
+# On 2026-08-07 a status.json from JULY 29 still said ready for steppinupdanceco.ca —
+# a different studio entirely. The reveal is a live moment in the talk: pressing it
+# with a stale status would have put the wrong studio's rebuilt site on the screen in
+# front of the room. A facelift is built minutes before it is revealed, never days, so
+# anything older than this is leftover state, not a result.
+FACELIFT_MAX_AGE_S = 6 * 3600
+
+
 def facelift_state():
     """Read the runner's status file; fill in what the server can see itself."""
     st = dict(IDLE_FACELIFT)
     try:
         with open(FACELIFT_STATUS) as fh:
             st.update(json.load(fh))
+    except Exception:
+        pass
+    # Age out a stale run rather than presenting it as a result. Kept visible (not
+    # silently blanked) so the reason is obvious when it matters.
+    try:
+        age = int(time.time()) - int(st.get("updated_at") or 0)
+        if st.get("status") == "ready" and age > FACELIFT_MAX_AGE_S:
+            hrs = age // 3600
+            st["status"] = "stale"
+            st["error"] = (f"this facelift is {hrs}h old ({st.get('url') or 'unknown site'}) — "
+                           "start a fresh one before revealing it")
     except Exception:
         pass
     # The runner may die without writing 'ready'. A built index.html on disk is
