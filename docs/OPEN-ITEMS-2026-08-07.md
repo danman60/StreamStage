@@ -52,20 +52,43 @@ Anything marked **DANIEL** is a decision, not a task.
    Re-run both after a factory reset. Fire OS 7 (API 28) predates the restriction, which is why
    this only ever broke on Fire OS 8.
 
-4. **The 20-minute Fire OS sleep timer was not re-verified.** 27 minutes was proven in an earlier
-   session; the longest continuous run on 08-07 was minutes. Worth one unattended hour before the
-   floor.
+4. ~~**The 20-minute Fire OS sleep timer was not re-verified.**~~ **DONE — it does not sleep.**
+   A passive read-only monitor sampled the stick every 60 s for **3 h 21 m** (200 samples,
+   23:11 → 02:32). Result: **199/200 Awake, screen ON, `BoothLoopActivity` focused, and the kiosk
+   received a state report 200/200.** ZERO sleep events. The single non-Awake sample is an adb
+   transport hiccup at 23:21, not a sleep — the kiosk recorded `studiosage pos=14.702` at that
+   same instant, so playback never stopped. Still playing at 07:54 the next morning: **8 h 43 m
+   continuous.**
 
-5. **The R2 film-update path (`UpdateManager.kt`) is untested.** Versioned filenames, rollback and
-   per-film update all shipped without a real pull being exercised.
+5. **The R2 film-update path (`UpdateManager.kt`) — the BUCKET half is now tested, the DEVICE
+   half is not.** Tested, read-only, nothing on the stick touched:
+   - `manifest.json` is live and well-formed — version 2, 7 films, each with bytes + sha256.
+   - All 7 films answer **200**, every `Content-Length` matches its manifest entry, and every one
+     advertises `Accept-Ranges: bytes` — which is what the resume-a-`.part` logic depends on.
+   - `studiosage.mp4` pulled in full: 16,611,612 B and sha256 `555656fd…0daa`, matching the
+     manifest **and** the repo copy exactly. A staged `.part` from this bucket would pass
+     `applyStaged`'s hash gate rather than fail it.
+   **Still untested: the on-device half** — stage, verify, rename into a never-used versioned path,
+   and play. That means writing a new film version to the show stick, so it is not something to do
+   unasked. **DANIEL: say the word and I'll run it against a LOCAL manifest via `localOverride`,
+   so the test never mutates the production bucket.**
 
-6. **Hours-long unattended running is untested.** Nothing has run the reel for a full show day.
+6. ~~**Hours-long unattended running is untested.**~~ **DONE by the same run** — 3 h 21 m
+   instrumented and 8 h 43 m elapsed, unattended, no human touch, reel advancing through all
+   seven films the whole time. Not yet a full two-day show, but no longer "untested".
 
 ---
 
 ## Content on screen
 
-7. **The StreamStage film's baked-in QR points at `expo-leads.html`, not the gated `/g` page.**
+7. ~~**The StreamStage film's baked-in QR points at `expo-leads.html`.**~~ **FIXED IN PRODUCTION,
+   with no re-render.** `/expo-leads.html` now 307s to
+   `/g?a=sixfilms&src=booth_tv&p=streamstage&s=tv`; `?staff=1` still serves the real form with its
+   passcode export, because the kiosk opens it for the operator (`kiosk.js:123`). Verified against
+   the live site after deploy, not just locally. Commit `9f83ebb`. The detail below is kept
+   because it is why the fix exists.
+
+   **The original finding.**
    **RE-VERIFIED 2026-08-07, and it is worse than "wrong page".** 60 frames sampled across the
    film (1 per 3 s, the local file byte-identical to the one on the stick, 92,837,907 B): the QR
    decodes to `https://streamstage.live/expo-leads.html` in **all 60** — it is on screen for the
@@ -83,7 +106,20 @@ Anything marked **DANIEL** is a decision, not a task.
    artefact at once, but changes that page for its other users (it is the fuller form, with the
    passcode field); (c) leave it and accept that TV scans get the long form and no films.
 
-8. **Deck QRs (D2) and the videographer-brief handout QR (D4)** — not repointed / still absent.
+8. **Deck QRs (D2) — DONE. The D4 handout — still yours.**
+   All five of talk 1's QRs were decoded, regenerated and decoded back:
+   - `qr-checklist.svg` → `/g?a=checklist&src=talk1&p=slide21` (was ungated `/checklist`)
+   - `qr-videographer.svg` → `/g?a=videographer&src=talk1&p=slide25` (was an ungated `#anchor`)
+   - `qr-book.svg`, `qr-studiosage.svg` → destinations unchanged, now carry `src=talk1&p=slide21`
+   - `qr-checklist-FALLBACK.svg` → still ungated **on purpose**; it is the rescue when `/g` cannot
+     be reached in the room. Tagged only.
+   `a=checklist` and `a=videographer` are real keys in `lead-assets.ts`; rendered in a browser they
+   display "Recital video checklist" and "Videographer brief". Four of the five carried no
+   attribution at all, so a scan from the room was uncountable. StudioSage commit `e3272e0`.
+   **Left alone:** the D4 videographer-brief *handout* itself, and one mismatch worth knowing —
+   slide 21 still prints `streamstage.live/checklist` as readable text 6 times and
+   `streamstage.live/book` 4 times. Those remain ungated, so a reader who types the URL bypasses
+   the gate the QR now enforces. Changing slide copy is a content decision, not mine.
 
 9. **The operator-only film still leads the visitor-facing attract reel.** `Playlist.kt` puts
    `streamstage-services.mp4` first as the "who we are" film, so it plays to visitors on the loop
