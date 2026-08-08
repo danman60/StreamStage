@@ -67,7 +67,39 @@ def pick_port(want, tries=20):
     return None
 
 _lock = threading.Lock()
-STATE = {"idx": 0, "total": 0, "title": "", "beats": [], "titles": [], "seq": 0}
+STATE = {"idx": 0, "total": 0, "title": "", "beats": [], "titles": [], "seq": 0, "stale": ""}
+
+# ── stale-deck alarm ──────────────────────────────────────────────────────────
+# A presenter server holds whatever the last DECK PAGE told it. On 2026-08-07 two
+# instances had been up since Jul 28/29 still reporting a 38-slide talk 2 — the
+# pre-rebuild deck — while the shipping talk 2 is 32 slides. One of them was the
+# phone's saved host. Nothing anywhere said "this is the wrong deck": the phone
+# cheerfully showed 1/38 and would have driven the wrong slides on stage.
+#
+# The slide COUNT is the cheapest reliable fingerprint of which deck is loaded, so
+# the server compares it against the decks that are actually shipping and says so
+# on the phone. Update these when a deck's length changes — a wrong number here
+# produces a false alarm, which is noisy but never silent.
+KNOWN_DECKS = {
+    32: "talk 2 — the AI front desk",
+    27: "talk 1 — the content day",
+}
+RETIRED_DECKS = {
+    38: "the PRE-REBUILD talk 2 (38 slides). The shipping talk 2 is 32.",
+    14: "an OLD talk 1 (14 slides). The canonical talk 1 is 27.",
+    13: "the stale talk1-video.html copy (13 slides). Canonical talk 1 is 27.",
+}
+
+
+def stale_deck_warning(total: int) -> str:
+    """Empty string when the loaded deck looks right; plain English when it does not."""
+    if not total:
+        return ""
+    if total in RETIRED_DECKS:
+        return "STALE DECK — this is " + RETIRED_DECKS[total] + " Close that browser tab and open the current deck."
+    if total not in KNOWN_DECKS:
+        return f"Unrecognised deck ({total} slides). Expected 32 (talk 2) or 27 (talk 1)."
+    return ""
 PENDING = []          # commands from the phone, consumed by the deck
 
 # ------------------------------------------------------------- demo feeds ---
@@ -444,6 +476,10 @@ button:active{background:var(--cy);color:#06121a}
 #flgo2{flex:none;padding:0 20px;font-size:17px;font-weight:800;border-radius:10px;border:1px solid #2c3d4f;
   background:#1b2734;color:var(--ink)}
 #flgo2:active{background:var(--cy);color:#06121a}
+/* Red, full width, above the notes — it must be impossible to mistake for the cyan
+   facelift banner, and impossible to miss at a glance from a lectern. */
+#stalenote{display:none;padding:10px 14px;font-size:15px;font-weight:800;line-height:1.35;
+  background:#3b1111;color:#ffd7d7;border-bottom:1px solid #7d2020}
 #flnote{display:none;padding:8px 14px;font-size:15px;font-weight:700;background:#0d1c22;color:var(--cy);
   border-bottom:1px solid #223040}
 #flnote.on{display:block}
@@ -469,6 +505,7 @@ button:active{background:var(--cy);color:#06121a}
   <button id="flgo2">GO</button>
 </div>
 <div id="flnote"></div>
+<div id="stalenote"></div>
 <main><h2 id="h"></h2><ul id="beats"></ul></main>
 <section id="jump"><ul id="jumplist"></ul></section>
 <section id="fl">
@@ -521,6 +558,12 @@ function paintJump(s){
 }
 function paint(s){
   document.getElementById('pos').textContent=(s.idx+1)+'/'+s.total;
+  /* Stale-deck alarm. The phone is the only screen Daniel looks at while presenting,
+     so a wrong deck has to shout HERE or it will not be noticed until he is on stage
+     driving slides that do not match what the room is seeing. */
+  var st=document.getElementById('stalenote');
+  if(s.stale){ st.textContent=s.stale; st.style.display='block'; }
+  else { st.style.display='none'; }
   document.getElementById('title').textContent=s.title||'';
   document.getElementById('h').textContent=s.title||'';
   var ul=document.getElementById('beats'); ul.innerHTML='';
@@ -773,6 +816,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     "beats": list(data.get("beats", []))[:24],
                     "titles": list(data.get("titles", STATE.get("titles", [])))[:60],
                 })
+                STATE["stale"] = stale_deck_warning(STATE["total"])
                 STATE["seq"] += 1
             return self._json({"ok": True})
         if self.path.startswith("/facelift"):      # phone kicks off the rebuild
