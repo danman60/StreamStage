@@ -1020,6 +1020,34 @@ class Handler(SimpleHTTPRequestHandler):
             # allowed to start on a visitor's behalf.
             with _retained_lock:
                 out = dict(_retained)
+
+            # A DEAD TV MUST NOT KEEP DESCRIBING ITSELF.
+            # `tv` is retained, so when the stick is unplugged or its app is
+            # stopped this went on serving the last object it ever sent —
+            # measured at ~84 s of a confident, wrong picture, including a film
+            # list that no longer existed — while /health already read
+            # hasTv:false. Every consumer that trusts state["tv"] alone (the
+            # phone console, the tablet's TV badge) drew a live screen that was
+            # gone. Rather than ask each of them to cross-check /health, the
+            # server stops asserting what it no longer knows: past the same 5 s
+            # window /health uses, the retained object is marked stale and its
+            # live fields are dropped. `tv` stays present so nothing KeyErrors,
+            # and `_stale` says why. Same threshold as hasTv, deliberately —
+            # two different answers from one process is the bug, not the fix.
+            _tv = out.get("tv")
+            if isinstance(_tv, dict):
+                _at = _tv.get("at")
+                _age = (int(time.time() * 1000) - int(_at)) if isinstance(_at, (int, float)) else None
+                if _age is None or _age >= 5000:
+                    out["tv"] = {
+                        "type": "tv",
+                        "_stale": True,
+                        "_ageMs": _age,
+                        "at": _at,
+                        # Deliberately NOT state/product/pos/order: those are
+                        # claims about a screen this process can no longer see.
+                    }
+
             have = films_on_disk()
             out["_server"] = {
                 "films": have,

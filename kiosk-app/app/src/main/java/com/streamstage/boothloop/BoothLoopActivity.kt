@@ -103,6 +103,8 @@ class BoothLoopActivity : Activity() {
     }
 
     private var player: ExoPlayer? = null
+    // True between release() and the next build. See livePlayer().
+    private var playerReleased = false
     private var playerView: PlayerView? = null
     private var root: FrameLayout? = null
     private var messageView: TextView? = null
@@ -443,13 +445,35 @@ class BoothLoopActivity : Activity() {
 
         playerView?.player = exo
         player = exo
+        playerReleased = false
         rememberNowPlaying()
         Log.i(TAG, "Playing ${files.size} file(s), starting at index $index")
     }
 
+    /**
+     * The player, but only while it is still usable.
+     *
+     * A film swap happens at a media-item boundary ([onMediaItemTransition] calls
+     * [applyStagedFilms]), which is the one moment the reel tears down and rebuilds. A
+     * `play` arriving inside that window reached a RELEASED ExoPlayer and threw:
+     *
+     *     IllegalStateException: sending message to a Handler on a dead thread
+     *         at androidx.media3.exoplayer.ExoPlayerImpl.prepare
+     *
+     * Playback recovered, so it was a warning rather than a black screen — but it is the
+     * booth's only playback path, and "usually recovers" is not a property worth shipping
+     * to a trade show. ExoPlayer exposes no isReleased, so the flag is ours: set on
+     * release, cleared on build, and every command path asks for the player through here
+     * instead of touching the field.
+     */
+    private fun livePlayer(): ExoPlayer? = player?.takeIf { !playerReleased }
+
     private fun releasePlayer() {
         playerView?.player = null
         player?.removeListener(playerListener)
+        // Marked BEFORE release(), so anything that runs while the instance is being torn
+        // down already sees it as unusable rather than racing the field assignment.
+        playerReleased = true
         player?.release()
         player = null
     }
@@ -457,7 +481,7 @@ class BoothLoopActivity : Activity() {
     private val playerListener = object : Player.Listener {
 
         override fun onPlayerError(error: PlaybackException) {
-            val p = player ?: return
+            val p = livePlayer() ?: return
             val bad = p.currentMediaItem?.localConfiguration?.uri?.path
             Log.e(TAG, "Playback error on $bad (${error.errorCodeName})", error)
 
@@ -490,9 +514,11 @@ class BoothLoopActivity : Activity() {
                 // Should be unreachable with REPEAT_MODE_ALL, but if the platform ever
                 // reports ENDED anyway, restart the reel rather than sit on a black frame.
                 Log.w(TAG, "STATE_ENDED reached with REPEAT_MODE_ALL — restarting reel")
-                player?.seekTo(0, 0L)
-                player?.prepare()
-                player?.playWhenReady = true
+                livePlayer()?.let { lp ->
+                    lp.seekTo(0, 0L)
+                    lp.prepare()
+                    lp.playWhenReady = true
+                }
             }
         }
     }
@@ -509,7 +535,7 @@ class BoothLoopActivity : Activity() {
 
     private val watchdog = object : Runnable {
         override fun run() {
-            val p = player
+            val p = livePlayer()
             if (p == null) {
                 // No player at all (e.g. media was pushed after launch, or the very first
                 // films were just downloaded onto an empty stick) — take anything staged and
