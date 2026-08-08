@@ -101,14 +101,16 @@ def save_marker(marker: "dict[str, str]") -> None:
 def payload_for(lead: dict) -> dict:
     """Shape one typed lead like an expo-leads.html submission.
 
-    The live route REQUIRES name, studio and email.
+    NOTHING IN HERE IS INVENTED. Every value is either something the visitor
+    typed, something the booth knows for a fact (which film was on screen), or
+    a constant that describes this surface. The route accepts a booth capture
+    on its email alone, so no field is ever filled in just to satisfy a schema.
 
     STUDIO. The film gate asks for the studio name along with the email, so
-    most leads now carry a real one and it is used verbatim. Only a capture
-    that genuinely has no studio — the operator's email-only input, or a lead
-    queued before the gate existed — falls back to the honest placeholder.
-    A synthesised studio on a lead that HAS one would be worse than useless:
-    it would overwrite the answer with a label.
+    most leads carry a real one and it is used VERBATIM. A capture that
+    genuinely has no studio — the operator's email-only input, or a lead
+    queued before the gate existed — sends it empty and says so in `notes`.
+    A placeholder would overwrite an answer with a label.
 
     ASSET. A gated lead was promised something ("all six films"). `asset` is
     what the live route's autoresponder reads to decide what to send, so a
@@ -129,11 +131,16 @@ def payload_for(lead: dict) -> dict:
         interests.append(PRODUCT_NAMES[product])
 
     payload = {
-        # A real name was never asked for at the booth; the local part of the
-        # address is the honest stand-in, and the studio name is the field that
-        # actually identifies them.
-        "name": email.split("@", 1)[0],
-        "studio": studio or "(email-only booth capture)",
+        # NO NAME. The booth gate asks for a studio and an email — two boxes — and
+        # never asks who is typing. This used to send `email.split("@")[0]` because
+        # the live route demanded a name; that is a field nobody asked for, and it
+        # reached Daniel's inbox looking like the visitor had typed it. The route
+        # now accepts a booth capture without one (`src` starts with "booth"), so
+        # the honest thing is to send only what was actually typed.
+        #
+        # The studio goes up VERBATIM, and stays absent when it was left blank —
+        # a placeholder here would overwrite an answer with a label.
+        "studio": studio,
         "email": email,
         "phone": "",
         "interests": interests,
@@ -155,6 +162,34 @@ def payload_for(lead: dict) -> dict:
 
 
 def send(endpoint: str, payload: dict, timeout: float = 20.0) -> "tuple[bool, str]":
+    """POST one lead. True ONLY when the row is known to have landed.
+
+    A 200 IS NOT ENOUGH, and this is the bug that cost leads silently.
+    ------------------------------------------------------------------
+    The live route answers 200 when EITHER the Supabase forward OR the
+    notification email succeeded. The Supabase forward has a hard 4-second
+    timeout, which a cold start over hotel wifi beats easily — so a lead could
+    be answered 200, written into leads-flushed.json as permanently done, and
+    have no database row and no email to the visitor. The studio owner who
+    typed their address at the gate was promised six films and got nothing,
+    and nothing on this side would ever retry.
+
+    So the BODY decides:
+
+        forwarded true    -> landed. Mark it flushed.
+        forwarded false   -> the row did not land. Keep it queued and retry.
+        forwarded absent  -> the older route, which does not report this yet.
+
+    ABSENT IS TREATED AS SENT, deliberately, and it is the uncomfortable
+    choice of the three. Treating absence as "not sent" against a route that
+    will never grow the field means every lead is re-POSTed on every pass,
+    for ever: Daniel's inbox and the visitor's inbox both fill with duplicates
+    of the same capture, which is a worse failure than the one being fixed and
+    is not self-limiting. So absence keeps today's behaviour — and says so on
+    the line it prints, every time, so "I could not confirm this one" is never
+    invisible. When the route ships `forwarded`, this becomes strict on its
+    own with no change here.
+    """
     body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         endpoint, data=body, method="POST",
@@ -163,9 +198,19 @@ def send(endpoint: str, payload: dict, timeout: float = 20.0) -> "tuple[bool, st
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             raw = resp.read(4096).decode("utf-8", "replace")
-            if resp.status == 200:
+            if resp.status != 200:
+                return False, f"HTTP {resp.status}: {raw.strip()}"
+            try:
+                parsed = json.loads(raw)
+            except json.JSONDecodeError:
+                parsed = None
+            forwarded = parsed.get("forwarded") if isinstance(parsed, dict) else None
+            if forwarded is True:
                 return True, raw.strip()
-            return False, f"HTTP {resp.status}: {raw.strip()}"
+            if forwarded is False:
+                return False, ("the route answered 200 but did NOT store the lead "
+                               f"(forwarded:false) — kept: {raw.strip()}")
+            return True, f"{raw.strip()}  [no `forwarded` field — storage NOT confirmed]"
     except urllib.error.HTTPError as exc:
         detail = exc.read(4096).decode("utf-8", "replace").strip()
         return False, f"HTTP {exc.code}: {detail}"
@@ -180,6 +225,17 @@ def main() -> int:
     ap.add_argument("--endpoint", default=ENDPOINT,
                     help=f"override the target route (default {ENDPOINT})")
     args = ap.parse_args()
+
+    # "0 lead(s) on disk" from the wrong directory looked exactly like
+    # "everything is already sent", which is the one thing it must not look
+    # like. Say what is actually true.
+    if not os.path.isdir(TELEMETRY_DIR):
+        print(f"\n  THERE IS NO TELEMETRY DIRECTORY at {TELEMETRY_DIR}")
+        print( "  So this has NOT checked whether there are leads to send — it found")
+        print( "  nowhere to look. That is not the same as 'nothing to send'.")
+        print( "  Run this from the booth laptop, next to serve.py:")
+        print( "      python3 expo-assets/kiosk/flush-leads.py\n")
+        return 2
 
     leads = load_leads()
     marker = load_marker()

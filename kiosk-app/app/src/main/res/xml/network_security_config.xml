@@ -2,19 +2,28 @@
 <!--
   The whole network policy of the booth app, in one file.
 
-  Default: cleartext HTTP is refused, everywhere, for every host. The films and the manifest
-  come from R2 over https and there is no reason for this app to ever speak plaintext on a
-  trade-show wifi network it does not control.
+  Cleartext HTTP is PERMITTED, because the one thing this app has to talk to is a booth laptop
+  serving plain HTTP on a private LAN, at a DHCP address, with no certificate and no DNS name.
+  There is nothing to get a certificate from at a trade show with no internet, and the address
+  cannot be listed here because it is discovered at run time.
 
-  The single exception is loopback, which is not a network: it is how the stick is pointed at
-  a laptop for bench testing via `adb reverse tcp:8000 tcp:8000` plus a `.update-base` file in
-  the media folder. Nothing off the device can reach 127.0.0.1, so this exception cannot be
-  used by anything on the show floor.
+  WHY THIS CHANGED — 2026-08-07. This file used to permit cleartext to 127.0.0.1 and localhost
+  ONLY. That reads as the safe choice and it silently broke the entire point of the app: the
+  tablet could not drive the stick. `BoothBus.health()` wraps its probe in runCatching, so a
+  cleartext-blocked kiosk is indistinguishable from a kiosk that is not there — the reel just
+  kept playing and nothing ever said why. It appeared to work on the bench only because
+  `adb reverse` makes the laptop look like loopback, which is exactly the address this file
+  allowed. On the show floor the kiosk is 192.168.x.x and every probe failed.
+
+  The narrowing happens one layer up instead, the same way the tablet app does it: BoothBus
+  only ever speaks to an address that answered `GET /health` — the beacon's host and port, an
+  address saved after a successful probe, or one typed on the remote — and it speaks to nothing
+  else. Film downloads are unaffected: they are https R2 URLs and stay https.
 -->
 <network-security-config>
-    <base-config cleartextTrafficPermitted="false" />
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">127.0.0.1</domain>
-        <domain includeSubdomains="false">localhost</domain>
-    </domain-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
 </network-security-config>

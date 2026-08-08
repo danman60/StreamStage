@@ -84,7 +84,7 @@ function buildHtml(l: {
           ${row("Attribution", escapeHtml(l.attribution))}
         </table>
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:28px;"><tr><td>
-          <a href="mailto:${escapeHtml(l.email)}?subject=Re: Your StreamStage Dance Studio Video Plan" style="display:inline-block;padding:12px 26px;background:#1976d2;color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:10px;">Reply to ${escapeHtml(l.name)}</a>
+          <a href="mailto:${escapeHtml(l.email)}?subject=Re: Your StreamStage Dance Studio Video Plan" style="display:inline-block;padding:12px 26px;background:#1976d2;color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:10px;">Reply to ${escapeHtml(l.name || l.studio || l.email)}</a>
         </td></tr></table>
       </td></tr>
       <tr><td style="padding:18px 36px;border-top:1px solid #eef4fa;">
@@ -148,7 +148,17 @@ export async function POST(request: Request) {
       ...utm,
     };
 
-    if (!name || !studio || !email) {
+    // The booth gate asks for a STUDIO and an EMAIL — two boxes, deliberately. It never asks
+    // for a person's name, so requiring one here forced the kiosk's flush to INVENT one from
+    // the email's local part. Nobody asked for that field, and an invented name is worse than
+    // an absent one: it arrives looking like something the visitor actually typed.
+    //
+    // So a booth capture is identified by its email (plus the studio, when the visitor gave
+    // one) and is never required to carry a person's name. Every other caller — the four
+    // website forms — still has to send one, which is what they have always done.
+    const isBoothCapture =
+      srcParam.startsWith("booth") || sourceCandidate.startsWith("booth");
+    if (!email || (!isBoothCapture && (!name || !studio))) {
       return NextResponse.json(
         { error: "Name, studio, and email are required." },
         { status: 400 }
@@ -210,7 +220,11 @@ export async function POST(request: Request) {
         // NOTE: SES SMTP account rejects unverified replyTo → do NOT put the lead's
         // email here or delivery bounces. Reply to the lead via the in-body mailto button.
         replyTo: LEAD_FROM,
-        subject: `New expo lead — ${name}${studio ? ` (${studio})` : ""} — ${taxonomySource}`,
+        // A booth capture has no name, so lead with whichever identifier exists
+        // rather than leaving a blank gap before the bracket.
+        subject: `New expo lead — ${name || studio || email}${
+          name && studio ? ` (${studio})` : ""
+        } — ${taxonomySource}`,
         html: buildHtml({
           name,
           studio,
