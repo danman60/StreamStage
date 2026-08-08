@@ -54,19 +54,28 @@
          home screen sits on top of it. Measured on the real stick — the reel was at 61.8s while
          the TV showed "Discover original episodes" and a row of Netflix/Prime/Luna tiles.
 
-         SYSTEM_ALERT_WINDOW is the documented exemption from that rule, granted on the bench with
+         SYSTEM_ALERT_WINDOW is the documented exemption from that rule. IT TAKES TWO COMMANDS,
+         and running only the second one is why this looked impossible for an evening:
 
+             adb shell pm grant com.streamstage.boothloop android.permission.SYSTEM_ALERT_WINDOW
              adb shell appops set com.streamstage.boothloop SYSTEM_ALERT_WINDOW allow
 
-         MEASURED RESULT ON THIS STICK: NOT SUFFICIENT. With the appop set to "allow", a reboot
-         still logged `isBgStartWhitelisted: false` and the Amazon launcher still owned the
-         screen. The permission is kept because it is the right lever and behaves differently
-         across Fire OS builds, but DO NOT read its presence as "boot autostart works" — it does
-         not, and BOOT-AUTOSTART IS AN OPEN DEFECT. See kiosk-app/README.md.
+         They satisfy DIFFERENT branches of the same check. The permission's protection level is
+         `signature|preinstalled|appop|pre23|development`; the `development` flag is what makes it
+         adb-grantable, and `pm grant` is what flips `granted=true` so the check's
+         checkPermission()==GRANTED branch passes. `appops set` only sets MODE_ALLOWED, a separate
+         branch. With appops alone, a reboot still logged `isBgStartWhitelisted: false`.
 
-         What IS proven to work, instantly, every time:
-             adb shell am start -n com.streamstage.boothloop/.BoothLoopActivity
-         and selecting the app once on the Fire TV remote. Either wins the screen back. -->
+         MEASURED WITH BOTH, on this stick, 2026-08-07 23:22:
+             W ActivityTaskManager: Background activity start for com.streamstage.boothloop
+             allowed because SYSTEM_ALERT_WINDOW permission is granted.
+         and after a cold power cycle, with nobody touching anything, the reel owned the screen.
+         ZERO TOUCH WORKS.
+
+         Both commands are a ONE-TIME bench step per stick. Nothing in this app draws an overlay;
+         the permission is held only so BootReceiver's startActivity is allowed to win the screen.
+         Re-run both after a factory reset. Fire OS 7 (API 28) predates the API 29 restriction,
+         which is why autostart only ever broke on Fire OS 8. -->
     <!-- Nothing in this app draws an overlay. -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 

@@ -17,7 +17,7 @@ executed on the devices named below and the output was read.
 | Step | State |
 |---|---|
 | Laptop runs `python3 serve.py --port 8081`; it beacons on UDP 45454 | ✅ |
-| Plug in the stick, select the app on the Fire TV home row — **one button** | ✅ from cold boot, twice |
+| Plug in the stick — **the reel comes up on its own, zero touch** (after the one-time `pm grant` + `appops set` below) | ✅ cold power cycle, nobody touched anything |
 | Stick finds the kiosk over Wi-Fi and subscribes **1.3 s** after launch. Nobody types an IP | ✅ |
 | Tablet discovers the kiosk itself; if it drifts, 7 taps top-left → type host → Connect | ✅ both paths |
 | Phone: KIOSK tab, same discovery | ✅ |
@@ -57,7 +57,7 @@ executed on the devices named below and the output was read.
 |---|---|
 | Laptop dies mid-show → reel keeps playing, **nothing alarming on screen** | ✅ |
 | Laptop returns → stick reconnects on its own, no human action | ✅ |
-| Stick unplugged and replugged → one button to get the reel back | ✅ |
+| Stick unplugged and replugged → reel returns by itself, zero touch | ✅ |
 
 ## 6. Leads, after the show
 
@@ -90,29 +90,27 @@ Run `python flush-leads.py --endpoint <live route>` on the kiosk machine.
 - **A real flush to the production route over the internet.** One lead did reach Daniel's inbox,
   but through a locally-run copy of the route; every queue test used a LOCAL sink.
 - **The R2 film-update path** (`UpdateManager.kt`).
-- **Zero-touch power-on.** See below.
 
-## The one open defect — power-on is not zero-touch
+## Power-on is ZERO TOUCH — one-time bench step per stick
 
-Android 11 refuses `BootReceiver`'s activity start (`isBgStartWhitelisted: false`, captured
-twice). `SYSTEM_ALERT_WINDOW` was granted via appops and re-tested: still refused. So at power-on
-the app runs and plays the reel with sound, but does not own the screen.
-
-**Correction worth keeping:** the first "Amazon home screen owns the TV" screenshot was partly a
-red herring — this bench stick has **no remote paired**, so Fire OS shows a "We cannot detect your
-remote" dialog over everything after every boot. That dialog is a property of this stick, not of
-the app. What survives the correction is the logcat: the boot-time start really is refused.
-
-Proven to win the screen back instantly, every time:
+Run BOTH, once, per stick:
 
 ```
-adb shell am start -n com.streamstage.boothloop/.BoothLoopActivity
+adb shell pm grant com.streamstage.boothloop android.permission.SYSTEM_ALERT_WINDOW
+adb shell appops set com.streamstage.boothloop SYSTEM_ALERT_WINDOW allow
 ```
 
-or selecting the app once on the Fire TV remote. Daniel's call on 08-07: **launching it by hand
-is fine**, so the home launcher is NOT being replaced.
+They satisfy different branches of Android 11's background-activity-start check. `pm grant` flips
+`granted=true` — the permission's protection level carries a `development` flag, which is what
+makes it adb-grantable. `appops set` only sets MODE_ALLOWED. **With appops alone the boot start is
+still refused**, which is what made this look impossible for an evening.
 
----
+Verified 2026-08-07 23:22 on AFTKRT: logcat read *"Background activity start for
+com.streamstage.boothloop allowed because SYSTEM_ALERT_WINDOW permission is granted"*, and after a
+cold power cycle the reel owned the screen with no human action and no remote.
+
+Nothing in the app draws an overlay. Re-run both after a factory reset. Fire OS 7 (API 28)
+predates the restriction, so this only ever broke on Fire OS 8.
 
 ## The root cause fixed this session — do not undo it
 

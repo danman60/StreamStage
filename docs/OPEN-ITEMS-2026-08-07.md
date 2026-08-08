@@ -22,15 +22,22 @@ Anything marked **DANIEL** is a decision, not a task.
 
 ## Booth hardware / the stick
 
-3. **Zero-touch power-on.** Android 11 refuses `BootReceiver`'s activity start
-   (`isBgStartWhitelisted: false`, captured twice); `SYSTEM_ALERT_WINDOW` via appops did not help.
-   A research subagent on this was still running when the session was refreshed and **its result
-   was lost** — re-run it. Avenues: `dpm set-device-owner` + LockTask, `cmd package
-   set-home-activity` syntax, real `canDrawOverlays` vs the appop, foreground service from
-   BOOT_COMPLETED + `cmd deviceidle whitelist`, Amazon's signage programmes,
-   `pm disable-user com.amazon.tv.launcher`.
-   **DANIEL has already said pressing the app once is acceptable** — so this is an improvement,
-   not a blocker, and the home launcher is NOT being replaced.
+3. ~~**Zero-touch power-on.**~~ **SOLVED 2026-08-07 23:22, proven on the stick.** It needs TWO
+   adb commands, once per stick, and running only the second is why it looked impossible:
+
+   ```
+   adb shell pm grant com.streamstage.boothloop android.permission.SYSTEM_ALERT_WINDOW
+   adb shell appops set com.streamstage.boothloop SYSTEM_ALERT_WINDOW allow
+   ```
+
+   They satisfy different branches of the background-activity-start check — `pm grant` flips
+   `granted=true` (the permission carries a `development` protection flag, which is what makes it
+   adb-grantable); `appops set` only sets MODE_ALLOWED. With appops alone the boot start was still
+   refused. With both, logcat reads *"Background activity start for com.streamstage.boothloop
+   allowed because SYSTEM_ALERT_WINDOW permission is granted"* and after a cold power cycle the
+   reel owned the screen with nobody touching anything.
+   Re-run both after a factory reset. Fire OS 7 (API 28) predates the restriction, which is why
+   this only ever broke on Fire OS 8.
 
 4. **The 20-minute Fire OS sleep timer was not re-verified.** 27 minutes was proven in an earlier
    session; the longest continuous run on 08-07 was minutes. Worth one unattended hour before the
