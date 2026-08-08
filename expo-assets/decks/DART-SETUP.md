@@ -116,6 +116,25 @@ next, down = back. Nothing to rebuild.
 - [ ] Deck opened with `?rt=<DEMO_RESET_TOKEN>` or audience texts won't route
 - [ ] Printed run-of-show in your pocket
 
+## TALK 1 IS SERVED FROM A DIFFERENT FOLDER — read this before Wednesday
+The canonical talk 1 is `~/projects/StudioSage/live-demo/talk1-deck.html` (27 slides), **not**
+anything in this folder. It speaks the same remote contract as talk 2 (it POSTs `/state` and drains
+`/cmd`), but it needs `presenter-server.py` sitting beside it:
+
+```bash
+cp ~/projects/StreamStage/expo-assets/decks/presenter-server.py ~/projects/StudioSage/live-demo/
+cd ~/projects/StudioSage/live-demo && python3 presenter-server.py
+```
+
+That copy is gitignored on the StudioSage side (deliberately — one canonical server, no drift), so a
+fresh clone will not have it and the step above is not optional. Discovered 2026-08-07: the
+processes serving talk 1 were plain `python3 -m http.server`, which 404s `/state` and `/cmd`, so the
+phone had **nothing to drive** for the Wednesday 10:50 talk and nothing said so.
+
+⚠ A presenter server with no deck attached still shows the phone a green dot, a slide number and a
+title. Green does not mean the deck is connected — check the slide count is 27 (talk 1) or 32
+(talk 2). A wrong count now raises a red banner on the phone.
+
 ## Gotchas
 - **Don't open the deck by double-clicking the html.** The remote only talks to the served copy at
   `localhost:8080`.
