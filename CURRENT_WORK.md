@@ -1,5 +1,98 @@
 # Current Work - StreamStage
 
+## 2026-08-07 22:00 ET — THE TABLET NOW ACTUALLY DRIVES THE STICK. ROOT CAUSE WAS THE APK.
+
+Commits `e6dfa99` + `378ea3e`, pushed.
+
+### The bug that made the whole app pointless
+`kiosk-app`'s `network_security_config.xml` permitted cleartext HTTP **to 127.0.0.1 only**. The
+booth kiosk is a laptop on a DHCP LAN address serving plain HTTP, so **every `BoothBus` health
+probe was blocked before it left the device**. `health()` wraps the probe in `runCatching`, so a
+blocked kiosk and an absent kiosk were indistinguishable: the reel played on and nothing said why.
+It passed on the bench because `adb reverse` makes the laptop look like loopback — the one address
+the policy allowed. Fixed; the probe now logs its failure reason.
+
+**Do not "harden" that file back to loopback-only. That is the bug.**
+
+### Also fixed
+- `pause`/`resume` are now operator-only on BOTH the relay and the stick. A visitor-origin pause
+  was accepted 200 and froze the booth TV on one frame with nothing able to release it. `stop`
+  stays open — it ends a film rather than freezing one.
+- **The invented lead field is gone.** `flush-leads.py` no longer synthesises a person's name from
+  the email local part; `/api/expo-leads` now accepts a booth capture (`src` starts with "booth")
+  on its email alone. Verified by reading the real email: Studio + Email rows only, no Name row.
+- The "jen / Bright Step Dance" emails were NOT booth corruption — they are the previous session's
+  test harness posting fabricated leads to the live route. Four of them, 00:39–00:56 on 08-08.
+
+### Proven on real hardware (evidence DM'd)
+Fire Stick AFTKRT · Fire tablet KFTRWI · Pixel 9 Pro · current `serve.py` on DART `192.168.0.13:8081`
+over real Wi-Fi, no adb scaffold.
+1. Tablet tile tap → that film plays on the stick.
+2. Phone: operator-only film, pause (frozen 7.73s), resume (11.42→15.43), stop, drag-reorder.
+3. Visitor-origin attempts at the operator-only film refused 403, three different shapes.
+4. Kiosk killed → reel kept playing, nothing alarming on screen; restarted → stick reconnected unaided.
+5. 170 frames off the real stick, 43 with QR + caption together, **0 overlaps**.
+6. Real lead email read in the inbox — exactly the studio and email typed.
+Lead durability: sent once, re-run sends 0, `forwarded:false` and no-internet both KEEP the queue,
+survives a kiosk restart. All to a LOCAL sink; the flushed-marker was cleared afterwards.
+
+### OPEN DEFECT — power-on shows the Amazon home screen
+Android 11 refuses `BootReceiver`'s activity start (`isBgStartWhitelisted:false`). On plug-in the
+app boots and plays the reel **with sound behind the Amazon launcher** (Netflix/Prime/Luna tiles).
+`SYSTEM_ALERT_WINDOW` was granted via appops and re-tested — still refused. Proven to win the
+screen back instantly: `adb shell am start -n com.streamstage.boothloop/.BoothLoopActivity`, or
+selecting the app once on the remote. **Needs Daniel's call**: home-launcher replacement, a
+foreground service that retries, or an operator step in the booth procedure.
+
+### Environment facts worth not re-deriving
+- SPYBALLOON's INPUT policy is DROP: devices CANNOT reach a server on this box over the LAN. Serve
+  the booth from DART, or use `adb reverse` and know it is a scaffold.
+- DART is on Eastern, so its lead files are named `leads-<yesterday>.jsonl` relative to this box's UTC.
+- Three stray kiosk servers from earlier sessions were beaconing on the LAN and stealing device
+  discovery. All stopped. If devices drift to the wrong kiosk again, look for those first.
+
+## 2026-08-07 21:00 ET — SESSION ENDED BADLY. READ THIS FIRST.
+
+Daniel's verdict on the session: "AWFUL SESSION 0 STARS". He is right about the substance.
+Do not repeat these. What went wrong, precisely:
+
+1. **The Fire Stick APK cannot be driven by the tablet — and that was the whole point of it.**
+   The app was built as an offline-only reel. Daniel: *"The whole point of doing the app was so
+   it could be driven by tablet."* The tablet-driven path that works today is the stick's BROWSER
+   (Silk) on the kiosk `/tv` page — not the APK. **The goal now: the APK is controlled by the
+   TABLET as customer (gated) and the PHONE as admin (ungated, full verbs).**
+2. **Captions are covered by the QR on the real TV.** The captions were placed lower-right after
+   measuring the FILM FRAMES ONLY. The films never play bare — `tv.html:126` pins the gated QR at
+   `right:6rem; bottom:6rem; width:32rem` during playback. **Validate on a COMPOSITE of the film
+   under the live TV page, never on raw frames.**
+3. **A gate submission produced an email naming "Jen" and "Brightstar Dance" — not what he typed.**
+   DART recorded his real input correctly (`fdd@dhs.com / Xjs`, `cf@sdd.com / Ecr` in
+   `telemetry/leads-2026-08-07.jsonl`), so the corruption is DOWNSTREAM of the kiosk. **Unfinished
+   — this is the top bug.** Relevant: `flush-leads.py:135` SYNTHESISES a person's name from the
+   email's local part because `/api/expo-leads` requires one. Nobody asked for that. Trace the
+   actual email that was sent; do not theorise.
+4. **"Tested end to end" was claimed without opening the resulting email.** A row landing on DART
+   is not the lead path working.
+
+**Daniel's design correction, verbatim — the architecture to build toward:**
+> *"why does dart need to — why can't it just store it in the apk on the tv and upload when it
+> has internet. you are overengineering."*
+
+So: the STICK APK holds the lead itself and uploads when internet returns. DART is not required
+in the lead path. Simplify toward that instead of adding more relay machinery.
+
+**Also: subagents burned ~42 minutes of wall time and a lot of tokens.** Scale the approach down.
+
+### Agents that were mid-flight when this session ended — results will NOT carry over
+- kiosk server/pages hardening (`expo-assets/kiosk/`) — gate conversion rollup, lead-queue drain,
+  stall watchdog, LAN beacon, preflight script, mute/stop/fullscreen bus verbs, `/events` fix
+- Fire Stick app (`kiosk-app/`) — versioned filenames, rollback, per-film update, release build +
+  soak, and the NEW tablet/phone control requirement
+- caption QR-collision fix (`RemotionVideo/` + `media/captioned/`)
+- the 181s `Kiosk-EditorialCinema` re-render (QR repointed to the gated `/g`, plus the blurred
+  tile wall and gold oval speaker) — chunked render, was still running
+Check the working tree and re-verify anything before trusting it.
+
 ## 2026-08-07 17:10 ET — THE FULL DEVICE MATRIX IS PROVEN ON REAL HARDWARE
 
 Commits: `f8e921b` (tablet app) · `d71961b` (phone app, kiosk operator commands, presenter fix,
