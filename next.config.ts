@@ -6,6 +6,28 @@ const nextConfig: NextConfig = {
     return [
       // Expo talk QR — printed on Talk 1 slides/handouts. Keep non-permanent so it can be repointed.
       { source: "/book", destination: "/videoproduction", permanent: false },
+      // ── THE QR BAKED INTO THE STREAMSTAGE FILM ────────────────────────────
+      // The film's QR is on screen for its whole 177 s and decodes to
+      // /expo-leads.html (verified: 60 of 60 sampled frames). That page carries
+      // no `a=` asset, so the route's autoresponder never fires — a visitor who
+      // scans the booth TV was promised six films and received nothing — and it
+      // marks NAME as required, the one field the booth deliberately stopped
+      // asking for. Every *generated* booth QR already points at /g correctly;
+      // only the baked-in one is wrong, and fixing that in the film means a
+      // re-render. Redirecting the destination fixes the film, and every printed
+      // artefact aimed there, without re-rendering anything.
+      //
+      // `missing` is load-bearing: the booth kiosk opens this same page as
+      // /expo-leads.html?staff=1 for the operator's own manual entry
+      // (expo-assets/kiosk/kiosk.js:123 — "the EXISTING form. Do not build a
+      // second one."). A blanket redirect would take the staff form away at the
+      // booth, so a request that carries `staff` is left alone.
+      {
+        source: "/expo-leads.html",
+        missing: [{ type: "query", key: "staff" }],
+        destination: "/g?a=sixfilms&src=booth_tv&p=streamstage&s=tv",
+        permanent: false,
+      },
       // Client demo moved to dedicated demo host
       { source: "/dance-attack", destination: "https://dance-attack.demos.streamstage.live", permanent: true },
       { source: "/dance-attack/:path*", destination: "https://dance-attack.demos.streamstage.live/:path*", permanent: true },
