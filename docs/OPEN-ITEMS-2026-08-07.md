@@ -305,3 +305,30 @@ tablet, DART, R2 or the decks without saying so on the collab channel first.**
 9. **The presenter on DART is not persistent.** It survives only while a session holds it; Task
    Scheduler would not run it cleanly, so the documented procedure is to double-click
    `start-presenter.bat` on DART and leave the window open.
+
+## Content items — CHECKED 2026-08-08, three of the four dissolved
+
+Daniel's instruction was to check these rather than ask cold. Results:
+
+- **Slide 21's printed URLs — FALSE ALARM, nothing to fix.** I assumed `streamstage.live/checklist`
+  printed as readable text bypassed the gate its QR now enforces. It does not: rendered live,
+  `/checklist` shows the email gate (`#gemail`/`#gstudio`) with only "Open the checklist" behind it.
+  `/book` has no gate, but it is a booking page, not a giveaway. **Struck.**
+- **Item 18, the CompSync signup URL — ALREADY CLOSED, the ledger was stale.**
+  `README-BOOTH.md:199` records "CompSync's signup URL **`compsync.net`** was confirmed by Daniel
+  2026-08-07 — no longer an assumption", echoed in `tablet.html` and `index.html`. It resolves:
+  `compsync.net` → 307 → `www.compsync.net` → 200. **Struck.**
+- **Item 17, Reflect's tagline — VERIFIED as sourced, not invented.**
+  `/mnt/data/reflect-video/out/VO-SCRIPT.md` beat 16 reads
+  *"Reflect. The system that runs your studio's day — and remembers it."* The tile's tagline is that
+  line verbatim. Nothing to check further; it needs only Daniel's yes/no on using it.
+- **Item 13, StudioSage merge-on-email — REAL, and worse than recorded. Two distinct losses:**
+  1. `notes: row.notes || existing.notes` — a second submission's notes **replace** the first. At
+     the booth, notes carry "Film on screen: X", so a studio who comes back for a second film loses
+     the first film's context.
+  2. `.update({ ...row })` spreads every field, so a repeat capture with an **empty studio writes
+     `studio: null`** — erasing a studio name already on the row. The operator's email-only capture
+     has no studio, so flushing one after a gated capture wipes the studio the visitor typed.
+  Interests are safely unioned; these two are not. Fix is ready and small (keep existing values when
+  the incoming ones are empty; append notes with a separator instead of replacing). **Not applied —
+  it is another project's live lead route and Daniel flagged it as his call.**
