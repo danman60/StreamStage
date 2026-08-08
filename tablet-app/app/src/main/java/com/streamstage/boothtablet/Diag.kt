@@ -83,7 +83,19 @@ object Diag {
     private val lock = Any()
 
     private val stamp = SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
-    private val iso = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+
+    /**
+     * REAL UTC, not device-local time wearing a Z.
+     *
+     * The `'Z'` in the pattern is a QUOTED LITERAL — it does not mean "UTC", it means "print the
+     * letter Z". Without the setTimeZone below, this printed the tablet's own wall clock and then
+     * claimed it was UTC. Daniel works in Eastern, the venue is Mountain and the machine that
+     * reads these logs back runs UTC, so every shipped event was mislabelled by hours and lined up
+     * with nothing. Now the string is genuinely UTC, and [iso] is the only place that formats it.
+     */
+    private val iso = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
+        timeZone = java.util.TimeZone.getTimeZone("UTC")
+    }
 
     /** Stable per-install id, so shipped logs from two tablets never get confused. */
     @Volatile
@@ -159,7 +171,16 @@ object Diag {
         out
     }
 
-    fun nowIso(): String = iso.format(Date())
+    fun nowIso(): String = iso(System.currentTimeMillis())
+
+    /**
+     * One epoch-millisecond value, rendered as UTC ISO-8601.
+     *
+     * Callers that ship an event stamp `ms` and `t` from the SAME number, so the sortable field
+     * and the readable field can never disagree. SimpleDateFormat is not thread-safe and this is
+     * called from the shipping thread and the UI thread, hence the lock.
+     */
+    fun iso(ms: Long): String = synchronized(lock) { iso.format(Date(ms)) }
 
     /**
      * The whole picture as text — what the "Copy diagnostics" button puts on the clipboard and

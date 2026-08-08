@@ -39,6 +39,18 @@ import android.widget.Toast
 class SetupOverlay(ctx: Context) : FrameLayout(ctx) {
 
     var onConnect: ((String) -> Unit)? = null
+
+    /**
+     * "Open this address anyway, even though nothing answered it." A SEPARATE, DELIBERATE BUTTON.
+     *
+     * It used to be the second tap on Connect — same button, same gesture, silently different
+     * meaning, and it also wrote the unverified address into SharedPreferences forever. Typing
+     * `DART` and tapping Connect twice was enough to saddle the tablet with a hostname Android
+     * cannot resolve, at every launch, for the rest of the show. Forcing is a real thing an
+     * operator sometimes needs, so it is still here — as its own labelled button, and it never
+     * saves anything.
+     */
+    var onForce: ((String) -> Unit)? = null
     var onRescan: (() -> Unit)? = null
     var onReload: (() -> Unit)? = null
     var onDismiss: (() -> Unit)? = null
@@ -50,6 +62,7 @@ class SetupOverlay(ctx: Context) : FrameLayout(ctx) {
     private val facts = TextView(ctx)
     private val hostField = EditText(ctx)
     private val connectBtn = button(ctx, "Connect")
+    private val forceBtn = button(ctx, "Open it anyway")
     private val rescanBtn = button(ctx, "Search this Wi-Fi again")
     private val detailBtn = button(ctx, "Show every address it tried")
     private val copyBtn = button(ctx, "Copy diagnostics")
@@ -152,6 +165,7 @@ class SetupOverlay(ctx: Context) : FrameLayout(ctx) {
         fields.addView(facts, lp(dp(4)))
         fields.addView(hostField, lp(dp(14)))
         fields.addView(connectBtn, lp(dp(10)))
+        fields.addView(forceBtn, lp(dp(8)))
         fields.addView(rescanBtn, lp(dp(8)))
         fields.addView(detailBtn, lp(dp(8)))
         fields.addView(copyBtn, lp(dp(8)))
@@ -172,6 +186,7 @@ class SetupOverlay(ctx: Context) : FrameLayout(ctx) {
         hostField.setOnEditorActionListener { _, _, _ ->
             onConnect?.invoke(hostField.text.toString()); true
         }
+        forceBtn.setOnClickListener { onForce?.invoke(hostField.text.toString()) }
         rescanBtn.setOnClickListener { onRescan?.invoke() }
         reloadBtn.setOnClickListener { onReload?.invoke() }
         closeBtn.setOnClickListener { onDismiss?.invoke() }
@@ -188,7 +203,18 @@ class SetupOverlay(ctx: Context) : FrameLayout(ctx) {
         fields.visibility = View.GONE
         foot.visibility = View.GONE
         headline.visibility = View.GONE
+        forceBtn.visibility = View.GONE
         status.text = message
+    }
+
+    /**
+     * Offer the force. Shown ONLY after an address the operator typed has actually been probed and
+     * failed, and hidden again by every other screen — so it can never be tapped by accident and
+     * never appears before there is something concrete to force.
+     */
+    fun offerForce(addr: String) {
+        forceBtn.text = "Open $addr anyway (not verified, not remembered)"
+        forceBtn.visibility = View.VISIBLE
     }
 
     /**
@@ -209,6 +235,7 @@ class SetupOverlay(ctx: Context) : FrameLayout(ctx) {
         detailBtn.visibility = View.VISIBLE
         copyBtn.visibility = View.VISIBLE
         rescanBtn.visibility = View.VISIBLE
+        forceBtn.visibility = View.GONE     // only offerForce() ever shows it
         reloadBtn.visibility = View.GONE
         closeBtn.visibility = View.GONE
         if (!prefill.isNullOrBlank() && hostField.text.isNullOrEmpty()) hostField.setText(prefill)
@@ -235,6 +262,7 @@ class SetupOverlay(ctx: Context) : FrameLayout(ctx) {
         detailBtn.visibility = View.VISIBLE
         copyBtn.visibility = View.VISIBLE
         rescanBtn.visibility = View.VISIBLE
+        forceBtn.visibility = View.GONE     // only offerForce() ever shows it
         reloadBtn.visibility = View.VISIBLE
         closeBtn.visibility = View.VISIBLE
         if (!prefill.isNullOrBlank() && hostField.text.isNullOrEmpty()) hostField.setText(prefill)

@@ -71,8 +71,17 @@ class MainActivity : Activity() {
     @Volatile private var connecting = false
 
     private var pageLoaded = false
+
+    /**
+     * Consecutive failed health probes, SHARED by the watchdog and onResume.
+     *
+     * It has to be shared, and it has to be two. A single missed probe on a venue hotspot used to
+     * be enough — at onResume only — to force a full reconnect, which means a full-screen
+     * "Reconnecting…" overlay and a web.loadUrl() over whatever a visitor was in the middle of
+     * typing. Every power-button press and every app switch went through that path. One miss is
+     * noise; two consecutive misses is a laptop that has actually gone.
+     */
     private var healthMisses = 0
-    private var manualAttempt: String? = null
 
     /**
      * WebView fires onPageFinished for a main-frame URL even after onReceivedError has already
@@ -98,6 +107,7 @@ class MainActivity : Activity() {
         web = buildWebView()
         overlay = SetupOverlay(this).apply {
             onConnect = { text -> connectManually(text) }
+            onForce = { text -> forceHost(text) }
             onRescan = { startConnect(force = true) }
             onReload = { current?.let { loadKiosk(it) } }
             onDismiss = { if (pageLoaded) hide() }
@@ -337,7 +347,15 @@ class MainActivity : Activity() {
         connecting = true
         cancelScan.set(false)
         remote.stateLine = "searching"
-        overlay.showBusy(if (force) "Reconnecting to the booth laptop…" else "Looking for the booth laptop…")
+        // DO NOT BLANK A WORKING PAGE TO ANNOUNCE A RE-CHECK. If the search fails,
+        // showFailurePanel puts the overlay up with everything on it; if it succeeds on the same
+        // host, the visitor half-way through the lead form never knew anything happened. The
+        // overlay is for when there is nothing else to look at, not for covering a live form.
+        if (pageLoaded && failedUrl == null && !overlay.isShowing) {
+            Diag.i("re-checking in the background — the kiosk page is up, so it stays on screen")
+        } else {
+            overlay.showBusy(if (force) "Reconnecting to the booth laptop…" else "Looking for the booth laptop…")
+        }
 
         val saved = store.saved()
         io.execute {
@@ -346,7 +364,20 @@ class MainActivity : Activity() {
                 connecting = false
                 if (found != null) {
                     store.save(found)
-                    loadKiosk(found)
+                    if (sameEndpoint(found, current) && pageLoaded && failedUrl == null) {
+                        // THE PAGE IS FINE. Re-discovery landed on the very host it was already
+                        // on, and that page is loaded — a visitor may be half-way through the
+                        // gate with their studio name and email typed in. Reloading here would
+                        // throw that away and show them a system overlay, and reloading is what
+                        // this app used to do. A reload is justified only when the host actually
+                        // changed or the page is genuinely dead.
+                        Diag.i("discovery returned the same host $found and the page is already " +
+                            "loaded — leaving it alone (no reload)")
+                        remote.stateLine = "on kiosk page (unchanged after re-check)"
+                        overlay.hide()
+                    } else {
+                        loadKiosk(found)
+                    }
                 } else {
                     remote.stateLine = "no kiosk found"
                     showFailurePanel(saved)
@@ -375,7 +406,16 @@ class MainActivity : Activity() {
         overlay.showFailure("Cannot find the booth kiosk", msg, saved?.toString())
     }
 
-    /** Operator typed an address. Verified first; a second tap loads it regardless. */
+    /**
+     * Operator typed an address. It is PROBED, and it is remembered ONLY if it answered.
+     *
+     * Tapping Connect a second time on the same string used to `store.save(parsed)` with no
+     * successful /health behind it — the only place in this app that ever wrote an unverified
+     * host. Because HostStore.parse also accepts a bare hostname, typing `DART` and tapping twice
+     * saved `DART:8080` permanently: a name Android cannot resolve, re-probed and port-walked at
+     * every single launch. Forcing an address is still possible and is still one tap away — it is
+     * the separate, labelled "Open it anyway" button, and it does not write to the store.
+     */
     private fun connectManually(text: String) {
         val parsed = HostStore.parse(text)
         if (parsed == null) {
@@ -387,28 +427,72 @@ class MainActivity : Activity() {
         Diag.i("manual entry: trying $parsed")
         overlay.showBusy("Checking $parsed…")
         io.execute {
-            val hit = Discovery.probe(parsed.host, parsed.port)
-            ui.post {
-                if (hit != null) {
-                    manualAttempt = null
-                    store.save(hit)
-                    loadKiosk(hit)
-                } else if (manualAttempt == parsed.toString()) {
-                    // Believe the human over the probe on the second tap.
-                    Diag.w("manual entry: $parsed did not answer, opening it anyway on operator's insistence")
-                    manualAttempt = null
-                    store.save(parsed)
-                    loadKiosk(parsed)
-                } else {
-                    manualAttempt = parsed.toString()
+            // Say the unresolvable-name case FAST and in plain words, rather than making the
+            // operator watch a probe time out on a name that can never work.
+            if (!Discovery.resolves(parsed.host)) {
+                ui.post {
                     overlay.showFailure(
-                        "Nothing answered at $parsed",
-                        "Tap Connect again to open it anyway, or check the address.",
+                        "'${parsed.host}' is a name, not an address",
+                        "This tablet cannot look up computer names on this Wi-Fi — Android has no " +
+                            "NetBIOS and no mDNS for a Windows machine name. Type the laptop's IP " +
+                            "address instead, e.g. 192.168.0.13:8081. Its own screen shows it in " +
+                            "the kiosk window title.",
                         parsed.toString()
                     )
                 }
+                return@execute
+            }
+            val hit = Discovery.probe(parsed.host, parsed.port)
+            ui.post {
+                if (hit != null) {
+                    store.save(hit)                  // verified, so it is worth remembering
+                    loadKiosk(hit)
+                } else {
+                    overlay.showFailure(
+                        "Nothing answered at $parsed",
+                        "Check the address, or open it anyway with the button below. An address " +
+                            "that has not answered is never remembered — it is used for this " +
+                            "session only.",
+                        parsed.toString()
+                    )
+                    overlay.offerForce(parsed.toString())
+                }
             }
         }
+    }
+
+    /**
+     * FORCE. The operator insists on an address the probe could not verify.
+     *
+     * Deliberate, separately labelled, and DELIBERATELY NOT SAVED — if it turns out to work, the
+     * watchdog's next successful probe remembers it (see [rememberIfVerified]); if it does not,
+     * nothing is left behind to slow down the next launch.
+     */
+    private fun forceHost(text: String) {
+        val parsed = HostStore.parse(text)
+        if (parsed == null) {
+            overlay.setStatus("That is not an address. Try 192.168.0.13:8081")
+            return
+        }
+        cancelScan.set(true)
+        Diag.w("FORCED: opening $parsed although nothing answered it. Not saved — it will be " +
+            "remembered only if it starts answering.")
+        loadKiosk(parsed)
+    }
+
+    /** Same machine and same port. `KioskHost` also carries reportedIp, which must not count. */
+    private fun sameEndpoint(a: KioskHost?, b: KioskHost?): Boolean =
+        a != null && b != null && a.host.equals(b.host, ignoreCase = true) && a.port == b.port
+
+    /**
+     * A host that has just answered /health is verified by definition, so if it is not the saved
+     * one, save it now. This is what turns a successful FORCE into a remembered address without
+     * ever writing an unverified one.
+     */
+    private fun rememberIfVerified(h: KioskHost) {
+        if (sameEndpoint(store.saved(), h)) return
+        store.save(h)
+        Diag.i("remembering $h — it answered a health check")
     }
 
     private fun loadKiosk(host: KioskHost) {
@@ -436,25 +520,47 @@ class MainActivity : Activity() {
      * is left alone while the server still answers; when it stops answering twice in a row we
      * re-probe and, if the laptop moved, sweep for it again.
      */
+    /**
+     * ONE health check, used by the watchdog AND by onResume, so the two cannot drift apart.
+     *
+     * The rules, in the order they matter:
+     *   - answered, page loaded          -> DO NOTHING AT ALL. The visitor keeps their typing.
+     *   - answered, page dead            -> reload it; that is a genuinely dead page.
+     *   - no answer, first miss          -> say so and wait. One dropped packet on a venue
+     *                                       hotspot is not a reason to blank the screen.
+     *   - no answer, second miss running -> the laptop really has gone; re-discover.
+     */
+    private fun healthCheck(reason: String) {
+        val h = current ?: return
+        if (connecting) return
+        io.execute {
+            val ok = Discovery.probe(h.host, h.port, 1200, 1800) != null
+            ui.post {
+                if (!sameEndpoint(h, current)) return@post      // host changed under us
+                if (ok) {
+                    healthMisses = 0
+                    rememberIfVerified(h)
+                    if (!pageLoaded && !connecting) {
+                        Diag.i("$reason: $h is answering but the page is not loaded — loading it")
+                        loadKiosk(h)
+                    }
+                } else if (++healthMisses >= 2) {
+                    healthMisses = 0
+                    Diag.w("$reason: $h missed 2 health checks, re-discovering")
+                    startConnect(force = true)
+                } else {
+                    Diag.w("$reason: $h missed a health check ($healthMisses/2) — leaving the " +
+                        "page alone until it misses again")
+                }
+            }
+        }
+    }
+
     private val watchdog = object : Runnable {
         override fun run() {
             val h = current
             if (h != null && !connecting) {
-                io.execute {
-                    val ok = Discovery.probe(h.host, h.port, 1200, 1800) != null
-                    ui.post {
-                        if (ok) {
-                            healthMisses = 0
-                            if (!pageLoaded && !connecting) loadKiosk(h)
-                        } else if (++healthMisses >= 2) {
-                            healthMisses = 0
-                            Diag.w("WATCHDOG: $h missed 2 health checks, re-discovering")
-                            startConnect(force = true)
-                        } else {
-                            Diag.w("WATCHDOG: $h missed a health check ($healthMisses/2)")
-                        }
-                    }
-                }
+                healthCheck("WATCHDOG")
             } else if (h == null && !connecting && !overlay.isShowing) {
                 startConnect(force = true)
             }
@@ -468,14 +574,10 @@ class MainActivity : Activity() {
         web.onResume()
         web.resumeTimers()
 
-        // Straight after a wake, do not wait a whole watchdog cycle.
-        val h = current
-        if (h != null) {
-            io.execute {
-                val ok = Discovery.probe(h.host, h.port, 1200, 1800) != null
-                ui.post { if (!ok || !pageLoaded) startConnect(force = true) }
-            }
-        }
+        // Straight after a wake, do not wait a whole watchdog cycle — but run the SAME check the
+        // watchdog runs. This used to be its own one-miss-and-reload rule, which is why a power
+        // button press over a half-typed lead form cost the lead.
+        healthCheck("WAKE")
         ui.removeCallbacks(watchdog)
         ui.postDelayed(watchdog, WATCHDOG_MS)
     }

@@ -143,6 +143,50 @@ object Discovery {
         readMs: Int = DIRECT_READ_MS
     ): KioskHost? = probeDetailed(host, port, connectMs, readMs).kiosk
 
+    // ------------------------------------------------------------- name resolution
+
+    /**
+     * NAMES THAT ANDROID CANNOT RESOLVE, ANSWERED ONCE INSTEAD OF FORTY-SEVEN TIMES.
+     *
+     * HostStore.parse accepts a bare hostname, so an operator can type `DART` — the laptop's
+     * Windows name, which is what everyone at the booth calls it. Android has no NetBIOS and no
+     * mDNS for that name, so it never resolves. Before this, a saved `DART:8080` cost a DNS
+     * lookup per probe: the saved-host probe, then the 46-port walk, then two probes on every
+     * address in the sweep — seconds of full-screen overlay at every single launch, for a name
+     * that could never work.
+     *
+     * One lookup decides it for the whole locate(), the cache is cleared at the top of every
+     * locate() (the network may genuinely have changed), and an IPv4 literal never goes near a
+     * resolver at all.
+     */
+    private val unresolvable = java.util.Collections.synchronizedSet(HashSet<String>())
+
+    fun isIpv4Literal(host: String): Boolean {
+        val parts = host.split(".")
+        return parts.size == 4 && parts.all { p -> p.isNotEmpty() && p.all { it.isDigit() } && (p.toIntOrNull() ?: 256) <= 255 }
+    }
+
+    /** False only when this is a NAME and this network has already failed to resolve it. */
+    fun resolves(host: String): Boolean {
+        if (isIpv4Literal(host)) return true
+        if (unresolvable.contains(host)) return false
+        return try {
+            java.net.InetAddress.getByName(host)
+            true
+        } catch (_: UnknownHostException) {
+            unresolvable.add(host)
+            Diag.e("'$host' is a NAME and this network cannot resolve it. Android has no NetBIOS " +
+                "and no mDNS for a Windows machine name — type the laptop's IP address instead " +
+                "(e.g. 192.168.0.13:8081).")
+            false
+        } catch (_: Throwable) {
+            true                    // any other failure is the probe's business, not ours
+        }
+    }
+
+    /** Forget what did not resolve — a new Wi-Fi may well resolve it. */
+    fun forgetUnresolvable() = unresolvable.clear()
+
     fun probeDetailed(
         host: String,
         port: Int,
@@ -150,6 +194,13 @@ object Discovery {
         readMs: Int = DIRECT_READ_MS
     ): ProbeResult {
         val started = System.currentTimeMillis()
+        // A name this network cannot resolve is decided once, not once per port. See [resolves].
+        if (!resolves(host)) {
+            val a = Diag.Attempt(host, port, Diag.Outcome.UNREACHABLE,
+                "hostname does not resolve on this network", System.currentTimeMillis() - started)
+            Diag.attempt(a)
+            return ProbeResult(a, null)
+        }
         var conn: HttpURLConnection? = null
         var outcome = Diag.Outcome.ERROR
         var detail = ""
@@ -403,9 +454,15 @@ object Discovery {
         status: ((String) -> Unit)? = null
     ): KioskHost? {
         Diag.clearAttempts()
+        forgetUnresolvable()            // a new network may resolve what the last one could not
         Diag.i("locate: saved=${saved ?: "none"}")
 
-        if (saved != null) {
+        if (saved != null && !resolves(saved.host)) {
+            // The saved host is a name that goes nowhere. Do NOT spend the 46-port walk on it —
+            // that walk is the ~25 seconds of overlay this app used to pay at every launch.
+            status?.invoke("Saved address '${saved.host}' is a name this network cannot resolve. Searching…")
+            Diag.w("skipping the saved host entirely: '${saved.host}' does not resolve")
+        } else if (saved != null) {
             status?.invoke("Checking $saved…")
             probe(saved.host, saved.port)?.let {
                 Diag.i("saved host still good: $it")

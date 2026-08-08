@@ -85,6 +85,29 @@ class RemoteControl(
 
     // ------------------------------------------------------------------ shipping
 
+    /**
+     * THE ENVELOPE EVERY EVENT THIS APP SHIPS CARRIES — and the reason `ms` is in it.
+     *
+     * serve.py's read_events() sorts the day with `key=lambda e: e.get("ms", 0)` and its
+     * `?since=<ms>` filter keeps only events whose `ms` is greater than the cursor. serve.py's
+     * record() does NOT stamp anything on arrival, so an event that ships only an ISO string
+     * sorts to position zero of the whole day and is invisible to every since-poll. The tablet's
+     * log lines were doing exactly that.
+     *
+     * `ms` and `t` are formatted from the SAME instant, so the sortable field and the readable
+     * field can never disagree, and `t` is now genuinely UTC (see Diag.iso).
+     */
+    private fun event(type: String): JSONObject {
+        val now = System.currentTimeMillis()
+        return JSONObject()
+            .put("type", type)
+            .put("surface", "tabletapp")
+            .put("device", Diag.deviceId)
+            .put("app", Diag.appVersion)
+            .put("ms", now)
+            .put("t", Diag.iso(now))
+    }
+
     /** Push new log lines up to the kiosk as telemetry events. */
     private fun ship() {
         val h = hostProvider() ?: return
@@ -93,15 +116,7 @@ class RemoteControl(
             val lines = Diag.drainForShipping(40)
             val batch = JSONArray()
             for (l in lines) {
-                batch.put(
-                    JSONObject()
-                        .put("type", "tablet_log")
-                        .put("surface", "tabletapp")
-                        .put("device", Diag.deviceId)
-                        .put("app", Diag.appVersion)
-                        .put("t", Diag.nowIso())
-                        .put("msg", l)
-                )
+                batch.put(event("tablet_log").put("msg", l))
             }
             if (shipCount++ % statusEveryNShips == 0) {
                 batch.put(statusEvent(h))
@@ -113,12 +128,7 @@ class RemoteControl(
         }
     }
 
-    private fun statusEvent(h: KioskHost?): JSONObject = JSONObject()
-        .put("type", "tablet_status")
-        .put("surface", "tabletapp")
-        .put("device", Diag.deviceId)
-        .put("app", Diag.appVersion)
-        .put("t", Diag.nowIso())
+    private fun statusEvent(h: KioskHost?): JSONObject = event("tablet_status")
         .put("host", h?.toString() ?: "none")
         .put("state", stateLine)
         .put("lastError", Diag.lastError)
@@ -128,12 +138,7 @@ class RemoteControl(
     fun shipReport(header: String) {
         val h = hostProvider() ?: return
         safely {
-            val body = JSONObject()
-                .put("type", "tablet_diag")
-                .put("surface", "tabletapp")
-                .put("device", Diag.deviceId)
-                .put("app", Diag.appVersion)
-                .put("t", Diag.nowIso())
+            val body = event("tablet_diag")
                 .put("report", Diag.fullReport(header))
             post(h, "/log", body.toString())
             Diag.i("shipped full diagnostic report to ${h.host}:${h.telemetryPort}/log")
