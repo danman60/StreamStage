@@ -305,3 +305,23 @@ On a 1920×1080 TV and a 1024×768 tablet, driven over the relay as two separate
   the film rather than being swapped into place after it.
 - No horizontal or vertical overflow at 1920×1080, 1024×768 or 820×1180.
 - No console errors on any screen.
+
+## The StreamStage film's QR sits bottom-right — check it composited if you ever play it in a browser
+
+The re-rendered StreamStage film carries its own QR baked into the picture, **bottom-right**, and it
+decodes to the gated `https://streamstage.live/g?a=recital&src=booth_tv&p=recital&s=tv`
+(verified with zbar on 8 frames sampled across the finished file, 2026-08-08).
+
+On the **Fire Stick app** that is fine: `BoothLoopActivity` plays fullscreen video with nothing
+composited over it, so the baked QR is the only thing in that corner.
+
+**Through `tv.html` in a browser it is not.** That page pins its own gated QR in the same corner —
+`tv.html:126`, `.filmqr{position:absolute;right:6rem;bottom:6rem;width:32rem}`. Two QR codes in one
+corner is unreadable, and worse, a phone may lock onto whichever it finds first, which is not
+necessarily the one the film is talking about.
+
+So: **if this film is ever shown through the browser page rather than the stick app, look at the
+real screen before believing it is fine.** This is the exact mistake that cost an earlier session —
+captions were positioned by measuring raw film frames, while the film always played *under* the
+kiosk page that pins something in that corner. Component-level checks do not catch it. A screenshot
+of the composited screen does.
