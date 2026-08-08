@@ -1,8 +1,24 @@
 # Getting the presenter stack onto DART
 
 DART is the machine that will actually run the talk. FIRMAMENT stays the dev/rehearsal box.
-**DART was offline (last seen ~10 days ago) when this was written**, so none of this could be done
-remotely — it's written so it can be executed in one pass the moment DART is powered on and online.
+
+> **EXECUTED AND VERIFIED ON DART, 2026-08-07 23:5x ET.** DART was offline when this was first
+> written; it is online now and everything below has been run against it. What is true right now:
+>
+> - Both decks are on DART in `C:\Users\User\Desktop\StudioSage-Live-Demo\`, current versions —
+>   `talk2-deck.html` **32 slides**, `talk1-deck.html` **27 slides**, both counted on DART itself.
+>   (It had been serving a **38-slide** talk 2 — the pre-rebuild deck — since late July.)
+> - Talk 1's 35 referenced assets (209 MB of `videos/` + `posters/`) are on DART. All six videos
+>   that the deck pulls answered HTTP 206 with range support.
+> - `presenter-server.py` is the current copy and serves on **8090**.
+> - Both decks were loaded from another machine over the LAN and reported the right slide count
+>   with no stale-deck alarm; a phone-shaped `/cmd` `next` advanced the deck and `prev` returned it.
+> - A Windows Firewall rule named **"StreamStage Presenter"** now allows inbound TCP 8080/8083/8090
+>   to `C:\Python313\python.exe` on all profiles. Before it, the server was listening and every
+>   phone request timed out — §3's prompt never appeared because it was started headlessly.
+> - Reachable on the LAN (`192.168.0.13:8090`) **and** over Tailscale (`100.90.103.121:8090`).
+>
+> **Not verified:** the physical Pixel driving it, and the cellular (rather than LAN) path.
 
 ---
 
@@ -22,26 +38,28 @@ cellular still reach each other.
 Those never change when you switch between hotspot, venue wifi, or a hotel. **So the QR is generated
 once and stays valid forever** — no regenerating anything before you go on.
 
-Pre-made: `QR-remote-DART-tailscale.png` · `QR-remote-FIRMAMENT-tailscale.png`.
+Pre-made, and **correct as of 2026-08-07**: `QR-remote-100.90.103.121.png` (DART) ·
+`QR-remote-100.75.112.14.png` (FIRMAMENT) · `QR-remote-192.168.0.13.png` (DART on this LAN).
+All three were decoded after generation and encode `:8090`.
 
-> ### ⚠ Those two QR images still say `:8080` — read this before the talk
+> ### ⚠ THE PRESENTER PORT IS 8090 AND CANNOT BE 8080 — this replaces an instruction that could not work
 >
-> **The presenter now defaults to port 8090, not 8080.** 8080 and 8081 belong to the booth
-> kiosk (`expo-assets/kiosk/serve.py`), which prints its address on the booth sheet and has it
-> bookmarked on the Fire Stick, so the presenter is the one that moved. The two pre-made PNGs
-> were generated before that and still encode
-> `http://100.90.103.121:8080/remote` / `http://100.75.112.14:8080/remote` (decoded, verified).
+> An earlier version of this file told you to start the server with `PRESENTER_PORT=8080`
+> so it would match two QR images made at `:8080`, and the day-of checklist said the banner
+> "must say 8080". **That state cannot happen.** `pick_port()` in `presenter-server.py` skips
+> 8080 and 8081 *unconditionally* — they belong to the booth kiosk (`expo-assets/kiosk/serve.py`),
+> whose address is on the booth sheet and bookmarked on the Fire Stick. Asking for 8080 is
+> refused by this file, not by the operating system, so freeing the port changes nothing and
+> retrying is wasted time. (The banner used to say "PORT 8080 WAS ALREADY IN USE", which sent a
+> reader hunting a process that did not exist; it now says the port is reserved.)
 >
-> **The rest of this document therefore starts the server with an explicit
-> `PRESENTER_PORT=8080`**, which is what the QR expects and is safe on stage, because the booth
-> kiosk is not running during a talk. Every `:8080` address below is correct *for that command*.
+> **So: the presenter runs on 8090. Do not set `PRESENTER_PORT` at all.**
 >
-> The alternative, if you'd rather have one presenter port everywhere: regenerate the two PNGs
-> at `:8090`, then drop `PRESENTER_PORT` and read `8090` for `8080` throughout this file.
->
-> **At the booth, never `PRESENTER_PORT=8080`** — the kiosk owns it. If you do it by mistake
-> the presenter will not die: it skips 8080 and 8081, moves to the next free port, and prints
-> a block telling you so. Read the window.
+> The two old PNGs really did encode `http://100.90.103.121:8080/remote` and
+> `http://100.75.112.14:8080/remote` (decoded, verified) — dead addresses. They are renamed
+> `DEAD-port8080-*.png` in this folder so nobody scans one on stage, and the three replacements
+> above are the ones to use. `presenter-server.py` prints "scan `QR-remote-<ip>.png`" next to any
+> address it finds a matching file for, so a correctly-named PNG is announced by the server itself.
 
 **The one case Tailscale can't cover:** a room with *no internet at all*. Then put the phone on DART's
 hotspot (or DART on the phone's) and type the LAN address the server prints — it always prints every
@@ -58,10 +76,17 @@ tailscale status          :: must show DART as active and logged into the same t
 ```
 
 ### 2. Copy the folder
-From FIRMAMENT (both online), or from this repo:
+**`rsync` is not on DART** — it is Windows, and `rsync ... dart:` fails with
+`'rsync' is not recognized`. Use tar over scp; Windows 10+ ships `tar`:
+```bash
+cd ~/projects/StreamStage/expo-assets && \
+  tar czf /tmp/decks.tgz --exclude=facelift-out --exclude=shots --exclude=_shots -C decks .
+scp /tmp/decks.tgz 'dart:C:/Users/User/Desktop/decks.tgz'
+ssh dart 'cd C:\Users\User\Desktop\StudioSage-Live-Demo && tar xzf C:\Users\User\Desktop\decks.tgz'
+ssh dart 'cd C:\Users\User\Desktop\StudioSage-Live-Demo && copy /Y talk2-ai.html talk2-deck.html'
 ```
-rsync -av ~/projects/StreamStage/expo-assets/decks/ dart:'C:/Users/<user>/Desktop/StudioSage-Live-Demo/'
-```
+Talk 1's deck and its 209 MB of media come from the StudioSage repo, not this folder — see the
+talk-1 section at the bottom.
 Everything the deck needs at runtime, and why:
 
 | Item | Why it must be there |
@@ -77,7 +102,7 @@ re-add symlinks here, copy with `rsync -avL`. |
 images, and Move 4 is the one beat that is nothing but pictures. Same class of bug as the kb-demo symlink. |
 | `facelift-fallback/` | the pre-baked reveal if the live facelift fails |
 | `facelift-run.sh`, `FACELIFT-CONTRACT.md` | the facelift trigger + its contract |
-| `QR-remote-DART-tailscale.png` | what the room's presenter scans |
+| `QR-remote-100.90.103.121.png` | what the room's presenter scans (`:8090`) |
 | `videos/`, `posters/` | **Talk 1 only** — skip if DART is Talk 2 only (that's ~179 MB) |
 
 ### 3. Firewall — do this at home, not at the venue
@@ -87,21 +112,21 @@ if it's unticked the phone silently can't reach the laptop and it looks like Tai
 
 ### 4. Smoke test before you leave the house
 ```
-set PRESENTER_PORT=8080 && python presenter-server.py    :: leave the window open
-:: 8080 because that is the port the pre-made QRs name (see the warning above).
-:: Without it the presenter comes up on 8090 and the QRs scan to a dead address.
+start-presenter.bat        :: double-click it on DART's desktop; leave the window open
+:: Or by hand, from the deck folder:  python presenter-server.py
+:: Do NOT set PRESENTER_PORT. The default 8090 is the only port this can use.
 ```
-- On DART: `http://localhost:8080/talk2-deck.html` — the deck loads, slide 31 plays video.
+- On DART: `http://localhost:8090/talk2-deck.html` — the deck loads, slide 31 plays video.
 - **Open devtools once and confirm ZERO 404s** walking the deck end to end. Verified clean on a cold
   copy of exactly this file list on 2026-07-26 (38 slides, fonts loaded, no failed requests).
 - Press **O** on slide 34 and confirm slide 35 (the offline demo) actually renders — that is the
   wifi-failure rescue and it is the file most likely to be missing.
-- On the phone: scan `QR-remote-DART-tailscale.png` — beats + Jump + Prev/Next appear.
+- On the phone: scan `QR-remote-100.90.103.121.png` — beats + Jump + Prev/Next appear.
 - Press Next on the phone; the deck advances. **Then turn the phone's wifi OFF** and do it again over
   cellular — that proves the Tailscale path rather than the LAN path, which is the whole point.
 
 ### 5. PHONEPRESENTER
-The app just posts to whatever host you type in, so point it at `100.90.103.121:8080`. Volume up =
+The app just posts to whatever host you type in, so point it at `100.90.103.121:8090`. Volume up =
 next, down = back. Nothing to rebuild.
 
 ---
@@ -109,17 +134,37 @@ next, down = back. Nothing to rebuild.
 ## Day-of checklist
 - [ ] DART awake, plugged in, **sleep disabled** (a sleeping laptop kills the remote mid-talk)
 - [ ] `tailscale status` shows DART active
-- [ ] Server started with **`PRESENTER_PORT=8080`** — the window's banner must say 8080, not 8090
-      (if it says it "moved to" anything, read that block: something else has the port)
-- [ ] Server window open, deck at `http://localhost:8080/talk2-deck.html`, fullscreen
+- [ ] Server started (`start-presenter.bat`) — the banner says **8090**. If it says a port is
+      RESERVED, that is normal only if you set PRESENTER_PORT yourself; don't.
+- [ ] Server window open, deck at `http://localhost:8090/talk2-deck.html`, fullscreen
 - [ ] Phone scanned in and advancing slides — tested over **cellular**, not just wifi
 - [ ] Deck opened with `?rt=<DEMO_RESET_TOKEN>` or audience texts won't route
 - [ ] Printed run-of-show in your pocket
 
-## TALK 1 IS SERVED FROM A DIFFERENT FOLDER — read this before Wednesday
-The canonical talk 1 is `~/projects/StudioSage/live-demo/talk1-deck.html` (27 slides), **not**
-anything in this folder. It speaks the same remote contract as talk 2 (it POSTs `/state` and drains
-`/cmd`), but it needs `presenter-server.py` sitting beside it:
+## TALK 1 — now served from the SAME folder on DART as talk 2
+
+> **Changed 2026-08-07.** On DART both talks now live in
+> `C:\Users\User\Desktop\StudioSage-Live-Demo\` and **one** presenter server on 8090 serves both:
+> `http://localhost:8090/talk1-deck.html` and `.../talk2-deck.html`. There is no second server and
+> no second port. Whichever deck page is open is the one that POSTs `/state`, so the phone drives
+> that one — the server holds no opinion. Both were verified this way.
+>
+> To refresh talk 1 on DART after editing it in the StudioSage repo:
+> ```bash
+> scp ~/projects/StudioSage/live-demo/talk1-deck.html \
+>     'dart:C:/Users/User/Desktop/StudioSage-Live-Demo/talk1-deck.html'
+> # and its media, if that changed — 35 files, 209 MB:
+> cd ~/projects/StudioSage/live-demo && \
+>   grep -oE '(src|href|poster)="[^"]*\.(mp4|webm|jpg|png|jpeg)"' talk1-deck.html \
+>   | sed 's/.*="//;s/"//' | sort -u > /tmp/t1.txt
+> tar czf /tmp/t1.tgz -T /tmp/t1.txt && scp /tmp/t1.tgz 'dart:C:/Users/User/Desktop/t1.tgz'
+> ssh dart 'cd C:\Users\User\Desktop\StudioSage-Live-Demo && tar xzf C:\Users\User\Desktop\t1.tgz'
+> ```
+
+### On your own laptop (unchanged)
+The canonical talk 1 is `~/projects/StudioSage/live-demo/talk1-deck.html` (27 slides). It speaks the
+same remote contract as talk 2 (it POSTs `/state` and drains `/cmd`), but it needs
+`presenter-server.py` sitting beside it:
 
 ```bash
 cp ~/projects/StreamStage/expo-assets/decks/presenter-server.py ~/projects/StudioSage/live-demo/
@@ -137,7 +182,7 @@ title. Green does not mean the deck is connected — check the slide count is 27
 
 ## Gotchas
 - **Don't open the deck by double-clicking the html.** The remote only talks to the served copy at
-  `localhost:8080`.
+  `localhost:8090`.
 - Closing the server console window stops the remote.
 - If the phone shows a red dot, the server is unreachable — check DART hasn't slept, then Tailscale,
   then the firewall's Public profile.

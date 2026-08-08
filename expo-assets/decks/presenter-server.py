@@ -916,18 +916,27 @@ if __name__ == "__main__":
     print(" PRESENTER REMOTE")
     print("=" * 58)
     if PORT != WANTED:
-        print(" PORT %d WAS ALREADY IN USE — the remote moved to %d." % (WANTED, PORT))
-        print("")
-        print(" What is probably already on %d:" % WANTED)
-        print("   - another copy of this presenter server, in a window you left open")
+        # Two very different reasons land here and they used to print the same
+        # sentence. "ALREADY IN USE" against 8080 sent a reader hunting for a
+        # process that does not exist and cannot exist: pick_port SKIPS 8080 and
+        # 8081 outright, so asking for one is refused by this file, not by the
+        # operating system. Freeing the port would change nothing. Say which it is.
         if WANTED in KIOSK_PORTS:
-            print("   - the booth kiosk (expo-assets/kiosk/serve.py). It owns 8080 for its")
-            print("     pages and 8081 for telemetry. Do not put the presenter on either.")
+            print(" PORT %d IS RESERVED FOR THE BOOTH KIOSK — the remote is on %d." % (WANTED, PORT))
+            print("")
+            print(" Nothing is 'in use'. This server REFUSES 8080 and 8081 by design:")
+            print(" expo-assets/kiosk/serve.py owns them, its address is printed on the")
+            print(" booth sheet and bookmarked on the Fire Stick, so the presenter moves.")
+            print(" Setting PRESENTER_PORT=%d cannot work — do not keep retrying it." % WANTED)
         else:
+            print(" PORT %d WAS ALREADY IN USE — the remote moved to %d." % (WANTED, PORT))
+            print("")
+            print(" What is probably already on %d:" % WANTED)
+            print("   - another copy of this presenter server, in a window you left open")
             print("   - the booth kiosk, if you started it with --port %d" % WANTED)
         print("")
         print(" THE ADDRESSES BELOW ARE THE REAL ONES. Any QR image or bookmark")
-        print(" made for port %d is wrong until you free it and start this again." % WANTED)
+        print(" made for port %d is wrong." % WANTED)
         print("=" * 58)
     for d in sorted(decks):                       # both talks live in this folder now
         print(" laptop :  http://localhost:%d/%s" % (PORT, d))
