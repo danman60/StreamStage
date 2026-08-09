@@ -1,0 +1,6 @@
+# The rendered reel is a build artefact (6 MB). Rebuild it with:
+#   node render-menu-loop.mjs
+menu-loop.mp4
+
+# Symlinked in to borrow a checkout that already has playwright installed.
+node_modules

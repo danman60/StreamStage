@@ -128,7 +128,14 @@ COMMANDS = {"play", "playfilm", "pause", "resume", "stop", "playlist", "ping",
             # action was physically unreachable during the show. These are the
             # same three actions as bus verbs, so the phone in his hand can do
             # what the booth sheet has always said to do.
-            "mute", "fullscreen", "hud"}
+            "mute", "fullscreen", "hud",
+            # Added 2026-08-09 with the menu reel. This MUST be listed here as
+            # well as in OPERATOR_ONLY_CMDS: command_of() returns None for a
+            # type it does not know, and a message that is not a command is
+            # never operator-checked — it is simply relayed. Listing it only as
+            # operator-only left a visitor surface able to change the attract
+            # loop and get a 200 back. Caught by tests/scenarios.mjs #15.
+            "attract"}
 
 # What marks a command as coming from the OPERATOR rather than from a visitor
 # surface. phone-app/BUS-CONTRACT.md §2 is the authority on the wire format and
@@ -175,7 +182,11 @@ OPERATOR_ONLY_FILMS = {"streamstage-services"}
 # the phone's console is the only thing with buttons for them — and the same
 # sentence above applies with more force to a stopped picture than to a muted
 # one. `stop` remains open because it ENDS a film rather than freezing one.
-OPERATOR_ONLY_CMDS = {"mute", "fullscreen", "hud", "pause", "resume"}
+#
+# `attract` (added 2026-08-09) chooses WHICH attract loop runs — the six cards,
+# or the menu reel of live film thumbnails. Same reasoning as `hud`: a visitor
+# surface must not be able to change what the booth shows between films.
+OPERATOR_ONLY_CMDS = {"mute", "fullscreen", "hud", "pause", "resume", "attract"}
 
 # ---------------------------------------------------------------------------
 # WHAT SHOULD BE ON DISK — read from kiosk.js, not re-typed here.

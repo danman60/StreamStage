@@ -1,2 +1,3 @@
 media/
 telemetry/
+__pycache__/

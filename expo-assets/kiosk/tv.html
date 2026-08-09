@@ -104,6 +104,12 @@
      nothing is fetched, nothing seeks.
      ====================================================================== */
   #film{position:fixed;inset:0;z-index:5;display:none;background:#000;overflow:hidden}
+  /* The menu loop sits BELOW the film layer and above the cards: a film always
+     wins the screen, and the cards are simply not running while it is up. */
+  #menuloop{position:fixed;inset:0;z-index:4;display:none;width:100%;height:100%;
+    object-fit:cover;background:#06090D}
+  body.menumode #menuloop{display:block}
+  body.menumode.playing #menuloop{display:none}   /* a film owns the screen */
   #film.on{display:block}
   .layer{
     position:absolute;inset:0;background:#000;
@@ -453,6 +459,16 @@
 
 <!-- ============ FILM LAYERS (built from CONFIG.products) ================ -->
 <div id="film"></div>
+
+<!-- ============ THE SECOND ATTRACT LOOP ================================
+     media/menu-loop.mp4 — six live film thumbnails with a highlight cascading
+     through them, asking the visitor to pick one. The operator switches to it
+     with the `attract` bus verb (or M on the TV itself); the default remains
+     the card loop, so a missing file changes nothing.
+
+     Muted and looping by design: it is wallpaper that asks a question, and a
+     booth screen that starts talking on its own is worse than a quiet one. -->
+<video id="menuloop" loop muted playsinline preload="none" disablepictureinpicture></video>
 
 <!-- ============ END CARD =============================================== -->
 <div id="end">
@@ -1357,9 +1373,90 @@
 
     current = null;
     applyOrder();
+
+    // Menu mode: the reel of thumbnails IS the attract loop, so no card timer
+    // runs at all. If the file is missing the mode never engages, and this
+    // falls through to the cards exactly as before.
+    if (attractMode === 'menu' && menuLoopOk) {
+      if (idx >= 0 && cards[idx]) cards[idx].classList.remove('vis', 'on');
+      startMenuLoop();
+      push();
+      return;
+    }
+
+    stopMenuLoop();
     showCard(idx < 0 ? 0 : idx + 1);
     push();
   }
+
+  /* ------------------------------------------------- the second attract loop
+     A 30-second reel of the six films as live thumbnails, cascading a
+     highlight through them and asking the visitor to pick one. It is the
+     operator's alternative to the card loop, not a replacement: `attract`
+     switches, and everything else on this screen behaves identically in both
+     modes — a tap still plays a film, the gate still gates, the end card still
+     carries its QR, and the next film still follows.                        */
+  var attractMode = 'cards';        // 'cards' | 'menu'
+  var menuLoopOk  = false;          // set by the probe below; false = never engage
+  var menuVid     = document.getElementById('menuloop');
+
+  function startMenuLoop() {
+    if (!menuLoopOk) return;
+    document.body.classList.add('menumode');
+    if (!menuVid.getAttribute('src')) menuVid.setAttribute('src', MENU_LOOP_SRC);
+    menuVid.muted = true;                       // wallpaper never talks
+    var pr = menuVid.play();
+    if (pr && pr.catch) pr.catch(function () {});
+  }
+
+  function stopMenuLoop() {
+    document.body.classList.remove('menumode');
+    try { menuVid.pause(); } catch (e) {}
+  }
+
+  /* Operator-only. `mode` sets explicitly; absent, it toggles — same contract
+     as mute/fullscreen/hud, and for the same reason: the phone polls state on
+     a 2-second cycle, so an explicit value cannot invert by accident. */
+  function setAttractMode(mode) {
+    var want = (mode === 'menu' || mode === 'cards')
+      ? mode
+      : (attractMode === 'menu' ? 'cards' : 'menu');
+
+    if (want === 'menu' && !menuLoopOk) {
+      // Refused honestly rather than silently: without this the operator
+      // presses the button at the booth and nothing happens, twice.
+      Telemetry.log('attract_refused', { want: want, why: 'menu-loop.mp4 not available' });
+      return;
+    }
+    if (want === attractMode) { push(); return; }
+
+    attractMode = want;
+    Telemetry.log('attract_mode', { mode: attractMode });
+
+    // Going back to cards takes effect on the spot even mid-film. Without this
+    // the body keeps `menumode` until the film ends, so /state reports a mode
+    // the screen is no longer in — the phone would show the wrong control for
+    // up to three minutes. Caught by tests/scenarios.mjs #18.
+    if (attractMode === 'cards') stopMenuLoop();
+
+    if (state === 'attract') toAttract();        // apply now; otherwise on return
+    else push();
+  }
+
+  // Deliberately NOT in media/. That folder means "the films", and
+  // publish-films.sh uploads all of it to R2 and from there onto the Fire
+  // Stick's reel — an attract reel filed as a film would play as an eighth
+  // film in the booth loop.
+  var MENU_LOOP_SRC = 'menu-loop/menu-loop.mp4';
+
+  /* Probe once, the same way the film layers are probed: a HEAD that fails
+     leaves the mode unavailable rather than pointing a <video> at a 404. */
+  (function probeMenuLoop() {
+    if (typeof fetch === 'undefined') return;
+    fetch(MENU_LOOP_SRC, { method: 'HEAD' })
+      .then(function (r) { menuLoopOk = !!(r && r.ok); })
+      .catch(function () { menuLoopOk = false; });
+  })();
 
   /* ----------------------------------------------------------------- film
      dir = +1 the new film comes in from the RIGHT, -1 from the LEFT. The
@@ -1369,6 +1466,9 @@
     clearTimers();
     stopProdImp();
     stopSvc();                   // a tap always beats the attract loop's own film
+    // The menu reel is hidden by CSS while a film is up; pause it too, so the
+    // Fire Stick is never decoding seven streams to show one.
+    try { menuVid.pause(); } catch (e) {}
     dir = dirOf(dir);
 
     var prev = current;
@@ -1608,8 +1708,34 @@
     prodImp.start();
 
     runBar(CONFIG.idle.returnToAttractMs);
-    endTimer = setTimeout(toAttract, CONFIG.idle.returnToAttractMs);
+    // A visitor who picks one film is told what the other five are, by playing
+    // them: when the end card's dwell is up, the loop rolls straight into the
+    // next film in running order instead of dropping back to the attract cards.
+    // The Fire Stick has always behaved this way (its reel is one ExoPlayer
+    // playlist on REPEAT_MODE_ALL, so the film after the commanded one just
+    // follows), and this makes the browser TV agree with it.
+    //
+    // The end card itself is NOT skipped — it carries the product's QR, which
+    // is the only conversion surface on this screen. Only what happens after
+    // it changes. A film that ended because it was BROKEN (`why`) still falls
+    // back to attract: chaining onward from a failure would hide the failure.
+    endTimer = setTimeout(function () {
+      var nextP = why ? null : nextFilmAfter(product.id);
+      if (nextP) play(nextP, 1); else toAttract();
+    }, CONFIG.idle.returnToAttractMs);
     push();
+  }
+
+  /* The film that follows `id` in the order the loop is actually running.
+     Returns null when this is the only film, so the caller falls back to the
+     attract loop rather than replaying the same thing forever. */
+  function nextFilmAfter(id) {
+    var order = attractOrder();                 // film ids, current running order
+    if (order.length < 2) return null;
+    var at = order.indexOf(id);
+    if (at < 0) return null;
+    var nextId = order[(at + 1) % order.length];
+    return (nextId === SVC_PRODUCT.id) ? SVC_PRODUCT : productById(nextId);
   }
 
   /* ------------------------------------------------------------------ bus */
@@ -1641,6 +1767,11 @@
       hud: document.body.classList.contains('showhud'),
       warm: warm,
       paused: paused,
+      // Which attract loop is running, and whether the other one is even
+      // available on this machine — the phone should be able to show a
+      // disabled control rather than one that does nothing.
+      attract: attractMode,
+      menuLoop: menuLoopOk,
       order: attractOrder(),
       // Films this screen knows it CANNOT play — missing, undecodable, or
       // caught stalled by the watchdog. The tablet reads this and stops
@@ -1715,6 +1846,15 @@
        `on` is optional. Present, it SETS; absent, it toggles. The phone polls
        state on a 2-second cycle, so a bare toggle races exactly the way
        playpause did — send `on` explicitly and it cannot invert by accident. */
+    } else if (cmd === 'attract') {
+      // Which attract loop is running is an operator decision, refused here as
+      // well as on the wire for the same reason as every other operator verb.
+      if (!fromOperator(msg)) {
+        Telemetry.log('cmd_refused', { cmd: cmd, src: msg.src || msg.origin || null });
+        return;
+      }
+      setAttractMode(msg.mode);
+
     } else if (cmd === 'mute' || cmd === 'fullscreen' || cmd === 'hud') {
       if (!fromOperator(msg)) {
         Telemetry.log('cmd_refused', { cmd: cmd, src: msg.src || msg.origin || null });
@@ -1757,6 +1897,8 @@
       setMuted();
     } else if (k === 'h') {
       setHud();
+    } else if (k === 'a') {
+      setAttractMode();          // cards <-> menu reel
     } else if (k === 'escape' && state !== 'attract') {
       abandon(); toAttract();
     } else if (state === 'attract' && e.key === 'ArrowRight') {

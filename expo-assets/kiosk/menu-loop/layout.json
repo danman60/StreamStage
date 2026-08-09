@@ -1,0 +1,55 @@
+{
+  "w": 1920,
+  "h": 1080,
+  "slot": 5000,
+  "tiles": [
+    {
+      "id": "studiosage",
+      "film": "../media/studiosage.mp4",
+      "x": 108,
+      "y": 336,
+      "w": 544,
+      "h": 306
+    },
+    {
+      "id": "compsync",
+      "film": "../media/compsync.mp4",
+      "x": 688,
+      "y": 336,
+      "w": 544,
+      "h": 306
+    },
+    {
+      "id": "callboard",
+      "film": "../media/callboard.mp4",
+      "x": 1268,
+      "y": 336,
+      "w": 544,
+      "h": 306
+    },
+    {
+      "id": "costumecraft",
+      "film": "../media/costumecraft.mp4",
+      "x": 108,
+      "y": 678,
+      "w": 544,
+      "h": 306
+    },
+    {
+      "id": "studiobeat",
+      "film": "../media/studiobeat.mp4",
+      "x": 688,
+      "y": 678,
+      "w": 544,
+      "h": 306
+    },
+    {
+      "id": "reflect",
+      "film": "../media/reflect.mp4",
+      "x": 1268,
+      "y": 678,
+      "w": 544,
+      "h": 306
+    }
+  ]
+}

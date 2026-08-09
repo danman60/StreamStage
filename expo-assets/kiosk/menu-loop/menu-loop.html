@@ -1,0 +1,231 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Booth menu loop — six products</title>
+<!--
+  THE MENU LOOP  (chrome layer)
+  =============================
+  A 30-second attract reel whose job is not to explain anything — the films do
+  that — but to make somebody CHOOSE one. Six thumbnails cut from the six real
+  films play at once, and a highlight cascades through them five seconds at a
+  time. Whichever one is lit gets its name and hook line at the top, and the
+  line along the bottom tells the visitor to tap the tablet for the full film.
+
+  This file draws ONLY the chrome: the wash, the type, the tile frames, the
+  scrims over the tiles that are not lit, and the ask. The six tile rectangles
+  are punched out as TRANSPARENT HOLES, and compose-menu-loop.sh plays the real
+  film thumbnails underneath them. That is why nothing here loads a video: the
+  page renders to a PNG sequence with alpha, and ffmpeg does the compositing.
+
+  window.LAYOUT is the single source of truth for where the holes are. The
+  render script writes it to layout.json and the compose script reads it back,
+  so the chrome and the video can never disagree about tile geometry.
+
+  Copy is NOT written here. Every name and hook is verbatim from CONFIG.products
+  in ../kiosk.js (name + short); every colour is verbatim from the
+  [data-product] blocks in ../brand.css.
+
+  Deterministic on purpose: no CSS animation, no rAF. The whole frame is a pure
+  function of window.setT(ms), so the same source always yields the same video.
+-->
+<style>
+  :root{
+    --sans:"Inter",-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    --mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1920px;height:1080px;overflow:hidden;background:transparent}
+  body{font-family:var(--sans);color:#fff;-webkit-font-smoothing:antialiased}
+
+  /* The wash covers the whole frame; the tile holes are cut out of it further
+     down, so this never sits on top of the footage. */
+  .bg{position:absolute;inset:0;background:#06090D}
+  .wash{position:absolute;inset:0;opacity:0}
+  .wash i{position:absolute;inset:0;display:block}
+  .wash i.a{background:radial-gradient(120% 90% at 16% 8%, var(--tint), transparent 60%)}
+  .wash i.b{background:radial-gradient(90% 80% at 88% 96%, var(--wash), transparent 58%)}
+
+  /* ---- the head: whichever product is lit right now ---- */
+  .head{position:absolute;left:108px;top:96px;width:1500px;height:190px}
+  .eyebrow{font:800 21px/1 var(--mono);letter-spacing:.34em;text-transform:uppercase;
+    color:var(--a);margin-bottom:20px}
+  .card{position:absolute;left:0;top:38px;width:1500px}
+  .name{font:900 92px/1 var(--sans);letter-spacing:-.028em;display:inline-block;
+    background:linear-gradient(96deg,#fff 22%,var(--lite) 94%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .hook{font:600 37px/1.25 var(--sans);color:#C9D8E2;margin-top:16px}
+
+  /* ---- six tiles ---- */
+  .tile{position:absolute;border-radius:16px;overflow:hidden}
+  .scrim{position:absolute;inset:0;background:#04070A}      /* dims the unlit */
+  .edge{position:absolute;inset:0;border-radius:16px;
+    border:1px solid rgba(255,255,255,.10)}
+  .ring{position:absolute;inset:0;border-radius:16px;opacity:0;
+    border:2px solid var(--a);box-shadow:0 0 0 1px var(--a), 0 30px 70px -34px var(--glow)}
+  .label{position:absolute;left:0;right:0;bottom:0;padding:44px 20px 15px;
+    background:linear-gradient(transparent, rgba(4,7,10,.90) 62%);
+    font:800 26px/1 var(--sans);letter-spacing:-.01em;color:#C7D6E0}
+  .bar{position:absolute;left:0;bottom:0;height:4px;width:0;
+    background:linear-gradient(90deg,var(--a),var(--b))}
+
+  /* ---- the ask ---- */
+  .cta{position:absolute;left:108px;bottom:44px;
+    font:800 26px/1 var(--mono);letter-spacing:.19em;text-transform:uppercase;color:#8095A4}
+  .cta b{color:#fff}
+  .cta .dot{display:inline-block;width:10px;height:10px;border-radius:50%;
+    background:var(--a);margin-right:16px;vertical-align:middle}
+  .wm{position:absolute;right:108px;bottom:38px;height:34px;opacity:.5}
+  .wm img{height:100%;object-fit:contain}
+</style>
+
+<!-- Everything inside #plate is clipped so the six tile rectangles are real
+     transparent holes in the PNG. That is what lets ffmpeg play the film
+     thumbnails underneath the chrome instead of over it. -->
+<div id="plate">
+  <div class="bg" id="bg"></div>
+  <div class="wash" id="washA"><i class="a"></i><i class="b"></i></div>
+  <div class="wash" id="washB"><i class="a"></i><i class="b"></i></div>
+</div>
+
+<div class="head">
+  <div class="eyebrow" id="eyebrow">Six products &middot; one studio</div>
+  <div id="cards"></div>
+</div>
+
+<div id="tiles"></div>
+
+<div class="cta" id="cta"><span class="dot"></span>Tap the tablet <b>to watch the full explainer</b></div>
+<div class="wm"><img src="../brand/logo-white.png" alt=""></div>
+
+<script>
+/* Names + hooks VERBATIM from kiosk.js (name, short). Colours VERBATIM from
+   brand.css [data-product]. Change them there and mirror, never invent here. */
+var P = [
+  { id:'studiosage',   name:'StudioSage',   hook:'The AI front desk. Parents text it.',
+    a:'#4EC5D4', b:'#5FD3A3', lite:'#8FE3EC',
+    tint:'rgba(78,197,212,.20)',  wash:'rgba(78,197,212,.11)',  glow:'rgba(78,197,212,.55)' },
+  { id:'compsync',     name:'CompSync',     hook:'Runs the whole competition weekend.',
+    a:'#F59E0B', b:'#F97316', lite:'#FBC96A',
+    tint:'rgba(245,158,11,.20)',  wash:'rgba(245,158,11,.11)',  glow:'rgba(245,158,11,.55)' },
+  { id:'callboard',    name:'Callboard',    hook:'Recital orders that know your rules.',
+    a:'#60A5FA', b:'#6366F1', lite:'#A9CDFD',
+    tint:'rgba(96,165,250,.20)',  wash:'rgba(96,165,250,.11)',  glow:'rgba(96,165,250,.55)' },
+  { id:'costumecraft', name:'CostumeCraft', hook:'Design, measurements, quantities — one place.',
+    a:'#F472B6', b:'#C026D3', lite:'#F9AED4',
+    tint:'rgba(244,114,182,.20)', wash:'rgba(244,114,182,.11)', glow:'rgba(244,114,182,.55)' },
+  { id:'studiobeat',   name:'StudioBeat',   hook:'The whole studio, in one place.',
+    a:'#E08A6B', b:'#C2785C', lite:'#F3C0AC',
+    tint:'rgba(224,138,107,.20)', wash:'rgba(224,138,107,.11)', glow:'rgba(224,138,107,.55)' },
+  { id:'reflect',      name:'Reflect',      hook:'Every room on one screen.',
+    a:'#A78BFA', b:'#7C8CF8', lite:'#CBBBFD',
+    tint:'rgba(167,139,250,.20)', wash:'rgba(167,139,250,.11)', glow:'rgba(167,139,250,.55)' }
+];
+
+/* Tile geometry — 3 across, 2 down, 16:9. Exported for the compositor. */
+var TW = 544, TH = 306, GAP = 36, X0 = 108, Y0 = 336;
+var LAYOUT = { w:1920, h:1080, slot:5000, tiles:[] };
+P.forEach(function (p, n) {
+  var col = n % 3, row = Math.floor(n / 3);
+  LAYOUT.tiles.push({
+    id: p.id, film: '../media/' + p.id + '.mp4',
+    x: X0 + col * (TW + GAP), y: Y0 + row * (TH + GAP), w: TW, h: TH
+  });
+});
+window.LAYOUT = LAYOUT;
+
+/* Punch the tile rectangles out of the background plate.
+   The outer rectangle is wound clockwise and every hole counter-clockwise, so
+   the default nonzero fill rule leaves the holes genuinely empty — the PNG
+   carries alpha 0 there and the footage composited underneath shows through. */
+function roundedHole(t, r) {
+  var x = t.x, y = t.y, w = t.w, h = t.h;
+  return 'M' + (x + r) + ' ' + y +
+         'L' + (x + r) + ' ' + y +
+         'A' + r + ' ' + r + ' 0 0 0 ' + x + ' ' + (y + r) +
+         'L' + x + ' ' + (y + h - r) +
+         'A' + r + ' ' + r + ' 0 0 0 ' + (x + r) + ' ' + (y + h) +
+         'L' + (x + w - r) + ' ' + (y + h) +
+         'A' + r + ' ' + r + ' 0 0 0 ' + (x + w) + ' ' + (y + h - r) +
+         'L' + (x + w) + ' ' + (y + r) +
+         'A' + r + ' ' + r + ' 0 0 0 ' + (x + w - r) + ' ' + y + 'Z';
+}
+document.getElementById('plate').style.clipPath =
+  'path("M0 0 L1920 0 L1920 1080 L0 1080 Z ' +
+  LAYOUT.tiles.map(function (t) { return roundedHole(t, 16); }).join(' ') + '")';
+
+var SLOT  = LAYOUT.slot;
+var TOTAL = P.length * SLOT;
+var FADE  = 620;
+
+var washA = document.getElementById('washA');
+var washB = document.getElementById('washB');
+var cardWrap = document.getElementById('cards');
+var tileWrap = document.getElementById('tiles');
+
+function paint(el, p) {
+  el.style.setProperty('--a', p.a);       el.style.setProperty('--b', p.b);
+  el.style.setProperty('--lite', p.lite); el.style.setProperty('--tint', p.tint);
+  el.style.setProperty('--wash', p.wash); el.style.setProperty('--glow', p.glow);
+}
+
+var cards = P.map(function (p) {
+  var el = document.createElement('div');
+  el.className = 'card';
+  el.innerHTML = '<div class="name">' + p.name + '</div><div class="hook">' + p.hook + '</div>';
+  paint(el, p); cardWrap.appendChild(el); return el;
+});
+
+var tiles = P.map(function (p, n) {
+  var t  = LAYOUT.tiles[n];
+  var el = document.createElement('div');
+  el.className = 'tile';
+  el.style.cssText += 'left:' + t.x + 'px;top:' + t.y + 'px;width:' + t.w + 'px;height:' + t.h + 'px';
+  el.innerHTML = '<i class="scrim"></i><i class="edge"></i><i class="ring"></i>' +
+                 '<div class="label">' + p.name + '</div><i class="bar"></i>';
+  paint(el, p); tileWrap.appendChild(el); return el;
+});
+
+function ease(x){ return x<=0?0:x>=1?1:1-Math.pow(1-x,3); }
+function clamp(x){ return x<0?0:x>1?1:x; }
+
+window.setT = function (ms) {
+  var t     = ((ms % TOTAL) + TOTAL) % TOTAL;
+  var i     = Math.floor(t / SLOT);
+  var local = t - i * SLOT;
+  var prev  = (i + P.length - 1) % P.length;
+  var mix   = ease(clamp(local / FADE));
+
+  paint(washA, P[i]);    washA.style.opacity = mix;
+  paint(washB, P[prev]); washB.style.opacity = 1 - mix;
+  paint(document.getElementById('eyebrow'), P[i]);
+  paint(document.getElementById('cta'), P[i]);
+
+  cards.forEach(function (el, n) {
+    if (n !== i) { el.style.opacity = 0; el.style.visibility = 'hidden'; return; }
+    el.style.visibility = 'visible';
+    var inP  = ease(clamp(local / 700));
+    var outP = ease(clamp((local - (SLOT - FADE)) / FADE));
+    el.style.opacity   = String(inP * (1 - outP));
+    el.style.transform = 'translateY(' + ((1 - inP) * 34 - outP * 26).toFixed(2) + 'px)';
+    var hook = el.querySelector('.hook');
+    var hp = ease(clamp((local - 220) / 760));
+    hook.style.opacity = String(hp * (1 - outP));
+  });
+
+  /* The cascade: the lit tile clears its scrim and takes its brand ring, the
+     one before it fades back. Everything else stays dimmed so the eye has
+     exactly one place to go. */
+  tiles.forEach(function (el, n) {
+    var lit  = n === i ? mix : (n === prev ? 1 - mix : 0);
+    el.querySelector('.scrim').style.opacity = (0.62 * (1 - lit)).toFixed(3);
+    el.querySelector('.ring').style.opacity  = lit.toFixed(3);
+    el.querySelector('.label').style.color   = lit > 0.5 ? '#fff' : '#C7D6E0';
+    el.querySelector('.bar').style.width     = n === i ? (clamp(local / SLOT) * 100).toFixed(2) + '%' : '0px';
+  });
+
+  document.getElementById('cta').style.opacity =
+    String(0.74 + 0.26 * Math.max(0, 1 - local / 900));
+};
+
+window.setT(0);
+document.documentElement.setAttribute('data-ready', '1');
+</script>

@@ -20,10 +20,12 @@ import RecitalNav from "@/components/RecitalNav";
 import ScrollReveal from "@/components/ScrollReveal";
 import Footer from "@/components/Footer";
 
-const PRIMARY_FIRST_DAY_RATE = 1250;
-const PRIMARY_ADDITIONAL_DAY_RATE = 750;
-const SECOND_OPERATOR_DAY_RATE = 499;
-const DRONE_PRICE = 250;
+// Rates carry a 10% increase applied 2026-08-09. The previous figures were
+// 1250 / 750 / 499 / 250.
+const PRIMARY_FIRST_DAY_RATE = 1375;
+const PRIMARY_ADDITIONAL_DAY_RATE = 825;
+const SECOND_OPERATOR_DAY_RATE = 549;
+const DRONE_PRICE = 275;
 
 const DISCOUNT_TIERS = [
   { threshold: 4000, rate: 0.15 },
@@ -46,7 +48,7 @@ const DELIVERABLES = [
     id: "oneMinuteReel",
     title: "1-Minute Social Reel",
     description: "Hero cut for launch, promotion, or recap",
-    price: 249,
+    price: 274,
     quantityLabel: "each",
     hasQuantity: true,
   },
@@ -54,7 +56,7 @@ const DELIVERABLES = [
     id: "stillImages",
     title: "50 Edited Still Images",
     description: "Retouched image package for marketing and web use",
-    price: 150,
+    price: 165,
     quantityLabel: "set",
     hasQuantity: true,
   },
@@ -62,7 +64,7 @@ const DELIVERABLES = [
     id: "fifteenSecondReels",
     title: "Five 15-Second Social Reels",
     description: "Short-form vertical edits ready for posting",
-    price: 150,
+    price: 165,
     quantityLabel: "pack",
     hasQuantity: true,
   },
@@ -70,7 +72,7 @@ const DELIVERABLES = [
     id: "rawVideo",
     title: "All Raw Video Footage",
     description: "Source video files delivered for internal reuse",
-    price: 500,
+    price: 550,
     quantityLabel: "flat",
     hasQuantity: false,
   },
@@ -78,7 +80,7 @@ const DELIVERABLES = [
     id: "rawImages",
     title: "All Raw Images",
     description: "Unedited image archive from the shoot",
-    price: 500,
+    price: 550,
     quantityLabel: "flat",
     hasQuantity: false,
   },
