@@ -22,7 +22,10 @@
 import { useState } from "react";
 import { Check, Loader2, Mail } from "lucide-react";
 
-type AssetKey = "checklist" | "planner" | "sixfilms";
+// The booth films are NOT on this list and must not be added. They are what
+// plays on the screen at the booth — they are not a giveaway and we do not
+// send them to anyone. What we give away is the written material.
+type AssetKey = "checklist" | "planner" | "interviews" | "videographer";
 
 const GUIDES: { asset: AssetKey; title: string; blurb: string }[] = [
   {
@@ -38,10 +41,16 @@ const GUIDES: { asset: AssetKey; title: string; blurb: string }[] = [
       "How one booked morning feeds a season of posts — what to prep, the four stations, what you walk out with.",
   },
   {
-    asset: "sixfilms",
-    title: "The six booth films",
+    asset: "interviews",
+    title: "The interview questions",
     blurb:
-      "The short films we play at the expos — one for each piece of studio software we build.",
+      "The prompts that get dancers, parents and staff to say something worth keeping — not a hostage video.",
+  },
+  {
+    asset: "videographer",
+    title: "The videographer brief",
+    blurb:
+      "One page to hand whoever films your recital: what to require, and the five questions to ask before you sign.",
   },
 ];
 
