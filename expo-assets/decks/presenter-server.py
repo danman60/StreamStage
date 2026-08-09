@@ -424,6 +424,100 @@ def start_facelift(url):
     return True, "started on %s (tmux %s)" % (FACELIFT_REMOTE, session)
 
 
+def _demo_token():
+    """The demo reset/preflight token. Env first, then a file beside this script.
+    NEVER hardcoded and never committed — demo-token.txt is gitignored."""
+    t = os.environ.get("DEMO_RESET_TOKEN", "").strip()
+    if t:
+        return t
+    try:
+        with open(os.path.join(HERE, "demo-token.txt")) as fh:
+            return fh.read().strip()
+    except Exception:
+        return ""
+
+
+def _https_json(url, token=None, payload=None, timeout=45):
+    """Small stdlib HTTPS helper — the presenter has no third-party deps by design."""
+    import urllib.request, urllib.error
+    data = json.dumps(payload).encode() if payload is not None else None
+    req = urllib.request.Request(url, data=data, method="POST" if data else "GET")
+    req.add_header("content-type", "application/json")
+    if token:
+        req.add_header("x-demo-token", token)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode("utf-8", "replace"))
+    except Exception as e:
+        return {"_error": "%s: %s" % (type(e).__name__, e)}
+
+
+def preflight_report():
+    """Everything the operator needs to know in one tap, from the phone in his hand.
+
+    Same ground the shell preflight covers (tests/preflight.sh), but runnable from the
+    stage-side device — because at 9:15 in a strange room nobody is opening a laptop
+    terminal. Read-only: this changes nothing.
+    """
+    checks = []
+
+    def add(cid, status, detail):
+        checks.append({"id": cid, "status": status, "detail": detail})
+
+    # -- the deck this presenter is driving
+    total = STATE.get("total") or 0
+    if total in KNOWN_DECKS:
+        add("deck", "pass", "%d slides — %s" % (total, KNOWN_DECKS[total]))
+    elif total == 0:
+        add("deck", "warn", "no deck has checked in yet — open one on the laptop")
+    else:
+        add("deck", "fail", "%d slides — %s" % (total, stale_deck_warning(total) or "unknown deck"))
+
+    # -- the booth kiosk, if it is on this machine
+    kiosk = None
+    for port in (8081, 8080, 8082):
+        try:
+            import urllib.request
+            with urllib.request.urlopen("http://127.0.0.1:%d/health" % port, timeout=3) as r:
+                kiosk = json.loads(r.read().decode("utf-8", "replace"))
+                kiosk["_port"] = port
+                break
+        except Exception:
+            continue
+    if kiosk is None:
+        add("kiosk", "warn", "no kiosk on this laptop (fine if the booth is elsewhere)")
+    elif kiosk.get("hasTv"):
+        add("kiosk", "pass", "up on %d, a TV is connected" % kiosk["_port"])
+    else:
+        add("kiosk", "warn", "up on %d, but no TV is connected yet" % kiosk["_port"])
+
+    # -- the facelift reveal
+    f = facelift_state()
+    st = f.get("status")
+    if st == "idle":
+        add("facelift", "pass", "idle — nothing stale is armed")
+    elif st == "ready":
+        age = int(time.time()) - int(f.get("updated_at") or 0)
+        add("facelift", "warn", "a build from %d min ago is armed (%s)" % (age // 60, f.get("url") or "?"))
+    elif st == "stale":
+        add("facelift", "pass", "stale build ignored; the reveal falls back to the pre-baked site")
+    else:
+        add("facelift", "warn", "%s %s" % (st, (f.get("stage") or "")[:40]))
+
+    # -- the live demo (needs internet and the token)
+    tok = _demo_token()
+    if not tok:
+        add("demo", "warn", "no demo token on this laptop — put it in demo-token.txt to check the demo")
+    else:
+        d = _https_json("https://www.studiosage.ai/api/demo/preflight", token=tok)
+        if d.get("_error"):
+            add("demo", "fail", "live-demo preflight unreachable (%s)" % d["_error"][:60])
+        else:
+            for c in d.get("checks", []):
+                add("demo:" + c["id"], c.get("status", "fail"), c.get("detail", "")[:110])
+    return {"checks": checks, "t": int(time.time())}
+
+
 def resume_facelift_poll():
     """Re-attach to a run that was still going when this server last stopped.
 
@@ -547,6 +641,11 @@ button:active{background:var(--cy);color:#06121a}
 #fl{display:none;position:fixed;inset:0;z-index:25;background:var(--bg);overflow-y:auto;
   padding:16px 16px calc(90px + env(safe-area-inset-bottom));padding-top:max(16px,env(safe-area-inset-top))}
 #fl.open{display:block}
+#pf{display:none;position:fixed;inset:0;z-index:26;background:var(--bg);overflow-y:auto;padding:18px 16px 90px}
+#pf.open{display:block}
+#pf h3{margin:6px 0 4px}
+#pfrun{width:100%;padding:18px 0;font-size:18px;font-weight:800;margin:10px 0 4px}
+#pfout{font-size:15px;line-height:1.35;margin:8px 0 4px}
 #fl h3{margin:0 0 4px;font-size:22px}
 #fl p.sub{margin:0 0 18px;color:var(--dim);font-size:15px}
 #flurl{width:100%;padding:16px 14px;font-size:20px;border-radius:12px;border:1px solid #2c3d4f;
@@ -580,8 +679,15 @@ button:active{background:var(--cy);color:#06121a}
   </div>
   <div id="flrow"><button id="flclose">Close</button><button id="flreset">Reset run</button></div>
 </section>
+<section id="pf">
+  <h3>Preflight</h3>
+  <p class="sub">One tap, before you go up. Checks the deck, the booth, the reveal and the live demo. Changes nothing.</p>
+  <button id="pfrun">RUN PREFLIGHT</button>
+  <div id="pfout"></div>
+  <div id="flrow"><button id="pfclose">Close</button><button id="pfreset">Reset demo KB</button></div>
+</section>
 <div id="rescuerow"><button id="animbtn">&#9656; ANIMATED DEMO &mdash; rescue</button></div>
-<nav><button id="prev">Prev</button><button id="flbtn">&#9733;</button><button id="jumpbtn">Jump</button><button id="next">Next &rsaquo;</button></nav>
+<nav><button id="prev">Prev</button><button id="flbtn">&#9733;</button><button id="pfbtn">&#10003;</button><button id="jumpbtn">Jump</button><button id="next">Next &rsaquo;</button></nav>
 <script>
 var lastSeq=-1, dot=document.getElementById('dot');
 function send(action){
@@ -597,6 +703,39 @@ document.getElementById('animbtn').onclick=function(){
 };
 var jump=document.getElementById('jump');
 document.getElementById('jumpbtn').onclick=function(){jump.classList.toggle('open')};
+/* ---- preflight, from the phone in his hand ------------------------------
+   At 9:15 in a strange room nobody opens a laptop terminal, so the same
+   checks the shell preflight runs are one tap away here. Read-only except
+   the explicit "Reset demo KB" button, which only ever touches the DEMO
+   tenant — never a customer. */
+var pf=document.getElementById('pf'), pfout=document.getElementById('pfout');
+document.getElementById('pfbtn').onclick=function(){pf.classList.toggle('open'); };
+document.getElementById('pfclose').onclick=function(){pf.classList.remove('open')};
+function pfPaint(d){
+  var col={pass:'#22c55e',warn:'#f59e0b',fail:'#ef4444'};
+  pfout.innerHTML=(d.checks||[]).map(function(c){
+    return '<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #1f2937">'
+      + '<b style="color:'+(col[c.status]||'#9ca3af')+';min-width:52px;font:800 13px/1.4 monospace">'
+      + c.status.toUpperCase()+'</b>'
+      + '<span style="flex:1"><b style="opacity:.75">'+c.id+'</b><br>'+c.detail+'</span></div>';
+  }).join('') || '<i>no checks returned</i>';
+}
+document.getElementById('pfrun').onclick=function(){
+  var b=this; b.textContent='CHECKING…'; b.disabled=true;
+  fetch('/preflight',{cache:'no-store'}).then(function(r){return r.json();})
+   .then(function(d){pfPaint(d); b.textContent='RUN PREFLIGHT'; b.disabled=false;})
+   .catch(function(e){pfout.textContent='could not run: '+e; b.textContent='RUN PREFLIGHT'; b.disabled=false;});
+};
+document.getElementById('pfreset').onclick=function(){
+  if(!confirm('Restore the DEMO knowledge base to its seeds? This touches the demo tenant only.'))return;
+  var b=this; b.textContent='resetting…'; b.disabled=true;
+  fetch('/demo-reset',{method:'POST',headers:{'content-type':'application/json'},body:'{}'})
+   .then(function(r){return r.json();})
+   .then(function(d){ b.textContent=d.ok?'reset ✓':'failed'; b.disabled=false;
+                      if(!d.ok)pfout.textContent=d.error||'reset failed';
+                      else document.getElementById('pfrun').click(); })
+   .catch(function(e){ b.textContent='failed'; b.disabled=false; pfout.textContent=''+e; });
+};
 function paintJump(s){
   var ul=document.getElementById('jumplist');
   if(ul.dataset.n==String((s.titles||[]).length)){          // list is stable; just move the marker
@@ -843,6 +982,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
             return
+        if self.path.startswith("/preflight"):    # phone: one-tap show check
+            return self._json(preflight_report())
         if self.path.startswith("/demo-kb"):      # live scene: knowledge feed
             return self._json(demo_feed("kb"))
         if self.path.startswith("/demo-wall"):    # live scene: text feed
@@ -879,6 +1020,16 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 STATE["stale"] = stale_deck_warning(STATE["total"])
                 STATE["seq"] += 1
             return self._json({"ok": True})
+        if self.path.startswith("/demo-reset"):    # phone: restore the demo knowledge base
+            tok = _demo_token()
+            if not tok:
+                return self._json({"ok": False,
+                                   "error": "no demo token on this laptop (demo-token.txt)"}, 400)
+            r = _https_json("https://www.studiosage.ai/api/demo/reset",
+                            token=tok, payload={"seeds": True})
+            if r.get("_error"):
+                return self._json({"ok": False, "error": r["_error"][:120]}, 502)
+            return self._json({"ok": True, "result": r})
         if self.path.startswith("/facelift"):      # phone kicks off the rebuild
             action = data.get("action") or "start"
             if action == "reset":
