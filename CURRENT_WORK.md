@@ -1,5 +1,101 @@
 # Current Work - StreamStage
 
+## 2026-08-09 19:30 ET — MENU REEL, FOLLOW-ON FILMS, 24-SCENARIO SUITE. Commit `6d8e331`, pushed.
+
+### INCIDENT — three fabricated leads reached production, then were removed
+`tests/scenarios.mjs` fills the booth gate with a made-up studio and email. The kiosk it ran
+against was started **bare**, and `serve.py` auto-drains its lead queue to
+`https://streamstage.live/api/expo-leads` every two minutes unless you pass `--no-flush`. Its
+startup banner says exactly that; it was ignored. Three sends (19:47, 19:50, 19:52) merged into
+**one** production row (`scenario+booth@example.invalid` / "Scenario Test Studio").
+Backed up to `scratchpad/deleted-scenario-lead-2026-08-09.json`, **deleted**, absence confirmed
+three ways (email eq, studio ilike, email ilike). Local queue purged 4 rows -> 0
+(`scratchpad/leads-2026-08-09-BEFORE-PURGE.jsonl`). The address is a reserved `.invalid` TLD so
+no real inbox could receive it.
+**Durable fix:** the suite now reads `/health.leadFlush.endpoint` — the SERVER's own reported
+destination — and REFUSES to run unless it is loopback or absent. Verified: it refuses.
+
+### Shipped
+- **The menu reel** (`expo-assets/kiosk/menu-loop/`) — 30s, six live film thumbnails, highlight
+  cascading 5s each, "tap the tablet to watch the full explainer". Rendered by walking
+  `window.setT(ms)` so frames cannot drop. Lives OUTSIDE `media/` on purpose: `publish-films.sh`
+  ships all of `media/` to R2 and onto the stick's reel, and an attract reel filed as a film would
+  play as an eighth film. **First render came out at 25 fps** — lavfi's colour source defaults to
+  25 and the whole overlay chain inherited it; fixed with `r=`, re-rendered, verified 30/1.
+- **`attract` operator verb** (and `A` on the TV) switches card loop <-> menu reel. `/state`
+  reports the mode and whether the reel exists.
+- **Films follow on**: when a chosen film ends the end card still shows (it carries the QR) and
+  then the NEXT film plays. The Fire Stick already did this — its reel is one ExoPlayer playlist
+  on `REPEAT_MODE_ALL` — so this makes the browser TV agree.
+- **The re-rendered StreamStage film is LIVE on the stick.** Published to R2 (manifest v3,
+  sha256 + bytes matched), then driven through the stick's own update panel over adb: it read
+  `NEW VERSION · 187.8 MB`, downloaded, verified and reported `updated · plays from the next time
+  round`. Stick is `192.168.0.199`, AFTKRT, versionCode 3. Old cut kept at
+  `scratchpad/streamstage-services-PREV-92MB.mp4`.
+- **/videoproduction +10%** (in commit `6d8e331`, whose message does not mention it): day rates
+  1250/750/499 -> 1375/825/549, drone 250 -> 275, deliverables 249 -> 274, 150 -> 165 x2,
+  500 -> 550 x2.
+
+### Defect found by the suite and fixed
+`attract` was operator-only but was NOT in `COMMANDS`. `command_of()` returns None for an unknown
+type, and a message that is not a command is never operator-checked — so a **visitor surface could
+change the attract loop and get a 200 back**. Now in both sets.
+
+### Open — Daniel's numbers, not mine
+1. **Out-of-town travel on /videoproduction.** Needs: the amount (flat / per-km / per-day), what
+   counts as out of town, and what the waiver is when two local studios combine. Not invented.
+2. **The lead capture campaign.** Measured today: booth leads reach StudioSage's `leads` table
+   ONLY. **Nothing reaches CommandCentered**, which already has the whole engine —
+   `Campaign -> CampaignStep -> CampaignLead -> CampaignSendEvent`, plus `Lead.nextFollowUpAt`,
+   `autoDraftEnabled`, `recitalDates` and `CommunicationTouchpoint`. The work is the bridge plus
+   the step copy, not a new system. Design not started pending his shape.
+3. Also note: CommandCentered's own prod was 404 from ~14:31 ET today (commit `a04e586`, the
+   `app/app` trap). The booth lead path is UNAFFECTED — `/g` 200, the `expo-leads.html` 307 and
+   StudioSage `/api/leads` all verified live.
+
+
+## 2026-08-09 15:20 ET — SESSION REFRESHED (context length). Nothing broken, nothing in flight.
+
+Four commits pushed today: `35d4a47`, `7170a64`, `0dd6c63`, `46da328`.
+
+### Active task at refresh
+Nothing running. All work below is finished, verified and pushed. Daniel flies **Mon Aug 10
+09:00**; talk 2 Tue 09:20, talk 1 Wed 10:50.
+
+### Shipped since the last entry
+- **Preflight + demo reset are buttons on the phone remote** (`46da328`). `GET /preflight` on the
+  presenter returns 11 colour-coded rows (deck identity + stale-deck alarm, booth kiosk, facelift
+  freshness, the 8 live-demo checks). `POST /demo-reset` restores the demo tenant's seeds. The
+  token lives in `demo-token.txt` beside the script on DART — **gitignored, never committed**.
+- **One-command show preflight** (`0dd6c63`): `tests/preflight.sh` (`--reset-demo` to also reset).
+- **Address discovery**: `tools/booth-lan.sh` — `$BOOTH_HOST` override, else the kiosk's UDP
+  beacon. Nothing needs to hardcode an IP again.
+- **START-BOOTH.bat** (easy manual start, idempotent) and **REVIEW-DECKS.bat** (offline deck
+  review on the plane), both deployed to DART.
+
+### THE THING TO REMEMBER
+**DART's LAN address is now `192.168.0.11`, not `.13`** — and `.11` is what the ledger recorded
+for the FIRE TABLET. Anything quoting `.13` is stale, including `DART=192.168.0.13
+./tests/e2e-booth.sh`.
+
+### Next steps — ONLY these
+1. **Re-run `tests/e2e-booth.sh` with `DART=192.168.0.11`.** It has NOT been run today; its last
+   green (44 pass / 0 fail / 2 skip) was 08-08 against the old IP, so it is an inherited claim.
+2. **Confirm the kiosk beacon from the tablet or phone.** This box cannot hear it — SPYBALLOON's
+   INPUT policy is DROP — so that check is unconfirmed, not proven.
+3. **Reset the facelift run before going on stage** (a test build stays armed and preflight will
+   keep flagging it), or just let preflight tell him.
+4. **DANIEL: the citation promise.** SMS replies carry NO citation, so the stage line "it never
+   hallucinates, only answers and cites from the email" is not true as written. Rephrase or ship
+   citations.
+5. **DANIEL:** ship-or-leave the re-rendered film · ten-and-ten picks · Reflect's tagline · the
+   talk-2 SMS QR prefill · the talk-1 videographer QR living only inside the `M` act.
+
+### Reason for refresh
+Context length. Every goal from this session met and verified.
+
+---
+
 ## 2026-08-09 — FACELIFT REVEAL FIXED, STUDIOSAGE DEMO PROVEN E2E, DECKS AUDITED
 
 Commit `35d4a47`, pushed. Everything below was measured on real surfaces, not inferred.
