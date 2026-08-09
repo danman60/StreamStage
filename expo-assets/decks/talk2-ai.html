@@ -2013,10 +2013,12 @@
       var st=(f.status||'idle').toUpperCase(), cls='';
       if(f.status==='running'||f.status==='queued'){cls='run';st=st+(f.stage?' \u00b7 '+f.stage:'');}
       else if(f.status==='ready'){cls='ok';}
-      else if(f.status==='failed'){cls='bad';}
+      else if(f.status==='failed'||f.status==='stale'){cls='bad';}
       chip(document.getElementById('fl-status'),st,cls);
       chip(document.getElementById('fl-status2'),
-           f.status==='ready'?'READY \u00b7 BUILT LIVE':(f.status==='failed'?'FAILED \u2192 FALLBACK':st),cls);
+           f.status==='ready'?'READY \u00b7 BUILT LIVE':
+           (f.status==='failed'?'FAILED \u2192 FALLBACK':
+           (f.status==='stale'?'STALE \u2192 FALLBACK':st)),cls);
       // their CURRENT site under the plant (best effort — many sites refuse to be framed)
       var pw=document.getElementById('fl-plantwrap'), pf=document.getElementById('plantframe');
       if(pw&&pf){
@@ -2026,11 +2028,17 @@
       // the REVEAL source: deployed, else the local build, else the pre-baked fallback
       var rf=document.getElementById('revealframe');
       if(rf&&rf.dataset.manual!=='1'){
-        var src=f.deployed_url||f.local_url||f.fallback_url||'';
+        /* ONLY a run the server calls `ready` may be revealed as built-live.
+           The contract's older wording ("ready, or any non-empty local_url") predates the
+           server's staleness guard, and taking it literally is a stage-grade lie: with a
+           260h-old build still on disk the curtain opened on ANOTHER studio's site \u2014 measured
+           2026-08-09, Steppin' Up (Sarnia) sitting behind "built live on this laptop".
+           Anything not ready falls through to the pre-baked fallback, which is honest. */
+        var live=(f.status==='ready'), src=(live&&(f.deployed_url||f.local_url))||f.fallback_url||'';
         if(src&&rf.dataset.src!==src){rf.dataset.src=src;rf.src=src;}
         var lbl=document.getElementById('fl-src');
-        if(lbl)lbl.textContent = f.deployed_url ? 'hosted build loaded \u2014 click once, curtain opens'
-          : (f.local_url ? 'built live on this laptop \u2014 click once, curtain opens'
+        if(lbl)lbl.textContent = (live&&f.deployed_url) ? 'hosted build loaded \u2014 click once, curtain opens'
+          : ((live&&f.local_url) ? 'built live on this laptop \u2014 click once, curtain opens'
                          : 'pre-baked fallback loaded \u2014 say so out loud');
       }
     }

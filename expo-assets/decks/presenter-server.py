@@ -246,11 +246,30 @@ FACELIFT_MAX_AGE_S = 6 * 3600
 def facelift_state():
     """Read the runner's status file; fill in what the server can see itself."""
     st = dict(IDLE_FACELIFT)
+    raw = {}
     try:
         with open(FACELIFT_STATUS) as fh:
-            st.update(json.load(fh))
+            raw = json.load(fh)
+            st.update(raw)
     except Exception:
         pass
+    # The status file has TWO writers: facelift-run.sh's say(), which always writes
+    # `status`, and the headless Claude session, which is *told* to preserve the keys
+    # and does not always do it. Measured 2026-08-09 during a real run: the session
+    # rewrote status.json as {"updated_at","url","session","started_at"} — no `status`,
+    # no `stage` — so this function fell back to IDLE while a build was actually
+    # running, and the phone panel and the deck chip both read IDLE. On stage that
+    # invites a second GO (409) and hides a live build. So: never trust the file to
+    # carry `status`; infer it when it is missing.
+    if not raw.get("status"):
+        started = int(st.get("started_at") or 0)
+        updated = int(st.get("updated_at") or 0)
+        age = int(time.time()) - max(started, updated)
+        if started and age <= FACELIFT_MAX_AGE_S:
+            st["status"] = "running"
+            st["stage"] = raw.get("stage") or "in progress (runner has not reported a stage)"
+        else:
+            st["status"] = "idle"
     # Age out a stale run rather than presenting it as a result. Kept visible (not
     # silently blanked) so the reason is obvious when it matters.
     try:

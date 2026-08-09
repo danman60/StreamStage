@@ -48,8 +48,16 @@ returns the same object on its own.
   blocked iframe blank the slide.
 - **REVEAL slide** — iframe `facelift.deployed_url || facelift.local_url || facelift.fallback_url`,
   in that order, behind your curtain. All three are same-origin or plain http, so they frame fine.
-- **Reveal readiness** — `status === "ready"` (or any non-empty `local_url`) means the curtain
-  can open. `status === "failed"` means open the curtain on `fallback_url` and say so honestly.
+- **Reveal readiness** — ⚠ **CORRECTED 2026-08-09: `status === "ready"` and nothing else.** This
+  file used to say "or any non-empty `local_url`", and the deck implemented it literally. That is a
+  stage-grade lie, and it was measured: with a 260h-old build still on disk the server correctly
+  reported `stale`, `local_url` stayed populated (the server sets it from the filesystem), and the
+  curtain opened full-screen on **another studio's website** — Steppin' Up, Sarnia — under the
+  caption *"built live on this laptop"*. In Calgary that would have handed a Calgary studio a
+  Sarnia studio's site and claimed it was built during the hour.
+  `talk2-ai.html` now reveals `deployed_url || local_url` **only when `status === "ready"`**, and
+  falls through to `fallback_url` for `stale`, `failed`, `idle`, `queued` and `running`.
+  `status === "failed"` and `status === "stale"` both show a red chip and say so honestly.
 
 Poll is already 400ms via `/state`; nothing new to wire up.
 
@@ -99,14 +107,36 @@ that this one was built earlier.
 
 ## Rehearsal mode (test the whole path in 20 seconds)
 
-Start the server with `FACELIFT_FAKE=1` and the runner walks scrape → build → qa in 15s and then
-serves the pre-baked site as if it had just built it. Everything downstream — status, the phone
-panel, `/facelift-site/`, the deck's reveal — behaves exactly as in a real run.
+⚠ **CORRECTED 2026-08-09 — the command below does NOT work, and it is the one this file used to
+recommend.** The server does not run the build itself: it dispatches over ssh to
+`FACELIFT_REMOTE` (`danman60@100.122.177.91`, SPYBALLOON — see `presenter-server.py:164`), and
+`FACELIFT_FAKE` is read by `facelift-run.sh` **on the far side of that ssh hop**, so setting it on
+the server's environment never reaches the runner. Measured: the server started with
+`FACELIFT_FAKE=1` still attempted a real remote dispatch and the run failed at
+`stage: dispatch`.
+
+```bash
+# DOES NOT put the runner in rehearsal mode:
+FACELIFT_FAKE=1 python3 presenter-server.py     # ← the env never crosses the ssh hop
+```
+
+**What actually works** — run the runner directly, in the same directory the server reads:
 
 ```bash
 cd expo-assets/decks
-FACELIFT_FAKE=1 python3 presenter-server.py
+FACELIFT_FAKE=1 ./facelift-run.sh https://example.com "$PWD/facelift-out"
 ```
+
+That walks scrape → build → qa in 15s, publishes the pre-baked site as if it had just built it,
+and the server picks it up from `facelift-out/status.json` — status, the phone panel,
+`/facelift-site/` and the deck's reveal all behave exactly as in a real run. Verified end to end
+2026-08-09.
+
+⚠ **The build needs SPYBALLOON reachable over Tailscale.** A real run at the venue is
+DART → ssh → SPYBALLOON (Ontario). If that hop is down or the venue blocks it, every GO fails at
+`stage: dispatch` — which is a `failed` status, so the reveal correctly falls through to the
+pre-baked fallback, but there will be no live build. Local serving of the reveal is unaffected;
+it is only the *building* that leaves the room.
 
 ---
 
