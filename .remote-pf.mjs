@@ -1,0 +1,12 @@
+import { chromium } from 'playwright';
+const OUT='/tmp/claude-1000/-home-danman60-projects-StreamStage/70b79e52-861b-4715-a181-1a2344eae235/scratchpad';
+const b=await chromium.launch(); const p=await b.newPage({viewport:{width:412,height:915}});
+const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR: '+e.message.slice(0,160)));
+await p.goto('http://192.168.0.11:8090/remote',{waitUntil:'load'}); await p.waitForTimeout(1500);
+await p.click('#pfbtn'); await p.waitForTimeout(400);
+const opened=await p.evaluate(()=>document.getElementById('pf').classList.contains('open'));
+await p.click('#pfrun'); await p.waitForTimeout(9000);
+const out=await p.evaluate(()=>(document.getElementById('pfout').innerText||'').trim());
+await p.screenshot({path:`${OUT}/remote-preflight.png`, fullPage:true});
+console.log(JSON.stringify({panelOpened:opened, lines:out.split('\n').length, preview:out.slice(0,300), errs},null,2));
+await b.close();

@@ -1,0 +1,59 @@
+{"msgs": 1, "inbound": 0, "subject": "That recital video checklist", "to": "Mallory Jardine <hello@malloryjardine."}
+{"msgs": 1, "inbound": 0, "subject": "From the Toronto Dance Teacher Expo", "to": "just4kicksdundas@live.ca"}
+{"msgs": 1, "inbound": 0, "subject": "September 1 is penciled in, here's everything you ne", "to": "heather jelly <thatsdancing5678@hotmai"}
+{"msgs": 8, "inbound": 2, "subject": "From Tyrell; new competition software", "to": "Standout Dance Challenge <director@sta"}
+{"msgs": 3, "inbound": 1, "subject": "Your assistant is ready and waiting (plus three new ", "to": "\"Alisa's Dance Academy\" <alisa@alisasd"}
+{"msgs": 1, "inbound": 0, "subject": "That 5 Free AI Moves handout", "to": "sdskinnersask@gmail.com"}
+{"msgs": 2, "inbound": 1, "subject": "Elvis & Co Meeting Today 2pm", "to": "jeff@crownproduction.ca"}
+{"msgs": 1, "inbound": 0, "subject": "Your CompSync portal, logins inside", "to": "Kelly Nimens <kelly@runwaydanceconnect"}
+{"msgs": 5, "inbound": 2, "subject": "BFFTS 2027", "to": "Abby David <abbyjdavid@gmail.com>"}
+{"msgs": 2, "inbound": 1, "subject": "Season proposal, two concerts plus reels", "to": "Bea Gratton <marketing@wellingtonwinds"}
+{"msgs": 11, "inbound": 6, "subject": "CRIPtonite 2026 Livestream", "to": "Nathan Sartore <nathan@thedisabilityco"}
+{"msgs": 4, "inbound": 2, "subject": "Re: Your 5 free AI moves (the one-pager)", "to": "\"info urbandancecompany.ca\" <info@urba"}
+{"msgs": 2, "inbound": 1, "subject": "Recruitment Video Review", "to": "Donavon LeNabat <donavon@lenabat.com>"}
+{"msgs": 3, "inbound": 1, "subject": "BFFTS 2027", "to": "Justin Han <jhperc@gmail.com>"}
+{"msgs": 1, "inbound": 0, "subject": "That recital video checklist", "to": "info@arabesqueacademy.ca"}
+{"msgs": 1, "inbound": 0, "subject": "Two things from the Expo", "to": "sara@spotlightdanceworks.com"}
+{"msgs": 2, "inbound": 1, "subject": "Re: Invitation: Intro Call with Heather @ Thu 6 Aug ", "to": "heather jelly <thatsdancing5678@hotmai"}
+{"msgs": 1, "inbound": 0, "subject": "That recital video checklist", "to": "kendra.amondsen@gmail.com"}
+{"msgs": 1, "inbound": 0, "subject": "Recital capture for Rugcutterz", "to": "rugcutterzdanz@gmail.com"}
+{"msgs": 3, "inbound": 2, "subject": "Studio promo film for That's Dancing", "to": "thatsdancing5678@hotmail.com"}
+{"msgs": 3, "inbound": 2, "subject": "RUNWAY Meeting - Thursday", "to": "Riley Nimens <riley@runwaydanceconnect"}
+{"msgs": 2, "inbound": 1, "subject": "Our_Family_Learning_Journal_Project_Brief", "to": "Kayla James <kaylajames2788@gmail.com>"}
+{"msgs": 1, "inbound": 0, "subject": "That recital video checklist", "to": "steppinupdanceco@outlook.com"}
+{"msgs": 2, "inbound": 1, "subject": "stock footage", "to": "Mark Massecar <mark.m@yfcwoodstock.com"}
+{"msgs": 1, "inbound": 0, "subject": "Content day at Revolutions", "to": "Melissa <melissabeeby@gmail.com>, revd"}
+{"msgs": 1, "inbound": 0, "subject": "Recital capture for SBS Dance", "to": "christine.sbsdance@gmail.com"}
+{"msgs": 1, "inbound": 0, "subject": "Studio promo film for Run the Flex", "to": "nicole@runtheflex.com"}
+{"msgs": 2, "inbound": 1, "subject": "Recital delivery for your 150 families", "to": "premierdance@hotmail.com"}
+{"msgs": 6, "inbound": 3, "subject": "Elvis Returns Videos", "to": "jeff@crownproduction.ca"}
+{"msgs": 2, "inbound": 1, "subject": "TDTE session transcripts and insights", "to": "\"Jay T. Schramek\" <jaytschramek@gmail."}
+{"msgs": 1, "inbound": 0, "subject": "Results board for the 2026 Pull", "to": "Virginia Janssen <dibblevirginia@gmail"}
+{"msgs": 1, "inbound": 0, "subject": "Adios! :)", "to": "bruno nesci <brunoelvis@live.com>"}
+{"msgs": 1, "inbound": 0, "subject": "Your Grand River highlight reel is ready", "to": "Laura Ramsay <misslaura@grandriverdanc"}
+{"msgs": 1, "inbound": 0, "subject": "Your 7 Attitudes highlight reel is ready", "to": "7 Attitudes School of Arts <customerse"}
+{"msgs": 2, "inbound": 1, "subject": "Re: Followup Question", "to": "contact@heyitspickett.com"}
+{"msgs": 2, "inbound": 1, "subject": "Fw: Show A Digital Download ready", "to": "mgoodhand7@hotmail.com"}
+{"msgs": 1, "inbound": 0, "subject": "The camera from the expo talk", "to": "dancinsara@rogers.com"}
+{"msgs": 1, "inbound": 0, "subject": "Your Lindsay Dance Studio highlight reel is ready", "to": "Lindsay Dance Studio Admin <alana.lind"}
+{"msgs": 3, "inbound": 2, "subject": "Jesse (Videographer)", "to": "info.jcook@gmail.com"}
+{"msgs": 2, "inbound": 1, "subject": "Completed Edits", "to": "tyrell@thesocialapproach.net"}
+{"msgs": 2, "inbound": 1, "subject": "Phone number?", "to": "james@hopechurch.ca, james@hopeinnerki"}
+{"msgs": 2, "inbound": 1, "subject": "Promo video, and an ideal date: Monday November 2", "to": "info@muskokadance.ca"}
+{"msgs": 1, "inbound": 0, "subject": "Your StudioSage sign-in link (fixed)", "to": "sara@spotlightdanceworks.com"}
+{"msgs": 2, "inbound": 1, "subject": "Promo video, and an ideal date: Monday November 2", "to": "info@muskokadance.ca"}
+{"msgs": 1, "inbound": 0, "subject": "Your website rebuild from the Expo", "to": "steppinupdanceco@outlook.com"}
+{"msgs": 1, "inbound": 0, "subject": "Your StudioSage sign-in - wrong email on file?", "to": "steppinupdanceco@outlook.com"}
+{"msgs": 3, "inbound": 1, "subject": "Promo video in August", "to": "Dynamic DA <dynamicdancearts@gmail.com"}
+{"msgs": 1, "inbound": 0, "subject": "That recital video checklist", "to": "kendra.amondsen@gmail.com"}
+{"msgs": 1, "inbound": 0, "subject": "Content day at Revolutions", "to": "Melissa <melissabeeby@gmail.com>, revd"}
+{"msgs": 1, "inbound": 1, "subject": "That 5 Free AI Moves handout", "to": "info@apexwestpa.com"}
+{"msgs": 1, "inbound": 1, "subject": "That 5 Free AI Moves handout", "to": "essbrown1998@gmail.com"}
+{"msgs": 1, "inbound": 1, "subject": "That 5 Free AI Moves handout", "to": "jackiecook18@hotmail.com"}
+{"msgs": 5, "inbound": 3, "subject": "Gallery updated!", "to": "Dance Attack <kent@dance-attack.com>"}
+{"msgs": 2, "inbound": 1, "subject": "Promo video, and an ideal date: Monday November 2", "to": "info@muskokadance.ca"}
+{"msgs": 1, "inbound": 0, "subject": "Recital delivery for your 150 families", "to": "premierdance@hotmail.com"}
+{"msgs": 1, "inbound": 0, "subject": "Studio promo film for Run the Flex", "to": "nicole@runtheflex.com"}
+{"msgs": 1, "inbound": 0, "subject": "Recital capture for Rugcutterz", "to": "rugcutterzdanz@gmail.com"}
+{"msgs": 2, "inbound": 1, "subject": "Recital capture for SBS Dance", "to": "christine.sbsdance@gmail.com"}
+{"msgs": 1, "inbound": 0, "subject": "Studio promo film for That's Dancing", "to": "thatsdancing5678@hotmail.com"}

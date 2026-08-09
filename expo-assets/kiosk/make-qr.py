@@ -131,9 +131,13 @@ def main() -> None:
         for product, url in PRODUCTS.items():
             write(f"{surface}/{product}.svg", tagged(url, product, surface))
             count += 1
-    # The "want all six?" offer on the tablet, after a film ends. Gated.
+    # The offer on the tablet after a film ends. Gated.
+    # It used to promise "all six films". We do not send the films — they are
+    # what plays on the booth screen, not a giveaway — so it offers the recital
+    # video checklist, which is a real freebie and the right thing to hand
+    # somebody who just watched a film about recital video.
     for product in PRODUCTS:
-        write(f"tablet/leads-{product}.svg", gated("sixfilms", SRC_TABLET, product, "tablet"))
+        write(f"tablet/leads-{product}.svg", gated("checklist", SRC_TABLET, product, "tablet"))
         count += 1
     # The StreamStage services card on the TV attract loop (recital filming and
     # livestream). TV ONLY — this is deliberately NOT a seventh tablet tile.

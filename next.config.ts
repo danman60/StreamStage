@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
       {
         source: "/expo-leads.html",
         missing: [{ type: "query", key: "staff" }],
-        destination: "/g?a=sixfilms&src=booth_tv&p=streamstage&s=tv",
+        destination: "/g?a=checklist&src=booth_tv&p=streamstage&s=tv",
         permanent: false,
       },
       // Client demo moved to dedicated demo host

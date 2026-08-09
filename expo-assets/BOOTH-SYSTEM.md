@@ -78,9 +78,14 @@ two windows on one laptop they talk over BroadcastChannel and never touch the se
 tablet open that product's website with a tracking tag. Plus the Facebook group
 code. Interest, not leads.
 
-**Seven require an email.** The six "want all six films?" codes on the tablet (shown
-after a film ends) and the recital-services code on the TV. They land on
-`streamstage.live/g`, which asks for details before delivering.
+**Seven require an email.** The six codes on the tablet shown after a film ends, and
+the recital-services code on the TV. They land on `streamstage.live/g`, which asks
+for details before delivering.
+
+**We never send the booth films.** They are what plays on the screen — not a
+giveaway. Those six tablet codes used to promise "all six films" and now offer the
+recital video checklist, which is the right thing to hand somebody who just watched
+a film about recital video. The film's own baked-in QR points there too.
 
 **Away from the booth:** the four printed handout codes, and talk 1's slide codes,
 all point at the same gated page. The QR burned into the StreamStage film points at
@@ -103,11 +108,11 @@ port nothing could bind, or at the production phone number instead of the demo o
 4. If the venue wifi is down, the lead sits on the kiosk's disk and the kiosk retries
    every two minutes until it lands. It also survives a browser reload on the tablet.
 
-**Everything you can be asked for now delivers itself.** The recital video
-checklist, the interview questions, the videographer brief, the content day planner
-(Part one and a half of the checklist), the six booth films (`/films`), the 5 AI
-moves, and the recital service page. **No request creates a job for you.** Until
-2026-08-09 two of them did, silently.
+**The giveaways are written material, and every one delivers itself:** the recital
+video checklist, the interview questions, the videographer brief, the content day
+planner (Part one and a half of the checklist), the 5 AI moves, and the recital
+service page. **No request creates a job for you.** Until 2026-08-09 two of them did,
+silently.
 
 ### The trap that has now bitten twice
 

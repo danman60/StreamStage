@@ -6,11 +6,14 @@ import { escapeHtml } from "@/lib/mailer";
  * Rule for this file: every `url` here must be a page that really resolves today.
  *
  * As of 2026-08-09 every asset delivers itself and NONE of them create a job for
- * Daniel. Two used to: the content day planner (now Part one and a half of the
- * checklist) and the six booth films (now /films). The films were never actually
- * unpublished — the Fire Stick has been streaming them from the public R2 bucket
- * all along, so that caveat was a stale comment, not a fact. If you are about to
- * write "not published yet" here again, fetch the URL first.
+ * Daniel. The content day planner used to: it only existed as a print handout,
+ * so its email promised Daniel would send it. It is now Part one and a half of
+ * the checklist.
+ *
+ * There is deliberately NO asset for the booth films, and one must not be added.
+ * They are what plays on the screen at the booth — not a giveaway. We give away
+ * the written material. The tablet's post-film offer, the film's own baked-in QR
+ * and flush-leads.py all point at the recital video checklist for this reason.
  *
  * Verified 2026-08-09:
  *   https://streamstage.live/checklist.html              200
@@ -19,7 +22,6 @@ import { escapeHtml } from "@/lib/mailer";
  *   https://streamstage.live/checklist.html#planner      200 (anchor added 2026-08-09)
  *   https://www.studiosage.ai/moves                      200
  *   https://streamstage.live/dancerecital                200
- *   all six booth films at pub-626d…r2.dev/booth/<id>.mp4  206 with Range
  *
  * The sentences here are mirrored verbatim in `public/g.html` (a static file
  * with no build step). Change one, change the other — the landing page and the
@@ -83,20 +85,6 @@ export const LEAD_ASSETS = {
     sentence:
       "The content day planner — how to plan one shoot day that feeds a season of posts: what to prep, the four stations, and what you walk out with.",
     interests: ["video", "content day planner"],
-  },
-  // The films were always published — the Fire Stick streams them from the
-  // public R2 bucket, with range requests. The old caveat said they were not
-  // posted and promised Daniel would send the links by hand, which created a
-  // task on every scan for no reason. /films plays all six.
-  sixfilms: {
-    label: "The six booth films",
-    url: "https://streamstage.live/films",
-    cta: "Watch the six films",
-    // The six films are the six PRODUCTS, taken verbatim from CONFIG.products in
-    // expo-assets/kiosk/kiosk.js. Do not describe them as video genres.
-    sentence:
-      "The six short films we were playing at the booth — StudioSage, CompSync, Callboard, CostumeCraft, StudioBeat and Reflect.",
-    interests: ["video", "booth films"],
   },
   // StreamStage's own video service, not a download. The wording is taken from
   // the close of the checklist ("cameras, audio, interviews, titles and parent

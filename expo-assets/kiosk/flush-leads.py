@@ -147,7 +147,9 @@ def payload_for(lead: dict) -> dict:
         # The taxonomy value the leads route validates, not prose. The prose is
         # in `notes`, which is where Daniel reads it.
         "source": "booth_tablet",
-        "asset": "sixfilms",
+        # Not the films: we do not send those. The booth tablet offers the
+        # recital video checklist, and this is what the visitor is emailed.
+        "asset": "checklist",
         "src": "booth_tablet",
         "p": product or None,
         "s": "tablet",
