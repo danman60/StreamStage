@@ -327,6 +327,22 @@ def _remote_poll(url, session, started):
                           started_at=started, session=session)
             continue
         status = st.get("status", "running")
+        # A finished build on the far side is the real proof, exactly as it is locally
+        # (see facelift_state's filesystem override). The remote status.json is written
+        # partly by the headless Claude session, which has been measured dropping the
+        # `status` key entirely — and this poller only pulls the site when it reads
+        # "ready". Measured 2026-08-09: the build was complete on the host at 11 min
+        # while DART still showed `running` with no local_url, which is the Toronto
+        # failure exactly ("the build was never late, the reveal wiring was"). So ask
+        # the filesystem too, and stop depending on a key a model may not write.
+        if status != "ready":
+            rc2, out2, _ = run_capture(
+                SSH + [FACELIFT_REMOTE,
+                       "test -f %s/site/index.html && echo BUILT" % FACELIFT_REMOTE_DIR], 20)
+            if rc2 == 0 and b"BUILT" in (out2 or b""):
+                status = "ready"
+                st["status"] = "ready"
+                st.setdefault("stage", "build found on the host (status file did not say so)")
         st.setdefault("url", url)
         st["session"] = session
         # the runner's status.json has no started_at; without this the deck's
@@ -420,9 +436,14 @@ def resume_facelift_poll():
     """
     if FACELIFT_LOCAL:
         return
+    # Read through facelift_state() rather than the raw file. The mirrored status.json
+    # inherits whatever the remote had, and the headless session has been measured
+    # writing it WITHOUT a `status` key — which made this function return immediately
+    # and silently never resume, so a restart mid-run orphaned the build a second way.
+    # Measured 2026-08-09 on DART. facelift_state() infers `running` from a recent
+    # started_at, so one inference serves both the display and this.
     try:
-        with open(FACELIFT_STATUS) as fh:
-            st = json.load(fh)
+        st = facelift_state()
     except Exception:
         return
     if st.get("status") not in ("queued", "running"):

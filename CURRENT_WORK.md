@@ -1,5 +1,121 @@
 # Current Work - StreamStage
 
+## 2026-08-09 — FACELIFT REVEAL FIXED, STUDIOSAGE DEMO PROVEN E2E, DECKS AUDITED
+
+Commit `35d4a47`, pushed. Everything below was measured on real surfaces, not inferred.
+
+### THE BOOTH FACT THAT CHANGED — DART's LAN IP MOVED
+**DART is now `192.168.0.11`, not `192.168.0.13`.** Confirmed by `ipconfig` on DART after its
+reboot. `.11` is the address the ledger recorded for the FIRE TABLET, so DHCP has reshuffled.
+Everything that hardcodes `.13` is now wrong: the e2e invocation (`DART=192.168.0.13
+./tests/e2e-booth.sh`), the phone's saved presenter host, and any doc line quoting the kiosk at
+`192.168.0.13:8081`. **Fix before Calgary: a DHCP reservation, or trust the LAN beacon and stop
+typing IPs.** Also: after the reboot NEITHER `booth-kiosk.bat` nor `booth-presenter.bat` had
+started — the Startup folder only fires at interactive logon.
+
+### The facelift reveal would have shown another studio's website
+With a 260h-old build still on disk the server correctly said `stale`, but `local_url` stayed
+populated and the deck used it: the curtain opened **full screen on Steppin' Up (Sarnia)** under
+the caption *"built live on this laptop"*. Screenshot DM'd. Fixed in `talk2-ai.html` — only
+`status === 'ready'` is revealable; stale/failed/idle/queued/running all fall through to the
+pre-baked Ancaster fallback with a red chip. Verified in all three states on this box AND on DART.
+
+### The status file lies, so the server no longer trusts it
+Mid-run the headless Claude session rewrote `facelift-out/status.json` as
+`{updated_at,url,session,started_at}` — **no `status` key** — and the server fell back to IDLE
+while a build was genuinely running. `presenter-server.py` now infers `running` from a recent
+`started_at`. Caught during a real run, fixed, and re-verified against a second real run.
+
+### `FACELIFT-CONTRACT.md` had two wrong instructions, both corrected
+`FACELIFT_FAKE=1 python3 presenter-server.py` cannot work — the server dispatches over ssh to
+SPYBALLOON and the env never crosses the hop. The working form is
+`FACELIFT_FAKE=1 ./facelift-run.sh <url> "$PWD/facelift-out"`. And "ready OR any non-empty
+local_url" is the line that produced the bug above.
+
+### Verified end to end on the real paths
+- **Facelift, venue path:** phone (AVD) → DART `:8090` ★ panel → GO → ssh dispatch → tmux
+  `facelift-1786297075` on SPYBALLOON. DART→SPYBALLOON ssh works (returns `pyalloon`).
+- **Facelift build:** a real run produced `site/index.html` in **9 minutes** (budget is 21).
+- **StudioSage SMS demo:** real inbound to `+1 587-317-0721` from a spare Twilio number (never a
+  customer) → answered in **6 seconds**, correctly said what it did NOT know, and landed on the
+  projector wall (`/demo/wall?code=live26` — the code is `live26`).
+- **StudioSage email ingest:** a real email to `calgary@ingest.studiosage.ai` → demo tenant KB
+  went **15 → 16 in 20 seconds**, and a follow-up text answered from it with every detail right.
+- **Decks:** talk 2 = 32 slides, talk 1 = 27. Zero overflow on talk 2; talk 1's only overflow is
+  the three ambient `.beam` elements (by design). **All 35 talk-1 media files serve 200 + 206
+  Range** — the Toronto dead-air failure mode is not present. 23/23 punch-list deck items verified.
+
+### Open, and they are Daniel's calls
+1. **The citation promise is not kept in SMS.** On stage: *"it never hallucinates, only answers
+   and cites from the email."* The measured replies are accurate but carry **no citation**.
+   Either rephrase the line or ship citations — do not say it as written.
+2. The demo tenant now holds **16** KB entries (my test email). Reset seeds before the talk.
+3. DART's presenter is running detached via WMI because a plain ssh start dies with the session.
+
+## 2026-08-08 14:16 ET — THREE WINDOWS COORDINATED; OPEN ITEMS DRIVEN TO ZERO
+
+Session refreshed for context length. **Nothing is broken. Nothing is in flight.**
+
+### Ledger
+`docs/OPEN-ITEMS-2026-08-07.md` is the SINGLE SOURCE OF TRUTH and is current as of `a5d4b5a`.
+Three sessions worked this repo (StreamStage-3, -4, -5); StreamStage-5 led by agreement and holds
+the ledger. Both other windows closed out with nothing outstanding.
+
+### The rule this session produced — rule 9, now in ~/projects/CLAUDE.md and ~/.claude/CLAUDE.md
+**Believe the artefact, not the predicate.** Trust the output file's mtime/size, the device's
+`versionCode`, the row in the table — over any process check or inference. Tonight's instances:
+a `pgrep -f "kiosk-render-chunked"` matched its OWN command line and reported a nine-hour-dead
+render as running; two `pkill -f` calls matched the invoking shell and killed it mid-turn; a tree
+dismissed as "unverified" was exactly what the device was running; and three inherited "open items"
+dissolved on first measurement. Corollary: a process-matching pattern must not be able to match the
+command containing it (`pgrep -f "[k]iosk-render"`).
+
+### Shipped this session (all pushed)
+- `431742a` /api/expo-leads returns `forwarded`/`notified` (it computed them and threw them away).
+- `9f83ebb` **The film's baked QR is fixed in production without a re-render** — /expo-leads.html
+  307s to `/g?a=sixfilms&src=booth_tv&p=streamstage&s=tv`; `missing: staff` keeps the operator form.
+- `b246119` Both decks current on DART on 8090 (talk2=32, talk1=27) + 209MB talk-1 media.
+  `PRESENTER_PORT=8080` is IMPOSSIBLE (pick_port skips it); both pre-made QRs were dead at :8080.
+- `2a4e497` Tablet "back" double-flash root-caused and fixed.
+- `e8b6801` /state stops describing a dead TV (~84s of a confident wrong picture); released-
+  ExoPlayer guard so a `play` right after a version swap cannot prepare a dead player.
+- `c3fa74e` **kiosk-app versioned-filename work KEPT** — the stick was already running it
+  (versionCode 2 vs HEAD's 1). Merged, bumped to 3, installed, verified.
+- `eeadbfd` Booth note: the film's QR and tv.html both own the bottom-right corner.
+- `a5d4b5a` Struck a retracted proof in both places it was recorded.
+- StudioSage `6e8f962` the leads merge only ever ADDS now — notes accumulate, and name/studio/
+  email/phone keep their existing value against a blank incoming one.
+
+### Booth state, measured 2026-08-08 13:37 ET
+```
+stick     versionCode 3/1.1.1, BoothLoopActivity foreground, 7 films, .staging empty
+          SYSTEM_ALERT_WINDOW granted=true AND appops allow  <- install -r DROPS these, re-run both
+kiosk     DART 192.168.0.13:8081, new serve.py, /health hasTv=true
+presenter DART 8090, both decks; start-presenter.bat, NEVER PRESENTER_PORT=8080
+autostart kiosk + presenter both launch from DART's Startup folder now
+e2e       DART=192.168.0.13 ./tests/e2e-booth.sh -> 44 pass / 0 fail / 2 skip
+```
+
+### Next steps — ONLY these. Do not invent work.
+1. **DANIEL: ship-or-leave the re-rendered film.** `/tmp/kiosk-chunks/kiosk-final-002023.mp4`,
+   181.07s, audio real, clean decode, QR decodes gated on 8/8 sampled frames. Carries the
+   defocused tile wall + gold oval he asked for. Stills DM'd. **NOT published anywhere.**
+   If yes: `kiosk-app/tools/publish-films.sh --media ../expo-assets/kiosk/media/publish-set`,
+   then R2, then the stick — and re-assert BOTH permission halves after any reinstall.
+2. **BLOCKED ON HARDWARE:** the Fire tablet is off the network (no route to 192.168.0.11) and the
+   Pixel is PIN-locked. That leaves the tablet double-flash fix (needs a page reload + a real
+   thumb on "back"), the phone console, and the CELLULAR presenter path unverified.
+3. **DANIEL: ten-and-ten picks** (`docs/five-and-five-2026-08-07.md`) — never chosen.
+4. **DANIEL: Reflect's tagline** — verified verbatim from VO-SCRIPT.md beat 16, needs only a yes/no.
+
+### Reason for refresh
+Context length. The session met its goal; every open item is either closed, a Daniel decision, or
+blocked on hardware.
+
+---
+
+## Earlier entries
+
 ## 2026-08-07 22:00 ET — THE TABLET NOW ACTUALLY DRIVES THE STICK. ROOT CAUSE WAS THE APK.
 
 Commits `e6dfa99` + `378ea3e`, pushed.
