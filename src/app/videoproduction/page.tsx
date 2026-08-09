@@ -19,6 +19,7 @@ import {
 import RecitalNav from "@/components/RecitalNav";
 import ScrollReveal from "@/components/ScrollReveal";
 import Footer from "@/components/Footer";
+import FreebieCapture from "@/components/FreebieCapture";
 
 // Rates carry a 10% increase applied 2026-08-09. The previous figures were
 // 1250 / 750 / 499 / 250.
@@ -834,6 +835,11 @@ export default function VideoProductionProposal() {
           </div>
         </section>
       </main>
+
+      {/* The two free guides, behind an email. Posts the same lead the booth
+          posts, so /api/expo-leads records it and emails the guide itself —
+          no new delivery path, and nothing lands on Daniel's desk to send. */}
+      <FreebieCapture />
 
       <Footer />
     </>

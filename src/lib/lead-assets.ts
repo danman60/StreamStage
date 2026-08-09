@@ -63,14 +63,15 @@ export const LEAD_ASSETS = {
       "The one-page brief to hand your videographer before recital day — part four of the recital video checklist.",
     interests: ["video", "videographer brief"],
   },
+  // The planner used to promise that Daniel would send it by hand, because it
+  // only existed as a print handout. It is now Part one and a half of the
+  // checklist, so this delivers itself and creates no task for anybody.
   planner: {
     label: "Content day planner",
-    url: CHECKLIST,
-    cta: "Open the recital video checklist",
+    url: `${CHECKLIST}#planner`,
+    cta: "Open the content day planner",
     sentence:
-      "The content day planner — how to plan one shoot day that feeds a season of posts.",
-    caveat:
-      "The planner is not posted online yet, so Daniel is sending it to you directly — your request is already in his inbox. In the meantime the recital video checklist covers the shots and scenes worth planning.",
+      "The content day planner — how to plan one shoot day that feeds a season of posts: what to prep, the four stations, and what you walk out with.",
     interests: ["video", "content day planner"],
   },
   sixfilms: {
