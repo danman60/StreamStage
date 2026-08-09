@@ -1,5 +1,9 @@
 # The kiosk LAN beacon
 
+> **The 192.168.0.13 in every sample below is an EXAMPLE ADDRESS, not a fact.**
+> DART moved to 192.168.0.11 on 2026-08-09 and will move again on the venue LAN.
+> Never type an address from this file — read it from the beacon, or run `tools/booth-lan.sh`.
+
 **Owner of this file:** `expo-assets/kiosk/serve.py`.
 **Audience:** whoever is adding fast discovery to `tablet-app/` or `phone-app/`.
 

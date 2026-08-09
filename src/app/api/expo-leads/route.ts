@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { sesTransport, escapeHtml } from "@/lib/mailer";
-import { LEAD_ASSETS, resolveAsset, buildAssetEmail, type AssetKey } from "@/lib/lead-assets";
+import {
+  LEAD_ASSETS,
+  resolveAsset,
+  buildMultiAssetEmail,
+  type AssetKey,
+} from "@/lib/lead-assets";
 
 const LEAD_TO = process.env.LEAD_TO_EMAIL || "daniel@streamstageproductions.com";
 const LEAD_FROM = process.env.LEAD_FROM_EMAIL || "StreamStage Leads <leads@streamstage.live>";
@@ -34,6 +39,7 @@ interface LeadBody {
   p?: string;         // placement (which poster / which slide / which page)
   s?: string;         // slot (which of several codes on that placement)
   asset?: string;     // what they asked to be sent — see LEAD_ASSETS
+  assets?: string[];  // several, when a form lets them tick more than one box
   path?: string;      // the page path they submitted from
   referrer?: string;
 }
@@ -127,7 +133,18 @@ export async function POST(request: Request) {
         ? srcParam
         : "expo_form";
 
-    const assetKey: AssetKey | null = resolveAsset(body.asset);
+    // `asset` is one thing (every QR, every booth gate). `assets` is a list, which
+    // the website form sends when somebody ticks more than one box. Both are
+    // accepted and de-duplicated; assetKey stays the FIRST one so the attribution
+    // column keeps meaning exactly what it meant before.
+    const assetKeys: AssetKey[] = Array.from(
+      new Set(
+        [body.asset, ...(Array.isArray(body.assets) ? body.assets : [])]
+          .map(resolveAsset)
+          .filter((k): k is AssetKey => k !== null)
+      )
+    );
+    const assetKey: AssetKey | null = assetKeys[0] ?? null;
 
     // The whole blob, verbatim, into `leads.raw` (jsonb, nothing populated it for
     // expo_form rows before this). utm_* is passed through if a caller sends it.
@@ -156,9 +173,16 @@ export async function POST(request: Request) {
     // So a booth capture is identified by its email (plus the studio, when the visitor gave
     // one) and is never required to carry a person's name. Every other caller — the four
     // website forms — still has to send one, which is what they have always done.
+    //
+    // The same reasoning covers a WEBSITE ASSET REQUEST (added 2026-08-09): the
+    // form on /videoproduction asks for one box, an email, and tick boxes for
+    // which guides to send. There is no name to require and none will be
+    // fabricated — the email simply opens "Hi there". This applies only when the
+    // request actually names assets, so the four proposal forms are untouched.
     const isBoothCapture =
       srcParam.startsWith("booth") || sourceCandidate.startsWith("booth");
-    if (!email || (!isBoothCapture && (!name || !studio))) {
+    const isAssetRequest = assetKeys.length > 0;
+    if (!email || (!isBoothCapture && !isAssetRequest && (!name || !studio))) {
       return NextResponse.json(
         { error: "Name, studio, and email are required." },
         { status: 400 }
@@ -171,7 +195,10 @@ export async function POST(request: Request) {
     // What was actually wanted: whatever the form declared, plus what the asset
     // implies (so a gated landing page that only sends `asset` still records intent).
     const interests = Array.from(
-      new Set([...submittedInterests, ...(assetKey ? LEAD_ASSETS[assetKey].interests : [])])
+      new Set([
+        ...submittedInterests,
+        ...assetKeys.flatMap((k) => LEAD_ASSETS[k].interests),
+      ])
     );
 
     // Mirror into StudioSage's unified `leads` table. StreamStage has no database
@@ -235,7 +262,7 @@ export async function POST(request: Request) {
           notes,
           taxonomySource:
             taxonomySource === source ? taxonomySource : `${taxonomySource} — ${source}`,
-          asset: assetKey ? LEAD_ASSETS[assetKey].label : "",
+          asset: assetKeys.map((k) => LEAD_ASSETS[k].label).join(" · "),
           attribution: [
             attribution.src && `src=${attribution.src}`,
             attribution.p && `p=${attribution.p}`,
@@ -258,9 +285,15 @@ export async function POST(request: Request) {
     // staff form in particular says "Nothing is emailed to them."
     // Failing here must never fail the capture.
     let assetSent = false;
-    if (assetKey) {
+    if (assetKeys.length) {
       try {
-        const mail = buildAssetEmail({ asset: assetKey, name, unsubscribe: LEAD_TO });
+        // One email however many were ticked. Three separate emails landing at
+        // once reads as a malfunction, not generosity.
+        const mail = buildMultiAssetEmail({
+          assets: assetKeys,
+          name,
+          unsubscribe: LEAD_TO,
+        });
         await sesTransport.sendMail({
           from: LEAD_FROM,
           to: email,

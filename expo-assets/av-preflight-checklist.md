@@ -3,7 +3,7 @@ Run T-24h, then again T-30min. Every item is a known trade-show failure mode.
 
 ## T-24 hours (hotel room)
 - [ ] **Laptop updates OFF** — pause OS/browser auto-updates; nothing installs overnight before a talk.
-- [ ] **Everything local**: `decks/talk1-video.html`, `decks/talk2-ai.html`, `kb-demo/index.html`, content-day reel MP4 — on laptop AND a USB stick. Zero streaming dependencies.
+- [ ] **Everything local**: `../StudioSage/live-demo/talk1-deck.html` (CANONICAL, 27 slides — `decks/talk1-video.html` is a stale 13-slide copy, do not open it), `decks/talk2-ai.html`, `kb-demo/index.html`, content-day reel MP4 — on laptop AND a USB stick. Zero streaming dependencies.
 - [ ] **Airplane-mode test**: wifi OFF → open both decks + KB demo → arrow through every slide, run every KB beat. All must work offline. (The wall page is the ONLY thing that needs internet.)
 - [ ] **Rehearsal text**: from own phone — `LIVE26` to +1 226-796-6037 → complete onboarding → ask "What time is Saturday rehearsal?" → confirm instant correct answer. If anything is off, there is still time to fix it.
 - [ ] **Wall check**: open `https://www.studiosage.ai/demo/wall?code=LIVE26` — rehearsal Q/A visible, phone masked.

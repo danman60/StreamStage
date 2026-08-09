@@ -18,10 +18,23 @@
 # ============================================================================
 set -uo pipefail
 
-DART=${DART:-192.168.0.13}
+# DART's address is NOT hardcoded any more. It moved 192.168.0.13 -> 192.168.0.11
+# on 2026-08-09 — onto the address this file used to record for the Fire tablet —
+# and every doc, QR and command quoting the old one was silently wrong. So ask
+# tools/booth-lan.sh, which finds it from the kiosk's own beacon, and fall back to
+# the last address seen rather than to a number nobody has checked.
+# Override at any time with:  DART=x.x.x.x ./tests/e2e-booth.sh
+if [ -z "${DART:-}" ] && [ -x "$(dirname "$0")/../tools/booth-lan.sh" ]; then
+  eval "$("$(dirname "$0")/../tools/booth-lan.sh" 2>/dev/null || true)"
+  DART=${BOOTH_HOST:-}
+fi
+DART=${DART:-192.168.0.11}
 KIOSK_PORT=${KIOSK_PORT:-8081}
 STICK=${STICK:-192.168.0.199:5555}
-TABLET=${TABLET:-192.168.0.11:5555}
+# The tablet was recorded at .11 before DHCP handed that address to DART. Left
+# unset by default rather than pointed at a machine that is now the laptop —
+# a test that talks to the wrong device is worse than a skipped one.
+TABLET=${TABLET:-}
 PHONE=${PHONE:-192.168.0.192:35555}
 ADB=${ADB:-$HOME/Android/Sdk/platform-tools/adb}
 REPO=${REPO:-/home/danman60/projects/StreamStage}

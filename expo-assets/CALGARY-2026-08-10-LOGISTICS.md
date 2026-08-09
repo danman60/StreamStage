@@ -14,9 +14,28 @@ Paid Jul 14 2026. E-tickets issued Jul 14 22:41 UTC.
 | **Out** | Mon Aug 10 | **WestJet WS633** | Toronto Pearson (YYZ) **09:00** | Calgary (YYC) **11:20** |
 | **Home** | Thu Aug 13 | **WestJet WS636** | Calgary (YYC) **11:15** | Toronto Pearson (YYZ) **17:10** |
 
-Fare: C$308.50 outbound (incl. C$60.50 tax) + return leg. Booked as **separate tickets per leg** —
-BudgetAir processes each flight individually, so a delay on one leg is not automatically protected
-by the other. Manage/check-in via BudgetAir My Account using the booking number + email.
+Fare: C$308.50 outbound (incl. C$60.50 tax) + C$287.40 return (incl. C$42.20 tax) = **C$595.90**.
+Booked as **separate tickets per leg** — BudgetAir processes each flight individually, so a delay on
+one leg is not automatically protected by the other. Manage/check-in via BudgetAir My Account using
+the booking number + email.
+
+**Online check-in codes:** outbound `LYPROK` · return `LYEXNF` (separate, because separate tickets).
+
+### ⚠️ Baggage — NO CHECKED BAG ON EITHER LEG *(added 2026-08-08 from the e-ticket PDF)*
+
+The issued e-ticket states on both legs: `Class: Economy` / `Luggage: Not included`. The payment
+overview confirms nothing bag-related was purchased. The line `ServicePackage Basic - included` is
+**BudgetAir's own booking-service tier, NOT the WestJet fare brand** — do not read it as a fare class.
+
+**OPEN: the WestJet fare brand is printed nowhere in the ticket or the receipt.** That brand decides
+whether this ticket permits a full carry-on plus a personal item, or a personal item only. It has
+not been verified and must not be assumed. Resolve via WestJet Manage Trips (`LYPROK` + surname) or
+BudgetAir My Account (`BCA-20856065`).
+
+This is an exhibiting trip: booth prize, exhibitor packet, conference shirt and demo hardware all
+have to travel in cabin allowance alone. Adding a bag in advance beats adding one at the gate.
+
+Source PDFs saved at `expo-assets/calgary-2026-08-10/tickets/`.
 
 ---
 

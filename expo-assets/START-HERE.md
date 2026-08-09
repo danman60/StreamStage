@@ -23,7 +23,7 @@ The live-demo talk is the **Seminar: "From Content Day to AI Assistant."** Start
 - `handout-content-day-planner.html`, `handout-5-free-ai-moves.html`
 
 ## Other two talks (context / reuse)
-- Talk 1 (video): `talk1-video-script.md`, `talk1-video-slides.md`, `talk1-runofshow.md`, `decks/talk1-video.html`
+- Talk 1 (video): `talk1-video-script.md`, `talk1-video-slides.md`, `talk1-runofshow.md`, `../StudioSage/live-demo/talk1-deck.html` (CANONICAL — `decks/talk1-video.html` is a stale 13-slide copy)
 - Talk 2 (AI): `talk2-ai-script.md`, `talk2-ai-slides.md`, `talk2-runofshow.md`, `decks/talk2-ai.html`
 
 ## Assets
