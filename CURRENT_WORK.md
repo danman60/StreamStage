@@ -1,5 +1,104 @@
 # Current Work - StreamStage
 
+## 2026-08-10 16:5x ET — THE FACELIFT REVEAL BUG IS FOUND AND FIXED. TALK 1 SLIDE 1 IS BUILT.
+**Daniel must RELOAD both deck tabs — the fixes are in the HTML, not the server.**
+
+### Why the reveal opened on a StreamStage site (root cause, measured, not inferred)
+`local_url` is the **same string for every run** (`/facelift-site/index.html`). The reveal's own
+reload guard — `if(rf.dataset.src!==src)` — therefore fired **once per page load and never
+again**, so a deck tab opened while an older build was `ready` kept that build behind the curtain
+after a new one replaced the file on disk. The site Daniel saw is now archived on DART as
+`facelift-out\site-prev-1786391728` — title *"StreamStage — Where Stage Meets Technology"*,
+built 08-09 11:53. Today's run archived it at 15:55:28 and finished Decidedly Jazz at 16:06:47.
+**Fix (`4a35a0e`, deployed to DART):** the reveal src carries the run id, so a new run changes the
+URL, reloads the iframe and defeats the HTTP cache.
+**Proved three ways:** the shipped deck FAILS a same-local_url/new-build harness (stale site stayed);
+the fixed deck PASSES it; and the real deck fetched from DART loads
+`/facelift-site/index.html?r=facelift-1786391728` → *Decidedly Jazz Danceworks*, chip `READY · BUILT LIVE`.
+Note `status.json` on DART still carries `url: streamstageproductions.com` from the headless
+session — harmless now, `presenter-run.json` overrides it, but that is why the plant card was wrong.
+
+### Talk 1 slide 1 — the kiosk video wall (StudioSage `7feb653`, deployed to DART)
+Bed is now `videos/kiosk-testimonials.mp4` (181s, already on DART since 07-27): the wall of studio
+clips drifting past **with real director testimonials in it** — no testimonial was invented. The
+film's own burned-in words (caption tag, DIRECTOR TESTIMONIAL lower third, RECITAL FILMS strip,
+booth QR) all landed under the title raw, so it is zoomed past the top/bottom strips, softened so
+its small type stops reading as text, and scrimmed left + bottom-right. Checked at 12/42/96/150s
+of the loop and on DART: 27 slides, playing, 0 page errors, 0 failed requests.
+
+### Not mine this session
+The demo knowledge base is being handled by another window. Daniel's standing instruction:
+**no seeded data at all** — the KB is seeded live from a volunteer in the audience, so
+`{"seeds":true}` (restores 15) is the WRONG reset. `demo-reset` with no body only deletes
+*ingested* rows and would leave all 16 in place; emptying the KB needs a delete of
+`knowledge_base` where `studio_id = 'studio_0012'`. Preflight's `kb_seeds` check still demands
+10+ seeds and will read red against an empty KB.
+
+## 2026-08-10 16:10 ET — SESSION REFRESHED MID-REHEARSAL. Daniel lost practice time. READ THIS.
+
+### THE ONE THING THE NEXT SESSION MUST DO FIRST
+**Rebuild the phone APK with a launch-time mode picker.** `StreamStage/phone-app/`,
+applicationId `com.streamstage.phonepresenter`, package `com.streamstage.phonetoolkit`.
+It currently **restores its last mode on boot** and that mode is KIOSK, so it comes up
+sweeping the LAN for a kiosk that is not running, and the deck remote is unreachable behind
+that sweep. Daniel, verbatim: *"we need the phone apk updated to pick kiosk or deck"* and
+*"FIX THE FUCKING PHONE APK I CANT PRACTICE"*.
+
+What it needs: on launch, **ask** — DECK or KIOSK — plus a manual host field, and never start a
+blocking discovery sweep the operator did not ask for. The debug bridge
+(`com.streamstage.phonetoolkit.DEBUG`, `setmode` / `sethost`) works on the installed debug build
+and is how I drove it, but broadcasts lose the race against the sweep, so this must be fixed in
+the app, not from adb.
+
+Two facts that will save time:
+- **A stopped app cannot receive broadcasts.** `am force-stop` then `am broadcast` does nothing.
+  Launch first, then broadcast (`-f 32` for stopped packages).
+- **The phone and DART are on different /24s** on hotel wifi (phone `172.20.1.83`, DART
+  `172.20.6.122`), so the app's own-/24 sweep can never find DART even with isolation off.
+  The Tailscale address is the only reliable one: **`100.90.103.121:8090`**.
+
+### What is TRUE on DART right now (verified, this session)
+- Presenter restarted, PID 10208, answering 200. Serving **talk 2 = 32 slides**, talk 1 = 27.
+- **Slide 5's broken window is FIXED and deployed** — the iframe is gone entirely, replaced by a
+  state card (WAITING before a url → tick + address after). Verified in the served HTML.
+  **Daniel must RELOAD the deck tab to see it.**
+- **The facelift for `decidedlyjazz.com` BUILT SUCCESSFULLY** and `/facelift` now reports
+  `status: ready, url: https://decidedlyjazz.com, local_url: /facelift-site/index.html`.
+- Folder cleaned 52 → 29 files, everything else in `_archive\`. Two launchers:
+  `1 - START THE TALKS.bat` (presenter + Chrome tabs, prints its own live IPs) and
+  `2 - START THE BOOTH.bat`. Shortcut on the **OneDrive desktop**.
+
+### The facelift URL bug — root-caused and patched, deployed
+Daniel typed `decidedlyjazz.com`; the deck showed `streamstageproductions.com`. The runner was
+given the RIGHT url (proved from the live process args). `facelift-out/status.json` has **two
+writers**, and the headless facelift session's write carries its own `url` and `started_at`,
+clobbering the presenter's. The old guard only defended `status`, not `url`.
+**Fix (deployed):** `presenter-server.py` now writes `facelift-out/presenter-run.json` at
+dispatch — a file the runner never opens — and that record WINS for url/started_at/session.
+A `reset` clears both.
+
+### NOT DONE — Daniel asked and it was never built
+**Talk 1 slide 1 was never changed to the kiosk multi-panel video.** He asked at 15:33:
+*"make the starting slide a version of our kiosk video with all the videos swirling around and
+testimonial; ADD the slide title to it"*. I investigated the asset and never came back to it.
+The asset exists: `expo-assets/kiosk/menu-loop/menu-loop.mp4` — 6.4 MB, 30s, six product panels
+with a highlight cascading between them (frame checked). It is NOT yet in
+`StudioSage/live-demo/` or on DART. Talk 1 slide 1 currently uses `videos/promo-kmsd.mp4`.
+
+### Where I misled him, so it does not repeat
+- I opened this session repeating **"44 pass / 0 fail"** and **"PREFLIGHT PASSED"** from 08-08/08-09
+  as if they were current. They were inherited claims. I never re-ran them.
+- I let *"the presenter page answers"* stand in for *"the phone app works"*. They are different
+  things. The app was never tested end to end before he picked it up.
+- Today's preflight returns `facelift: pass`, which only checks staleness. It has **no check that
+  the URL being built is the URL that was typed** — the thing that actually broke.
+
+### Reason for refresh
+Daniel called it: context rot, and I burned his rehearsal window on the phone instead of
+rebuilding the APK.
+
+---
+
 ## 2026-08-10 08:5x ET — TALK 2 FIX LIST FROM DANIEL'S NOTES. Deck is 32 slides, audited, pushed.
 
 All eight items from his notes are done. Audited at 1920x1080: **32 slides, 0 overflow,
