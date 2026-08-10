@@ -949,17 +949,33 @@
      again, or the first advance) the title is solid, static and fully visible —
      a title that blinks during the actual 09:20 talk would be a disaster. */
   .t1line{display:inline-block}
-  body.gathering .slide.t-fade.active .e-up{animation:t1cycle 46s linear infinite}
-  /* the phone mock rides the same curve — "off" has to mean the robots and nothing
-     else, and a phone left hanging in the right third is not nothing else. */
-  body.gathering .slide.t-fade.active .phone1{animation:t1cycle 46s linear infinite}
+  body.gathering .slide.t-fade.active .e-up{animation:t1cycle 46s linear infinite;
+    transform-origin:left bottom;will-change:transform}
+  /* the phone mock rides the same curve so the whole lockup shrinks as ONE thing.
+     It used to fade to nothing; now it shrinks with the title and stays, because
+     "always motion, nothing disappears" applies to the composition, not just the
+     words. Its origin is the opposite corner so the two shrink apart, not into
+     each other. */
+  body.gathering .slide.t-fade.active .phone1{animation:t1cycle 46s linear infinite;
+    transform-origin:right bottom;will-change:transform}
   body.gathering .slide.t-fade.active .t1kick{animation:t1kick 46s linear infinite}
   body.gathering .slide.t-fade.active .t1by{animation:t1by 46s linear infinite}
   body.gathering .slide.t-fade.active .t1a{animation:t1a 46s linear infinite}
   body.gathering .slide.t-fade.active .t1b{animation:t1b 46s linear infinite}
   body.gathering .slide.t-fade.active .t1c{animation:t1c 46s linear infinite}
   /* 46s map:  0-5.8s type on  ·  5.8-15.8s HOLD (10s)  ·  15.8-16.5s fade  ·  16.5-46s ROBOTS ONLY (29.5s) */
-  @keyframes t1cycle{0%{opacity:1}34.3%{opacity:1}35.9%{opacity:0}99.99%{opacity:0}100%{opacity:1}}
+  /* 2026-08-10 (2nd pass): the title must NEVER leave. Daniel: "instead of
+     disappearing it should just animate small". So the lockup scales down to
+     42% and parks bottom-left for the long stretch, then draws itself back on
+     at full size. Opacity never reaches 0 — there is always a title on the
+     wall and always motion behind it. transform-origin is left bottom so it
+     shrinks INTO its own corner instead of drifting across the frame. */
+  @keyframes t1cycle{
+    0%{transform:scale(1);opacity:1}
+    34.3%{transform:scale(1);opacity:1}
+    37.5%{transform:scale(.42);opacity:.9}
+    97%{transform:scale(.42);opacity:.9}
+    100%{transform:scale(1);opacity:1}}
   @keyframes t1kick{0%{opacity:0}1%{opacity:1}100%{opacity:1}}
   @keyframes t1by  {0%{opacity:0}11%{opacity:0}12.5%{opacity:1}100%{opacity:1}}
   @keyframes t1a{0%{clip-path:inset(0 100% 0 0);animation-timing-function:steps(8,end)}
@@ -2492,18 +2508,33 @@
      with no key pressed. Autoplay is allowed here: muted + loop + playsinline.
      Everything that killed it before still kills it — first advance, first click,
      and G toggles it by hand. It still cannot come back on its own mid-talk. */
-  function arm(){
+  /* 2026-08-10 (2nd pass): DO NOT START IT EMPTY.
+     The first auto-arm played the instant the DOM was ready, with almost nothing
+     buffered — 37.8 MB at 6.6 Mbps — so the wall stuttered for the first few
+     seconds of every rehearsal. Daniel saw it: "a little bit stuck off the top".
+     Behind the G key this never showed, because a human presses G long after the
+     page has loaded. So now we WAIT for the browser to say it can play the whole
+     thing (readyState 4 / canplaythrough) before revealing anything, with an 8s
+     cap so a slow disk delays the wall rather than cancelling it. */
+  function start(){
     if (!onSlideOne()) return;
     on(true);
+    var v = vid(); if (!v) return;
+    var p = v.play();
+    if (p && p.catch) p.catch(function(err){
+      console.warn('[robot wall] autoplay refused — press G:', err && err.name);
+    });
+  }
+  function arm(){
+    if (!onSlideOne()) return;
     var v = vid();
-    if (v) {
-      // A blocked play() is the one failure that would silently show black, so
-      // say so in the console rather than leaving a dead wall on the podium.
-      var p = v.play();
-      if (p && p.catch) p.catch(function(err){
-        console.warn('[robot wall] autoplay refused — press G:', err && err.name);
-      });
-    }
+    if (!v) return;
+    if (v.readyState >= 4) { start(); return; }     // already buffered enough
+    var fired = false;
+    function go(){ if (fired) return; fired = true; start(); }
+    v.addEventListener('canplaythrough', go, {once:true});
+    setTimeout(go, 8000);                            // never let a slow read cancel it
+    try { v.load(); } catch(e){}
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', arm);
