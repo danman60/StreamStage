@@ -19,7 +19,7 @@ Volume buttons cannot be used: no mobile browser exposes them to a web page.
 Tap zones instead (and they can't accidentally change your volume mid-talk).
 """
 import http.server, socketserver, json, socket, sys, os, threading, re, subprocess, time
-import tempfile, urllib.request
+import tempfile, urllib.request, collections
 
 DEFAULT_PORT = 8090          # see the module docstring: 8080/8081 belong to the kiosk
 KIOSK_PORTS = (8080, 8081)   # only used to write a helpful error message
@@ -102,6 +102,24 @@ def stale_deck_warning(total: int) -> str:
         return f"Unrecognised deck ({total} slides). Expected 32 (talk 2) or 27 (talk 1)."
     return ""
 PENDING = []          # commands from the phone, consumed by the deck
+
+# THE DECK-MOVED-BY-ITSELF LEDGER.
+# Bounded, in memory, no file to rotate — the only question it has to answer is
+# "what moved the deck in the last few minutes, and from which device". Read it
+# with GET /cmdlog. Ring of 60 is a couple of minutes of heavy pressing.
+CMDLOG = collections.deque(maxlen=60)
+
+def _cmdlog(kind, action, addr, ua):
+    try:
+        CMDLOG.append({
+            "at": time.strftime("%H:%M:%S", time.localtime()),
+            "kind": kind,               # POST (something asked) | DRAIN (deck took it)
+            "action": action,
+            "from": addr,
+            "ua": (ua or "")[:80],
+        })
+    except Exception:
+        pass                            # a log line must never break the show
 
 # ------------------------------------------------------------- demo feeds ---
 # The live scene slide needs the public demo feeds, but studiosage.ai serves them
@@ -379,10 +397,22 @@ def _remote_poll(url, session, started):
         # slide 5 shows while the rebuild runs, so it wants to arrive in seconds, not
         # at the end. One cheap attempt per poll until it lands, then never again.
         if not os.path.exists(FACELIFT_BEFORE):
-            run_capture(["scp", "-q", "-o", "BatchMode=yes",
-                         "-o", "StrictHostKeyChecking=no",
-                         FACELIFT_REMOTE + ":" + FACELIFT_REMOTE_DIR + "/before.png",
-                         FACELIFT_BEFORE], 60)
+            # Copy to a side name and rename: scp writes progressively, so copying straight
+            # onto before.png publishes a HALF file. Measured 2026-08-10 — the deck picked up
+            # the new mtime, swapped to it, and showed a broken image for ~18s while a 4.7 MB
+            # shot came over. os.replace is atomic, so the deck only ever sees a whole file.
+            part = FACELIFT_BEFORE + ".part"
+            rc, _, _ = run_capture(["scp", "-q", "-o", "BatchMode=yes",
+                                    "-o", "StrictHostKeyChecking=no",
+                                    FACELIFT_REMOTE + ":" + FACELIFT_REMOTE_DIR + "/before.png",
+                                    part], 120)
+            if rc == 0 and os.path.exists(part) and os.path.getsize(part) > 0:
+                os.replace(part, FACELIFT_BEFORE)
+            else:
+                try:
+                    os.remove(part)
+                except OSError:
+                    pass
         try:
             rc, out, _ = run_capture(SSH + [FACELIFT_REMOTE, "cat " + remote_status], 30)
             if rc is None:
@@ -1116,10 +1146,19 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 out = dict(STATE)
             out["facelift"] = facelift_state()
             return self._json(out)
+        # /cmdlog MUST be tested before /cmd — startswith("/cmd") matches "/cmdlog"
+        # too, and GET /cmd is DESTRUCTIVE: it hands the queue to the caller and
+        # clears it. Reading the log would have eaten the phone's next press.
+        if self.path.startswith("/cmdlog"):       # who moved the deck, and from where
+            with _lock:
+                return self._json({"entries": list(CMDLOG)})
         if self.path.startswith("/cmd"):          # deck drains queued commands
             with _lock:
                 out = list(PENDING)
                 PENDING.clear()
+            if out:
+                _cmdlog("DRAIN", ",".join(out), self.client_address[0],
+                        self.headers.get("user-agent", ""))
             return self._json({"cmds": out})
         if self._serve_range():
             return
@@ -1183,6 +1222,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                                "facelift": facelift_state()}, 200 if ok else 500)
         if self.path.startswith("/cmd"):          # phone presses a button
             a = data.get("action")
+            # WHO MOVED THE DECK. On 2026-08-10 the deck stepped back a slide with
+            # nobody at the laptop, and there was no way to tell whether that came
+            # from the phone's Prev, the volume rocker (which sends prev in
+            # PRESENTER mode, screen off included), a stray tab, or the deck itself.
+            # Every command is now recorded with its source address, readable at
+            # GET /cmdlog. Costs one dict per press and answers the question.
+            _cmdlog("POST", str(a), self.client_address[0],
+                    self.headers.get("user-agent", ""))
             if a in ("next", "prev"):
                 with _lock:
                     PENDING.append(a)
