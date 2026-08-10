@@ -71,6 +71,41 @@ const url = /^https?:\/\//i.test(URL_ARG) ? URL_ARG : 'https://' + URL_ARG;
                  'Chrome/131.0.0.0 Safari/537.36',
     });
     await page.goto(url, { waitUntil: 'load', timeout: 45000 });
+
+    /* Get the newsletter / cookie curtain out of the picture. Measured 2026-08-10:
+     * decidedlyjazz.com opens a "Be the first to hear about upcoming performances" modal that
+     * sat across the hero on the projector. Escape first, then the obvious close controls,
+     * then hide anything still pinned over a quarter of the screen. This only ever touches
+     * the screenshot — the real site is untouched. */
+    await page.keyboard.press('Escape').catch(() => {});
+    await page.waitForTimeout(600);
+    await page.evaluate(() => {
+      const CLOSE = /^(×|✕|✖|x|close|no thanks|no, thanks|dismiss|accept|accept all|got it|ok|okay|continue)$/i;
+      document.querySelectorAll('button,a,[role="button"],span[class*="close"],div[class*="close"]')
+        .forEach(el => {
+          const label = (el.getAttribute('aria-label') || el.textContent || '').trim();
+          if (CLOSE.test(label) || /close|dismiss/i.test(el.getAttribute('aria-label') || '')) {
+            try { el.click(); } catch (e) { /* not clickable, fine */ }
+          }
+        });
+    });
+    await page.waitForTimeout(700);
+    await page.evaluate(() => {
+      const vw = innerWidth, vh = innerHeight;
+      document.querySelectorAll('body *').forEach(el => {
+        const cs = getComputedStyle(el);
+        if (cs.position !== 'fixed' && cs.position !== 'sticky') return;
+        const r = el.getBoundingClientRect();
+        const covers = (r.width * r.height) > (vw * vh * 0.25);
+        // SIZE, not z-index. Measured 2026-08-10: decidedlyjazz.com's newsletter curtain is
+        // `div.b-toast.show`, position fixed, full viewport — and z-index THREE. A z>=100 rule
+        // sailed straight past it. A pinned layer covering a quarter of the screen is a
+        // curtain; a pinned header is pinned too but nowhere near that tall.
+        if (covers) el.style.setProperty('display', 'none', 'important');
+      });
+      document.documentElement.style.overflow = 'auto';   // modals often lock scrolling
+      document.body.style.overflow = 'auto';
+    });
     // Let lazy images and web fonts settle, then walk the page so anything that only
     // loads on scroll is actually in the picture, and come back to the top.
     await page.waitForTimeout(2500);

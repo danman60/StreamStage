@@ -814,9 +814,11 @@
      "their website" and not "a slide". A picture instead of an embed because an embed can
      be refused (X-Frame-Options / CSP) or frame-busted, and a refused embed is a white
      window on the projector at the worst possible moment. */
+  /* pointer-events:none — this panel is a PICTURE, and it sits over the slide's "type the url
+     here" box. Measured 2026-08-10: it swallowed the click and the box could not be typed in. */
   .fl-shot{display:none;position:absolute;left:48px;right:48px;top:96px;bottom:104px;z-index:61;
     border-radius:16px;overflow:hidden;border:2px solid #2b3a49;background:#0f1720;
-    box-shadow:0 40px 110px rgba(0,0,0,.6)}
+    pointer-events:none;box-shadow:0 40px 110px rgba(0,0,0,.6)}
   .fl-shot.on{display:block}
   .fl-chrome{position:absolute;left:0;right:0;top:0;height:64px;z-index:2;display:flex;
     align-items:center;gap:14px;padding:0 22px;background:linear-gradient(180deg,#20303f,#16232f);
@@ -836,7 +838,7 @@
   .fl-shot.hold .fl-view img{animation-play-state:paused}
   @keyframes flcreep{from{transform:translateY(0)} to{transform:translateY(var(--creep,-55%))}}
   /* the state card that replaced the embedded site (2026-08-10) */
-  .fl-card{position:absolute;left:48px;right:48px;top:96px;bottom:104px;z-index:60;
+  .fl-card{position:absolute;left:48px;right:48px;top:96px;bottom:104px;z-index:60;pointer-events:none;
     border-radius:16px;border:2px solid #2b3a49;background:#0f1720;display:flex;
     align-items:center;justify-content:center;padding:0 46px}
   .fl-card-in{display:flex;gap:26px;align-items:center;max-width:1400px}

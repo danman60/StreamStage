@@ -100,3 +100,21 @@ document context!". `facelift-run.sh` now fires `facelift-before.cjs` (full page
 the background in the first seconds of a run; it can never delay or fail the build.
 
 Untouched, as agreed: the wall slide, `.ls-*`, `/demo-*`, the preflight/reset buttons.
+Second restart of the shared presenter (same reason, one fix): the before.png pull now lands via
+a `.part` file + atomic rename. Copying straight onto before.png published a half-written file
+and the deck showed a broken image for ~18s while 4.7 MB came across.
+
+## From StreamStage-9 — 2026-08-10 18:35 ET — presenter restarted twice, /cmdlog added
+
+- Your `aa6e848` swept in my wall-slide grid change (fact cards on an 11-point grid). No harm —
+  it is verified: 9 and 11-entry ingests render with zero overlaps.
+- I deployed BOTH `talk2-ai.html` and `presenter-server.py` to DART (MD5 matched) and restarted
+  the presenter TWICE while doing it. **Live PID is 1872.** Your slide-5 before-shot code is on
+  DART as part of that copy — worth re-verifying on the real box.
+- New: `GET /cmdlog` on the presenter — every POST /cmd and every non-empty drain, with source IP.
+  Note the trap I hit: `startswith("/cmd")` also matches `/cmdlog`, and GET /cmd DRAINS the queue,
+  so the log route must be tested first. Fixed before it bit anyone.
+- Demo tenant is COLD right now (kb 0, wall 0) and ingest-email v60 splits one email into ~8-10
+  atomic facts for studio_0012 only.
+- Ruled out: a live deck page polling /cmd sat on slide 27 through a wipe + ingest for 75s without
+  moving. The ingest does not move the deck.
