@@ -1271,11 +1271,17 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if self.path.startswith("/facelift"):      # phone kicks off the rebuild
             action = data.get("action") or "start"
             if action == "reset":
-                for _p in (FACELIFT_STATUS, FACELIFT_OWN):
-                    try:
-                        os.remove(_p)
-                    except OSError:
-                        pass
+                # CLEAR FACELIFT means FORGET THE RUN — the plant slide back to "waiting for an
+                # address" and the reveal back to the pre-baked fallback. Deleting only the two
+                # status files left before.png and site/ on disk, and facelift_state reports what
+                # it can SEE, so the last studio's screenshot stayed on slide 5 through a reload.
+                # Daniel, 2026-08-10: "i want clear facelift to RESET slide 5 AND the reveal".
+                # _clear_previous_run drops the shot and archives the build (never deletes it).
+                _clear_previous_run()
+                try:
+                    os.remove(FACELIFT_OWN)
+                except OSError:
+                    pass
                 return self._json({"ok": True, "facelift": facelift_state()})
             url = normalise_url(data.get("url"))
             if not url:

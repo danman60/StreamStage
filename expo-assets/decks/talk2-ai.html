@@ -2603,10 +2603,42 @@
       return d.scrollingElement;
     }catch(e){ return null; }                                             // cross-origin -> null
   }
+  /* THE REVEAL SCROLLS ITSELF once the curtain is open — the same slow walk the plant slide
+     does over their old site, so the room sees the whole new page instead of one screenful
+     while Daniel talks. Asked for 2026-08-10. It starts 4s after the curtain opens (the top
+     of the page is the first thing they should see) and takes ~75s to reach the bottom.
+     Any arrow press hands control back to him for good — a deliberate nudge should never be
+     fighting an animation. The reveal is served from this laptop, so scripted scrolling is
+     allowed here; their ORIGINAL site never was, which is why that one is a picture. */
+  var auto=null, autoFor=null;
+  function stopAuto(){ if(auto){cancelAnimationFrame(auto);auto=null;} }
+  function startAuto(el){
+    stopAuto();
+    var max=el.scrollHeight-el.clientHeight; if(max<=8) return;
+    var speed=max/75000, last=null;                       // px per ms
+    auto=requestAnimationFrame(function step(ts){
+      if(last===null)last=ts;
+      var to=el.scrollTop+speed*(ts-last); last=ts;
+      if(to>=max){el.scrollTop=max;auto=null;return;}     // rest at the foot of the page
+      el.scrollTop=to;
+      auto=requestAnimationFrame(step);
+    });
+  }
+  setInterval(function(){
+    var s=document.querySelector('.slide.active');
+    var open=s&&s.classList.contains('reveal-slide')&&s.querySelector('.opencue.show');
+    if(!open){ stopAuto(); autoFor=null; return; }        // curtain shut, or we left the slide
+    var el=activeFrame(); if(!el) return;                 // still loading / cross-origin fallback
+    if(autoFor!==el){
+      autoFor=el; el.scrollTop=0;
+      setTimeout(function(){ if(autoFor===el) startAuto(el); }, 4000);
+    }
+  },500);
   document.addEventListener('keydown', function(ev){
     if(ev.key!=='ArrowDown' && ev.key!=='ArrowUp') return;
     if(shotStep(ev.key==='ArrowDown'?1:-1)){ ev.preventDefault(); ev.stopPropagation(); return; }
     var el=activeFrame(); if(!el) return;            // nothing scrollable: let the deck have the key
+    stopAuto(); autoFor=el;                          // he took the wheel; do not restart under him
     var step=Math.round(el.clientHeight*0.72);       // checkpoint = ~a screenful, with overlap
     var max=el.scrollHeight-el.clientHeight;
     if(max<=2) return;

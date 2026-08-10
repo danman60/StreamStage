@@ -124,3 +124,7 @@ polishing, so DART was left holding an older index.html (78,317 B) than the fini
 (78,591 B) — measured 2026-08-10 18:16 vs 18:23. It now keeps polling after an early pull and
 re-copies when the far side changes (guarded by an mtime:size signature so it is not re-scp'ing
 6 MB every 5s).
+Fourth restart: CLEAR FACELIFT now forgets the whole run. It only deleted status.json +
+presenter-run.json, so before.png and site/ survived and slide 5 kept showing the previous
+studio through a reload. Reset now runs _clear_previous_run() (drops before.png, ARCHIVES the
+build to site-prev-<ts> — never deletes it) plus presenter-run.json.
