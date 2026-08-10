@@ -244,6 +244,40 @@ def normalise_url(raw):
 FACELIFT_MAX_AGE_S = 6 * 3600
 
 
+# ── who owns the URL ─────────────────────────────────────────────────────────
+# 2026-08-10, found live during rehearsal: Daniel typed decidedlyjazz.com, the
+# runner was correctly given decidedlyjazz.com (proved from the process args),
+# and the deck showed streamstageproductions.com with a started_at from the day
+# before. Cause: status.json has TWO writers, and the headless session's write
+# carries ITS OWN url and started_at, clobbering ours.
+# The existing guard only defended `status`. The url matters just as much — it is
+# what the room reads off the wall and what the operator checks before revealing.
+# So the presenter now keeps its own record, in a file the runner never opens,
+# and that record WINS for url/started_at/session. The runner's file is still the
+# source of truth for progress (status, stage, deployed_url) — which is all it is
+# actually authoritative about.
+FACELIFT_OWN = os.path.join(FACELIFT_DIR, "presenter-run.json")
+
+
+def _own_run():
+    try:
+        with open(FACELIFT_OWN) as fh:
+            return json.load(fh)
+    except Exception:
+        return {}
+
+
+def _write_own_run(url, started, session):
+    try:
+        os.makedirs(FACELIFT_DIR, exist_ok=True)
+        tmp = FACELIFT_OWN + ".tmp"
+        with open(tmp, "w") as fh:
+            json.dump({"url": url, "started_at": int(started), "session": session or ""}, fh)
+        os.replace(tmp, FACELIFT_OWN)
+    except Exception:
+        pass
+
+
 def facelift_state():
     """Read the runner's status file; fill in what the server can see itself."""
     st = dict(IDLE_FACELIFT)
@@ -288,6 +322,14 @@ def facelift_state():
         st["local_url"] = "/facelift-site/index.html"
         if st.get("status") in ("running", "queued"):
             st["status"] = "ready"
+    # OUR dispatch record wins for identity. Only for a run at least as new as the
+    # file's, so an old presenter-run.json can never re-label a newer build.
+    own = _own_run()
+    if own.get("url") and int(own.get("started_at") or 0) >= int(st.get("started_at") or 0):
+        st["url"] = own["url"]
+        st["started_at"] = int(own["started_at"])
+        if own.get("session"):
+            st["session"] = own["session"]
     st["fallback_url"] = ("/facelift-fallback/index.html"
                           if os.path.exists(os.path.join(FACELIFT_FALLBACK, "index.html")) else "")
     return st
@@ -380,6 +422,7 @@ def start_facelift(url):
     if FACELIFT_LOCAL:
         if not os.path.exists(FACELIFT_RUNNER):
             return False, "facelift-run.sh missing next to presenter-server.py"
+        _write_own_run(url, started, "")
         _write_status(status="queued", url=url, stage="starting (local)", started_at=started)
         log = open(os.path.join(FACELIFT_DIR, "runner.log"), "ab")
         subprocess.Popen([FACELIFT_RUNNER, url, FACELIFT_DIR],
@@ -388,6 +431,7 @@ def start_facelift(url):
         return True, "started (local)"
 
     session = "facelift-%d" % started
+    _write_own_run(url, started, session)
     rdir = FACELIFT_REMOTE_DIR
     # Reset remote state, then run the skill inside tmux so it survives a dropped
     # ssh connection and can be watched live with: tmux attach -t <session>
@@ -678,14 +722,18 @@ button:active{background:var(--cy);color:#06121a}
     <div class="k">their url</div><div class="v" id="flu">&mdash;</div>
     <div class="k">reveal</div><div class="v" id="flr">&mdash;</div>
   </div>
-  <div id="flrow"><button id="flclose">Close</button><button id="flreset">Reset run</button></div>
+  <div id="flrow"><button id="flclose">Close</button><button id="flreset">CLEAR FACELIFT</button></div>
 </section>
 <section id="pf">
   <h3>Preflight</h3>
   <p class="sub">One tap, before you go up. Checks the deck, the booth, the reveal and the live demo. Changes nothing.</p>
   <button id="pfrun">RUN PREFLIGHT</button>
   <div id="pfout"></div>
-  <div id="flrow"><button id="pfclose">Close</button><button id="pfreset">Reset demo KB</button></div>
+  <!-- Both resets in one place, because they are the same job: put the show back to
+       cold. "Reset demo" clears StudioSage's demo tenant; "Clear facelift" clears the
+       rebuild run so the reveal is not armed with a stale build (and preflight stops
+       flagging it). The facelift panel has the same clear on its own row. -->
+  <div id="flrow"><button id="pfclose">Close</button><button id="pfclearfl">Clear facelift</button><button id="pfreset">Reset demo</button></div>
 </section>
 <div id="rescuerow"><button id="animbtn">&#9656; ANIMATED DEMO &mdash; rescue</button></div>
 <nav><button id="prev">Prev</button><button id="flbtn">&#9733;</button><button id="pfbtn">&#10003;</button><button id="jumpbtn">Jump</button><button id="next">Next &rsaquo;</button></nav>
@@ -727,14 +775,38 @@ document.getElementById('pfrun').onclick=function(){
    .then(function(d){pfPaint(d); b.textContent='RUN PREFLIGHT'; b.disabled=false;})
    .catch(function(e){pfout.textContent='could not run: '+e; b.textContent='RUN PREFLIGHT'; b.disabled=false;});
 };
+/* RESET DEMO — a fresh demo environment, not just a fresh knowledge base.
+   It used to send {} (email-only re-arm) under a button that said "Reset demo KB",
+   and it left the conversation wall standing: the room's texts from the last run
+   were still down the right-hand side of the live-demo slide while he told the
+   next room it knew nothing yet. It now sends seeds + wall, which is the API's
+   own "cold start" combination (StudioSage /api/demo/reset). The deck notices the
+   rows disappear on its next 2s poll and rebuilds the scene empty by itself. */
+/* RESET DEMO — a cold demo environment, not a fresh knowledge base.
+   Daniel's expectation, verbatim: "the new button will remove all knowledge base and
+   all all of text but keep the SMS number and QR code and the robot will be there now
+   and this will be a fresh environment ready for testing so as soon as the email hits
+   the Calgary ingest email endpoint it will correctly parse it and then when phones
+   text that number it'll automatically start answering without need for onboarding."
+   So: {wipe:true, wall:true} — EVERY knowledge-base row (seeds included) and EVERY
+   text off the wall. The number, the QR and the ingest address are configuration, not
+   data, so nothing needs re-arming afterwards. The button used to say "Reset demo KB"
+   and send {} — an email-only re-arm that left the last room's texts on the wall. */
 document.getElementById('pfreset').onclick=function(){
-  if(!confirm('Restore the DEMO knowledge base to its seeds? This touches the demo tenant only.'))return;
+  if(!confirm('COLD DEMO: erase the whole demo knowledge base AND every text on the wall.\n\nThe number, the QR and the ingest address stay. Demo tenant only.'))return;
   var b=this; b.textContent='resetting…'; b.disabled=true;
-  fetch('/demo-reset',{method:'POST',headers:{'content-type':'application/json'},body:'{}'})
+  fetch('/demo-reset',{method:'POST',headers:{'content-type':'application/json'},
+                       body:JSON.stringify({wipe:true,wall:true})})
    .then(function(r){return r.json();})
    .then(function(d){ b.textContent=d.ok?'reset ✓':'failed'; b.disabled=false;
-                      if(!d.ok)pfout.textContent=d.error||'reset failed';
-                      else document.getElementById('pfrun').click(); })
+                      if(!d.ok){pfout.textContent=d.error||'reset failed'; return;}
+                      var res=d.result||{}, del=res.deleted||{}, st=res.state||{};
+                      pfout.textContent='cold demo — knowledge base erased ('+(del.ingested_kb||0)
+                        +' entries), wall cleared ('+(del.wall_messages||0)
+                        +' texts), emails cleared ('+(del.original_emails||0)
+                        +'). KB now holds '+(st.kb_total===undefined?'?':st.kb_total)
+                        +'. Forward one email to calgary@ingest.studiosage.ai to prove it.';
+                      setTimeout(function(){document.getElementById('pfrun').click();},400); })
    .catch(function(e){ b.textContent='failed'; b.disabled=false; pfout.textContent=''+e; });
 };
 function paintJump(s){
@@ -830,10 +902,28 @@ document.getElementById('flgo').onclick=function(){
                        if(d.facelift)paintFl(d.facelift); })
     .catch(function(){document.getElementById('flv').textContent='no connection to laptop'});
 };
-document.getElementById('flreset').onclick=function(){
+/* CLEAR FACELIFT — forget the run entirely: both status files go, the panel goes back
+   to idle, and the deck's reveal falls through to the pre-baked fallback instead of
+   opening full screen on the last studio that was rebuilt. Live on two buttons (the
+   facelift panel and, beside "Reset demo", the preflight panel) because clearing the
+   demo and clearing the facelift are the same act — putting the show back to cold. */
+function clearFacelift(b){
+  var t=b?b.textContent:null;
+  if(b){b.textContent='clearing…'; b.disabled=true;}
   fetch('/facelift',{method:'POST',headers:{'content-type':'application/json'},
     body:JSON.stringify({action:'reset'})}).then(function(r){return r.json()})
-    .then(function(d){if(d.facelift)paintFl(d.facelift)}).catch(function(){});
+    .then(function(d){
+      if(d.facelift)paintFl(d.facelift);
+      if(b){b.textContent='cleared ✓'; b.disabled=false;
+            setTimeout(function(){b.textContent=t;},1600);}
+    })
+    .catch(function(e){ if(b){b.textContent='failed'; b.disabled=false;
+                             setTimeout(function(){b.textContent=t;},1600);} });
+}
+document.getElementById('flreset').onclick=function(){ clearFacelift(this); };
+document.getElementById('pfclearfl').onclick=function(){
+  clearFacelift(this);
+  setTimeout(function(){document.getElementById('pfrun').click();},600);
 };
 function flStart(u){
   if(!u){return;}
@@ -1021,23 +1111,33 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 STATE["stale"] = stale_deck_warning(STATE["total"])
                 STATE["seq"] += 1
             return self._json({"ok": True})
-        if self.path.startswith("/demo-reset"):    # phone: restore the demo knowledge base
+        if self.path.startswith("/demo-reset"):    # phone: a FRESH DEMO, not just a fresh KB
             tok = _demo_token()
             if not tok:
                 return self._json({"ok": False,
                                    "error": "no demo token on this laptop (demo-token.txt)"}, 400)
+            # The phone asks for wipe + wall: erase the knowledge base entirely and clear
+            # the wall. Both default TRUE here so an older cached /remote page, or a curl
+            # with an empty body, gets the cold environment the button now promises rather
+            # than the old email-only re-arm. `seeds` is passed through only if a caller
+            # explicitly asks for it — it is the opposite instruction to a wipe.
+            payload = {"wipe": data.get("wipe", True) is not False,
+                       "wall": data.get("wall", True) is not False}
+            if data.get("seeds") is True and data.get("wipe") is not True:
+                payload = {"seeds": True, "wall": payload["wall"]}
             r = _https_json("https://www.studiosage.ai/api/demo/reset",
-                            token=tok, payload={"seeds": True})
+                            token=tok, payload=payload)
             if r.get("_error"):
                 return self._json({"ok": False, "error": r["_error"][:120]}, 502)
             return self._json({"ok": True, "result": r})
         if self.path.startswith("/facelift"):      # phone kicks off the rebuild
             action = data.get("action") or "start"
             if action == "reset":
-                try:
-                    os.remove(FACELIFT_STATUS)
-                except OSError:
-                    pass
+                for _p in (FACELIFT_STATUS, FACELIFT_OWN):
+                    try:
+                        os.remove(_p)
+                    except OSError:
+                        pass
                 return self._json({"ok": True, "facelift": facelift_state()})
             url = normalise_url(data.get("url"))
             if not url:

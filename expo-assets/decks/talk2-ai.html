@@ -749,6 +749,43 @@
   .ls-status{position:absolute;right:30px;top:196px;z-index:8;font:700 14px/1 var(--mono);color:#7f9a8c;
     background:rgba(9,14,12,.85);border:1px solid #33403a;border-radius:8px;padding:8px 12px}
   .ls-status.bad{color:#e0a89f;border-color:#7a4038}
+
+  /* THE STUDIOSAGE ROBOT, TOP LEFT OF THE LIVE WALL.
+     Daniel: "we need to see the studioSage robot on this slide with the live demo.
+     Maybe up in the top left the real animated SVG."
+     It IS the real one — the same geometry as StudioSage's own AnimatedRobot.tsx
+     (src/components/AnimatedRobot.tsx), hand-ported to plain SVG + CSS because this
+     deck has no React and must never depend on a network for its branding. The
+     personality is baked at the warm/enthusiastic end of that component's range:
+     smiling mouth, sparkled eyes, faint blush.
+     Placement: the panel below it is bottom-anchored and its top edge sits near
+     y=366 on a 992-tall scene, the messages are pinned right, and the core is at
+     x=1080 — so this corner is the one piece of empty stage on the slide. */
+  /* 190px wide => ~247 tall, so the robot ends ~30px above the panel's top edge at
+     its current height — and the panel is bottom-anchored, so it grows UPWARD if the
+     fact list is ever extended. Measured, not eyeballed. */
+  .ls-robot{position:absolute;left:44px;top:26px;width:190px;z-index:9;pointer-events:none;
+    filter:drop-shadow(0 0 16px rgba(101,128,109,.45))}
+  .ls-robot svg{width:100%;height:auto;display:block}
+  .ls-rb-head{transform-origin:50px 45px;animation:lsrtilt 9s ease-in-out infinite}
+  .ls-rb-ant{transform-origin:50px 22px;animation:lsrant 6s ease-in-out infinite}
+  .ls-rb-torso{transform-origin:50px 81px;animation:lsrbreathe 3.4s ease-in-out infinite}
+  .ls-rb-eye{transform-box:fill-box;transform-origin:center;animation:lsrblink 6.5s ease-in-out infinite}
+  .ls-rb-eye.r{animation-delay:.04s}          /* both lids, a hair apart: reads alive, not mechanical */
+  @keyframes lsrtilt{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.6deg)}}
+  @keyframes lsrant{0%,72%,100%{transform:rotate(0)}80%{transform:rotate(-9deg)}90%{transform:rotate(9deg)}}
+  @keyframes lsrbreathe{0%,100%{transform:scale(1,1)}50%{transform:scale(.99,1.03)}}
+  @keyframes lsrblink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.08)}}
+  /* A message or a fact just landed: one nod. The room's eye is already on the
+     right-hand column, and this is what pulls it back to "something is listening". */
+  .ls-robot.nod{animation:lsrnod .62s ease-in-out}
+  @keyframes lsrnod{0%,100%{transform:translateY(0) rotate(0)}
+                    35%{transform:translateY(-9px) rotate(-2.5deg)}
+                    70%{transform:translateY(2px) rotate(1.5deg)}}
+  @media (prefers-reduced-motion:reduce){
+    .ls-rb-head,.ls-rb-ant,.ls-rb-torso,.ls-rb-eye,.ls-robot.nod{animation:none}
+  }
+
   body.on-demo #counter,body.on-demo #hint{display:none}
   .demonext{margin-left:auto;background:#5b7362;color:#fff;border:0;border-radius:12px;padding:13px 28px;font:800 21px/1 var(--sans);cursor:pointer}
   .demonext:hover{background:#6d8a76}
@@ -1870,6 +1907,49 @@
     <div class="ls-empty" id="lsEmpty">It knows nothing about this studio yet.<br>Forward one email and watch.</div>
     <div class="ls-status" id="lsStatus">waiting for the first email</div>
     <div class="ls-msgs" id="lsMsgs"></div>
+    <!-- The StudioSage robot, ported from the product's own AnimatedRobot.tsx. Idle
+         animation only (breathe / blink / antenna / slow tilt); it nods once when a
+         text or a fact lands. See the .ls-robot block in the stylesheet. -->
+    <div class="ls-robot" id="lsRobot" aria-hidden="true">
+      <svg viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
+        <g class="ls-rb-ant">
+          <line x1="50" y1="28" x2="50" y2="18" stroke="#dfeee4" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="50" cy="14" r="5" fill="none" stroke="#dfeee4" stroke-width="3"/>
+        </g>
+        <g class="ls-rb-head">
+          <rect x="12" y="35" width="8" height="20" rx="3" fill="none" stroke="#dfeee4" stroke-width="3"/>
+          <rect x="80" y="35" width="8" height="20" rx="3" fill="none" stroke="#dfeee4" stroke-width="3"/>
+          <rect x="20" y="25" width="60" height="45" rx="10" fill="#f4faf6" stroke="#dfeee4" stroke-width="3"/>
+          <line x1="32" y1="36" x2="42" y2="38" stroke="#2d3a30" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="58" y1="38" x2="68" y2="36" stroke="#2d3a30" stroke-width="2.5" stroke-linecap="round"/>
+          <g class="ls-rb-eye">
+            <ellipse cx="37" cy="48" rx="6.6" ry="7.7" fill="#2d3a30"/>
+            <circle cx="34.8" cy="45.6" r="2" fill="#fff"/>
+          </g>
+          <g class="ls-rb-eye r">
+            <ellipse cx="63" cy="48" rx="6.6" ry="7.7" fill="#2d3a30"/>
+            <circle cx="60.8" cy="45.6" r="2" fill="#fff"/>
+          </g>
+          <ellipse cx="28" cy="56" rx="5" ry="3" fill="#e8a0a0" opacity=".34"/>
+          <ellipse cx="72" cy="56" rx="5" ry="3" fill="#e8a0a0" opacity=".34"/>
+          <path d="M40 58 Q50 64.4 60 58" fill="none" stroke="#2d3a30" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <g>
+          <ellipse cx="22" cy="82" rx="6" ry="4" fill="none" stroke="#dfeee4" stroke-width="3"
+                   transform="rotate(-30 22 82)"/>
+          <ellipse cx="78" cy="82" rx="6" ry="4" fill="none" stroke="#dfeee4" stroke-width="3"
+                   transform="rotate(30 78 82)"/>
+          <rect class="ls-rb-torso" x="38" y="72" width="24" height="18" rx="5"
+                fill="#f4faf6" stroke="#dfeee4" stroke-width="3"/>
+          <ellipse cx="50" cy="92" rx="22" ry="6" fill="none" stroke="#dfeee4" stroke-width="3"/>
+          <ellipse cx="50" cy="96" rx="18" ry="5" fill="none" stroke="#dfeee4" stroke-width="2.5"/>
+          <path d="M42 98 L38 115 Q36 120 40 120 L44 120" fill="none" stroke="#dfeee4" stroke-width="3"
+                stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M58 98 L62 115 Q64 120 60 120 L56 120" fill="none" stroke="#dfeee4" stroke-width="3"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+      </svg>
+    </div>
   </div>
   <!-- Fallback: the original cross-origin wall. Hidden, lazy (data-src so it costs
        nothing until needed). Press W on this slide to swap to it. -->
@@ -1902,7 +1982,7 @@
   </div>
   <aside class="note"><b>48:30&ndash;51:30 &middot; [LIVE DEMO] &middot; LIVE BEAT 2</b> &mdash; <b>Live beat 2 of 2.</b> THE audience moment: they text <b>+1 587-317-0721</b> and their (masked) message + the KB sphere animate on this radial wall LIVE. &#9888; <b>The room does this, not you.</b> In Toronto he forwarded one email himself and it hung (<code>ExpoMic.txt:2939&ndash;2983</code>). Forty phones cannot all hang &mdash; if three do, thirty-seven landed and the person beside you shows you theirs. You also get the room's real questions instead of your test question, and every phone that texts is a lead. They were already asked to text on the previous slide, so texts should be arriving as you arrive. This is the REAL product and it needs wifi. <b>This slide NEVER moves on its own</b> &mdash; if signal drops, YOU shift: press <b>O</b> (or the on-screen "Animated version" button) for the embedded offline demo on the next slide. The amber bar bottom-right says the same thing; trust it and do not debug on stage. Hard-scoped to studio_0012 by the receiving number &mdash; <b>there is no arming step, nothing to arm, and nothing to hijack</b> (since 2026-08-03 the demo routes purely by the number the text arrives on). The old presence heartbeat was deleted 2026-08-07: its endpoint answers 410 Gone and it was logging a failed request every 8 seconds across this slide and the one before it. To show "watch it learn", have somebody forward a studio email to <b>calgary@ingest.studiosage.ai</b> and the new entry appears on the KB sphere. Verify that address once on the day.
 &#9888; <b>Explain the mechanism correctly, because the true version is the better story.</b> Routing is by <b>RECIPIENT</b>: <code>calgary@ingest.studiosage.ai</code> is a real per-studio inbound address, exactly like <code>kerrymoore-blf0@</code> or <code>steppinup-ufju@</code>. So <b>it does not matter who forwards it</b> &mdash; any sender, any phone, any email account &mdash; it lands in Calgary's knowledge base because of the address it was sent <i>to</i>. What the room is watching is <b>the actual product path</b>, not a demo shortcut: every studio gets its own private address, you forward to yours, and it learns.
-&#9888; <b>Do NOT say anything like "we catch it because it's in demo mode" or "forward from any address and we grab it".</b> That branch (<code>STUDIOSAGE_DEMO_MODE</code>, capture-any-unrecognised-sender) was <b>removed 2026-08-03</b> &mdash; and it is exactly what killed the Toronto demo: a Namecheap marketing blast hit the catch-all 38 minutes before he went on. The mechanism that replaced it is narrower, correct, and cannot be poisoned by a stray email.Pre-flight is the 8-check panel at <b>studiosage.ai/demo/operator</b> (ingest_address, kb_seeds, kb_embeddings, clean_slate, openai, vision, demo_number, wall); reset the seed KB with POST /api/demo/reset {"seeds":true} (15 entries).
+&#9888; <b>Do NOT say anything like "we catch it because it's in demo mode" or "forward from any address and we grab it".</b> That branch (<code>STUDIOSAGE_DEMO_MODE</code>, capture-any-unrecognised-sender) was <b>removed 2026-08-03</b> &mdash; and it is exactly what killed the Toronto demo: a Namecheap marketing blast hit the catch-all 38 minutes before he went on. The mechanism that replaced it is narrower, correct, and cannot be poisoned by a stray email.Pre-flight is the 8-check panel at <b>studiosage.ai/demo/operator</b> (ingest_address, kb_seeds, kb_embeddings, clean_slate, openai, vision, demo_number, wall); reset with the phone's <b>Reset demo</b> button (preflight panel), which sends POST /api/demo/reset <code>{"wipe":true,"wall":true}</code> &mdash; it erases the WHOLE knowledge base and every text on the wall, so this slide comes up cold ("it knows nothing about this studio yet") and the volunteer's forward is visibly the first thing it ever learned. The number, the QR and <code>calgary@ingest.studiosage.ai</code> are configuration and are untouched, so nothing needs re-arming. This slide notices the rows vanish on its own 2s poll and rebuilds itself empty &mdash; no reload. <code>{"seeds":true}</code> still restores the 15 seed entries if a seeded KB is wanted instead.
 &#9888; <b>TRAP &mdash; do not use <code>studiosage.ai/t/LIVE26</code>.</b> It went live 2026-08-06, returns 200 and looks perfect, but <code>/t/</code> hardcodes the main number and has no concept of the demo's separate Twilio line &mdash; it points at <b>226-796-6037, the PRODUCTION number</b>. Anyone who taps it on stage texts the wrong phone and nothing appears on the wall. <b>The instruction stays exactly as it is: text LIVE26 to +1 587-317-0721.</b> No <code>/t/</code> link and no <code>/t/</code> QR anywhere in this talk, on stage or at the booth, until it is fixed.
 &#9888; <b>SAME TRAP, ALREADY ON THIS SLIDE &mdash; found and fixed 2026-08-07.</b> The QR in the panel bottom-left used to encode <code>sms:+12267966037</code>, i.e. the <b>production</b> number, while the panel told the room "scan &mdash; it opens your messages, already addressed". Every person who scanned instead of typing would have texted the wrong line and never appeared on the wall. It now encodes <code>sms:+15873170721</code> (decoded and verified, not assumed). It deliberately does <b>not</b> prefill a keyword, because the prefill syntax differs between iOS and Android and a half-working QR is worse than none &mdash; so say <b>"type LIVE26, or honestly type anything"</b>. &#9888; The standalone assets <code>QR-demo-sms.png</code> and <code>QR-demo-sms-prefilled.png</code> in this folder are <b>still wrong</b> (both encode 226-796-6037) &mdash; do not print or reuse either one.&#9888; Name both halves of the magic out loud: it answers what it knows, <i>and</i> when it doesn't it says "I don't have that information yet, please contact your studio director." <b>A flag is a win, not a failure</b> &mdash; say so when it happens.</aside>
 </section>
@@ -2411,6 +2491,7 @@
   var elCount=document.getElementById('lsCount'), elSub=document.getElementById('lsSub');
   var elEmpty=document.getElementById('lsEmpty'), elStatus=document.getElementById('lsStatus');
   var elMsgs=document.getElementById('lsMsgs'), fallback=document.getElementById('lsFallback');
+  var robot=document.getElementById('lsRobot');
 
   var CX=1080, CY=455, R=152;              // core centre + radius, matches the CSS
   var MAX_MSGS=20;                          // hard cap - newest 20, oldest roll off
@@ -2461,6 +2542,45 @@
   }
   function setStatus(txt,bad){ elStatus.textContent=txt; elStatus.classList.toggle('bad',!!bad); }
 
+  /* One nod from the robot when something lands. Restart-safe (remove, reflow, add). */
+  function nod(){
+    if(!robot) return;
+    robot.classList.remove('nod'); void robot.offsetWidth; robot.classList.add('nod');
+  }
+
+  /* WIPE THE SCENE BACK TO COLD.
+     "Reset demo" on the phone deletes the demo tenant's knowledge base, its ingested
+     emails and every text on the wall. Without this, the deck kept drawing what it had
+     already drawn — the previous room's texts stayed down the right-hand side and the
+     restored facts piled on top of the old ones as duplicates, because every rendered
+     node was cached by id and the ids had changed. Now the deck notices the rows are
+     gone on its next 2s poll and rebuilds itself empty, with no reload and nothing to
+     press. */
+  function wipeScene(why){
+    seenFacts={}; seenMsgs={}; factN=0; mailShown=false;
+    while(wires.firstChild) wires.removeChild(wires.firstChild);
+    Array.prototype.slice.call(scene.querySelectorAll('.ls-fact,.ls-mail'))
+      .forEach(function(n){ n.parentNode.removeChild(n); });
+    elMsgs.innerHTML='';
+    core.classList.add('empty');
+    elCount.textContent='0'; elSub.textContent='nothing yet';
+    elEmpty.style.display='';
+    if(window.console&&console.log) console.log('[live scene] rebuilt empty — '+why);
+  }
+
+  /* Did the server's rows disappear under us?
+     The test is "EVERY id we have drawn is gone", not "some id is missing": the wall
+     feed only returns the newest 30, so in a long session an old id ageing out of that
+     window is normal and must not look like a reset. A wipe takes them all at once —
+     and a seed restore replaces rows with NEW ids, which reads the same way and needs
+     the same rebuild. */
+  function allGone(seen, live){
+    var ids=Object.keys(seen);
+    if(!ids.length) return false;
+    for(var i=0;i<ids.length;i++){ if(live[ids[i]]) return false; }
+    return true;
+  }
+
   function tick(){
     if(!slide.classList.contains('active')) return;
     Promise.all([
@@ -2473,6 +2593,15 @@
 
       var entries=(kb.entries||[]).slice().sort(function(a,b){
         return new Date(a.created_at)-new Date(b.created_at); });
+      var allMsgs=(wall.messages||[]);
+
+      // Reset detection FIRST, so the repaint below draws onto a clean scene.
+      var liveFacts={}; entries.forEach(function(e){ liveFacts[e.id]=1; });
+      var liveMsgs={};  allMsgs.forEach(function(m){ liveMsgs[m.id]=1; });
+      if(allGone(seenFacts,liveFacts)||allGone(seenMsgs,liveMsgs)){
+        wipeScene('the demo tenant was reset');
+      }
+
       var n=entries.length;
       elCount.textContent=n;
       elSub.textContent = n===0 ? 'nothing yet' : (n===1?'fact from 1 email':'facts, live');
@@ -2481,12 +2610,12 @@
       entries.forEach(function(e){
         if(seenFacts[e.id]) return; seenFacts[e.id]=1;
         if(e.from_email) showMail(e);
-        addFact(e);
+        addFact(e); nod();
       });
 
-      var msgs=(wall.messages||[]).slice().sort(function(a,b){
+      var msgs=allMsgs.slice().sort(function(a,b){
         return new Date(a.created_at)-new Date(b.created_at); }).slice(-MAX_MSGS);
-      msgs.forEach(function(m){ if(seenMsgs[m.id]) return; seenMsgs[m.id]=1; addMsg(m); });
+      msgs.forEach(function(m){ if(seenMsgs[m.id]) return; seenMsgs[m.id]=1; addMsg(m); nod(); });
 
       setStatus(n===0 ? 'waiting for the first email' : (n+' fact'+(n===1?'':'s')+' · live'));
     }).catch(function(){
