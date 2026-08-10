@@ -1450,13 +1450,45 @@
   var MENU_LOOP_SRC = 'menu-loop/menu-loop.mp4';
 
   /* Probe once, the same way the film layers are probed: a HEAD that fails
-     leaves the mode unavailable rather than pointing a <video> at a 404. */
+     leaves the mode unavailable rather than pointing a <video> at a 404.
+
+     Then WARM IT. Measured on DART 2026-08-09: switching to the menu reel left
+     the screen black for SEVENTEEN SECONDS. Nothing was wrong with the file or
+     the server — 6.4 MB downloads in 0.88s — it is the browser's ~6 connections
+     per host. This page holds seven film videos plus an EventSource, so the
+     reel's request sat in the queue behind all of them. Same trap that once put
+     15 films' telemetry on disk as 0 events.
+
+     So the reel loads in the BACKGROUND, after the films are warm, and is then
+     already buffered when somebody presses the button. Films keep priority:
+     nothing here starts until they are ready (or 12s has passed, whichever
+     comes first), so instant-start on a tap is unaffected. */
   (function probeMenuLoop() {
     if (typeof fetch === 'undefined') return;
     fetch(MENU_LOOP_SRC, { method: 'HEAD' })
-      .then(function (r) { menuLoopOk = !!(r && r.ok); })
+      .then(function (r) {
+        menuLoopOk = !!(r && r.ok);
+        if (menuLoopOk) warmMenuLoop();
+      })
       .catch(function () { menuLoopOk = false; });
   })();
+
+  function warmMenuLoop() {
+    var started = Date.now();
+    (function waitForFilms() {
+      var vids = Array.prototype.slice.call(document.querySelectorAll('#film video'));
+      var warmEnough = vids.length === 0 || vids.every(function (v) { return v.readyState >= 3; });
+      if (!warmEnough && Date.now() - started < 12000) {
+        setTimeout(waitForFilms, 750);
+        return;
+      }
+      if (!menuVid.getAttribute('src')) {
+        menuVid.setAttribute('preload', 'auto');
+        menuVid.setAttribute('src', MENU_LOOP_SRC);
+        try { menuVid.load(); } catch (e) {}
+      }
+    })();
+  }
 
   /* ----------------------------------------------------------------- film
      dir = +1 the new film comes in from the RIGHT, -1 from the LEFT. The

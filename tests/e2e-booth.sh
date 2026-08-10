@@ -152,12 +152,28 @@ if dev_up "$STICK"; then
     skip "stick film hashes" "--quick"
   else
     $ADB -s "$STICK" shell "cd /sdcard/Movies/StreamStageBooth && for f in *.mp4; do echo -n \"\$f \"; toybox sha256sum \$f | cut -d' ' -f1; done" 2>/dev/null > /tmp/.e2e_stick
+    # A film that has been updated lives under a VERSIONED name — foo__<hex>.mp4 —
+    # and the plain foo.mp4 stays behind as the rollback source. Comparing plain
+    # names alone therefore reports drift on a stick that is perfectly correct:
+    # it hashes the old copy the app is deliberately keeping. So collapse each
+    # file to its logical name and let the versioned copy win, which is what
+    # FilmVersions on the device does. (Caught 2026-08-09, the night before the
+    # flight, when a correct stick failed this check.)
     M=0; X=0
+    declare -A BEST=()
     while read -r f h; do
+      [ -n "$f" ] || continue
+      logical="${f%.mp4}"; logical="${logical%%__*}.mp4"
+      case "$f" in
+        *__*) BEST["$logical"]="$h" ;;                       # versioned wins
+        *)    [ -n "${BEST[$logical]:-}" ] || BEST["$logical"]="$h" ;;
+      esac
+    done < /tmp/.e2e_stick
+    for f in "${!BEST[@]}"; do
       [ -f "$PUBSET/$f" ] || continue
       L=$(sha256sum "$PUBSET/$f" | cut -d' ' -f1)
-      if [ "$L" = "$h" ]; then M=$((M+1)); else X=$((X+1)); echo "        drift: $f"; fi
-    done < /tmp/.e2e_stick
+      if [ "$L" = "${BEST[$f]}" ]; then M=$((M+1)); else X=$((X+1)); echo "        drift: $f"; fi
+    done
     [ "$X" -eq 0 ] && ok "all $M stick films match the published set" || bad "stick film drift" "$X film(s) differ from publish-set"
   fi
 else

@@ -48,6 +48,15 @@ Known fixed points: the Fire Stick is `192.168.0.199:5555` on adb; SPYBALLOON's
 firewall drops inbound LAN, so **devices cannot reach a server on SPYBALLOON** —
 serve the booth from DART.
 
+**The beacon works — confirmed 2026-08-09 from the Pixel**, which is not behind that
+firewall: it heard `{"ss":"kiosk","host":"192.168.0.11","port":8081,...}` with all
+seven films listed. This laptop cannot hear it and never will; that is the firewall,
+not the kiosk. `preflight.sh` says so rather than blaming the beacon.
+
+When you pass `BOOTH_HOST` by hand, `booth-lan.sh` **probes** for the kiosk port
+instead of assuming 8080. It used to assume, and since START-BOOTH.bat runs the
+kiosk on 8081, preflight declared a perfectly healthy booth dead.
+
 ---
 
 ## 3. Two attract loops, and how a visitor picks a film
@@ -60,6 +69,12 @@ command) or by pressing **A** on the TV itself:
   films playing as live thumbnails with the highlight moving through them, captioned
   "tap the tablet to watch the full explainer". Rebuild it with
   `node render-menu-loop.mjs`.
+
+  The reel **warms in the background** after the films are ready. It has to: this
+  page holds seven film videos plus an EventSource, and the browser allows about
+  six connections per host, so a reel loaded on demand queued behind all of them —
+  **measured at 17 seconds of black screen** on DART. Warmed, the switch takes
+  **255 ms**. Do not make it load lazily again.
 
 A visitor taps a tile on the tablet → the film plays on the TV. **When that film
 ends, the end card shows (it carries the product's QR) and then the next film plays

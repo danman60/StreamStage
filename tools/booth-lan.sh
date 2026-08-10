@@ -24,7 +24,26 @@ HUMAN=0
 PRESENTER_PORT="${PRESENTER_PORT:-8090}"
 
 if [ -n "${BOOTH_HOST:-}" ]; then
-  HOST="$BOOTH_HOST"; KPORT="${KIOSK_PORT:-8080}"; TPORT="${TELEMETRY_PORT:-$((KPORT + 1))}"
+  HOST="$BOOTH_HOST"
+  # Do NOT assume the port. serve.py's built-in default is 8080, but the booth is
+  # started by START-BOOTH.bat as `--port 8081`, so assuming the default told
+  # preflight the booth was DEAD while it was serving perfectly on 8081 — a
+  # false alarm at 8am, from a helper whose whole job is to stop people guessing.
+  # Ask the machine instead: /health names its own port.
+  if [ -n "${KIOSK_PORT:-}" ]; then
+    KPORT="$KIOSK_PORT"
+  else
+    KPORT=""
+    for p in 8081 8080 8082 8083 8084 8085; do
+      if curl -s -m 2 "http://$HOST:$p/health" 2>/dev/null | grep -q '"ok"'; then
+        KPORT="$p"; break
+      fi
+    done
+    # Nothing answered. Report the documented port rather than an empty string so
+    # the caller prints a usable address in its "start it" message.
+    KPORT="${KPORT:-8081}"
+  fi
+  TPORT="${TELEMETRY_PORT:-$((KPORT + 1))}"
   SOURCE="BOOTH_HOST override"
 else
   BEACON="$(python3 - <<'PY'
