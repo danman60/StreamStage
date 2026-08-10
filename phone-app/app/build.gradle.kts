@@ -28,8 +28,10 @@ android {
         // PhonePresenter shipped versionCode 1, so an upgrade must be higher. 2 was the first
         // dual-mode build and is the one on Daniel's Pixel now; 3 is the mode-switch fix, bumped
         // so the two are tellable apart on the device rather than by guessing at a build time.
-        versionCode = 3
-        versionName = "2.0.1"
+        // 4 is the launch-picker build: the app asks DECK or KIOSK before it connects to anything,
+        // and no LAN sweep starts unless the operator presses a button that says it will.
+        versionCode = 4
+        versionName = "2.1.0"
     }
 
     // Diag prints the running version on screen and into every shipped log line, so a report

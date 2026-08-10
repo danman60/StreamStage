@@ -75,6 +75,7 @@ class MainActivity : Activity() {
     private lateinit var films: FilmPanel
     private lateinit var overlay: SetupOverlay
     private lateinit var switcher: ModeSwitcher
+    private lateinit var picker: LaunchPicker
     private lateinit var store: HostStore
     private lateinit var playlist: Playlist
     private lateinit var remote: RemoteControl
@@ -117,10 +118,14 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         store = HostStore(this)
         playlist = Playlist(this)
+        // The last mode is a HIGHLIGHT ON THE PICKER, NOT A DECISION. Restoring it and acting on it
+        // is the bug this build exists to remove: it came up in KIOSK, swept a /24 for a laptop
+        // that was switched off, and the deck remote was unreachable behind that sweep.
         mode = store.mode
         Diag.mode = mode
         Diag.init(this)
-        Diag.i("starting in ${mode.label} mode (restored from last session)")
+        Diag.i("launched. Last mode was ${mode.label} — showing the picker, connecting to NOTHING " +
+            "until a mode is chosen.")
 
         // A phone that dims mid-talk is a phone that has stopped being a remote.
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -160,10 +165,17 @@ class MainActivity : Activity() {
             onPick = { picked -> switcher.hide(); switchTo(picked) }
             onCancel = { switcher.hide() }
         }
+        picker = LaunchPicker(this).apply {
+            onStart = { m, text -> startFromPicker(m, text) }
+            onSearch = { m -> sweepFor(m) }
+            onForce = { m, addr -> forceFromPicker(m, addr) }
+        }
 
         root.addView(column, matchParent())
         root.addView(overlay, matchParent())
         root.addView(switcher, matchParent())
+        // Topmost: until a mode is picked, nothing underneath it is live.
+        root.addView(picker, matchParent())
         setContentView(root)
 
         // The pull-from-the-kiosk control plane. Started only in KIOSK mode — see RemoteControl.
@@ -173,7 +185,119 @@ class MainActivity : Activity() {
         DebugBridge.register(this) { c, a -> ui.post { command(c, a) } }
 
         applyMode(initial = true)
-        startConnect(force = false)
+        showPicker()
+    }
+
+    // ------------------------------------------------------------------ the launch picker
+
+    /**
+     * ASK. Do nothing else.
+     *
+     * No probe, no page load, no sweep, no timer. The only thing that happens between here and a
+     * tap is the watchdog ticking over and finding `current == null`, which is now a no-op.
+     */
+    private fun showPicker() {
+        cancelScan.set(true)
+        connecting = false
+        picker.show(
+            lastMode = mode,
+            saved = mapOf(
+                Mode.PRESENTER to store.saved(Mode.PRESENTER),
+                Mode.KIOSK to store.saved(Mode.KIOSK)
+            ),
+            fallback = mapOf(
+                Mode.PRESENTER to Mode.PRESENTER.fallbackHost,
+                Mode.KIOSK to Mode.KIOSK.fallbackHost
+            )
+        )
+    }
+
+    /**
+     * START pressed on a card. ONE address, ONE probe, no sweep, and the other mode is not touched.
+     *
+     * The probe exists so a wrong address is caught in about a second and said in words, not so the
+     * app can second-guess the operator — if it fails, "Open it anyway" is right there and does
+     * exactly that.
+     */
+    private fun startFromPicker(target: Mode, text: String) {
+        val typed = text.trim()
+        if (typed.isEmpty()) {
+            picker.setStatus("Type the ${target.pickLabel.lowercase()} laptop's address first, " +
+                "e.g. 192.168.0.13:${target.seedPorts.first()} — or use Search this network.")
+            return
+        }
+        val parsed = HostStore.parse(target, typed)
+        if (parsed == null) {
+            picker.setStatus("'$typed' is not an address. Try 192.168.0.13:${target.seedPorts.first()}.")
+            return
+        }
+
+        enterMode(target)
+        picker.setBusy(true)
+        picker.setStatus("Checking $parsed …")
+        Diag.i("PICKER: ${target.pickLabel} -> $parsed (single probe, no sweep)")
+
+        io.execute {
+            val hit = Discovery.probe(target, parsed.host, parsed.port)
+            ui.post {
+                picker.setBusy(false)
+                if (target != mode) return@post          // he changed his mind mid-probe
+                if (hit != null) {
+                    store.save(hit)
+                    picker.hide()
+                    connectTo(hit)
+                } else {
+                    val why = Diag.attempts().lastOrNull()?.let { "${it.outcome}: ${it.detail}" }
+                        ?: "no answer"
+                    picker.setFailure(target, parsed.toString(),
+                        "$parsed did not answer as ${target.serverName} ($why).\n" +
+                            "Check it is running, fix the address, or open it anyway.")
+                    Diag.e("PICKER: $parsed did not answer for ${target.label} — $why")
+                }
+            }
+        }
+    }
+
+    /** "Open it anyway" on the picker. Same contract as [forceHost]: used, never remembered. */
+    private fun forceFromPicker(target: Mode, addr: String) {
+        enterMode(target)
+        picker.hide()
+        forceHost(addr)
+    }
+
+    /**
+     * THE ONLY ROUTE TO A LAN SWEEP THAT STARTS AT LAUNCH. The operator pressed a button labelled
+     * "Search this network", so a sweep is what they asked for.
+     */
+    private fun sweepFor(target: Mode) {
+        enterMode(target)
+        picker.hide()
+        Diag.i("PICKER: operator asked for a network search in ${target.label} mode")
+        startConnect(force = true)
+    }
+
+    /**
+     * Move the app into a mode WITHOUT connecting anything — the picker's half of [switchTo].
+     * Everything belonging to the old mode is torn down for the same reasons stated there.
+     */
+    private fun enterMode(target: Mode) {
+        if (target != mode) {
+            Diag.i("=== PICKED ${target.label} (was ${mode.label}) ===")
+            cancelScan.set(true)
+            connecting = false
+            remote.stop()
+            films.stopPolling()
+            Remote.arm(null)
+            web.loadUrl("about:blank")
+            pageLoaded = false
+            healthMisses = 0
+            playInFlight = false
+            current = null
+            mode = target
+            Diag.mode = target
+            store.mode = target
+            applyMode(initial = false)
+        }
     }
 
     // ------------------------------------------------------------------ the mode switch
@@ -223,9 +347,33 @@ class MainActivity : Activity() {
         store.mode = target
         applyMode(initial = false)
 
+        /*
+         * NO SWEEP ON A MODE SWITCH EITHER.
+         *
+         * This used to call startConnect(), which falls through to a 254-address sweep whenever the
+         * saved host does not answer — so tapping KIOSK at a booth with the kiosk laptop shut made
+         * the phone unusable for the next minute, in both modes. Now: the saved address is tried
+         * ONCE, and if it is not there the picker comes back with the address on screen, ready to
+         * be corrected or searched for deliberately.
+         */
         val saved = store.saved(target)
         Diag.i("${target.label} mode: saved host is ${saved ?: "none yet"}")
-        startConnect(force = false)
+        if (saved == null) { showPicker(); return }
+        picker.hide()
+        renderBar("checking $saved…")
+        io.execute {
+            val hit = Discovery.probe(target, saved.host, saved.port)
+            ui.post {
+                if (target != mode) return@post
+                if (hit != null) connectTo(hit) else {
+                    Diag.w("${target.label}: saved host $saved did not answer — asking, not sweeping")
+                    showPicker()
+                    picker.setFailure(target, saved.toString(),
+                        "$saved did not answer as ${target.serverName}. Nothing was searched for — " +
+                            "fix the address, open it anyway, or ask for a network search.")
+                }
+            }
+        }
     }
 
     /** Paint everything that depends on which mode we are in. */
@@ -299,6 +447,9 @@ class MainActivity : Activity() {
                     connectTo(parsed)
                 }
             }
+            // The picker, from adb — so the launch screen can be driven and read back without a
+            // thumb on the glass. `rediscover` is still the only command that sweeps.
+            "pick" -> showPicker()
             "rediscover" -> startConnect(force = true)
             "reload" -> reloadCurrentSurface()
             "clearhost" -> {
@@ -633,7 +784,9 @@ class MainActivity : Activity() {
                 Diag.e("page load FAILED code=${error.errorCode} (${error.description}) url=${request.url}")
                 // Never leave Daniel looking at a WebView error page mid-talk.
                 view.loadUrl("about:blank")
-                startConnect(force = true)
+                // NO SWEEP. A page that failed is a page to retry or an address to fix, and both
+                // are one tap away on the panel this puts up.
+                pageFailed("${request.url} failed to load (${error.description}).")
             }
 
             @Suppress("OverridingDeprecatedMember", "DEPRECATION")
@@ -641,7 +794,7 @@ class MainActivity : Activity() {
                 pageLoaded = false
                 Diag.e("page load FAILED (legacy) code=$errorCode ($description) url=$failingUrl")
                 view.loadUrl("about:blank")
-                startConnect(force = true)
+                pageFailed("$failingUrl failed to load ($description).")
             }
         }
         return w
@@ -827,13 +980,36 @@ class MainActivity : Activity() {
         showKioskFilmList(false)
         web.loadUrl(url)
         renderBar("opening…")
-        // Do not hang on a page that connected but never finished.
+        // Do not hang on a page that connected but never finished. Say so; do not go hunting.
         ui.postDelayed({
             if (!pageLoaded && !connecting && current == host && web.visibility == View.VISIBLE) {
                 Diag.e("$url did not finish loading within 20s")
-                startConnect(force = true)
+                pageFailed("$url answered but did not finish loading within 20 seconds.")
             }
         }, 20_000)
+    }
+
+    /**
+     * A PAGE FAILED, AND THAT IS NOT A REASON TO SEARCH THE NETWORK.
+     *
+     * Every one of these paths used to call startConnect(force = true), which walks 46 ports on the
+     * saved host and then sweeps 254 addresses on every interface. On a stage that is the phone
+     * going away for a minute at the exact moment the deck stopped answering. Now it puts up the
+     * panel that already carries the address, a Connect button, a Reload button and — separately
+     * and deliberately — Search this network again.
+     */
+    private fun pageFailed(what: String) {
+        val h = current
+        pageLoaded = false
+        overlay.setMode(mode)
+        overlay.showFailure(
+            "The ${mode.label} page did not load",
+            what + "\n\nNothing has been searched for. Tap Connect to try " +
+                (h?.toString() ?: "the address") + " again, or Search this network if the laptop " +
+                "has moved.",
+            h?.toString()
+        )
+        renderBar("page did not load")
     }
 
     private fun reloadCurrentSurface() {
@@ -1042,9 +1218,19 @@ class MainActivity : Activity() {
                         loadPage(h)
                     }
                 } else if (++healthMisses >= 2) {
-                    healthMisses = 0
-                    Diag.w("$reason: $h missed 2 health checks, re-discovering")
-                    startConnect(force = true)
+                    /*
+                     * THE SERVER STOPPED ANSWERING. SAY SO; DO NOT GO LOOKING.
+                     *
+                     * This used to re-discover, i.e. sweep. The watchdog re-probes THIS SAME
+                     * ADDRESS every 15 seconds anyway, so a laptop that comes back — a Wi-Fi blip,
+                     * a presenter restarted between talks — reconnects on its own with no sweep and
+                     * no tap. A laptop that has genuinely MOVED needs a human to say where to, and
+                     * ⚙ is where they say it.
+                     */
+                    Diag.w("$reason: $h has missed $healthMisses health checks. Still watching THIS " +
+                        "address every ${WATCHDOG_MS / 1000}s — no sweep. Use ⚙ if the laptop moved.")
+                    renderBar("${h.origin} not answering — ⚙ to fix")
+                    return@post
                 } else {
                     Diag.w("$reason: $h missed a health check ($healthMisses/2) — leaving the " +
                         "surface alone until it misses again")
@@ -1059,9 +1245,16 @@ class MainActivity : Activity() {
             val h = current
             if (h != null && !connecting) {
                 healthCheck("WATCHDOG")
-            } else if (h == null && !connecting && !overlay.isShowing) {
-                startConnect(force = true)
             }
+            /*
+             * THE LOOP THAT COST HIM THE REHEARSAL WINDOW IS GONE.
+             *
+             * There used to be an `else if (h == null && !connecting && !overlay.isShowing)
+             * startConnect(force = true)` here: with nothing connected, the app started a fresh
+             * 254-address sweep every 15 seconds, for as long as it was open, on a network where
+             * the laptop was not even in the swept /24. Not connected is now simply not connected —
+             * the picker or the ⚙ panel is on screen saying so, and it waits for a person.
+             */
             ui.postDelayed(this, WATCHDOG_MS)
         }
     }
@@ -1110,6 +1303,9 @@ class MainActivity : Activity() {
     @Suppress("OverridingDeprecatedMember", "DEPRECATION")
     override fun onBackPressed() {
         when {
+            // The picker is a question, not a page. Back does not dismiss it — a mode has to be
+            // chosen, or the app has nothing to be.
+            picker.isShowing -> { /* swallowed on purpose */ }
             switcher.isShowing -> switcher.hide()
             overlay.isShowing && canDismissPanel() -> overlay.hide()
             web.visibility == View.VISIBLE && web.canGoBack() -> web.goBack()

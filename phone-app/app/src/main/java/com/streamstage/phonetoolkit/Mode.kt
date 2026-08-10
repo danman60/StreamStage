@@ -44,6 +44,13 @@ import android.graphics.Color
 enum class Mode(
     /** What Daniel calls it. Shown on the mode chip and in the switcher. */
     val label: String,
+    /**
+     * What he calls it when he is picking one at launch: *"pick kiosk or deck"*. The stage mode is
+     * PRESENTER everywhere in the code (it is presenter-server.py's remote) but DECK on the picker,
+     * because DECK is the word he uses out loud and the picker is the screen he reads under time
+     * pressure. Both words appear together on the card, so nothing is ambiguous.
+     */
+    val pickLabel: String,
     /** One letter for the chip when there is no room for the word. */
     val letter: String,
     /** What this mode drives, in his words. Shown in the switcher so a wrong tap is obvious. */
@@ -62,11 +69,26 @@ enum class Mode(
     /** Chip colour. The two modes must never be confused at a glance from arm's length. */
     val accent: Int,
     /** Prefix for this mode's own saved-host keys, so the two hosts never overwrite each other. */
-    val prefsPrefix: String
+    val prefsPrefix: String,
+    /**
+     * WHAT THE PICKER PREFILLS WHEN THIS MODE HAS NOTHING REMEMBERED. Empty means "leave it blank".
+     *
+     * This is a starting point in a text box, not a default the app acts on by itself: [MainActivity]
+     * connects to whatever is in that box only when START is pressed, and the operator can clear it
+     * or type over it first.
+     *
+     * DECK carries `100.90.103.121:8090` — DART on Tailscale, measured working on 2026-08-10 while
+     * the phone was on hotel wifi (172.20.1.83/20) and DART was on 172.20.6.122, i.e. a network
+     * where NO LAN sweep could ever have found it. Tailscale needs internet on both machines but is
+     * indifferent to which network each is on, which is exactly the property a hotel, an airport and
+     * a venue with client isolation all break.
+     */
+    val fallbackHost: String
 ) {
 
     PRESENTER(
         label = "PRESENTER",
+        pickLabel = "DECK",
         letter = "P",
         drives = "the slide deck on the projector",
         serverName = "presenter-server.py",
@@ -75,11 +97,13 @@ enum class Mode(
         seedPorts = listOf(8090, 8080),
         hasTelemetryPort = false,
         accent = 0xFF4F8DF7.toInt(),          // blue = stage
-        prefsPrefix = "presenter"
+        prefsPrefix = "presenter",
+        fallbackHost = "100.90.103.121:8090"
     ),
 
     KIOSK(
         label = "KIOSK",
+        pickLabel = "KIOSK",
         letter = "K",
         drives = "the booth TV",
         serverName = "kiosk serve.py",
@@ -88,7 +112,10 @@ enum class Mode(
         seedPorts = listOf(8081, 8080),
         hasTelemetryPort = true,
         accent = 0xFFF0A73B.toInt(),          // amber = booth
-        prefsPrefix = "kiosk"
+        prefsPrefix = "kiosk",
+        // The kiosk laptop's address changes with every network it joins, and there is no
+        // Tailscale-stable equivalent recorded for it. Guessing one would be worse than a blank box.
+        fallbackHost = ""
     );
 
     val other: Mode get() = if (this == PRESENTER) KIOSK else PRESENTER

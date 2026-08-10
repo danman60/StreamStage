@@ -42,7 +42,7 @@ object DebugBridge {
 
     /** One command vocabulary shared with [RemoteControl] and the operator panel. */
     const val COMMANDS =
-        "status | setmode <presenter|kiosk> | sethost <host:port> | rediscover | reload | " +
+        "status | pick | setmode <presenter|kiosk> | sethost <host:port> | rediscover | reload | " +
             "clearhost | films | play <filmId> | pause | resume | stop | " +
             "playlist <id,id,id> | diag"
 
