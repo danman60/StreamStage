@@ -115,6 +115,17 @@ var CONFIG = {
     returnToAttractMs: 6000,   // after a film ends / is stopped, before attract
     tabletResetMs:     90000,  // tablet drops back to the tile grid if untouched
                                // — and the film gate re-arms for the next visitor
+    tabletNowMs:       30000,  // HARD cap on the now-playing card. Daniel: "the tablet
+                               // view that shows the current playing video should only
+                               // show that view for about 30 seconds, then return
+                               // automatically to the 6UP view". Unlike tabletResetMs
+                               // this is NOT reset by touching the screen — it is a
+                               // ceiling, so the tablet cannot be parked on one product.
+                               // Deferred only while somebody is typing an email.
+    tabletFollowMs:    60000,  // how recently the tablet must have been touched for it
+                               // to auto-open the card when the TV changes film. Past
+                               // this, nobody is standing there: the TV plays on and
+                               // the tablet stays on the six tiles.
     gateAbandonMs:     45000,  // a gate nobody finished: back to the tiles, so
                                // the next person walks up to six tiles, not a form
     attractHoldMs:     11000   // dwell per attract card

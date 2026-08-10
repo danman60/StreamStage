@@ -1096,6 +1096,7 @@
     nowImp.start();
 
     resetIdle();
+    armNowCap();          // 30s ceiling, from the moment this card opened
   }
 
   /* The film the visitor has just walked away from.
@@ -1115,18 +1116,59 @@
      tablet follow the operator when he cuts to another film from his phone. */
   var dismissed = null;
 
+  /* THE 30-SECOND CEILING ON THE NOW-PLAYING CARD.
+     Daniel: "the tablet view that shows the current playing video should only
+     show that view for about 30 seconds, then it should return automatically to
+     the 6UP view if it hasn't already."
+     Deliberately NOT the same thing as [idleTimer]: that one is reset by every
+     touch, so a visitor idly tapping the card could sit on one product forever.
+     This is a ceiling measured from the moment the card opened. The single
+     exception is somebody typing their email into it — cutting a lead off
+     mid-address to tidy the screen would be a bad trade — so it waits and
+     re-checks rather than yanking. The film keeps playing either way. */
+  var nowCapTimer = null;
+
+  function armNowCap() {
+    if (nowCapTimer) clearTimeout(nowCapTimer);
+    nowCapTimer = setTimeout(function tick() {
+      if (!current) return;
+      if (leadBusy()) { nowCapTimer = setTimeout(tick, 5000); return; }
+      backToGrid(true);
+    }, CONFIG.idle.tabletNowMs);
+  }
+
+  /* When was a human last actually here? The card auto-opens whenever the TV
+     starts a film, which is right when somebody is at the tablet and wrong when
+     nobody is: with films following on from one another, an empty tablet would
+     be dragged back onto a product card seconds after the 30s ceiling returned
+     it to the tiles. See the state handler. */
+  var lastTouchAt = Date.now();
+
   function backToGrid(quiet) {
     if (nowImp) { nowImp.stop(); nowImp = null; }
-    if (current && !quiet) Bus.send({ type: 'stop', src: 'tablet' });
-    // ONLY a visitor who tapped back counts as dismissing a film. The `quiet`
-    // path is the TV telling us it went to attract on its own, and marking the
-    // film dismissed there is actively wrong: a stale `attract` tick can land
-    // between the tap and the film starting, and the takeover would then stay
-    // shut for the very film the visitor just asked for. Caught in test.
-    if (!quiet) dismissed = current ? current.id : dismissed;
+
+    /* LEAVING THE CARD DOES NOT STOP THE FILM.
+       Daniel: "when I go back to the menu it goes to the next video ... I wanted
+       to keep playing the video that it's on."
+       This used to send `stop` to the TV, which ended the film — and because a
+       finished film hands over to the next one, the big screen jumped forward
+       every time somebody tapped Back. Back is a TABLET navigation, not a TV
+       command: the six tiles come back here, the film plays on out there.
+       The only thing that stops a film now is the operator's phone (stop /
+       pause / another play), which is where that authority belongs. */
+
+    /* Whatever brought us back, the film is STILL PLAYING, so this tablet must
+       remember it — otherwise the TV's next `playing` tick re-opens the card we
+       just closed. Both paths mark it now; before, only the visitor's tap did,
+       because the quiet path only ever ran when the TV had already gone to
+       attract. `dismissed` is cleared by attract or by any other film, so the
+       tablet still follows the operator cutting to something else. */
+    if (current) dismissed = current.id;
+
     current = null;
     now.classList.remove('on', 'ended');
     if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
+    if (nowCapTimer) { clearTimeout(nowCapTimer); nowCapTimer = null; }
   }
 
   document.getElementById('back').addEventListener('click', function () { backToGrid(false); });
@@ -1163,6 +1205,7 @@
   ['pointerdown', 'keydown'].forEach(function (ev) {
     document.addEventListener(ev, function () {
       Visitor.touch();                 // a hand on the tablet = still the same person
+      lastTouchAt = Date.now();        // ...and the tablet may follow the TV again
       if (current) resetIdle();
     }, true);
   });
@@ -1221,6 +1264,17 @@
       } else if (msg.product === dismissed) {
         return;
       }
+    }
+
+    /* NOBODY IS STANDING HERE. Do not drag an unattended tablet back onto a
+       product card: films follow on from one another, so without this the 30s
+       ceiling would return the tablet to the tiles and the next film would haul
+       it straight back. A touch re-arms following immediately, so the tablet
+       still tracks the operator cutting films from his phone while somebody is
+       actually at it. Only applies when the card is already closed. */
+    if (!current && (Date.now() - lastTouchAt) > CONFIG.idle.tabletFollowMs) {
+      if (msg.state === 'playing' && msg.dur) progi.style.width = ((msg.pos / msg.dur) * 100).toFixed(1) + '%';
+      return;
     }
 
     if (msg.state === 'playing') {
