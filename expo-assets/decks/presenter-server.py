@@ -67,7 +67,24 @@ def pick_port(want, tries=20):
     return None
 
 _lock = threading.Lock()
-STATE = {"idx": 0, "total": 0, "title": "", "beats": [], "titles": [], "seq": 0, "stale": ""}
+STATE = {"idx": 0, "total": 0, "title": "", "beats": [], "titles": [], "seq": 0, "stale": "",
+         "build": ""}
+
+def deck_file_build(name="talk2-deck.html"):
+    """The DECK_BUILD baked into the deck file THIS SERVER IS SERVING.
+
+    Compared against the build the open tab reports, this answers the question
+    that cost a rehearsal window: is the projector running the file on disk, or a
+    tab opened before the last copy? Reads the head of the file only.
+    """
+    try:
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), name)
+        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+            head = fh.read(900000)
+        m = re.search(r"var DECK_BUILD='([^']+)'", head)
+        return m.group(1) if m else ""
+    except Exception:
+        return ""
 
 # ── stale-deck alarm ──────────────────────────────────────────────────────────
 # A presenter server holds whatever the last DECK PAGE told it. On 2026-08-07 two
@@ -596,6 +613,27 @@ def preflight_report():
         add("deck", "warn", "no deck has checked in yet — open one on the laptop")
     else:
         add("deck", "fail", "%d slides — %s" % (total, stale_deck_warning(total) or "unknown deck"))
+
+    # -- IS THE OPEN TAB RUNNING THE FILE ON DISK?
+    # The failure this exists for: on 2026-08-10 the deck file on this laptop was
+    # current and the projector tab was not, because it had been opened before the
+    # copy. Every check passed and the screen still behaved like the old build.
+    on_disk = deck_file_build()
+    in_tab = STATE.get("build") or ""
+    if total == 0:
+        pass                                     # no tab has checked in; the deck row said so
+    elif not on_disk:
+        add("decktab", "warn", "this deck file carries no build marker — cannot tell if the tab is current")
+    elif not in_tab:
+        add("decktab", "fail",
+            "THE OPEN TAB IS OLD (it predates build %s). RELOAD THE DECK TAB — press F5 on the "
+            "laptop, or send 'reloaddeck'." % on_disk)
+    elif in_tab != on_disk:
+        add("decktab", "fail",
+            "THE OPEN TAB IS OLD: running %s, this laptop is serving %s. RELOAD THE DECK TAB."
+            % (in_tab, on_disk))
+    else:
+        add("decktab", "pass", "tab is running the current build (%s)" % in_tab)
 
     # -- the booth kiosk, if it is on this machine
     kiosk = None
@@ -1204,6 +1242,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     "title": str(data.get("title", "")),
                     "beats": list(data.get("beats", []))[:24],
                     "titles": list(data.get("titles", STATE.get("titles", [])))[:60],
+                    # What the OPEN TAB is running. Empty from a deck built before
+                    # 2026-08-10.4 — which is itself the answer: that tab is stale.
+                    "build": str(data.get("build", ""))[:40],
                 })
                 STATE["stale"] = stale_deck_warning(STATE["total"])
                 STATE["seq"] += 1
@@ -1271,6 +1312,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 # it does not need him to reach the laptop mid-demo.
                 with _lock:
                     PENDING.append("animdemo")
+            elif a == "reloaddeck":
+                # Reload the OPEN TAB from here. Until this existed, a deck tab opened
+                # before a deploy could only be refreshed at the laptop's own keyboard —
+                # so a verified fix sat on disk while the projector ran the old page.
+                # The tab lands back on slide 1, so this is a between-talks action.
+                with _lock:
+                    PENDING.append("reloaddeck")
             elif a == "facelift":
                 # talk1 keeps the rebuild on an overlay rather than a slide, so the phone
                 # needs a way to pop it. talk2 ignores this command harmlessly.

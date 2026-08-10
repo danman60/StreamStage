@@ -2379,10 +2379,20 @@
       return (n.textContent||'').replace(/\s+/g,' ').split(/(?:\s[—·]\s)|(?:\.\s)/)
              .map(function(x){return x.trim();}).filter(function(x){return x.length>3;}).slice(0,12);
     }
+    /* WHICH BUILD IS ACTUALLY ON THE PROJECTOR.
+       On 2026-08-10 the file on DART was current and the TAB was not: it had been
+       opened before the copy, so a fix that was verified on disk was simply not
+       running on the screen, and the only symptom was "it didn't work". The deck
+       now reports its build with every state post; presenter-server compares that
+       against the DECK_BUILD in the file it is serving and preflight says
+       "RELOAD THE DECK TAB" in plain words when they differ.
+       BUMP THIS whenever a change has to reach a tab that may already be open. */
+    var DECK_BUILD='2026-08-10.4';
     window.__report=function(s){
       fetch('/state',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
         idx:cur, total:slides.length, title:s.getAttribute('data-title')||'', beats:beatsFor(s),
-        titles:slides.map(function(x){return x.getAttribute('data-title')||'';})
+        titles:slides.map(function(x){return x.getAttribute('data-title')||'';}),
+        build:DECK_BUILD
       })}).then(ok).catch(bad);
     };
     setInterval(function(){
@@ -2391,6 +2401,10 @@
         ok();
         (d.cmds||[]).forEach(function(a){
           if(a.indexOf('goto:')===0){ show(parseInt(a.slice(5),10),true); return; }
+          // Force this tab onto the current file. The one thing that could not be
+          // done from anywhere but the laptop's own keyboard, which is how a stale
+          // tab survived a verified deploy.
+          if(a==='reloaddeck'){ location.reload(); return; }
           // Phone rescue button — same branch the O key and the on-slide
           // "Animated version" button take, so the behaviour is identical.
           if(a==='animdemo'){ var fi=fallbackIndex(); if(fi>=0) show(fi); return; }
