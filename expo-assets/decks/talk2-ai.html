@@ -835,6 +835,33 @@
      Slow on purpose: this plays under Daniel talking, it is not the point of the slide. */
   .fl-view img{position:absolute;left:0;top:0;width:100%;display:block;
     animation:flcreep 46s linear 6s infinite alternate}
+  /* THE WAITING STATE. Same browser frame, empty and expectant — so when the address lands,
+     the room watches THIS window fill with their site rather than a new panel appearing.
+     A blinking cursor in the omnibox and a shimmering page skeleton do the storytelling. */
+  .fl-view{background:#0b1219}
+  .fl-shot.loaded .fl-skel{opacity:0;pointer-events:none}
+  .fl-skel{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:38px;padding:0 90px;transition:opacity .6s ease;
+    background:radial-gradient(120% 90% at 50% 0%,#16303f 0%,#0b1219 62%)}
+  .fl-skel-h{font:900 76px/1.06 var(--sans);color:#fff;text-align:center;letter-spacing:-.01em}
+  .fl-skel-h .cy{color:var(--cyan)}
+  .fl-skel-s{font:700 32px/1.35 var(--sans);color:var(--dim);text-align:center;max-width:1180px}
+  .fl-skel-rows{display:flex;flex-direction:column;gap:16px;width:100%;max-width:1320px;margin-top:6px}
+  .fl-bar{height:26px;border-radius:8px;background:linear-gradient(90deg,#16232f 0%,#1e3547 22%,#16232f 44%);
+    background-size:260% 100%;animation:flshim 2.6s linear infinite}
+  .fl-bar.w70{width:70%}.fl-bar.w45{width:45%}.fl-bar.w88{width:88%}
+  .fl-tiles{display:flex;gap:20px;width:100%;max-width:1320px}
+  .fl-tile{flex:1;height:150px;border-radius:12px;background:linear-gradient(90deg,#16232f 0%,#1e3547 22%,#16232f 44%);
+    background-size:260% 100%;animation:flshim 2.6s linear infinite}
+  .fl-tile:nth-child(2){animation-delay:.35s}.fl-tile:nth-child(3){animation-delay:.7s}
+  @keyframes flshim{from{background-position:130% 0}to{background-position:-130% 0}}
+  .fl-typebar{position:absolute;left:70px;right:70px;bottom:126px;z-index:63;
+    background:rgba(6,12,18,.86);border:2px solid rgba(240,170,60,.35);border-radius:16px;
+    padding:14px 22px 18px;backdrop-filter:blur(6px);box-shadow:0 26px 70px rgba(0,0,0,.55)}
+  .fl-cursor{display:inline-block;width:14px;margin-left:2px;color:var(--amber);animation:flblink 1.05s steps(1) infinite}
+  @keyframes flblink{0%,49%{opacity:1}50%,100%{opacity:0}}
+  .fl-live-tag{transition:background .4s ease,color .4s ease}
+  .fl-shot:not(.loaded) .fl-live-tag{background:#22384a;color:#7f98ab}
   .fl-shot.hold .fl-view img{animation-play-state:paused}
   @keyframes flcreep{from{transform:translateY(0)} to{transform:translateY(var(--creep,-55%))}}
   /* the state card that replaced the embedded site (2026-08-10) */
@@ -1266,10 +1293,25 @@
           <span class="fl-omni" id="fl-omni">&mdash;</span>
           <span class="fl-live-tag">THEIR SITE TODAY</span>
         </div>
-        <div class="fl-view"><img id="fl-shotimg" alt="their website as it is today"></div>
+        <div class="fl-view">
+          <img id="fl-shotimg" alt="their website as it is today">
+          <div class="fl-skel" id="fl-skel">
+            <div class="fl-skel-h" id="fl-skel-h">Shout out your <span class="cy">studio&rsquo;s website.</span></div>
+            <div class="fl-skel-s" id="fl-skel-s">I&rsquo;ll type it in, and it starts rebuilding while we keep talking.
+              You see the new one at the end of the hour.</div>
+            <div class="fl-skel-rows">
+              <div class="fl-bar w70"></div><div class="fl-bar w88"></div><div class="fl-bar w45"></div>
+            </div>
+            <div class="fl-tiles"><div class="fl-tile"></div><div class="fl-tile"></div><div class="fl-tile"></div></div>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="fl-lbl" style="color:var(--amber);margin-top:18px">&#9660; TYPE THE URL HERE</div>
+    <!-- The type-here bar FLOATS over the bottom of the browser frame (2026-08-10). The frame
+         is full-bleed now, so a row sitting below it in normal flow was simply hidden and the
+         laptop could not be used to start a run at all. -->
+    <div class="fl-typebar">
+    <div class="fl-lbl" style="color:var(--amber)">&#9660; TYPE THE URL HERE</div>
     <div style="display:flex;gap:18px;align-items:center;margin-top:8px">
       <input id="planturl" type="text" spellcheck="false" placeholder="type their website here, then press Enter"
         style="flex:1;max-width:900px;background:#111d2b;border:3px solid var(--amber);border-radius:14px;padding:18px 22px;
@@ -1278,6 +1320,7 @@
                    fetch('/facelift',{method:'POST',headers:{'content-type':'application/json'},
                      body:JSON.stringify({action:'start',url:u})}).catch(function(){});this.blur();}">
       <span style="font:700 22px/1.3 var(--mono);color:var(--faint)">the phone&rsquo;s &#9733; panel does this too</span>
+    </div>
     </div>
   </div>
   <aside class="note"><b>6:30&ndash;9:00 &middot; [PLANT] &middot; LIVE BEAT 1</b> &mdash; <b>Live beat 1 of 2.</b> Take ONE url. Start the rebuild from the phone's &#9733; panel, or type it in the box on this slide &mdash; same thing, same runner. The chip walks IDLE &rarr; QUEUED &rarr; RUNNING &middot; stage &rarr; READY. &#9888; <b>Their CURRENT site loads live in that panel</b> &mdash; the &ldquo;before&rdquo; the reveal pays off at 54:30. Behind it is a state card (WAITING &rarr; a tick and the address), so there is always something honest on screen. If a volunteer's site refuses to be framed (X-Frame-Options / CSP &mdash; nothing on this laptop can defeat it), press <b>B</b> and the panel drops back to the card. The url is on screen in 60px type either way. &#9888; <b>CORRECTED 2026-08-07: a real run takes about 21 minutes, not 60&ndash;90.</b> <code>FACELIFT-CONTRACT.md</code> says 60&ndash;90 and that is wrong &mdash; <code>facelift-out/status.json</code> from the actual on-stage Stepping Up run records <code>started_at</code> 16:19:41 and <code>ready&nbsp;&middot;&nbsp;done</code> at 16:40:47, i.e. <b>21 minutes</b>, and the earlier validated run took 17. On stage in Toronto the site was finished at roughly minute 31 and the reveal was attempted around minute 50 &mdash; <b>the build was never late, the reveal wiring was.</b> Planting here at 6:30 and revealing at 54:30 gives <b>48 minutes of runway against a 21-minute job</b>. So: start it, say the address back, and then genuinely drop it. Do not check on it mid-talk.</aside>
@@ -2440,6 +2483,25 @@
          The creep distance is set from the real image height so a short page barely moves
          and a 9000px page still gets walked, instead of one guessed percentage for both. */
       var shot=document.getElementById('fl-shot'), img=document.getElementById('fl-shotimg');
+      /* The frame is ALWAYS up on this slide — empty and waiting before a url, their site
+         after one — so the room watches this window fill instead of a panel appearing. */
+      if(shot&&shot.dataset.off!=='1')shot.classList.add('on');
+      var sh=document.getElementById('fl-skel-h'), ss=document.getElementById('fl-skel-s'),
+          om=document.getElementById('fl-omni');
+      if(sh&&ss&&om){
+        if(f.url){
+          sh.innerHTML='Got it &mdash; <span class="cy">'+u+'</span>';
+          ss.textContent=(f.status==='ready')
+            ? 'Rebuilt already. You will see it at the end of the hour.'
+            : 'Rebuilding now. Nothing else to do — you will see it at the end of the hour.';
+          om.textContent=u;
+        }else{
+          sh.innerHTML='Shout out your <span class="cy">studio’s website.</span>';
+          ss.textContent='I will type it in, and it starts rebuilding while we keep talking. '+
+                         'You see the new one at the end of the hour.';
+          om.innerHTML='waiting for a studio website<span class="fl-cursor">&#9612;</span>';
+        }
+      }
       if(shot&&img){
         if(f.before_url&&shot.dataset.off!=='1'){
           if(img.dataset.src!==f.before_url){
@@ -2464,11 +2526,14 @@
             };
             img.src=f.before_url;
           }
-          var omni=document.getElementById('fl-omni');
-          if(omni)omni.textContent=u||'—';
           shot.classList.add('on');
+          if(img.complete&&img.naturalWidth)shot.classList.add('loaded');
+          else img.addEventListener('load',function(){shot.classList.add('loaded');},{once:true});
         }else{
-          shot.classList.remove('on');
+          /* No shot for THIS run — CLEAR FACELIFT, or the capture has not landed yet. Drop the
+             picture entirely so the last studio can never bleed through the skeleton. */
+          shot.classList.remove('loaded');
+          if(img.dataset.src){img.dataset.src='';img.removeAttribute('src');}
         }
       }
       /* The state card sits behind the live panel. Before a url: waiting. After one: a tick,
