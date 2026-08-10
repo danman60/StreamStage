@@ -772,6 +772,18 @@
     box-shadow:0 40px 110px rgba(0,0,0,.6)}
   .fl-frame iframe{width:100%;height:100%;border:0;display:block}
   .fl-frame.on{display:block}
+  /* the state card that replaced the embedded site (2026-08-10) */
+  .fl-card{position:absolute;left:48px;right:48px;top:96px;bottom:104px;z-index:60;
+    border-radius:16px;border:2px solid #2b3a49;background:#0f1720;display:flex;
+    align-items:center;justify-content:center;padding:0 46px}
+  .fl-card-in{display:flex;gap:26px;align-items:center;max-width:1400px}
+  .fl-tick{flex:none;width:96px;height:96px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font:900 54px/1 var(--sans);color:#0A0A0A;background:var(--faint);
+    transition:background .35s ease,transform .35s var(--ease-back)}
+  .fl-card.got .fl-tick{background:var(--cyan);transform:scale(1.06)}
+  .fl-card-h{font:900 46px/1.1 var(--sans);color:#fff}
+  .fl-card.got .fl-card-h{color:var(--cyan)}
+  .fl-card-s{margin-top:10px;font:700 27px/1.3 var(--sans);color:var(--dim)}
   /* 2026-07-29: removed a leftover `width:1900px;height:600px;transform:scale(.5)` rule that
      survived the 2026-07-26 move to full-bleed. It overrode the 100%/100% rule above (same
      specificity, declared later), so the site painted into a 950x300 corner of an ~1824x880
@@ -1156,8 +1168,22 @@
         </div>
         <div class="fl-chip" id="fl-status">IDLE</div>
       </div>
-      <div class="fl-frame" id="fl-plantwrap">
-        <iframe id="plantframe" title="their current site"></iframe>
+      <!-- 2026-08-10: THE IFRAME IS GONE. It embedded the volunteer's current site,
+           and most studio sites refuse to be framed (X-Frame-Options / CSP), so what
+           the room actually saw was a big white broken window at the exact moment
+           Daniel was asking someone to trust him with their website. Daniel: "that
+           should be WAITING with an OK once I've got the users website address;
+           never a broken window."
+           So it is a state card now: WAITING before a url, GOT IT after. It cannot
+           break, because there is nothing foreign to load. -->
+      <div class="fl-card" id="fl-plantwrap">
+        <div class="fl-card-in">
+          <div class="fl-tick" id="fl-tick">&#10003;</div>
+          <div>
+            <div class="fl-card-h" id="fl-cardh">Waiting for an address</div>
+            <div class="fl-card-s" id="fl-cards">Shout it out &mdash; I&rsquo;ll type it in and we start right now.</div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="fl-lbl" style="color:var(--amber);margin-top:18px">&#9660; TYPE THE URL HERE</div>
@@ -1171,7 +1197,7 @@
       <span style="font:700 22px/1.3 var(--mono);color:var(--faint)">the phone&rsquo;s &#9733; panel does this too</span>
     </div>
   </div>
-  <aside class="note"><b>6:30&ndash;9:00 &middot; [PLANT] &middot; LIVE BEAT 1</b> &mdash; <b>Live beat 1 of 2.</b> Take ONE url. Start the rebuild from the phone's &#9733; panel, or type it in the box on this slide &mdash; same thing, same runner. The chip walks IDLE &rarr; QUEUED &rarr; RUNNING &middot; stage &rarr; READY. Their current site loads underneath; plenty of studio sites block embedding, and if that panel stays blank it does not matter &mdash; the url is on screen in 60px type either way. &#9888; <b>CORRECTED 2026-08-07: a real run takes about 21 minutes, not 60&ndash;90.</b> <code>FACELIFT-CONTRACT.md</code> says 60&ndash;90 and that is wrong &mdash; <code>facelift-out/status.json</code> from the actual on-stage Stepping Up run records <code>started_at</code> 16:19:41 and <code>ready&nbsp;&middot;&nbsp;done</code> at 16:40:47, i.e. <b>21 minutes</b>, and the earlier validated run took 17. On stage in Toronto the site was finished at roughly minute 31 and the reveal was attempted around minute 50 &mdash; <b>the build was never late, the reveal wiring was.</b> Planting here at 6:30 and revealing at 54:30 gives <b>48 minutes of runway against a 21-minute job</b>. So: start it, say the address back, and then genuinely drop it. Do not check on it mid-talk.</aside>
+  <aside class="note"><b>6:30&ndash;9:00 &middot; [PLANT] &middot; LIVE BEAT 1</b> &mdash; <b>Live beat 1 of 2.</b> Take ONE url. Start the rebuild from the phone's &#9733; panel, or type it in the box on this slide &mdash; same thing, same runner. The chip walks IDLE &rarr; QUEUED &rarr; RUNNING &middot; stage &rarr; READY. &#9888; <b>2026-08-10: their site is no longer embedded.</b> Most studio sites refuse to be framed, so that panel was a white broken window at the exact moment you are asking someone to trust you with their website. It is a state card now &mdash; WAITING before a url, then a tick and the address. Nothing can fail to load in it. &#9888; <b>CORRECTED 2026-08-07: a real run takes about 21 minutes, not 60&ndash;90.</b> <code>FACELIFT-CONTRACT.md</code> says 60&ndash;90 and that is wrong &mdash; <code>facelift-out/status.json</code> from the actual on-stage Stepping Up run records <code>started_at</code> 16:19:41 and <code>ready&nbsp;&middot;&nbsp;done</code> at 16:40:47, i.e. <b>21 minutes</b>, and the earlier validated run took 17. On stage in Toronto the site was finished at roughly minute 31 and the reveal was attempted around minute 50 &mdash; <b>the build was never late, the reveal wiring was.</b> Planting here at 6:30 and revealing at 54:30 gives <b>48 minutes of runway against a 21-minute job</b>. So: start it, say the address back, and then genuinely drop it. Do not check on it mid-talk.</aside>
 </section>
 <section class="slide tip t-push" data-title="Tip 1: Talk, Don&rsquo;t Type" data-beats="!!FIRST FREE MOVE, AND IT LANDS AT MINUTE NINE. That is the whole point of the reorg.|..Click: the Kleenex line, before anything else|&gt;&gt;&#39;AI is like Kleenex. People say AI; they mean ChatGPT, or Claude, or Gemini, or Perplexity.&#39;|&gt;&gt;&#39;It&#39;s four or five websites with a free account. You type stuff in, stuff comes out. That&#39;s the whole vocabulary.&#39;|!!&#39;You are not behind.&#39; Say it to the room, not the screen.|!!Biggest unlock there is &mdash; sell the HABIT, not the tool|&gt;&gt;&#39;The second you type, it&#39;s homework.&#39;|..Click, click, click, click &mdash; the Monday-morning brain dump writes itself onto the phone|&gt;&gt;&#39;Ramble. Ramble. Ramble.&#39; You give it far more when you talk than when you type.|!!The MIC BUTTON on your keyboard &mdash; not voice mode|&#39;I read faster than the robot talks. Voice mode is for the car.&#39;|Zoom transcripts &middot; hit record on the teacher meeting &middot; record in the car|..NOTE, NOT ON SCREEN: Ontario is one-party consent, so recording your own calls is fine. Do not make it a legal segment.|MONDAY: app on the first screen, mic every time">
   <div class="wrap">
@@ -2253,11 +2279,23 @@
            f.status==='ready'?'READY \u00b7 BUILT LIVE':
            (f.status==='failed'?'FAILED \u2192 FALLBACK':
            (f.status==='stale'?'STALE \u2192 FALLBACK':st)),cls);
-      // their CURRENT site under the plant (best effort — many sites refuse to be framed)
-      var pw=document.getElementById('fl-plantwrap'), pf=document.getElementById('plantframe');
-      if(pw&&pf){
-        if(f.url){ pw.classList.add('on'); if(pf.dataset.src!==f.url){pf.dataset.src=f.url;pf.src=f.url;} }
-        else pw.classList.remove('on');
+      /* The plant panel is a STATE CARD now, not an embed — see the markup note.
+         Before a url: waiting. After one: a tick, the address, and what happens next.
+         Nothing foreign loads here, so there is no broken window to apologise for. */
+      var pw=document.getElementById('fl-plantwrap');
+      if(pw){
+        var h=document.getElementById('fl-cardh'), s=document.getElementById('fl-cards');
+        if(f.url){
+          pw.classList.add('got');
+          if(h)h.textContent='Got it \u2014 '+u;
+          if(s)s.textContent=(f.status==='ready')
+            ? 'Rebuilt. You will see it at the end of the hour.'
+            : 'Rebuilding now. Nothing else to do \u2014 you will see it at the end of the hour.';
+        }else{
+          pw.classList.remove('got');
+          if(h)h.textContent='Waiting for an address';
+          if(s)s.textContent='Shout it out \u2014 I will type it in and we start right now.';
+        }
       }
       // the REVEAL source: deployed, else the local build, else the pre-baked fallback
       var rf=document.getElementById('revealframe');
@@ -2269,6 +2307,18 @@
            2026-08-09, Steppin' Up (Sarnia) sitting behind "built live on this laptop".
            Anything not ready falls through to the pre-baked fallback, which is honest. */
         var live=(f.status==='ready'), src=(live&&(f.deployed_url||f.local_url))||f.fallback_url||'';
+        /* TAG THE LOCAL BUILD WITH THE RUN ID. `local_url` is the SAME constant string
+           ("/facelift-site/index.html") for every run, so the `dataset.src!==src` guard below
+           — which exists to stop a reload loop — meant the iframe loaded ONCE PER PAGE LOAD and
+           never again. A deck tab opened while an OLD build was ready kept that old site behind
+           the curtain even after a new one replaced the file on disk. Measured 2026-08-10:
+           Daniel typed decidedlyjazz.com, the reveal opened on the 08-09 StreamStage build
+           (now archived as facelift-out/site-prev-1786391728). The run id changes every run,
+           so the src changes, so the iframe reloads — and it defeats the HTTP cache too. */
+        if(live&&src===f.local_url){
+          var tok=f.session||f.started_at||f.updated_at||'';
+          if(tok)src=src+(src.indexOf('?')<0?'?':'&')+'r='+encodeURIComponent(tok);
+        }
         if(src&&rf.dataset.src!==src){rf.dataset.src=src;rf.src=src;}
         var lbl=document.getElementById('fl-src');
         if(lbl)lbl.textContent = (live&&f.deployed_url) ? 'hosted build loaded \u2014 click once, curtain opens'
