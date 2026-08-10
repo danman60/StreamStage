@@ -81,12 +81,12 @@ STATE = {"idx": 0, "total": 0, "title": "", "beats": [], "titles": [], "seq": 0,
 # on the phone. Update these when a deck's length changes — a wrong number here
 # produces a false alarm, which is noisy but never silent.
 KNOWN_DECKS = {
-    33: "talk 2 — the AI front desk",
+    32: "talk 2 — the AI front desk",
     27: "talk 1 — the content day",
 }
 RETIRED_DECKS = {
-    38: "the PRE-REBUILD talk 2 (38 slides). The shipping talk 2 is 33.",
-    32: "talk 2 BEFORE the closing product grid was added 2026-08-10. The shipping talk 2 is 33.",
+    38: "the PRE-REBUILD talk 2 (38 slides). The shipping talk 2 is 32.",
+    33: "talk 2 with the product grid and CTA as SEPARATE slides (2026-08-10 morning). They were merged into one final slide; the shipping talk 2 is 32.",
     14: "an OLD talk 1 (14 slides). The canonical talk 1 is 27.",
     13: "the stale talk1-video.html copy (13 slides). Canonical talk 1 is 27.",
 }
@@ -99,7 +99,7 @@ def stale_deck_warning(total: int) -> str:
     if total in RETIRED_DECKS:
         return "STALE DECK — this is " + RETIRED_DECKS[total] + " Close that browser tab and open the current deck."
     if total not in KNOWN_DECKS:
-        return f"Unrecognised deck ({total} slides). Expected 33 (talk 2) or 27 (talk 1)."
+        return f"Unrecognised deck ({total} slides). Expected 32 (talk 2) or 27 (talk 1)."
     return ""
 PENDING = []          # commands from the phone, consumed by the deck
 
