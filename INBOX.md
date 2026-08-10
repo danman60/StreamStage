@@ -118,3 +118,9 @@ and the deck showed a broken image for ~18s while 4.7 MB came across.
   atomic facts for studio_0012 only.
 - Ruled out: a live deck page polling /cmd sat on slide 27 through a wipe + ingest for 75s without
   moving. The ingest does not move the deck.
+Third restart: `_remote_poll` used to pull the build the first time `site/index.html` existed on
+the builder and then RETURN. The session copies its build in as soon as QA passes and keeps
+polishing, so DART was left holding an older index.html (78,317 B) than the finished one
+(78,591 B) — measured 2026-08-10 18:16 vs 18:23. It now keeps polling after an early pull and
+re-copies when the far side changes (guarded by an mtime:size signature so it is not re-scp'ing
+6 MB every 5s).

@@ -391,6 +391,7 @@ def _clear_previous_run():
 def _remote_poll(url, session, started):
     """Mirror the remote run's status locally; pull the site down when it's ready."""
     remote_status = FACELIFT_REMOTE_DIR + "/status.json"
+    pulled_sig = ""                    # mtime:size of the build we last copied down
     while True:
         time.sleep(5)
         # Pull the "before" shot as soon as the runner has written it — that is what
@@ -431,12 +432,14 @@ def _remote_poll(url, session, started):
         # while DART still showed `running` with no local_url, which is the Toronto
         # failure exactly ("the build was never late, the reveal wiring was"). So ask
         # the filesystem too, and stop depending on a key a model may not write.
+        early = False
         if status != "ready":
             rc2, out2, _ = run_capture(
                 SSH + [FACELIFT_REMOTE,
                        "test -f %s/site/index.html && echo BUILT" % FACELIFT_REMOTE_DIR], 20)
             if rc2 == 0 and b"BUILT" in (out2 or b""):
                 status = "ready"
+                early = True                     # the FILE says ready; the runner does not
                 st["status"] = "ready"
                 st.setdefault("stage", "build found on the host (status file did not say so)")
         st.setdefault("url", url)
@@ -445,6 +448,16 @@ def _remote_poll(url, session, started):
         # elapsed-time readout resets to 1970 the moment the first poll lands.
         st["started_at"] = started
         if status == "ready":
+            # Only copy when the far side actually CHANGED, or this loop would re-scp ~6 MB
+            # every 5 seconds for the rest of a polishing run.
+            rc3, out3, _ = run_capture(
+                SSH + [FACELIFT_REMOTE,
+                       "stat -c %%Y:%%s {d}/site/index.html 2>/dev/null".format(
+                           d=FACELIFT_REMOTE_DIR)], 20)
+            sig = (out3 or b"").strip().decode("utf-8", "replace")
+            if early and sig and sig == pulled_sig:
+                continue                          # nothing new to fetch; keep watching
+            pulled_sig = sig
             st["stage"] = "copying build to this laptop"
             _write_status(**st)
             # Pull the built site down so the REVEAL is served locally and can
@@ -461,7 +474,20 @@ def _remote_poll(url, session, started):
                 st["error"] = "build finished but copy failed: " + \
                               (cerr or b"").decode("utf-8", "replace")[:200]
                 _write_status(**st)
-            return
+                return
+            # AN EARLY PULL IS A SNAPSHOT, NOT THE ANSWER. The session is told to copy the
+            # build into site/ as soon as QA passes and then keeps polishing, so
+            # "site/index.html exists" can be true minutes before the run is finished.
+            # Measured 2026-08-10: the file appeared at 18:16:22, this poller pulled it and
+            # RETURNED, the runner went on until 18:23:39, and the laptop was left holding an
+            # older index.html (78,317 bytes) than the finished one (78,591). Keep the early
+            # copy — it is the network-dies insurance — but keep polling and pull again when
+            # the runner itself reports done.
+            if not early:
+                return
+            st["stage"] = "build on screen; the run is still polishing it"
+            _write_status(**st)
+            continue
         _write_status(**st)
         if status == "failed":
             return
