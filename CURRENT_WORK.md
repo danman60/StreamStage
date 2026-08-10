@@ -1,5 +1,62 @@
 # Current Work - StreamStage
 
+## 2026-08-10 19:05 ET — DEMO BEAT COLD AND READY. Folder cleaned. One F5 left for Daniel.
+
+### The one thing still needing a human
+**Press F5 on the projector's deck tab.** Everything is deployed and verified, but a tab opened
+before the copy keeps running the old page — that is what made "Reset demo didn't clear the wall"
+look like a broken reset when the reset was fine. This can no longer hide: the deck now reports
+`DECK_BUILD` with every state post and preflight says **"THE OPEN TAB IS OLD ... RELOAD THE DECK
+TAB"** when it differs from the file being served. From now on it can also be fixed remotely —
+POST `/cmd {"action":"reloaddeck"}` reloads the tab (lands on slide 1, so between talks).
+
+### What is TRUE right now (measured, not inherited)
+- Presenter on DART **PID 8312**, current code. `/remote` carries **Reset demo** and **CLEAR
+  FACELIFT**; new endpoints `/cmdlog` and command `reloaddeck`.
+- Demo tenant **COLD**: kb 0, wall 0. Preflight **10 pass / 2 warn / 0 fail** (warns: no booth TV
+  connected, and a facelift build armed — StreamStage-10's).
+- Deck parity: local `talk2-ai.html` == DART `talk2-deck.html` (md5 c087fb04), 32 slides,
+  build `2026-08-10.4`. talk1 27 slides, matches the canonical StudioSage copy (md5 8bb785f8).
+- Phone APK **v2.1.0 / versionCode 4** on the Pixel and on DART as `PHONEPRESENTER-v2.1.0-vc4.apk`.
+
+### Shipped today, in the order it will matter tomorrow
+1. **Phone APK asks DECK or KIOSK at launch** and never sweeps the LAN uninvited. Every automatic
+   sweep is gone (watchdog re-sweep loop, 2-missed-checks re-discover, page-error, 20s timeout);
+   the watchdog still re-probes the SAME address so a laptop coming back reconnects itself.
+   Measured on the Pixel: dead kiosk fails in 1507ms with 0 sweep lines; DECK connects in 156ms.
+2. **Reset demo = a cold environment.** `{wipe:true, wall:true}` erases the WHOLE demo KB (seeds
+   included) plus every wall text; number, QR and `calgary@ingest.studiosage.ai` are config and
+   untouched. Preflight now PASSES on an empty KB (it used to fail red on exactly that state).
+3. **One email becomes many facts** — `ingest-email v60`, gated to `studio_0012`. Measured: the
+   recital email produced 9 entries (1 body + 8 atomic facts) and 11 on a longer variant.
+4. **The wall slide clears itself** when the tenant is reset (detects that every id it drew is
+   gone) and fact cards sit on an 11-point grid — the old ring overlapped itself six ways at 11
+   entries. Collision pass against mail card, QR panel, robot and message column: zero.
+5. **The StudioSage robot** is top-left on the live-demo slide (product's own AnimatedRobot
+   geometry, breathe/blink/antenna, one nod when a text or fact lands).
+6. **`/cmdlog`** — every command with the address that sent it. Trap found and fixed before it
+   bit: `startswith("/cmd")` also matches `/cmdlog`, and GET /cmd DRAINS the queue.
+7. **Booth launchers no longer pass `--no-flush`** — that flag would have left a captured lead on
+   disk forever. The running kiosk was already correct (checked its command line and /health;
+   queue 0 before touching anything).
+
+### DART folder: 35 files -> 24
+Archived to `_archive\2026-08-10-cleanup\`: `QR-demo-sms.png` and `QR-demo-sms-prefilled.png`
+(**both encode the PRODUCTION number 226-796-6037** — never print them), `QR-remote-100.75.112.14.png`
+(stale address), three leftover ps1/tmp files, three old presenter logs, and the duplicate deck.
+**One deck file now**: `talk2-deck.html`. `talk2-ai.html` is a redirect stub so old links still
+land on the right deck. Every served path re-checked after the move: talk2/talk1/remote/preflight/
+cmdlog/demo-kb/demo-wall all 200.
+
+### Open
+- **Deck stepped back a slide once** with nobody at the laptop. Not reproduced: a live tab polling
+  /cmd held slide 27 through a wipe + a 9-entry ingest for 75s, `/cmdlog` empty. If it recurs the
+  log names the device. First suspect remains the phone's volume rocker (prev in PRESENTER mode).
+- Facelift slide 5 belongs to **StreamStage-10** — see `INBOX.md` for the split of ownership.
+- Fact splitting is demo-tenant only by Daniel's decision; every real studio keeps one row/email.
+
+---
+
 ## 2026-08-10 16:5x ET — THE FACELIFT REVEAL BUG IS FOUND AND FIXED. TALK 1 SLIDE 1 IS BUILT.
 **Daniel must RELOAD both deck tabs — the fixes are in the HTML, not the server.**
 
