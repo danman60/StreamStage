@@ -41,7 +41,9 @@ if %errorlevel%==0 (
 ) else (
   if exist "%KIOSK%\serve.py" (
     echo   kiosk       starting on 8081...
-    start "StreamStage BOOTH KIOSK (8081) - leave this window open" cmd /k "cd /d %KIOSK% && %PY% -u serve.py --port 8081 --no-flush"
+REM  NO --no-flush — it stops captured leads ever being sent. Same fix as in
+REM  "2 - START THE BOOTH.bat"; this older launcher lives on only as a fallback.
+    start "StreamStage BOOTH KIOSK (8081) - leave this window open" cmd /k "cd /d %KIOSK% && %PY% -u serve.py --port 8081"
   ) else (
     echo   kiosk       NOT FOUND at %KIOSK% - skipping
   )

@@ -41,7 +41,14 @@ if %errorlevel%==0 (
 ) else (
   if exist "%KIOSK%\serve.py" (
     echo   kiosk       starting on 8081...
-    start "StreamStage BOOTH KIOSK (8081) - leave this window open" cmd /k "cd /d %KIOSK% && %PY% -u serve.py --port 8081 --no-flush"
+REM  NO --no-flush. That flag stops the kiosk sending captured leads, so an email
+REM  taken at the booth would sit on this laptop's disk forever and nobody would
+REM  know. It was removed from the old launchers on 2026-08-09 for exactly that
+REM  reason and came back in this rewrite; the kiosk running today is correct
+REM  (started without it), so this line is what would have broken it on the next
+REM  restart. Leads go to https://streamstage.live/api/expo-leads.
+REM  Only a TEST kiosk should ever use --no-flush.
+    start "StreamStage BOOTH KIOSK (8081) - leave this window open" cmd /k "cd /d %KIOSK% && %PY% -u serve.py --port 8081"
   ) else (
     echo   kiosk       NOT FOUND at %KIOSK% - skipping
   )
