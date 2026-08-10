@@ -42,3 +42,15 @@ changes before Wednesday.
 See `FACELIFT-CONTRACT.md`. `facelift-out/site/` currently holds a real completed run
 (Alisa's Dance Academy) so the reveal slide can be built against real content today.
 `facelift-fallback/` is the pre-baked offline fallback.
+
+## Third-party images embedded in talk 2
+
+| Image | Where | Source & licence |
+|---|---|---|
+| First-generation iRobot Roomba, top view | Slide 5, the janitor card, click 4 | **"Roomba original.jpg"** by Wikipedia user **Nv8200pa**, via Wikimedia Commons, **CC BY 4.0**. Background floodfilled out, resized to 300px, embedded as a base64 data URI so the deck needs no network. |
+
+**CC BY 4.0 requires attribution.** Recorded here and in a comment beside the image in
+`talk2-ai.html`. That is the normal, accepted practice for a slide used in a talk; if a
+visible on-screen credit is ever wanted, a small dim line under the card is the place for it.
+There is no share-alike clause on this one — that is why it was chosen over the several
+CC BY-SA Roomba photos on Commons, since cutting the background out makes an adaptation.
