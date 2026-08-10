@@ -35,7 +35,7 @@ changes before Wednesday.
 | `QR-demo-sms.png` | `SMSTO:+12267966037:` | **Live-demo slide.** SMS intent — opens the messaging app with the number filled in, exactly like the real product's QR. |
 | `QR-demo-sms-prefilled.png` | `SMSTO:+12267966037:What time is Saturday rehearsal?` | Alt for the same slide, question pre-typed. Pick one. |
 | `QR-studiosage-signup.png` | `https://www.studiosage.ai` | CTA slide, 1 of 2. |
-| `QR-moves-freebie.png` | `https://www.studiosage.ai/moves` | CTA slide, 2 of 2. ⚠ The page is built but **not deployed yet** — this 404s until Daniel approves the push. |
+| `QR-moves-freebie.png` | `https://www.studiosage.ai/moves` | CTA slide. ✅ **Re-checked 2026-08-10: the page is LIVE** — 200, real content, no redirect. The old "not deployed, this 404s" warning was stale and has been removed. The CTA now carries four codes generated in-deck; this file is the standalone copy. |
 
 ## Facelift reveal
 
