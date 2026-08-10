@@ -55,6 +55,25 @@ publish_site() {   # publish_site <dir>
 say running "starting"
 
 # ---------------------------------------------------------------------------
+# THE "BEFORE" SHOT — fire this first, in the background, and never let it block.
+# Slide 5 shows the room the studio's site as it is TODAY, in the seconds after the
+# url is typed. It is a screenshot, not an embed: most studio sites refuse to be
+# framed (X-Frame-Options / CSP) and some frame-bust in JS, which is what put a white
+# panel on the projector last time. A picture cannot be refused.
+# Backgrounded with a hard timeout so a slow or dead site costs the BUILD nothing.
+# ---------------------------------------------------------------------------
+BEFORE_SHOT="$(cd "$(dirname "$0")" && pwd)/facelift-before.cjs"
+if [ -f "$BEFORE_SHOT" ]; then
+  (
+    NODE_PATH=/home/danman60/projects/amplify/node_modules \
+      timeout 90 node "$BEFORE_SHOT" "$URL" "$RUNDIR/before.png" \
+      >> "$RUNDIR/before.log" 2>&1 \
+      || echo "[$(date '+%H:%M:%S')] before shot failed — slide 5 falls back to the state card" \
+         >> "$RUNDIR/before.log"
+  ) &
+fi
+
+# ---------------------------------------------------------------------------
 # Rehearsal mode: prove the phone -> server -> deck plumbing in ~20s without
 # burning a real run (measured ~21 min). FACELIFT_FAKE=1 ./facelift-run.sh <url> <dir>
 # ---------------------------------------------------------------------------

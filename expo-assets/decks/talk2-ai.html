@@ -809,6 +809,32 @@
     box-shadow:0 40px 110px rgba(0,0,0,.6)}
   .fl-frame iframe{width:100%;height:100%;border:0;display:block}
   .fl-frame.on{display:block}
+  /* THE "BEFORE" SHOT (2026-08-10). Their site as it is today, captured on the builder
+     the second the url is typed, shown in a browser-looking frame so the room reads it as
+     "their website" and not "a slide". A picture instead of an embed because an embed can
+     be refused (X-Frame-Options / CSP) or frame-busted, and a refused embed is a white
+     window on the projector at the worst possible moment. */
+  .fl-shot{display:none;position:absolute;left:48px;right:48px;top:96px;bottom:104px;z-index:61;
+    border-radius:16px;overflow:hidden;border:2px solid #2b3a49;background:#0f1720;
+    box-shadow:0 40px 110px rgba(0,0,0,.6)}
+  .fl-shot.on{display:block}
+  .fl-chrome{position:absolute;left:0;right:0;top:0;height:64px;z-index:2;display:flex;
+    align-items:center;gap:14px;padding:0 22px;background:linear-gradient(180deg,#20303f,#16232f);
+    border-bottom:2px solid #2b3a49}
+  .fl-dot{width:16px;height:16px;border-radius:50%;flex:none}
+  .fl-omni{flex:1;height:38px;border-radius:19px;background:#0d151d;border:1px solid #2b3a49;
+    display:flex;align-items:center;padding:0 18px;font:700 21px/1 var(--mono);color:#9fb4c6;
+    overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .fl-live-tag{font:800 17px/1 var(--mono);letter-spacing:.08em;color:#0A0A0A;background:var(--cyan);
+    padding:8px 12px;border-radius:8px;flex:none}
+  .fl-view{position:absolute;left:0;right:0;top:64px;bottom:0;overflow:hidden;background:#fff}
+  /* The shot is a FULL page — often 6000-9000px tall. Sit it at the top, full width, and
+     creep down it so the room sees more than the hero without anyone touching a key.
+     Slow on purpose: this plays under Daniel talking, it is not the point of the slide. */
+  .fl-view img{position:absolute;left:0;top:0;width:100%;display:block;
+    animation:flcreep 46s linear 6s infinite alternate}
+  .fl-shot.hold .fl-view img{animation-play-state:paused}
+  @keyframes flcreep{from{transform:translateY(0)} to{transform:translateY(var(--creep,-55%))}}
   /* the state card that replaced the embedded site (2026-08-10) */
   .fl-card{position:absolute;left:48px;right:48px;top:96px;bottom:104px;z-index:60;
     border-radius:16px;border:2px solid #2b3a49;background:#0f1720;display:flex;
@@ -1222,24 +1248,23 @@
           </div>
         </div>
       </div>
-      <!-- RESTORED 2026-08-10 at Daniel's instruction: their CURRENT site loads here live,
-           the "before" the reveal pays off later. It sits ON TOP of the state card, so with
-           no url (or with the panel switched off) the card is what shows.
-           KNOWN LIMIT, unchanged: a site that sends X-Frame-Options / CSP frame-ancestors
-           cannot be framed by anyone, and Chrome paints its own refusal page. Checked today:
-           arthurmurraycalgary.ca and decidedlyjazz.com both send NEITHER, so they frame.
-           If a volunteer's site does refuse, press B on this slide to drop back to the card. -->
-      <div class="fl-frame" id="fl-plantframewrap">
-        <!-- sandbox WITHOUT allow-scripts, on purpose. Plenty of studio sites frame-bust in
-             JavaScript: measured 2026-08-10, pickleballstalbert.ca (the site being rebuilt in
-             rehearsal) replaced itself with a white page reading "Wrong document context!".
-             No scripts = no frame-buster, and the page still renders its HTML, CSS and images.
-             allow-same-origin keeps its own stylesheets and images loading. Verified rendering
-             this way for pickleballstalbert.ca, arthurmurraycalgary.ca and decidedlyjazz.com.
-             A site is a still picture in this panel — no sliders, no video. That is the trade
-             for it never being a broken window. -->
-        <iframe id="plantframe" title="their current site" referrerpolicy="no-referrer"
-                sandbox="allow-same-origin"></iframe>
+      <!-- THEIR SITE AS IT IS TODAY — a screenshot in a browser-looking frame, not an embed.
+           The runner takes it on the builder in the first seconds of a run (facelift-before.cjs
+           -> facelift-out/before.png, full page, 1440 wide) and the server hands the deck a
+           /facelift-before.png?t=<mtime>. An embed was tried and deleted for good reason: most
+           studio sites send X-Frame-Options / CSP and refuse, and some frame-bust in JS
+           (pickleballstalbert.ca paints "Wrong document context!"), so the projector got a
+           white window. A picture cannot be refused. No shot yet -> the state card below.
+           B on this slide holds the creep / hides the panel. -->
+      <div class="fl-shot" id="fl-shot">
+        <div class="fl-chrome">
+          <span class="fl-dot" style="background:#ff5f57"></span>
+          <span class="fl-dot" style="background:#febc2e"></span>
+          <span class="fl-dot" style="background:#28c840"></span>
+          <span class="fl-omni" id="fl-omni">&mdash;</span>
+          <span class="fl-live-tag">THEIR SITE TODAY</span>
+        </div>
+        <div class="fl-view"><img id="fl-shotimg" alt="their website as it is today"></div>
       </div>
     </div>
     <div class="fl-lbl" style="color:var(--amber);margin-top:18px">&#9660; TYPE THE URL HERE</div>
@@ -2301,17 +2326,21 @@
     else if(e.key==='Home'&&e.shiftKey){show(0);}                                     // SHIFT+Home: back to the title
     else if(e.key==='End'&&e.shiftKey){show(slides.length-1,true);}                   // SHIFT+End: jump to the CTA
     else if(e.key==='Home'||e.key==='End'){e.preventDefault(); flash('hold SHIFT to jump to the start / the end');}
-    /* B = drop the live "before" panel back to the state card. Insurance for the one case
-       nothing on this machine can fix: a volunteer's site that sends X-Frame-Options or
-       CSP frame-ancestors, where Chrome paints its own refusal page inside the frame. */
+    /* B = hold the creep where it is, so Daniel can stop on something he wants to talk about.
+       SHIFT+B hides the shot entirely and leaves the state card, for the rare shot that
+       comes back ugly. Both act immediately: the poll only repaints when /facelift CHANGES. */
     else if(e.key==='b'||e.key==='B'){
-      var w=document.getElementById('fl-plantframewrap');
+      var w=document.getElementById('fl-shot');
       if(w){e.preventDefault();
-        if(w.dataset.off==='1'){w.dataset.off='';
-          var pfr=document.getElementById('plantframe');
-          if(pfr&&pfr.dataset.src)w.classList.add('on');   // the poll only repaints on CHANGE — do it here
-          flash('their site: live panel ON');}
-        else{w.dataset.off='1';w.classList.remove('on');flash('their site: live panel OFF — card only');}}
+        if(e.shiftKey){
+          if(w.dataset.off==='1'){w.dataset.off='';
+            if(document.getElementById('fl-shotimg').dataset.src)w.classList.add('on');
+            flash('their site: panel ON');}
+          else{w.dataset.off='1';w.classList.remove('on');flash('their site: panel OFF — card only');}
+        }else{
+          w.classList.toggle('hold');
+          flash(w.classList.contains('hold')?'their site: scroll HELD':'their site: scrolling');
+        }}
     }
     else if(e.key==='P'&&e.shiftKey){document.body.classList.toggle('show-notes');}   // SHIFT+P only — see the banner
     else if(e.key==='p'){e.preventDefault(); flash('notes are on your PHONE \u00b7 SHIFT+P projects them to the room');}
@@ -2390,16 +2419,40 @@
            f.status==='ready'?'READY \u00b7 BUILT LIVE':
            (f.status==='failed'?'FAILED \u2192 FALLBACK':
            (f.status==='stale'?'STALE \u2192 FALLBACK':st)),cls);
-      /* THEIR CURRENT SITE, LIVE, under the plant — the "before" that the reveal pays off.
-         Restored 2026-08-10 at Daniel's instruction. The state card below stays as the layer
-         underneath: no url, or B pressed, and the card is what the room sees. */
-      var pf=document.getElementById('plantframe'), pfw=document.getElementById('fl-plantframewrap');
-      if(pf&&pfw){
-        if(f.url&&pfw.dataset.off!=='1'){
-          pfw.classList.add('on');
-          if(pf.dataset.src!==f.url){pf.dataset.src=f.url;pf.src=f.url;}
+      /* THEIR SITE AS IT IS TODAY — the shot the runner took when the url was typed.
+         Shown the moment it exists; until then the state card underneath holds the slide.
+         The creep distance is set from the real image height so a short page barely moves
+         and a 9000px page still gets walked, instead of one guessed percentage for both. */
+      var shot=document.getElementById('fl-shot'), img=document.getElementById('fl-shotimg');
+      if(shot&&img){
+        if(f.before_url&&shot.dataset.off!=='1'){
+          if(img.dataset.src!==f.before_url){
+            img.dataset.src=f.before_url;
+            /* The shot usually loads while this slide is still off screen, where it has NO
+               layout — clientWidth 0, so a one-shot measurement sets the creep to zero and
+               the picture never moves. Measured that exact failure 2026-08-10. So keep
+               asking for geometry until the slide is actually on screen. */
+            img.onload=function(){
+              var tries=0;
+              (function fit(){
+                var view=shot.querySelector('.fl-view');
+                if(view&&img.naturalWidth&&img.clientWidth){
+                  var shown=view.clientHeight, tall=img.clientWidth*img.naturalHeight/img.naturalWidth;
+                  var over=Math.max(0,tall-shown);
+                  /* percent OF THE IMAGE, because translateY(%) is relative to the element */
+                  img.style.setProperty('--creep', (tall?-(over/tall*100):0).toFixed(2)+'%');
+                  return;
+                }
+                if(++tries<600)requestAnimationFrame(fit);      // ~10s of trying, then give up quietly
+              })();
+            };
+            img.src=f.before_url;
+          }
+          var omni=document.getElementById('fl-omni');
+          if(omni)omni.textContent=u||'—';
+          shot.classList.add('on');
         }else{
-          pfw.classList.remove('on');
+          shot.classList.remove('on');
         }
       }
       /* The state card sits behind the live panel. Before a url: waiting. After one: a tick,
@@ -2501,13 +2554,33 @@
    ArrowDown/ArrowUp walk the embedded page in checkpoints instead of advancing
    the deck. Capture phase + stopPropagation so the deck's own handler never sees
    these keys while a frame is on screen.
-   LIMIT: #plantframe loads THEIR site (cross-origin) — the browser forbids
-   scripted scrolling of it, so checkpoints only apply to the same-origin reveal.
+   2026-08-10: the plant slide no longer holds a frame at all — it shows a SCREENSHOT
+   of their site (#fl-shot), so ArrowDown/Up nudge that picture instead, and the
+   checkpoint logic below applies to the same-origin reveal only.
    Falls back silently rather than trapping the key. */
 (function(){
+  // the plant slide's "before" shot: step the picture, and stop its slow creep so a
+  // deliberate nudge is not fighting an animation.
+  function shotStep(dir){
+    var s=document.querySelector('.slide.active'); if(!s) return false;
+    var shot=s.querySelector('#fl-shot.on'); if(!shot) return false;
+    var img=shot.querySelector('img'); if(!img||!img.clientHeight) return false;
+    shot.classList.add('hold');
+    /* kill the creep outright, not just pause it: a running (even paused) CSS animation
+       outranks an inline transform, so the nudge below would do nothing while it lived. */
+    img.style.animation='none';
+    var view=shot.querySelector('.fl-view');
+    var over=Math.max(0, img.clientHeight-view.clientHeight);
+    var cur=parseFloat(img.dataset.y||'0');
+    var next=Math.min(over, Math.max(0, cur + dir*Math.round(view.clientHeight*0.72)));
+    img.dataset.y=next;
+    img.style.transition='transform .45s ease';
+    img.style.transform='translateY(-'+next+'px)';
+    return true;
+  }
   function activeFrame(){
     var s=document.querySelector('.slide.active'); if(!s) return null;
-    var f=s.querySelector('#revealframe, #plantframe'); if(!f) return null;
+    var f=s.querySelector('#revealframe'); if(!f) return null;
     if(!f.getClientRects().length) return null;
     try{
       var d=f.contentDocument; if(!d||!d.scrollingElement) return null;   // cross-origin -> null
@@ -2516,6 +2589,7 @@
   }
   document.addEventListener('keydown', function(ev){
     if(ev.key!=='ArrowDown' && ev.key!=='ArrowUp') return;
+    if(shotStep(ev.key==='ArrowDown'?1:-1)){ ev.preventDefault(); ev.stopPropagation(); return; }
     var el=activeFrame(); if(!el) return;            // nothing scrollable: let the deck have the key
     var step=Math.round(el.clientHeight*0.72);       // checkpoint = ~a screenful, with overlap
     var max=el.scrollHeight-el.clientHeight;
@@ -2553,8 +2627,51 @@
 
   var CX=1080, CY=455, R=152;              // core centre + radius, matches the CSS
   var MAX_MSGS=20;                          // hard cap - newest 20, oldest roll off
-  var SLOTS=[200,158,242,120,278,86,315,52,340,20,222,140]  // degrees around the core
-    .map(function(d){var a=d*Math.PI/180;return {x:CX+330*Math.cos(a), y:CY+330*Math.sin(a)};});
+
+  /* WHERE A FACT CARD MAY LAND.
+     One email now produces up to eleven entries (the body plus ten atomic facts,
+     ingest-email v60, demo tenant only), and the old twelve-slot ring put cards
+     under the forwarded-email card and behind the message column — measured at
+     1920x1080 with a real ingest: "Parking Advice" and "Office Hours" were both
+     half-hidden.
+     So the ring is now two radii, restricted to the arc that is actually free,
+     and every candidate is checked against the three things that own real estate
+     on this slide:
+        the mail card   x 760-1400, y 38-215   (.ls-mail, 640 wide, centred on CX)
+        the messages    x 1334+                (.ls-msgs, right:26, width 560)
+        the panel       x 26-426                (.demopanel)
+     A card is 262 wide max and ~100 tall, centred on its point — hence the 131/60
+     half-extents below. */
+  var CARD_HW=131, CARD_HH=60;
+  /* An explicit grid, not an arc. A ring cannot hold eleven 262x90 cards around a
+     304px core without overlapping itself — measured: six clashes with a real
+     eleven-entry ingest. These eleven points are spaced 120px vertically (card is
+     ~90) and sit in the only free lanes: a left column clear of the QR panel
+     (x>426), a middle column that dodges the core box (928-1232 x 303-607), and a
+     right column that stops short of the message wall (x<1334). Verified with a
+     collision pass over every card, the mail card, the panel, the robot and the
+     message column. */
+  var SLOTS=[
+    {x:620,y:300},{x:900,y:270},{x:1180,y:270},
+    {x:620,y:420},{x:620,y:540},{x:620,y:660},
+    {x:900,y:700},{x:1180,y:700},
+    {x:620,y:780},{x:900,y:820},{x:1180,y:820}
+  ];
+  var slotUsed=[];
+  /** First free slot that is not under the mail card. Falls back to round-robin. */
+  function takeSlot(){
+    for(var pass=0; pass<2; pass++){
+      for(var i=0;i<SLOTS.length;i++){
+        if(slotUsed[i]) continue;
+        var p=SLOTS[i];
+        // pass 0 respects the mail card; pass 1 accepts anything still free
+        if(pass===0 && mailShown && p.x+CARD_HW > 700 && p.x-CARD_HW < 1460 && p.y-CARD_HH < 250) continue;
+        slotUsed[i]=1;
+        return p;
+      }
+    }
+    return SLOTS[factN % SLOTS.length];          // more facts than slots — reuse
+  }
 
   var seenFacts={}, seenMsgs={}, factN=0, mailShown=false, failures=0;
 
@@ -2580,7 +2697,7 @@
     setTimeout(function(){ svgLine(CX,190,CX,CY-R); },1400);   // card -> core
   }
   function addFact(e){
-    var p=SLOTS[factN % SLOTS.length]; factN++;
+    var p=takeSlot(); factN++;
     var d=document.createElement('div'); d.className='ls-fact';
     d.style.left=p.x+'px'; d.style.top=p.y+'px';
     var b=document.createElement('b'); b.textContent=e.from_email?'from the email':(e.category||'fact');
@@ -2615,7 +2732,7 @@
      gone on its next 2s poll and rebuilds itself empty, with no reload and nothing to
      press. */
   function wipeScene(why){
-    seenFacts={}; seenMsgs={}; factN=0; mailShown=false;
+    seenFacts={}; seenMsgs={}; factN=0; mailShown=false; slotUsed=[];
     while(wires.firstChild) wires.removeChild(wires.firstChild);
     Array.prototype.slice.call(scene.querySelectorAll('.ls-fact,.ls-mail'))
       .forEach(function(n){ n.parentNode.removeChild(n); });

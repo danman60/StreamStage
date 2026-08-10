@@ -149,6 +149,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 FACELIFT_DIR = os.path.join(HERE, "facelift-out")
 FACELIFT_STATUS = os.path.join(FACELIFT_DIR, "status.json")
 FACELIFT_SITE = os.path.join(FACELIFT_DIR, "site")
+# The studio's site as it is TODAY, captured by the runner in the first seconds of a
+# run and shown on the plant slide. A picture, not an embed — see facelift-before.cjs.
+FACELIFT_BEFORE = os.path.join(FACELIFT_DIR, "before.png")
 FACELIFT_RUNNER = os.path.join(HERE, "facelift-run.sh")
 FACELIFT_FALLBACK = os.path.join(HERE, "facelift-fallback")
 
@@ -182,7 +185,8 @@ FACELIFT_REMOTE_PATH = os.environ.get(
 
 # statuses: idle · queued · running · ready · failed
 IDLE_FACELIFT = {"status": "idle", "url": "", "stage": "", "deployed_url": "",
-                 "local_url": "", "error": "", "started_at": 0, "updated_at": 0}
+                 "local_url": "", "error": "", "started_at": 0, "updated_at": 0,
+                 "before_url": ""}
 
 URL_RE = re.compile(r"^https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:[/:?#].*)?$")
 
@@ -332,6 +336,12 @@ def facelift_state():
             st["session"] = own["session"]
     st["fallback_url"] = ("/facelift-fallback/index.html"
                           if os.path.exists(os.path.join(FACELIFT_FALLBACK, "index.html")) else "")
+    # The "before" shot for THIS run, if it has landed yet. Tagged with its mtime so a
+    # new run's shot is a new URL to the browser and can never be served from cache.
+    try:
+        st["before_url"] = "/facelift-before.png?t=%d" % int(os.path.getmtime(FACELIFT_BEFORE))
+    except OSError:
+        st["before_url"] = ""
     return st
 
 
@@ -351,6 +361,11 @@ def _clear_previous_run():
         os.remove(FACELIFT_STATUS)
     except OSError:
         pass
+    # The previous studio's "before" shot must never sit under the new url.
+    try:
+        os.remove(FACELIFT_BEFORE)
+    except OSError:
+        pass
     if os.path.isdir(FACELIFT_SITE):
         os.rename(FACELIFT_SITE, FACELIFT_SITE + "-prev-%d" % int(time.time()))
 
@@ -360,6 +375,14 @@ def _remote_poll(url, session, started):
     remote_status = FACELIFT_REMOTE_DIR + "/status.json"
     while True:
         time.sleep(5)
+        # Pull the "before" shot as soon as the runner has written it — that is what
+        # slide 5 shows while the rebuild runs, so it wants to arrive in seconds, not
+        # at the end. One cheap attempt per poll until it lands, then never again.
+        if not os.path.exists(FACELIFT_BEFORE):
+            run_capture(["scp", "-q", "-o", "BatchMode=yes",
+                         "-o", "StrictHostKeyChecking=no",
+                         FACELIFT_REMOTE + ":" + FACELIFT_REMOTE_DIR + "/before.png",
+                         FACELIFT_BEFORE], 60)
         try:
             rc, out, _ = run_capture(SSH + [FACELIFT_REMOTE, "cat " + remote_status], 30)
             if rc is None:
@@ -793,7 +816,11 @@ document.getElementById('pfrun').onclick=function(){
    data, so nothing needs re-arming afterwards. The button used to say "Reset demo KB"
    and send {} — an email-only re-arm that left the last room's texts on the wall. */
 document.getElementById('pfreset').onclick=function(){
-  if(!confirm('COLD DEMO: erase the whole demo knowledge base AND every text on the wall.\n\nThe number, the QR and the ingest address stay. Demo tenant only.'))return;
+  /* \\n, not \n: this whole page is a normal (non-raw) Python string, so a single backslash-n
+     becomes a REAL newline inside the JS string literal — an unterminated string, a
+     SyntaxError, and the entire remote script dies. Measured 2026-08-10: the phone remote sat
+     on "connecting…" with -/- for the slide and no working button. */
+  if(!confirm('COLD DEMO: erase the whole demo knowledge base AND every text on the wall.\\n\\nThe number, the QR and the ingest address stay. Demo tenant only.'))return;
   var b=this; b.textContent='resetting…'; b.disabled=true;
   fetch('/demo-reset',{method:'POST',headers:{'content-type':'application/json'},
                        body:JSON.stringify({wipe:true,wall:true})})
@@ -1056,6 +1083,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
+        if self.path.startswith("/facelift-before.png"):
+            # the studio's site as it is TODAY — one file, whatever the run id.
+            # Cache-busting lives in the ?t= the deck is handed by /facelift.
+            self.path = "/facelift-out/before.png"
+            return super().do_GET()
         if self.path.startswith("/facelift-site"):
             # stable alias -> facelift-out/site/... so the deck never has to know
             # where the runner drops the build
