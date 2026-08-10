@@ -1,5 +1,142 @@
 # Current Work - StreamStage
 
+## 2026-08-10 08:5x ET — TALK 2 FIX LIST FROM DANIEL'S NOTES. Deck is 32 slides, audited, pushed.
+
+All eight items from his notes are done. Audited at 1920x1080: **32 slides, 0 overflow,
+0 media problems, 0 failed requests, no deck console errors.** Screenshots DM'd.
+
+### The running order changed at the front
+```
+1  Title / Open            (robot wall now plays on load)
+2  Confidently Wrong       <- was 15. The AI primer.
+3  101: What Do I Use It For?   <- RESTORED from cd5496c^ (the 38-slide deck)
+4  Where AI Should NOT Replace You  <- was 16
+5  The Front Desk Job -> You Pushed It   (was 3; lavender + Roomba clicks)
+...
+```
+**The Oprah / Anthropic cold-open slide was CUT** at his instruction. It was the slide the
+deck called "THE REAL COLD OPEN" (what he actually opened with in Toronto), so slide 1's
+note and beats were rewritten to stop pointing at it. Markup is intact in git — one word
+brings it back.
+
+### Every change
+1. **The robot wall never played.** It only existed behind a **G** press: `on()` was called
+   from the keydown handler and nowhere else, so opening the deck showed a static title.
+   The wall is a real asset — `robot-wall.mp4`, 46s, 1920x1080, three columns of dancing
+   robots, committed. It now **arms on load** (muted+loop+playsinline = autoplay allowed) and
+   logs a warning if autoplay is ever refused. Every kill path is unchanged: first advance,
+   first click, G toggles. It still cannot return on its own mid-talk.
+2. **Slide 2 (Oprah) cut**, per above.
+3. **Slide 5 roles arc — two new clicks.** Lavender highlight (`--lav`) lands on *Business
+   owner* + *Customer support* with a "the ones it can take" tag; then the *Janitor* card
+   turns into a rotating **Roomba** (drawn SVG, not a photo) tagged "already handled." The
+   beat is the permission slip: that job was automated in their own house and nobody minded.
+   Front desk / under-line / push-pull shifted to frags 5/6/7.
+4. **Slide 9 (Tip 1) overlap fixed.** The floating `.speech` bubble was pinned at
+   `left:-390px; top:-150px` — across the top of the left column, hiding the end of the
+   Kleenex line — **and it was a word-for-word duplicate of the phone's first frag.** Deleted.
+   Also tightened the two trailing paragraphs, which ran under the MONDAY bar at full clicks.
+5. **Matrix restored and refitted.** At today's type scale its last line fell off the bottom
+   edge; `.m6` tightened. Tip 1's note no longer calls the matrix a thing that was cut.
+6. **Slide 26 red box removed** — "WHAT IT CAN'T DO / not scoped to one dancer". It is now a
+   **presenter beat held in reserve**: answer instantly if asked, never volunteer it. On
+   screen, in red, it was a warning label two seconds before asking the room to text in.
+
+### Answered: the phone presenter could not see DART at the airport
+**Client isolation on the public AP**, not a bug. Public SSIDs segment every client; nothing
+in the app can defeat it, and the UDP beacon dies there too. Written up in
+`BOOTH-SYSTEM.md` §2 with the fix order: **phone hotspot** (own AP, no isolation, needs no
+internet — the right answer at the booth) → Tailscale (works anywhere, needs internet) →
+USB tether. Assume every venue/hotel/airport SSID has it on.
+
+### Still open from his notes
+- **Roomba art is drawn, not a real Roomba.** Swap is a two-minute change once an image
+  exists; generating one on the GPU is ~15-25 min. His call.
+- The talk-2 **citation line** (slide 13 claim vs. SMS carrying no citation) is still
+  unresolved — untouched by this pass.
+
+---
+
+## 2026-08-10 07:40 ET — SESSION REFRESHED. Everything is deployed, pushed and verified.
+**Daniel flies TODAY, Mon Aug 10 09:00. Talk 2 Tue 09:20. Talk 1 Wed 10:50.**
+Head commit `4d6fa7d`. Working tree clean apart from `scratchpad/` screenshots.
+
+### Hardware state at refresh
+- **Fire Stick: PACKED.** versionCode 3, 8 films on disk (7 current + the old StreamStage cut
+  kept as the rollback copy), staging empty, app force-stopped, adb disconnected.
+  **Both halves of SYSTEM_ALERT_WINDOW survived** (`granted=true` AND appops `allow`) — that
+  pair is what makes the reel own the screen at power-on with nobody touching a remote.
+  `install -r` drops both; re-grant if the APK is ever reinstalled.
+- **DART: still on, still on this LAN overnight**, at `192.168.0.11`. Kiosk 8081, telemetry
+  8082, presenter 8090. Everything from 08-09 is deployed to it and verified ON it.
+- Pixel reachable at `100.105.85.103:46613` (Tailscale adb) — Daniel is USING the phone, so
+  read-only checks only, never launch an app on it.
+
+### Verified against DART itself (not simulated)
+- `tests/e2e-booth.sh` → **44 pass / 0 fail / 2 skip**.
+- `BOOTH_HOST=192.168.0.11 tests/preflight.sh` → **PREFLIGHT PASSED**.
+- Both decks walked over the LAN: talk2 **32 slides**, talk1 **27**, zero overflow, zero failed
+  media, no page errors.
+- Menu reel composited with the booth chrome — no collisions. Screenshot DM'd.
+
+### Fixed tonight, after the last entry
+1. **The menu reel was 17 SECONDS OF BLACK SCREEN on DART** (worked here, failed there).
+   Not the file, not the server — 6.4 MB downloads in 0.88s. It is the browser's ~6 connections
+   per host: the TV page holds seven film videos plus an EventSource, so a reel loaded on demand
+   queued behind all of them. Same trap that once wrote 15 films' telemetry as 0 events. It now
+   **warms in the background** once the films report ready (12s cap so films keep priority).
+   Re-measured on DART: **255 ms**. Do not make it lazy again.
+2. **`booth-lan.sh` assumed port 8080 when `BOOTH_HOST` was passed by hand.** START-BOOTH.bat
+   runs the kiosk on **8081**, so preflight declared a healthy booth DEAD and printed `:8080`
+   addresses to open on the tablet. It now probes 8081/8080/8082-8085 via `/health`.
+3. **The booth films are NOT a giveaway** (Daniel's correction). Four places promised them —
+   worst was the QR burned into the StreamStage film, on screen 3 minutes at a time. All four
+   repointed at the recital video checklist: `next.config.ts` 307, the six tablet QRs
+   (regenerated AND decoded with OpenCV, independent of the generator), `tablet.html` copy
+   ("Filming your recital?"), and `flush-leads.py`. The `sixfilms` asset and the `/films` page
+   are deleted.
+4. **Lead auto-send is ON at the booth.** Both DART launchers had `--no-flush`, which meant a
+   captured lead would sit on disk forever. Removed from START-BOOTH.bat and the Startup-folder
+   `booth-kiosk.bat`. `/health` now reports the live endpoint.
+5. **DART's own film copy was the old 92.8 MB cut** — the stick had the new one, DART did not,
+   so a browser-TV fallback would have played the old film. Copied; both now byte-identical at
+   196,922,647.
+6. **The beacon is CONFIRMED** — heard from the Pixel (the one device not behind this laptop's
+   INPUT DROP): right host, right port 8081, all seven films. That item had been "unconfirmed,
+   not proven" for days.
+
+### SECOND lead incident — read this before touching flush settings
+Enabling auto-flush made the kiosk immediately send the **2 leads already queued on DART's
+disk** from 08-08 bench testing (`ff@ff.com`/"Fff", `ksks@msks.com`/"Kxdk"). They reached
+production. Backed up to `scratchpad/deleted-dart-bench-leads-2026-08-09.json`, deleted,
+absence confirmed three ways, and no other rows landed in that window. The old lead files are
+archived on DART at `kiosk\telemetry\archive-prelaunch\`, queue now genuinely 0.
+**The rule this earns: CHECK THE QUEUE BEFORE ENABLING A SENDER.** Three separate times on
+08-09 fabricated data reached production, every one of them from acting before checking.
+
+### Durable context now lives in one place
+**`expo-assets/BOOTH-SYSTEM.md`** — the five machines, the addresses, both attract loops, every
+QR and whether it captures, the lead path end to end, the follow-up cadence, how to test it,
+and the six rules the system was built out of. Read that before any trade-show work.
+Also `docs/2026-08-09-toronto-followup-email-patterns.md` — what the Toronto follow-ups actually
+did, measured from Gmail (cadence +1/+5-7/+8-9, 35% reply rate, what pulled and what did not).
+
+### OPEN — Daniel's calls, nothing blocked on me
+1. **Follow-up automation:** should the 2nd and 3rd touches be written automatically, or drafted
+   for him to edit and send? Toronto's were all hand-written and the reply data suggests that is
+   partly why they worked.
+2. **The citation line in talk 2** — slide 13 says "cited, and it doesn't make things up"; the
+   SMS demo carries no citation. Rephrase or ship citations. NOT resolved.
+3. Travel cost on /videoproduction — **Daniel said he does not need this**. The +10% stands
+   alone. Closed.
+4. Booth leads still do not reach CommandCentered, which already has the whole campaign engine
+   (`Campaign → CampaignStep → CampaignLead → CampaignSendEvent`). That bridge is unbuilt.
+
+### Reason for refresh
+Context length after a long deploy-and-verify session. Nothing in flight, nothing broken.
+
+---
+
 ## 2026-08-09 19:30 ET — MENU REEL, FOLLOW-ON FILMS, 24-SCENARIO SUITE. Commit `6d8e331`, pushed.
 
 ### INCIDENT — three fabricated leads reached production, then were removed

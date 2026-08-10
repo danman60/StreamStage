@@ -57,6 +57,36 @@ When you pass `BOOTH_HOST` by hand, `booth-lan.sh` **probes** for the kiosk port
 instead of assuming 8080. It used to assume, and since START-BOOTH.bat runs the
 kiosk on 8081, preflight declared a perfectly healthy booth dead.
 
+### Airport, hotel and venue Wi-Fi will hide the devices from each other
+
+Daniel hit this at YYZ on 2026-08-10: the phone presenter could not see DART even
+with both on the same Wi-Fi. **That is client isolation (AP isolation), and it is
+the network doing exactly what it was configured to do** — public APs put every
+client on its own segment so guests cannot see each other's laptops. Nothing in the
+app, the presenter server or the kiosk can defeat it. The beacon is broadcast, so it
+dies there too.
+
+Assume every venue, hotel and airport SSID has it on until proven otherwise. Three
+ways out, cheapest first:
+
+1. **Phone hotspot — the real answer for the booth.** Put DART on Daniel's hotspot
+   and join the tablet and phone to the same hotspot. It is his own AP, so there is
+   no isolation, and **it needs no internet** — the whole booth path is LAN-only by
+   design. This is the one to reach for on the floor.
+2. **Tailscale.** DART and the phone are both on it, so the `100.x` addresses work
+   across any network, including cellular. Costs: it *does* need internet on both
+   ends, and it is slower than LAN. Good for "check the deck from the plane", wrong
+   for the booth.
+3. **USB tether** phone-to-DART. Works, ties the phone to the desk.
+
+Diagnosing it takes one command — if DART answers on its own loopback but not from
+the phone, and ping fails in both directions, it is isolation, not the software:
+
+```bash
+tools/booth-lan.sh            # finds nothing at all on an isolated network
+curl -s http://<dart-ip>:8081/health   # from the phone: hangs or refuses
+```
+
 ---
 
 ## 3. Two attract loops, and how a visitor picks a film
