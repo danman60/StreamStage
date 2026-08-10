@@ -2399,11 +2399,27 @@
           var tok=f.session||f.started_at||f.updated_at||'';
           if(tok)src=src+(src.indexOf('?')<0?'?':'&')+'r='+encodeURIComponent(tok);
         }
-        if(src&&rf.dataset.src!==src){rf.dataset.src=src;rf.src=src;}
         var lbl=document.getElementById('fl-src');
-        if(lbl)lbl.textContent = (live&&f.deployed_url) ? 'hosted build loaded \u2014 click once, curtain opens'
-          : ((live&&f.local_url) ? 'built live on this laptop \u2014 click once, curtain opens'
-                         : 'pre-baked fallback loaded \u2014 say so out loud');
+        function say(t){ if(lbl)lbl.textContent=t; }
+        function put(u,t){ if(rf.dataset.src!==u){rf.dataset.src=u;rf.src=u;} say(t); }
+        /* NEVER POINT THE CURTAIN AT A BUILD THAT IS NOT FETCHABLE YET. The server can say
+           `ready` while the build is still being copied from the builder to this laptop \u2014
+           about 30 seconds \u2014 and in that window /facelift-site/index.html 404s. Measured
+           2026-08-10 16:59:39 on DART: opened mid-copy, the reveal was a 404 page. So ask for
+           the file first and only swap once it really answers. Until then the pre-baked
+           fallback stays up and the label says what is actually behind the curtain. */
+        if(src===f.fallback_url||!live){ if(src)put(src,'pre-baked fallback loaded \u2014 say so out loud'); }
+        else if(rf.dataset.src!==src){
+          var want=src;
+          fetch(want,{cache:'no-store'}).then(function(r){
+            if(!r.ok)throw 0;
+            put(want, f.deployed_url ? 'hosted build loaded \u2014 click once, curtain opens'
+                                     : 'built live on this laptop \u2014 click once, curtain opens');
+          }).catch(function(){
+            if(f.fallback_url)put(f.fallback_url,'still copying the build \u2014 fallback is up, do NOT open yet');
+            else say('still copying the build \u2014 do NOT open yet');
+          });
+        }
       }
     }
     setInterval(function(){
