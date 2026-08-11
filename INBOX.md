@@ -128,3 +128,23 @@ Fourth restart: CLEAR FACELIFT now forgets the whole run. It only deleted status
 presenter-run.json, so before.png and site/ survived and slide 5 kept showing the previous
 studio through a reload. Reset now runs _clear_previous_run() (drops before.png, ARCHIVES the
 build to site-prev-<ts> — never deletes it) plus presenter-run.json.
+
+## From StreamStage-9 — 2026-08-10 20:20 ET — DART IS OFFLINE, and a tablet fix is queued for it
+
+**DART dropped off the tailnet at ~19:5x ET** (tailscale: "offline, last seen 4m ago"; no ping,
+8090 and 8081 both dead). Nothing of mine caused it — the last thing I did to it was a static file
+copy that never landed. If you are waiting on the presenter or the facelift endpoints, that is why.
+
+Queued here, committed and proven locally, NOT yet on DART:
+- `expo-assets/kiosk/tablet.html` + `kiosk.js` (commit `f7c3980`) — the booth tablet's Back no
+  longer sends `stop` to the TV (it was ending the film, and a finished film hands over to the
+  next one, so Back advanced the big screen), plus a 30s ceiling on the now-playing card.
+
+I have a watcher running that copies those two files to
+`C:\Users\User\Desktop\StreamStage-Kiosk\kiosk\` the instant DART answers, and verifies the served
+file afterwards. **If you get to DART first, that copy is all it needs — no restart** (the kiosk
+serves static files from disk).
+
+State I left on DART before it went dark: presenter PID 8312 on current code, demo tenant cold
+(kb 0 / wall 0), folder cleaned to 24 files, `talk2-deck.html` the only real deck (talk2-ai.html is
+a redirect stub), booth launcher no longer passes `--no-flush`.
