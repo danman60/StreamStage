@@ -1115,7 +1115,7 @@
 
 <!-- ============ SLIDE 1 — TITLE ============ -->
 <section class="slide t-fade" data-title="Title / Open" data-beats="..Robot wall is already playing when you open the deck. First advance kills it for good; G toggles it.|..Let the room settle. 09:20 is early &mdash; give them a second.|!!DO NOT open with Sheridan / &lsquo;you will not see me dance&rsquo;. That bit is retired.|!!THIS SLIDE IS THE OPEN NOW &mdash; the Oprah / Anthropic slide was CUT 2026-08-10.|!!HANDS UP: who answered a parent text after 9pm this season?|!!11pm the Sunday before recital &mdash; &lsquo;how do we do the hair for this number?&rsquo;|!!KEEP YOUR HAND UP if the answer was already in the email you sent|..Look at the hands. Let them look at each other.|&gt;&gt;&quot;I&rsquo;m going to give you back some of that time.&quot;|..SIXTY SECONDS. Then move &mdash; the real open is the next slide.">
-  <div class="gather"><video src="robot-wall.mp4" muted loop playsinline preload="auto"></video></div>
+  <div class="gather"><video src="robot-wall-lo.mp4" muted loop playsinline preload="auto"></video></div>
   <div class="gatherhint">we&rsquo;ll start in a moment</div>
   <div class="ph bleed tx-night" style="position:absolute;inset:0">
     <div class="grain"></div>
@@ -2809,8 +2809,71 @@
     scene.appendChild(d);
     setTimeout(function(){ svgLine(CX,190,CX,CY-R); },1400);   // card -> core
   }
+  /* ============================ SOUND ============================
+     Two sounds, synthesised in the browser — no files to ship, nothing to fail to load
+     at a venue, and no autoplay fight because the deck has already been clicked by the
+     time this slide is up. Asked for 2026-08-11.
+       · a text notification, one note per message, LOWER for the parent asking and
+         BRIGHTER for StudioSage answering, so the room hears the conversation turn over
+       · a "fans out" whoosh as each fact lands in the knowledge base
+     Rules that keep it from becoming noise: nothing plays until the scene has settled
+     (the first paint replays history — that would be a machine-gun of dings), and no
+     two sounds inside 110ms. S toggles the whole thing. */
+  var AC=null, SFX_ON=true, sfxWarm=false, lastSfx=0;
+  setTimeout(function(){ sfxWarm=true; }, 2200);
+  function ac(){
+    if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } }
+    if(AC.state==='suspended') AC.resume();
+    return AC;
+  }
+  function canPlay(){
+    if(!SFX_ON||!sfxWarm) return false;
+    var now=Date.now(); if(now-lastSfx<110) return false;
+    lastSfx=now; return !!ac();
+  }
+  function blip(freq, dur, type, gain, slideTo){
+    var c=ac(); if(!c) return;
+    var o=c.createOscillator(), g=c.createGain();
+    o.type=type||'sine'; o.frequency.setValueAtTime(freq, c.currentTime);
+    if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, c.currentTime+dur);
+    g.gain.setValueAtTime(0.0001, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(gain||0.12, c.currentTime+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime+dur);
+    o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+dur+0.02);
+  }
+  function sfxText(out){
+    if(!canPlay()) return;
+    /* two notes, a rising pair for the answer and a flatter pair for the question */
+    if(out){ blip(880,0.10,'sine',0.10); setTimeout(function(){ blip(1320,0.13,'sine',0.09); },80); }
+    else   { blip(520,0.10,'sine',0.09); setTimeout(function(){ blip(660,0.12,'sine',0.075); },80); }
+  }
+  function sfxFan(){
+    if(!canPlay()) return;
+    var c=ac(); if(!c) return;
+    /* the fan-out: a short breath of filtered noise sweeping up, with a soft tone under it */
+    var n=c.sampleRate*0.5, buf=c.createBuffer(1,n,c.sampleRate), d=buf.getChannelData(0);
+    for(var i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
+    var src=c.createBufferSource(); src.buffer=buf;
+    var bp=c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=1.2;
+    bp.frequency.setValueAtTime(420,c.currentTime);
+    bp.frequency.exponentialRampToValueAtTime(2600,c.currentTime+0.42);
+    var g=c.createGain();
+    g.gain.setValueAtTime(0.0001,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.075,c.currentTime+0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001,c.currentTime+0.5);
+    src.connect(bp); bp.connect(g); g.connect(c.destination); src.start(); src.stop(c.currentTime+0.52);
+    blip(300,0.34,'triangle',0.05,760);
+  }
+  window.addEventListener('keydown',function(e){
+    if(e.key!=='s'&&e.key!=='S') return;
+    var tg=e.target&&e.target.tagName; if(tg==='INPUT'||tg==='TEXTAREA') return;
+    SFX_ON=!SFX_ON;
+    if(typeof flash==='function') flash(SFX_ON?'demo sound ON':'demo sound OFF');
+  });
+
   function addFact(e){
     var p=takeSlot(); factN++;
+    sfxFan();
     var d=document.createElement('div'); d.className='ls-fact';
     d.style.left=p.x+'px'; d.style.top=p.y+'px';
     var b=document.createElement('b'); b.textContent=e.from_email?'from the email':(e.category||'fact');
@@ -2821,6 +2884,7 @@
   }
   function addMsg(m){
     var out=(m.direction==='outbound');
+    sfxText(out);          // a text tone per message: flatter for the parent, brighter for the answer
     var d=document.createElement('div'); d.className='ls-m '+(out?'a':'q');
     var w=document.createElement('span'); w.className='who';
     w.textContent=out?'StudioSage':(m.sender||'Parent');
