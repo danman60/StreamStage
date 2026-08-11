@@ -48,6 +48,25 @@ Archived to `_archive\2026-08-10-cleanup\`: `QR-demo-sms.png` and `QR-demo-sms-p
 land on the right deck. Every served path re-checked after the move: talk2/talk1/remote/preflight/
 cmdlog/demo-kb/demo-wall all 200.
 
+### Added after that entry — the tablet, and DART going offline
+- **Tablet Back no longer stops the film.** `backToGrid()` was sending `{type:'stop'}`, the film
+  ended, and a finished film hands over to the next one — so every Back tap advanced the TV.
+  Both exit paths now mark the film dismissed (it is still playing either way).
+- **30s ceiling on the now-playing card** (`CONFIG.idle.tabletNowMs`), measured from card open and
+  NOT reset by touch, deferred only while a lead email is being typed. Plus
+  `tabletFollowMs` (60s): an untouched tablet no longer auto-opens the card when the TV changes
+  film, or follow-on films would haul it straight back. A touch re-arms following at once.
+  Proven on a LOCAL kiosk (`--no-flush`): Back sent zero bus messages, same film still playing 6s
+  later, card still closed 26s later, ceiling fired at 28s. Commit `f7c3980`.
+- **The tablet APK needs no rebuild** — it only wraps `http://<kiosk>/tablet` (HostStore
+  DEFAULT_PATH), so this ships as a static file copy of `tablet.html` + `kiosk.js`.
+- **DART went offline at ~19:5x ET** — tailnet says offline, no ping, both ports dead — BEFORE
+  that copy landed. A watcher is running here that copies both files to
+  `C:\Users\User\Desktop\StreamStage-Kiosk\kiosk\` the moment DART answers and verifies the
+  served file (`armNowCap` present, `tabletNowMs` value). Log:
+  `scratchpad/deploy-when-back.log` in the session tmp dir. Static files, no restart, safe to land
+  while a film is playing. **So the tablet fix is committed and proven but NOT yet on DART.**
+
 ### Open
 - **Deck stepped back a slide once** with nobody at the laptop. Not reproduced: a live tab polling
   /cmd held slide 27 through a wipe + a 9-entry ingest for 75s, `/cmdlog` empty. If it recurs the
