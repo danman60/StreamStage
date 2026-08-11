@@ -405,32 +405,62 @@ def _clear_previous_run():
         os.rename(FACELIFT_SITE, FACELIFT_SITE + "-prev-%d" % int(time.time()))
 
 
-def _remote_poll(url, session, started):
-    """Mirror the remote run's status locally; pull the site down when it's ready."""
+# GENERATION. Bumped by every start and every CLEAR FACELIFT. A poller compares the
+# generation it was born with against this on each tick and RETIRES if it is stale.
+FACELIFT_GEN = 0
+
+
+def _remote_poll(url, session, started, gen=None):
+    """Mirror the remote run's status locally; pull the site down when it's ready.
+
+    `gen` is this poller's generation stamp. Without it CLEAR FACELIFT could not actually
+    stop a run: reset kills the builder's tmux and deletes the local files, but this loop
+    was `while True` with no way out, so five seconds later it (a) saw before.png missing
+    and scp'd the PREVIOUS studio's screenshot back onto slide 5, and (b) re-wrote
+    status.json from the builder's copy, which reset never deletes — the cleared run came
+    back from the dead wearing the old studio's name. Starting a corrected run made it
+    worse, because that spawned a second poller and the two then fought over the same
+    files. Now a superseded poller returns on its next tick and writes nothing.
+    """
     remote_status = FACELIFT_REMOTE_DIR + "/status.json"
     pulled_sig = ""                    # mtime:size of the build we last copied down
     while True:
         time.sleep(5)
-        # Pull the "before" shot as soon as the runner has written it — that is what
-        # slide 5 shows while the rebuild runs, so it wants to arrive in seconds, not
-        # at the end. One cheap attempt per poll until it lands, then never again.
+        if gen is not None and gen != FACELIFT_GEN:
+            return                     # a newer start, or a CLEAR, has superseded this run
+        # THE "BEFORE" SHOT, and only ever THIS run's. Slide 5 shows it while the rebuild
+        # runs, so it wants to arrive in seconds. Two guards, both earned:
+        #  - dispatch deletes the builder's copy, because a run whose capture FAILS would
+        #    otherwise inherit the last studio's picture. Measured 2026-08-11: a mistyped url
+        #    (arthurmurraycalary.ca — no such domain) took no new shot, and slide 5 showed
+        #    Decidedly Jazz captioned as the volunteer's site.
+        #  - and we still check the far side's mtime, so an older picture can never be pulled
+        #    even if that delete did not land. No picture beats the wrong studio's picture.
         if not os.path.exists(FACELIFT_BEFORE):
-            # Copy to a side name and rename: scp writes progressively, so copying straight
-            # onto before.png publishes a HALF file. Measured 2026-08-10 — the deck picked up
-            # the new mtime, swapped to it, and showed a broken image for ~18s while a 4.7 MB
-            # shot came over. os.replace is atomic, so the deck only ever sees a whole file.
-            part = FACELIFT_BEFORE + ".part"
-            rc, _, _ = run_capture(["scp", "-q", "-o", "BatchMode=yes",
-                                    "-o", "StrictHostKeyChecking=no",
-                                    FACELIFT_REMOTE + ":" + FACELIFT_REMOTE_DIR + "/before.png",
-                                    part], 120)
-            if rc == 0 and os.path.exists(part) and os.path.getsize(part) > 0:
-                os.replace(part, FACELIFT_BEFORE)
-            else:
-                try:
-                    os.remove(part)
-                except OSError:
-                    pass
+            _rc, _out, _ = run_capture(
+                SSH + [FACELIFT_REMOTE,
+                       "stat -c %%Y %s/before.png 2>/dev/null" % FACELIFT_REMOTE_DIR], 20)
+            try:
+                shot_mtime = int((_out or b"").strip() or 0)
+            except ValueError:
+                shot_mtime = 0
+            if shot_mtime >= started - 5 and shot_mtime > 0:
+                # Copy to a side name and rename: scp writes progressively, so copying straight
+                # onto before.png publishes a HALF file. Measured 2026-08-10 — the deck picked
+                # up the new mtime, swapped to it, and showed a broken image for ~18s while a
+                # 4.7 MB shot came over. os.replace is atomic: the deck sees a whole file only.
+                part = FACELIFT_BEFORE + ".part"
+                rc, _, _ = run_capture(["scp", "-q", "-o", "BatchMode=yes",
+                                        "-o", "StrictHostKeyChecking=no",
+                                        FACELIFT_REMOTE + ":" + FACELIFT_REMOTE_DIR + "/before.png",
+                                        part], 120)
+                if rc == 0 and os.path.exists(part) and os.path.getsize(part) > 0:
+                    os.replace(part, FACELIFT_BEFORE)
+                else:
+                    try:
+                        os.remove(part)
+                    except OSError:
+                        pass
         try:
             rc, out, _ = run_capture(SSH + [FACELIFT_REMOTE, "cat " + remote_status], 30)
             if rc is None:
@@ -459,7 +489,13 @@ def _remote_poll(url, session, started):
                 early = True                     # the FILE says ready; the runner does not
                 st["status"] = "ready"
                 st.setdefault("stage", "build found on the host (status file did not say so)")
-        st.setdefault("url", url)
+        # THE URL WE DISPATCHED WINS, ALWAYS. setdefault let the headless session's own idea of
+        # the url through — it writes streamstageproductions.com into status.json — and the only
+        # thing correcting that was presenter-run.json, a FILE. Measured 2026-08-11: a reset
+        # mid-run deleted that file and the plant slide immediately started captioning a
+        # pickleballstalbert.ca build as streamstageproductions.com. This value came from the
+        # box Daniel typed into; nothing the build says should be able to rename it.
+        st["url"] = url
         st["session"] = session
         # the runner's status.json has no started_at; without this the deck's
         # elapsed-time readout resets to 1970 the moment the first poll lands.
@@ -534,7 +570,12 @@ def start_facelift(url):
     inner = ("export PATH={p}:$PATH; exec {run} \"{u}\" \"{d}\" >> {d}/runner.log 2>&1"
              ).format(p=FACELIFT_REMOTE_PATH, run=FACELIFT_REMOTE_RUN, u=url, d=rdir)
     remote_cmd = (
-        "mkdir -p {d} && rm -f {d}/status.json && "
+        # before.png too, or a run whose capture FAILS inherits the last studio's shot.
+        # Measured 2026-08-11: a mistyped url (arthurmurraycalary.ca, no such domain) took no
+        # new picture, the old one was still on the builder, and slide 5 showed Decidedly Jazz
+        # captioned as the volunteer's website. The whole point of that panel is that it is
+        # THEIRS.
+        "mkdir -p {d} && rm -f {d}/status.json {d}/before.png && "
         "if [ -d {d}/site ]; then mv {d}/site {d}/site-prev-{ts}; fi && "
         # </dev/null and the redirects stop tmux inheriting ssh's pipes, which
         # would keep the ssh call open until the whole build finished.
@@ -561,7 +602,10 @@ def start_facelift(url):
 
     _write_status(status="queued", url=url, stage="dispatched to %s" % FACELIFT_REMOTE,
                   started_at=started, session=session)
-    threading.Thread(target=_remote_poll, args=(url, session, started), daemon=True).start()
+    global FACELIFT_GEN
+    FACELIFT_GEN += 1                 # retires any poller still running from a previous run
+    threading.Thread(target=_remote_poll, args=(url, session, started, FACELIFT_GEN),
+                     daemon=True).start()
     return True, "started on %s (tmux %s)" % (FACELIFT_REMOTE, session)
 
 
@@ -710,7 +754,10 @@ def resume_facelift_poll():
     session = st.get("session") or ""
     started = int(st.get("started_at") or time.time())
     print(" facelift: resuming poll for %s (tmux %s)" % (url or "?", session or "?"))
-    threading.Thread(target=_remote_poll, args=(url, session, started), daemon=True).start()
+    global FACELIFT_GEN
+    FACELIFT_GEN += 1
+    threading.Thread(target=_remote_poll, args=(url, session, started, FACELIFT_GEN),
+                     daemon=True).start()
 
 
 def local_ips():
@@ -1277,6 +1324,21 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 # it can SEE, so the last studio's screenshot stayed on slide 5 through a reload.
                 # Daniel, 2026-08-10: "i want clear facelift to RESET slide 5 AND the reveal".
                 # _clear_previous_run drops the shot and archives the build (never deletes it).
+                # STOP THE RUN TOO. A cleared run that keeps going keeps writing status.json on
+                # the builder, and the poller keeps mirroring it — so "cleared" state comes back
+                # from the dead a few seconds later wearing the old studio's name. Measured
+                # 2026-08-11. Best effort: if the kill fails the clear still stands.
+                global FACELIFT_GEN
+                FACELIFT_GEN += 1     # retire the poller FIRST, before deleting its files:
+                                      # otherwise its next 5s tick sees before.png missing and
+                                      # scp's the old studio's shot straight back onto slide 5.
+                _dying = facelift_state().get("session") or ""
+                if _dying and not FACELIFT_LOCAL:
+                    try:
+                        run_capture(SSH + [FACELIFT_REMOTE,
+                                           "tmux kill-session -t %s 2>/dev/null; true" % _dying], 20)
+                    except Exception:
+                        pass
                 _clear_previous_run()
                 try:
                     os.remove(FACELIFT_OWN)

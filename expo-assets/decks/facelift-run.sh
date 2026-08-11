@@ -124,7 +124,13 @@ say running "claude session starting"
 
 # --dangerously-skip-permissions: unattended run, nobody at the keyboard to
 # answer prompts. PreToolUse hooks (including the deploy gate) still apply.
-claude --dangerously-skip-permissions -p "$(cat "$PROMPT_FILE")" \
+# env -u ANTHROPIC_API_KEY: the login shell exports one (~/.bashrc -> ~/.env.keys) and the
+# Claude CLI PREFERS it over the claude.ai login, so this build would quietly run on
+# pay-as-you-go credits instead of Daniel's plan — and on 2026-08-11 that key answered
+# "Credit balance is too low", which on stage looks like "no build produced". Unset it here
+# so the run always uses the subscription that is logged in on this machine.
+env -u ANTHROPIC_API_KEY -u ANTHROPIC_AUTH_TOKEN \
+  claude --dangerously-skip-permissions -p "$(cat "$PROMPT_FILE")" \
   >> "$RUNDIR/claude.log" 2>&1
 RC=$?
 echo "claude exited rc=$RC"

@@ -148,3 +148,12 @@ serves static files from disk).
 State I left on DART before it went dark: presenter PID 8312 on current code, demo tenant cold
 (kb 0 / wall 0), folder cleaned to 24 files, `talk2-deck.html` the only real deck (talk2-ai.html is
 a redirect stub), booth launcher no longer passes `--no-flush`.
+Fifth restart: a run whose screenshot FAILS used to inherit the previous studio's before.png —
+dispatch cleared it on the laptop but not on the builder. Caught 2026-08-11 with a mistyped url
+(arthurmurraycalary.ca): slide 5 showed Decidedly Jazz captioned as the volunteer's site.
+Dispatch now deletes the builder's copy too, and the pull refuses any shot older than the run.
+Sixth restart: (1) the poll now FORCES the dispatched url into what /facelift publishes — the
+headless session writes streamstageproductions.com into status.json and presenter-run.json was
+the only thing correcting it, so deleting that file mid-run mislabelled a live build;
+(2) CLEAR FACELIFT now kills the builder's tmux session, so a cleared run stops writing state
+instead of resurrecting itself on the next poll.
