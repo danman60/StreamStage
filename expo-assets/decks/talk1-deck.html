@@ -412,6 +412,15 @@
   .s-explain .land{position:absolute;left:0;right:0;bottom:34px;z-index:6;text-align:center;
     font-size:52px;font-weight:900;text-shadow:0 3px 22px rgba(0,0,0,.95)}
   .s-explain .land b{color:var(--amber)}
+  .s-explain .endcard{position:absolute;inset:0;z-index:9;display:none;flex-direction:column;
+    align-items:center;justify-content:center;gap:22px;background:var(--bg)}
+  .s-explain.ended .endcard{display:flex}
+  .s-explain .ecmark img{width:520px;display:block;opacity:.95}
+  .s-explain .ecqr{background:#fff;padding:18px;border-radius:18px}
+  .s-explain .ecqr img{width:300px;height:300px;display:block}
+  .s-explain .ecurl{font:900 62px/1 var(--sans);color:#fff;letter-spacing:-.02em}
+  .s-explain .ectag{font:800 26px/1 var(--mono);letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+  .s-explain.ended .land{display:none}
   .s-calgary .offer{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:44px}
   .s-calgary .ost{display:flex;gap:18px;background:rgba(12,20,28,.72);border:1px solid #22323f;
     border-radius:18px;padding:26px 24px}
@@ -481,10 +490,26 @@
   .s-gal .sects{margin-top:26px;display:flex;flex-direction:column;gap:16px}
   .s-gal .sect h4{margin:0 0 8px;font:800 19px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--cyan)}
   .s-gal .sect h4 span{color:var(--dim);letter-spacing:.06em;margin-left:12px;font-weight:700}
-  .s-gal .row{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;height:212px}
+  /* 2026-08-12: the wall used one landscape box for everything, so a 9:16 reel sat in the
+     middle of it with black down both sides. Each tile now takes the shape of its own footage —
+     the row is a centred flex strip and the card carries the aspect ratio, so nothing is
+     letterboxed and the verticals read as phone screens. */
+  .s-gal .row{display:flex;gap:13px;height:210px;justify-content:center;align-items:stretch}
+  .s-gal .row .gcard{height:100%;flex:0 0 auto;aspect-ratio:16/9;width:auto}
+  .s-gal .row .gcard.vert{aspect-ratio:9/16}
+  .s-gal .row .gcard video{object-fit:cover}
+  .s-gal .row.six{height:170px}
+  .s-gal .row.vertrow{height:200px}
+  /* a 9:16 tile is a third the width of a 16:9 one, so the wall's labels ran past the edge of
+     it ("Highlight" showing as "hlight"). Portrait tiles get their own smaller type. */
+  .s-gal .row .gcard.vert .glbl{font-size:12px;padding:5px 8px;max-width:74%;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .s-gal .row .gcard.vert .gtag{font-size:10px;padding:4px 6px;max-width:56%}
+
+
   /* the promos row carries six studios now that WSDY's full film is in it */
-  .s-gal .row.six{grid-template-columns:repeat(6,1fr)}
-  .s-gal .row .gcard{height:212px}
+
+
   .s-gal .gcard .glbl{font-size:17px}
   .s-gal .gcard .gtag{font-size:13px;max-width:44%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
@@ -1087,7 +1112,7 @@
 <section class="slide s10" data-title="What You Walk Out With / Demo" data-beats="!!FULL-SCREEN SCRUBBABLE PLAYER. Drag the bar - you can run to any point.|!!FIVE SOURCES along the top. THREE FULL FILMS: CSOD, KMSD, WSDY. Then Tiffany, then the kiosk reel.|!!PLAY ONE. Not three. Pick the studio closest to this room and talk over it.|&gt;&gt;&#x27;Three studios, three completely different rooms, same one-day method.&#x27;|!!CLICK THE PICTURE ONCE for sound. Everything starts muted so it can autoplay.|Tiffany Adoranti - Caledonia School of Dance. Her own words about the promo AND the raw footage.|The kiosk reel is every testimonial back to back - use it if the room wants more.|!!AUDIO: KMSD runs about 10dB quieter than CSOD and WSDY. Ask for level if you play it.|..Each click adds one line of the walk-out list.|&gt;&gt;Land it: &#x27;One morning in. Twelve months of posts out.&#x27;|!!Projector audio was tested at sound check. HDMI audio is the #1 silent failure.|16:00-19:30 - FIX - DEMO">
   <div class="badge">[DEMO]</div>
   <div class="player">
-    <video data-aud="1" data-autoaud="1" id="mainplayer" class="framevid" src="videos/promo-csod-full.mp4" controls loop playsinline preload="none"></video>
+    <video data-aud="1" data-autoaud="1" data-chain="1" id="mainplayer" class="framevid" src="videos/promo-csod-full.mp4" controls playsinline preload="none"></video>
     <div class="srcs">
       <!-- The three films at full length. They are BUTTONS, not autoplay: three minutes of
            film played at the room would eat the clock, and the ask was that all three are
@@ -1095,6 +1120,9 @@
       <button class="sw on" data-src="videos/promo-csod-full.mp4" data-aud="1" data-fit="contain">Studio promo &middot; CSOD</button>
       <button class="sw" data-src="videos/promo-kmsd-full.mp4" data-aud="1" data-fit="contain">Studio promo &middot; KMSD</button>
       <button class="sw" data-src="videos/promo-wsdy-full.mp4" data-aud="1" data-fit="contain">Studio promo &middot; WSDY</button>
+      <!-- 2026-08-12: EDP added at Daniel's request — Elite Dance Project, Guelph. The full
+           promo is already on this machine; it is one of the tiles on the examples wall. -->
+      <button class="sw" data-src="videos/promo-edp.mp4" data-aud="1" data-fit="contain">Studio promo &middot; EDP</button>
       <!-- 2026-08-12: Tiffany Adoranti's single testimonial pulled at Daniel's request. The
            kiosk reel stays — it is every testimonial back to back, so nothing is lost. -->
       <button class="sw" data-src="videos/kiosk-testimonials.mp4" data-aud="1" data-fit="contain">Every testimonial &middot; kiosk reel</button>
@@ -1531,7 +1559,7 @@
           <div class="gcard"><span class="gtag">7 Attitudes</span>
             <video data-aud="1" src="videos-lo/reel-7att.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Highlight</span></div>
-          <div class="gcard"><span class="gtag">JJ Dance Arts</span>
+          <div class="gcard vert"><span class="gtag">JJ Dance Arts</span>
             <video data-aud="0" src="videos-lo/reel9-09-jj.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Vertical</span></div>
         </div>
@@ -1557,27 +1585,27 @@
           <div class="gcard"><span class="gtag">EDP</span>
             <video data-aud="1" src="videos-lo/promo-edp.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Studio promo</span></div>
-          <div class="gcard"><span class="gtag">Shuffle</span>
+          <div class="gcard vert"><span class="gtag">Shuffle</span>
             <video data-aud="1" src="videos-lo/promo-shuffle24.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Highlight</span></div>
         </div>
       </div>
       <div class="sect frag f-up" data-frag="3">
         <h4>Vertical + social cuts <span>— same day, same footage</span></h4>
-        <div class="row">
-          <div class="gcard"><span class="gtag">DIS</span>
+        <div class="row vertrow">
+          <div class="gcard vert"><span class="gtag">DIS</span>
             <video data-aud="0" src="videos-lo/reel9-03-dis.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Reel</span></div>
-          <div class="gcard"><span class="gtag hot">LDS</span>
+          <div class="gcard vert"><span class="gtag hot">LDS</span>
             <video data-aud="1" src="videos-lo/reel-lds-showtime.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Showtime 2026</span></div>
-          <div class="gcard"><span class="gtag">WSDY</span>
+          <div class="gcard vert"><span class="gtag">WSDY</span>
             <video data-aud="0" src="videos-lo/reel9-04-wsdy.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Teaser</span></div>
-          <div class="gcard"><span class="gtag hot">Grand River</span>
+          <div class="gcard vert"><span class="gtag hot">Grand River</span>
             <video data-aud="1" src="videos-lo/reel-grad-dtl.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Dancing Thru Life</span></div>
-          <div class="gcard"><span class="gtag">GDO</span>
+          <div class="gcard vert"><span class="gtag">GDO</span>
             <video data-aud="0" src="videos-lo/reel9-08-gdo.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Slow-mo</span></div>
         </div>
@@ -1652,8 +1680,16 @@
 <section class="slide s-explain" data-block="" data-title="StudioSage &middot; The Explainer" data-beats="!!THE FILM TALKS, NOT YOU. 48 seconds. Let it run.|It comes up with sound already on - one click earlier in the talk armed the audio.|!!DO NOT narrate over it and DO NOT pause it to explain a feature. The booth owns the detail.|&gt;&gt;After it lands: 'That is the whole thing. The code is on the next slide.'|+0:50 - STING">
   <div class="badge">[EXPLAINER]</div>
   <div class="player">
-    <video id="sageexplain" class="framevid" data-aud="1" data-autoaud="1"
-           src="videos/studiosage-explainer.mp4" controls loop playsinline preload="none"></video>
+    <video id="sageexplain" class="framevid" data-aud="1" data-autoaud="1" data-chain="1"
+           src="videos/studiosage-explainer.mp4" controls playsinline preload="none"></video>
+    <!-- The film plays ONCE and then this holds the screen: the mark, the code, the address.
+         Nothing advances off it on its own — the deck waits for Daniel. -->
+    <div class="endcard" id="sageend">
+      <div class="ecmark"></div>
+      <div class="ecqr"><img src="qr-studiosage.svg" alt="QR code to StudioSage"></div>
+      <div class="ecurl">studiosage.ai</div>
+      <div class="ectag">The AI front desk for your dance studio</div>
+    </div>
   </div>
   <div class="land frag f-up" data-frag="1">Your emails in. <b>Your parents answered.</b></div>
   <aside class="note"><b>+0:50 &middot; STING</b> &mdash; The kiosk explainer, re-encoded to 720p / 1,334 kbps so DART plays it without stuttering (the kiosk original is 1080p at 2,746 kbps, well over the 1,557 kbps ceiling this laptop chokes on). <b>48 seconds. Let the film talk.</b> It arrives with sound on because the first click of the talk armed the page. Do not pause it to explain a feature &mdash; slide 26's whole discipline is that the booth owns the detail, and this film is the version of that story you do not have to tell yourself.</aside>
@@ -1898,7 +1934,7 @@
       if(only && !only.contains(v)){ if(!v.paused)v.pause(); return; }
       if(shown(v)){
         if(!v.getAttribute('src') && v.dataset.src){ v.setAttribute('src',v.dataset.src); v.load(); }
-        if(!v.hasAttribute('loop'))v.loop=true;
+        if(!v.hasAttribute('loop') && v.dataset.chain!=='1')v.loop=true;
         /* 2026-08-12 — audio on arrival, where it is wanted.
            Chrome will not start a video with sound unless the page has had a real user
            gesture, so nothing can autoplay loud from a cold open no matter what we set.
@@ -2104,6 +2140,7 @@
       var i=all.findIndex(function(b){return b.classList.contains('on');});
       pick(all[(i+1)%all.length]);
     }
+    window.__pickSrc=pick;   // the end-of-film chain drives the same picker
     var nb=document.getElementById('nextsrc');
     if(nb)nb.addEventListener('click',function(e){ e.stopPropagation(); nextSrc(); });
     document.addEventListener('keydown',function(e){
@@ -2114,6 +2151,37 @@
       var s=document.querySelector('.slide.active'); if(!s||!s.classList.contains('s10'))return;
       e.preventDefault(); nextSrc();
     });
+  })();
+
+
+  /* 2026-08-12 — films that run one after another.
+     The demo slide used to loop whichever film was picked, so 'ended' never fired and the next
+     studio needed a button press. Chained players do not loop: when one finishes the next
+     source along the top starts and the tab lights up with it. It stops on the last film rather
+     than wrapping, so nothing restarts itself during questions. */
+  (function(){
+    var mp=document.getElementById('mainplayer');
+    if(mp){
+      mp.addEventListener('ended',function(){
+        var all=[].slice.call(document.querySelectorAll('.s10 .sw[data-src]'));
+        var i=-1;
+        all.forEach(function(b,k){ if(b.classList.contains('on'))i=k; });
+        if(i>-1 && i+1<all.length && window.__pickSrc) window.__pickSrc(all[i+1]);
+      });
+    }
+    /* The explainer plays once, then holds the mark, the code and the address. */
+    var ex=document.getElementById('sageexplain');
+    if(ex){
+      var slide=ex.closest('.slide');
+      ex.addEventListener('ended',function(){ slide.classList.add('ended'); });
+      ex.addEventListener('play',function(){ slide.classList.remove('ended'); });
+      // borrow the wordmark already embedded on the media-fee slide rather than ship it twice
+      var srcimg=document.querySelector('.s-fee .feelogo');
+      var mark=document.querySelector('#sageend .ecmark');
+      if(srcimg&&mark&&!mark.firstChild){
+        var img=new Image(); img.src=srcimg.src; img.alt='StreamStage'; mark.appendChild(img);
+      }
+    }
   })();
 
   /* ---- audio ---------------------------------------------------------------------------

@@ -36,6 +36,21 @@
   li a{color:var(--blue);font-weight:700}
   @media print{body{background:#fff}.page{box-shadow:none;padding:0;max-width:none}}
   @media(max-width:600px){.page{padding:28px 20px 44px}h1{font-size:32px}}
+  /* ---- the talk deck, offered once the gate is passed ---------------------
+     People who scanned the QR during the session asked for the slides. This sits at the top of
+     the unlocked page rather than in the footer, because it is the thing they came back for. */
+  .deckdl{display:flex;align-items:center;gap:20px;margin:26px 0 4px;padding:20px 22px;
+    border:2px solid var(--cy);border-radius:12px;background:#f2fbfd}
+  .deckdl .dd-ico{flex:none;width:52px;height:52px;border-radius:10px;background:var(--cy);
+    color:#fff;display:flex;align-items:center;justify-content:center;font:800 13px/1.1 ui-monospace,Menlo,monospace;
+    text-align:center;letter-spacing:.04em}
+  .deckdl .dd-txt{flex:1;min-width:0}
+  .deckdl .dd-txt b{display:block;font-size:18px;color:var(--blue)}
+  .deckdl .dd-txt span{display:block;font-size:15px;color:var(--dim);margin-top:3px}
+  .deckdl a.dd-btn{flex:none;padding:13px 22px;border-radius:9px;background:var(--cy);color:#fff;
+    text-decoration:none;font-weight:700;font-size:16px;white-space:nowrap}
+  .deckdl a.dd-btn:hover{background:var(--blue)}
+  @media(max-width:640px){.deckdl{flex-wrap:wrap}.deckdl a.dd-btn{width:100%;text-align:center}}
   /* ---- email gate ---------------------------------------------------------
      The checklist used to be ungated: a room full of QR scans produced zero
      leads. Content is blurred behind an overlay until name/studio/email are in.
@@ -64,6 +79,17 @@
   <div class="eyebrow">StreamStage &nbsp;|&nbsp; Dance recital delivery guide</div>
   <h1>The Recital Video <span>+ Livestream Checklist</span></h1>
   <p class="lede">Recital night is already the biggest shoot of your year. Part one is how you leave it with a season of content instead of one long recording. Part two is the interview questions — the ones that get real answers instead of a hostage video. Part three is everything to confirm before you promise families they can watch from anywhere. Part four is the brief to hand whoever actually shoots it &mdash; what to require, and the five questions to ask before you sign. In between, <a href="#planner">the content day planner</a> is how one booked morning feeds a season of posts.</p>
+
+
+  <div class="deckdl">
+    <div class="dd-ico">PDF</div>
+    <div class="dd-txt">
+      <b>The full slide deck from the talk</b>
+      <span>All 29 slides &mdash; the content day, the four stations, the media fee, and the
+        Calgary offer. 2.4&nbsp;MB.</span>
+    </div>
+    <a class="dd-btn" href="/streamstage-video-talk-deck.pdf" download>Download the deck</a>
+  </div>
 
   <div class="callout">The routines are the easy part. What you will wish you had in August is the
     lobby, the applause, and the parents saying why they keep coming back.</div>
