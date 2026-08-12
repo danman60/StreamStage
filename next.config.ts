@@ -79,6 +79,8 @@ const nextConfig: NextConfig = {
       // Expo talk QR — the big code on Talk 1's closing slide. Rewrite (not redirect) so the
       // address bar stays on the clean /checklist the QR advertises.
       { source: "/checklist", destination: "/checklist.html" },
+      // /live is what the QR on the wall advertises — the room's phones follow the deck here.
+      { source: "/live", destination: "/live.html" },
       // Every printed QR points at /g?a=<asset>&src=&p=&s= — one gated landing
       // page. Rewrite, not redirect, so the address bar keeps the short URL the
       // code advertises and the query string survives.

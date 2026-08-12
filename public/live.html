@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Follow along — StreamStage</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="The slides, live, following the room.">
+<style>
+  :root{--bg:#07090c;--ink:#eef4f8;--dim:#8fa2b1;--cy:#4EC5D4;--am:#F59E0B;--line:#1b2734}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-text-size-adjust:100%}
+  .bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;
+    padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;background:rgba(7,9,12,.94);
+    border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--cy);flex:none;
+    box-shadow:0 0 0 0 rgba(78,197,212,.6);animation:pulse 2s infinite}
+  .dot.cold{background:#5a6875;animation:none;box-shadow:none}
+  @keyframes pulse{70%{box-shadow:0 0 0 9px rgba(78,197,212,0)}100%{box-shadow:0 0 0 0 rgba(78,197,212,0)}}
+  .bar b{font-size:14px;letter-spacing:.02em}
+  .bar .n{margin-left:auto;font:700 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--dim)}
+  .stage{position:relative;width:100%;aspect-ratio:16/9;background:#000;overflow:hidden}
+  .stage img,.stage video{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .stage img{object-fit:contain}
+  .stage video{object-fit:contain;background:#000}
+  .ttl{padding:14px 16px 4px;font:800 19px/1.25 inherit}
+  .sub{padding:0 16px;color:var(--dim);font-size:14px}
+  .links{display:flex;flex-direction:column;gap:10px;padding:16px}
+  .links a{display:flex;align-items:center;gap:12px;padding:15px 16px;border-radius:12px;
+    background:#101823;border:1px solid var(--line);color:var(--ink);text-decoration:none;
+    font-weight:700;font-size:16px}
+  .links a:active{background:#16212e}
+  .links a .go{margin-left:auto;color:var(--cy);font-weight:800}
+  .links a .ic{width:34px;height:34px;border-radius:8px;background:var(--cy);color:#04141a;flex:none;
+    display:flex;align-items:center;justify-content:center;font:800 12px/1 ui-monospace,Menlo,monospace}
+  .foot{padding:22px 16px calc(env(safe-area-inset-bottom) + 28px);color:var(--dim);font-size:13px;
+    border-top:1px solid var(--line);margin-top:10px}
+  .foot a{color:var(--cy)}
+  .wait{padding:26px 16px;color:var(--dim);font-size:15px}
+  .muted{position:absolute;right:10px;bottom:10px;z-index:3;background:rgba(7,9,12,.8);
+    border:1px solid var(--line);border-radius:999px;padding:6px 11px;
+    font:700 11px/1 ui-monospace,Menlo,monospace;color:var(--dim);letter-spacing:.06em}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <span class="dot" id="dot"></span>
+  <b id="status">Following the room</b>
+  <span class="n" id="count">—</span>
+</div>
+
+<div class="stage" id="stage">
+  <img id="shot" alt="" src="">
+</div>
+
+<div class="ttl" id="title"></div>
+<div class="sub" id="sub">The slide on screen right now. This page turns itself.</div>
+
+<div class="links" id="links"></div>
+
+<div class="foot">
+  Daniel Abrahamson · StreamStage — <a href="https://streamstage.live">streamstage.live</a><br>
+  Films here play without sound on purpose, so nobody's phone interrupts the room.
+</div>
+
+<script>
+(function(){
+  var R2   = 'https://pub-626d1637ca4c4f34a7916019aaa3efce.r2.dev/live/talk1';
+  var POLL = 1500;
+
+  /* Slides whose whole point is a film get the film, muted. Everything else is the rendered
+     slide, which is lighter and reads better on a phone than a grid of tiny videos would. */
+  var VIDEO = { 10: 'promo-csod-full.mp4', 28: 'studiosage-explainer.mp4' };
+
+  /* Whatever the room is being told to scan, this page offers as something to tap. */
+  var LINKS = {
+    22: [['Part four — for your videographer','https://streamstage.live/checklist#videographer']],
+    25: [['Talk about a content day','https://streamstage.live/book']],
+    28: [['StudioSage — the AI front desk','https://studiosage.ai']],
+    29: [['The free recital + livestream checklist','https://streamstage.live/checklist'],
+         ['StudioSage — the AI front desk','https://studiosage.ai'],
+         ['Talk about a recital or content day','https://streamstage.live/book']]
+  };
+
+  var shot=document.getElementById('shot'), stage=document.getElementById('stage'),
+      title=document.getElementById('title'), count=document.getElementById('count'),
+      status=document.getElementById('status'), dot=document.getElementById('dot'),
+      links=document.getElementById('links'), sub=document.getElementById('sub');
+  var cur=null, vid=null;
+
+  function pad(n){ return (n<10?'0':'')+n; }
+  function decode(s){ var d=document.createElement('textarea'); d.innerHTML=s||''; return d.value; }
+
+  function paintLinks(n){
+    var set=LINKS[n]||[];
+    links.innerHTML='';
+    set.forEach(function(l){
+      var a=document.createElement('a');
+      a.href=l[1]; a.target='_blank'; a.rel='noopener';
+      a.innerHTML='<span class="ic">GO</span><span>'+l[0]+'</span><span class="go">&#9656;</span>';
+      links.appendChild(a);
+    });
+  }
+
+  function paint(st){
+    var n=(st.idx|0)+1;
+    if(n===cur) return;
+    cur=n;
+    count.textContent=n+' / '+(st.total||29);
+    title.textContent=decode(st.title||'');
+
+    if(vid){ try{vid.pause();}catch(e){} vid.remove(); vid=null; }
+    var tag=stage.querySelector('.muted'); if(tag) tag.remove();
+
+    if(VIDEO[n]){
+      // muted + playsinline is the only combination phones will start on their own
+      vid=document.createElement('video');
+      vid.src=R2+'/vid/'+VIDEO[n];
+      vid.muted=true; vid.defaultMuted=true; vid.loop=true; vid.autoplay=true;
+      vid.playsInline=true; vid.setAttribute('playsinline','');
+      vid.setAttribute('webkit-playsinline','');
+      vid.preload='auto';
+      stage.appendChild(vid);
+      var p=vid.play(); if(p&&p.catch) p.catch(function(){});
+      var m=document.createElement('div'); m.className='muted'; m.textContent='SOUND OFF';
+      stage.appendChild(m);
+      shot.style.display='none';
+      sub.textContent='Playing without sound — the room has the audio.';
+    } else {
+      shot.style.display='';
+      shot.src=R2+'/slides/slide-'+pad(n)+'.jpg';
+      sub.textContent='The slide on screen right now. This page turns itself.';
+    }
+    paintLinks(n);
+  }
+
+  var misses=0;
+  function tick(){
+    fetch(R2+'/state.json?t='+Date.now(),{cache:'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(st){
+        misses=0;
+        var age=Math.max(0,(Date.now()/1000)-(st.ts||0));
+        if(age>300){
+          dot.className='dot cold';
+          status.textContent='Waiting for the talk to start';
+        } else {
+          dot.className='dot';
+          status.textContent='Following the room';
+        }
+        paint(st);
+      })
+      .catch(function(){
+        if(++misses>3){ dot.className='dot cold'; status.textContent='Reconnecting…'; }
+      })
+      .then(function(){ setTimeout(tick, POLL); });
+  }
+  tick();
+
+  // a phone that sleeps mid-talk should catch up the moment it wakes, not one poll later
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden){ cur=null; tick(); }
+  });
+})();
+</script>
+</body>
+</html>
