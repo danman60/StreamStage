@@ -88,9 +88,21 @@ Deck on DART: md5 `943ebb5d`. **The deck tab must be reloaded to start reporting
   and no page errors; the live page rendered `slide-05-f0..f3.jpg` in order and switched from
   `promo-edp.mp4` to `dis-1shot-vertical.mp4` with `muted:true`; zero failed requests.
 
-**Operational, and this is the fragile part:**
-- `live-receive.py` runs HERE, not on DART. If this machine sleeps or the session ends, the
-  phones freeze on the last state. The talk itself is completely unaffected.
+**The whole path is on the internet as of 11:00 ET — no laptop of mine is in it.**
+The deck posts to `streamstage.live/api/live` (Vercel, `src/app/api/live/route.ts`), which signs
+the write to R2; phones read R2 off the CDN. `live-receive.py` and `live-relay.py` are both
+retired and STOPPED — they were the interim path and would fight the new one if restarted.
+- The push token is in Vercel env (`LIVE_PUSH_TOKEN`) and in `live-token.txt` beside the deck on
+  DART. **That file is gitignored — this repo is public.** No token, no push, no harm.
+- The token rides in the request BODY, not a header: the deck posts `mode:'no-cors'`, and a
+  simple request may not set custom headers. A wrong token gets `{"ok":true}` and writes nothing
+  (verified).
+- The deck heartbeats every 25 s, so a slide left up does not read as a dead relay.
+- Verified over the real internet path: a click-through emitted 10 posts with the token present,
+  the CDN showed the matching fragment state, and the phone rendered `slide-05-f0/f2/f4` and
+  switched to `promo-wsdy-full.mp4` with `muted:true`. Zero failed requests.
+- GOTCHA: `fetch('live-token.txt')` does not work from `file://` — the deck must be SERVED
+  (presenter-server does this on DART). Opening the .html directly means no sync.
 - Two earlier `live-relay.py` pollers survived a `kill` of their bash wrappers and kept
   overwriting state.json — the pids to kill are the python ones, not the shell's. Both are dead;
   the receiver is now the only writer.
