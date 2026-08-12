@@ -36,3 +36,6 @@ public/.playwright-cli/
 AGENTS.md
 *.codex-bak
 expo-assets/decks/facelift-out/
+
+# the live-follower push token — machine-local, never committed (repo is public)
+expo-assets/decks/live-token.txt

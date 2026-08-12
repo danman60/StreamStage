@@ -2267,7 +2267,16 @@
        relay over Tailscale. mode:'no-cors' with a plain-text body keeps it a "simple request",
        so there is no preflight and the relay needs no CORS setup. Fire-and-forget: if that
        machine is asleep the catch swallows it and the talk does not notice. */
-    var LIVE='http://100.122.177.91:8793/frag';
+    /* Straight to Vercel, which signs the write to Cloudflare — so the whole path is on the
+       internet and nothing in it is a laptop that can fall asleep. The token cannot live in
+       this file (the repo is public), so it is read from live-token.txt sitting next to the
+       deck on this machine; that file is gitignored. No token, no push, no harm. */
+    var LIVE='https://streamstage.live/api/live';
+    var LIVE_TOKEN='';
+    fetch('live-token.txt',{cache:'no-store'})
+      .then(function(r){ return r.ok ? r.text() : ''; })
+      .then(function(t){ LIVE_TOKEN=(t||'').trim(); if(LIVE_TOKEN&&window.__live)window.__live(true); })
+      .catch(function(){});
     function liveState(){
       var s=slides[cur];
       if(!s)return null;
@@ -2286,16 +2295,20 @@
               frag:Object.keys(shown).length, frags:Object.keys(lv).length, src:src};
     }
     var liveLast='';
-    window.__live=function(){
+    window.__live=function(force){
+      if(!LIVE_TOKEN)return;                       // token not loaded yet, or not on this machine
       var st=liveState(); if(!st)return;
       var sig=st.idx+'|'+st.frag+'|'+st.src;
-      if(sig===liveLast)return;
+      if(sig===liveLast && !force)return;
       liveLast=sig;
+      st.token=LIVE_TOKEN;
       try{
         fetch(LIVE,{method:'POST',mode:'no-cors',cache:'no-store',
                     body:JSON.stringify(st)}).catch(function(){});
       }catch(e){}
     };
+    /* Heartbeat: a slide left up for minutes must not look like a dead relay to the room. */
+    setInterval(function(){ if(LIVE_TOKEN){ liveLast=''; window.__live(true); } }, 25000);
     window.__report=function(s){
       window.__live();
       fetch('/state',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
