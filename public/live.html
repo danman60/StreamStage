@@ -53,7 +53,7 @@
 </div>
 
 <div class="stage" id="stage">
-  <img id="shot" alt="" src="">
+  <img id="shot" alt="" src="" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src=this.src.replace(/\/frames\/(slide-\d+)-f\d+\.jpg/,'/slides/$1.jpg');}">
 </div>
 
 <div class="ttl" id="title"></div>
@@ -69,11 +69,18 @@
 <script>
 (function(){
   var R2   = 'https://pub-626d1637ca4c4f34a7916019aaa3efce.r2.dev/live/talk1';
-  var POLL = 1500;
+  var POLL = 900;
 
-  /* Slides whose whole point is a film get the film, muted. Everything else is the rendered
-     slide, which is lighter and reads better on a phone than a grid of tiny videos would. */
-  var VIDEO = { 10: 'promo-csod-full.mp4', 28: 'studiosage-explainer.mp4' };
+  /* The deck reports which film the demo slide is actually on, so the phone shows the same one.
+     Anything not in here (the 3-minute kiosk reel) falls back to the rendered frame. */
+  var FILMS = {
+    'promo-csod-full.mp4':'promo-csod-full.mp4',
+    'promo-kmsd-full.mp4':'promo-kmsd-full.mp4',
+    'promo-wsdy-full.mp4':'promo-wsdy-full.mp4',
+    'promo-edp.mp4':'promo-edp.mp4',
+    'dis-1shot-vertical.mp4':'dis-1shot-vertical.mp4'
+  };
+  var SLIDE_FILM = { 28: 'studiosage-explainer.mp4' };   // the explainer is the slide
 
   /* Whatever the room is being told to scan, this page offers as something to tap. */
   var LINKS = {
@@ -89,13 +96,17 @@
       title=document.getElementById('title'), count=document.getElementById('count'),
       status=document.getElementById('status'), dot=document.getElementById('dot'),
       links=document.getElementById('links'), sub=document.getElementById('sub');
-  var cur=null, vid=null;
+  var curKey=null, curFilm=null, vid=null, curLinks=null;
 
   function pad(n){ return (n<10?'0':'')+n; }
   function decode(s){ var d=document.createElement('textarea'); d.innerHTML=s||''; return d.value; }
+  function frameUrl(n,f){ return R2+'/frames/slide-'+pad(n)+'-f'+f+'.jpg'; }
 
   function paintLinks(n){
     var set=LINKS[n]||[];
+    var sig=JSON.stringify(set);
+    if(sig===curLinks) return;              // don't rebuild the buttons on every fragment
+    curLinks=sig;
     links.innerHTML='';
     set.forEach(function(l){
       var a=document.createElement('a');
@@ -105,34 +116,51 @@
     });
   }
 
+  function showFilm(file){
+    if(curFilm===file) return true;
+    curFilm=file;
+    if(vid){ try{vid.pause();}catch(e){} vid.remove(); vid=null; }
+    vid=document.createElement('video');
+    vid.src=R2+'/vid/'+file;
+    // muted + playsinline is the only combination a phone will start on its own
+    vid.muted=true; vid.defaultMuted=true; vid.loop=true; vid.autoplay=true;
+    vid.playsInline=true; vid.setAttribute('playsinline','');
+    vid.setAttribute('webkit-playsinline',''); vid.preload='auto';
+    stage.appendChild(vid);
+    var pr=vid.play(); if(pr&&pr.catch) pr.catch(function(){});
+    if(!stage.querySelector('.muted')){
+      var m=document.createElement('div'); m.className='muted'; m.textContent='SOUND OFF';
+      stage.appendChild(m);
+    }
+    shot.style.display='none';
+    sub.textContent='Playing without sound — the room has the audio.';
+    return true;
+  }
+  function clearFilm(){
+    if(!vid && curFilm===null) return;
+    curFilm=null;
+    if(vid){ try{vid.pause();}catch(e){} vid.remove(); vid=null; }
+    var m=stage.querySelector('.muted'); if(m) m.remove();
+    shot.style.display='';
+    sub.textContent='The slide on screen right now. This page turns itself.';
+  }
+
   function paint(st){
-    var n=(st.idx|0)+1;
-    if(n===cur) return;
-    cur=n;
+    var n=(st.idx|0)+1, f=(st.frag|0), fmax=(st.frags|0);
+    var key=n+':'+f+':'+(st.src||'');
+    if(key===curKey) return;
+    curKey=key;
     count.textContent=n+' / '+(st.total||29);
     title.textContent=decode(st.title||'');
 
-    if(vid){ try{vid.pause();}catch(e){} vid.remove(); vid=null; }
-    var tag=stage.querySelector('.muted'); if(tag) tag.remove();
-
-    if(VIDEO[n]){
-      // muted + playsinline is the only combination phones will start on their own
-      vid=document.createElement('video');
-      vid.src=R2+'/vid/'+VIDEO[n];
-      vid.muted=true; vid.defaultMuted=true; vid.loop=true; vid.autoplay=true;
-      vid.playsInline=true; vid.setAttribute('playsinline','');
-      vid.setAttribute('webkit-playsinline','');
-      vid.preload='auto';
-      stage.appendChild(vid);
-      var p=vid.play(); if(p&&p.catch) p.catch(function(){});
-      var m=document.createElement('div'); m.className='muted'; m.textContent='SOUND OFF';
-      stage.appendChild(m);
-      shot.style.display='none';
-      sub.textContent='Playing without sound — the room has the audio.';
-    } else {
-      shot.style.display='';
-      shot.src=R2+'/slides/slide-'+pad(n)+'.jpg';
-      sub.textContent='The slide on screen right now. This page turns itself.';
+    var film = SLIDE_FILM[n] || (st.src && FILMS[st.src]);
+    if(film){ showFilm(film); }
+    else {
+      clearFilm();
+      shot.src=frameUrl(n,f);
+      // the next click is almost always forward — have it decoded before it is asked for
+      if(f<fmax){ var pre=new Image(); pre.src=frameUrl(n,f+1); }
+      else if(n<(st.total||29)){ var pn=new Image(); pn.src=frameUrl(n+1,0); }
     }
     paintLinks(n);
   }

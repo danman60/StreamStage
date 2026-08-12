@@ -2054,7 +2054,7 @@
       else if(fnum(f[k])!==lvl)break;
       f[k].classList.add('show'); did=true;
     }
-    if(did){ playVisible(slides[cur]); syncChrome(); }
+    if(did){ playVisible(slides[cur]); syncChrome(); if(window.__live)window.__live(); }
     return did;
   }
   function prevFrag(){
@@ -2065,12 +2065,13 @@
       else if(fnum(f[k])!==lvl)break;
       f[k].classList.remove('show'); did=true;
     }
-    if(did)syncChrome();
+    if(did){ syncChrome(); if(window.__live)window.__live(); }
     return did;
   }
   function revealAll(){
     frags(slides[cur]).forEach(function(f){f.classList.add('show');});
     playVisible(slides[cur]); syncChrome();
+    if(window.__live)window.__live();
   }
   function advance(){
     if(nextFrag())return;
@@ -2145,6 +2146,7 @@
       mp.muted = !wasAudible;
       if(wasAudible)mp.dataset.unmuted='1';
       var pr=mp.play(); if(pr&&pr.catch)pr.catch(function(){});
+      if(window.__live)window.__live();
     }
     srcButtons().forEach(function(btn){
       btn.addEventListener('click',function(e){ e.stopPropagation(); pick(btn); });
@@ -2260,7 +2262,42 @@
       return (n.textContent||'').replace(/\s+/g,' ').split(/(?:\s[—·]\s)|(?:\.\s)/)
              .map(function(x){return x.trim();}).filter(function(x){return x.length>3;}).slice(0,12);
     }
+    /* 2026-08-12 — the room's phones follow along at streamstage.live/live.
+       Posts slide AND fragment level AND which film the demo slide is on, straight to the
+       relay over Tailscale. mode:'no-cors' with a plain-text body keeps it a "simple request",
+       so there is no preflight and the relay needs no CORS setup. Fire-and-forget: if that
+       machine is asleep the catch swallows it and the talk does not notice. */
+    var LIVE='http://100.122.177.91:8793/frag';
+    function liveState(){
+      var s=slides[cur];
+      if(!s)return null;
+      // fragments reveal by LEVEL here, so count levels shown, not elements
+      var f=frags(s), lv={}, shown={};
+      f.forEach(function(x){
+        var n=fnum(x); lv[n]=1;
+        if(x.classList.contains('show'))shown[n]=1;
+      });
+      var mp=document.getElementById('mainplayer'), src='';
+      if(s.classList.contains('s10')&&mp){
+        src=(mp.getAttribute('src')||mp.dataset.src||'').split('/').pop();
+      }
+      return {deck:'talk1', idx:cur, total:slides.length,
+              title:s.getAttribute('data-title')||'',
+              frag:Object.keys(shown).length, frags:Object.keys(lv).length, src:src};
+    }
+    var liveLast='';
+    window.__live=function(){
+      var st=liveState(); if(!st)return;
+      var sig=st.idx+'|'+st.frag+'|'+st.src;
+      if(sig===liveLast)return;
+      liveLast=sig;
+      try{
+        fetch(LIVE,{method:'POST',mode:'no-cors',cache:'no-store',
+                    body:JSON.stringify(st)}).catch(function(){});
+      }catch(e){}
+    };
     window.__report=function(s){
+      window.__live();
       fetch('/state',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
         idx:cur, total:slides.length, title:s.getAttribute('data-title')||'', beats:beatsFor(s),
         titles:slides.map(function(x){return x.getAttribute('data-title')||'';})
