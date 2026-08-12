@@ -412,6 +412,12 @@
   .s-explain .land{position:absolute;left:0;right:0;bottom:34px;z-index:6;text-align:center;
     font-size:52px;font-weight:900;text-shadow:0 3px 22px rgba(0,0,0,.95)}
   .s-explain .land b{color:var(--amber)}
+  /* the follow-along QR on the title slide — high z so the gathering wall cannot bury it */
+  .s1 .followqr{position:absolute;right:56px;bottom:52px;z-index:60;display:flex;align-items:center;
+    gap:16px;background:rgba(6,10,14,.82);border:1px solid #2c3d4f;border-radius:16px;padding:14px 18px}
+  .s1 .followqr img{width:132px;height:132px;display:block;background:#fff;border-radius:8px;padding:6px}
+  .s1 .fq-t{font:800 21px/1.35 var(--mono);color:var(--dim);letter-spacing:.02em}
+  .s1 .fq-t b{color:var(--cy);font-size:24px}
   .s-explain .endcard{position:absolute;inset:0;z-index:9;display:none;flex-direction:column;
     align-items:center;justify-content:center;gap:22px;background:var(--bg)}
   .s-explain.ended .endcard{display:flex}
@@ -878,6 +884,12 @@
          "a version of our kiosk video with all the videos swirling around and testimonial;
          ADD the slide title to it". The title sits on top of it, unchanged. -->
     <video data-aud="1" class="bgvid kioskwall" data-bg src="videos/kiosk-testimonials.mp4" muted loop playsinline preload="auto" style="opacity:.62"></video>
+  </div>
+  <!-- 2026-08-12: follow-along QR. It sits ABOVE the room-settling video wall on purpose —
+       the minutes before you start are exactly when people have their phones out. -->
+  <div class="followqr">
+    <img alt="QR code to follow the slides on your phone" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYwAAAGMAQAAAADhQqjnAAACS0lEQVR4nO2cUW4bMQxEh8X+SzfI/Y/VG0gnmH6QK9GOf9Q2KZOOYDi7az14CQyGpKyNEYdj/jglACFChAj5OARkcrJGNPoBx37PEzjKxiKkJnIBQBt+YgAAzk7AAAIWkssTysYipCZy+R9DCInTeIttneYJhWMRUhO5ns5DXW3gtrK/8S1ChOzBAXsjpvnxB32LkP8JCR/LfhXpsg007qT52Tcm5Nsgr/rK9680QX2lkMNx4WXR5bnS358nlI1FSE0EZDiVV18c8YqLpE9YF+VjQg7H7iuji2y0RmtR9kc9Ns2TptbHhJwjIMmx3SzXYHGxMdwsJpeNRUhN5K75XUgDD3mTu+BPSbNsLEJqIqGxUFeysnU9XGwsHZaNRUhN5IWPRdmfpLUkJx8Tco4gp8iVKCMtcifKtB+jbCxCaiJ3oYXkYANISguxtWgNpDEhp2Ob1UhXVi+5GsxVm0ljQg7Hwyrr0tJIaxpI5iaNCTkfKyHm3yXJdz62FsqkMSGHY/ePK122sLWYMLBLMmlMyPG4AGB2pp3VNs2393B2+M9J0xJSNhYhNZGdFh8Ks7E/yosYWrsQ8nuIrdG3ZZG0DjMDYB3YlX/pWITUQ148l+RbL/yQj7v6rY3CsQgpjYSJeQvpu3rM+NMAYJqZodHe+Pk3JuTrIy+eSwrXasMAzA53s7sRKByLkJrIs8Zwy4zTXGac3RtPa1SuFHKOPD+XxNnRhrVhjQ+Pis8uHxPyB+tje/krpDUNnhxn/0c3JuTbIKb/DSVEiJAvjvwClFbn/q4R6EQAAAAASUVORK5CYII=">
+    <div class="fq-t">Follow the slides<br><b>streamstage.live/live</b></div>
   </div>
   <div class="scrim"></div>
   <div class="scrim-t"></div>
