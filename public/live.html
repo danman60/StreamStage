@@ -21,7 +21,21 @@
   @keyframes pulse{70%{box-shadow:0 0 0 9px rgba(78,197,212,0)}100%{box-shadow:0 0 0 0 rgba(78,197,212,0)}}
   .bar b{font-size:14px;letter-spacing:.02em}
   .bar .n{margin-left:auto;font:700 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--dim)}
-  .stage{position:relative;width:100%;aspect-ratio:16/9;background:#000;overflow:hidden}
+  /* The stage must fit the WINDOW, not just the width. In landscape a phone is ~390px tall, so a
+     full-width 16/9 box was taller than the screen and the slide got cut off. Cap the width by
+     the height actually available and the box stays a true 16/9 that fits both ways. */
+  .stage{position:relative;width:min(100%, calc((100dvh - 108px) * 16 / 9));
+    aspect-ratio:16/9;background:#000;overflow:hidden;margin-inline:auto}
+  @supports not (height: 100dvh){ .stage{width:min(100%, calc((100vh - 108px) * 16 / 9))} }
+  /* Landscape is the read-it-properly orientation: give the slide the screen and get the
+     furniture out of the way. */
+  @media (orientation: landscape) and (max-height: 560px){
+    .bar{padding:calc(env(safe-area-inset-top) + 5px) 12px 5px}
+    .bar b{font-size:12px}
+    .stage{width:min(100%, calc((100dvh - 46px) * 16 / 9))}
+    .ttl{font-size:16px;padding:8px 14px 2px}
+    .sub{display:none}
+  }
   .stage img,.stage video{position:absolute;inset:0;width:100%;height:100%;display:block}
   .stage img{object-fit:contain}
   .stage video{object-fit:contain;background:#000}
