@@ -71,6 +71,31 @@ with slide 1's 181 s / 22.6 MB film, and that is what is fixed.
   slide with a poster frame pulled off DART, so the film slides show real footage instead of
   black. `/dancepromo` +15% is also live (`1st camera: $865`).
 
+
+### Public follower — 2026-08-12 10:55 ET. LIVE at streamstage.live/live
+Deck on DART: md5 `943ebb5d`. **The deck tab must be reloaded to start reporting.**
+
+- **Fragment-level sync.** The deck posts slide + fragment LEVEL + the demo slide's current film
+  to `live-receive.py` here (Tailscale `100.122.177.91:8793`), which mirrors it to R2. 116
+  rendered states, one per click, and the phone preloads the next one so it lands instantly.
+- **Nothing on DART changed except the deck file.** No presenter edit, no presenter restart. The
+  push is `mode:'no-cors'` with a text/plain body — a "simple request", so no preflight and the
+  receiver needs no CORS config. Fire-and-forget: if this machine is asleep the deck's catch
+  swallows it and the talk is unaffected.
+- **Films follow.** Whichever promo the room is watching is the one the phone plays, muted.
+- **QR targets are tappable links** on slides 22, 25, 28, 29.
+- Verified end to end: clicking the real deck emits one post per click with correct frag counts
+  and no page errors; the live page rendered `slide-05-f0..f3.jpg` in order and switched from
+  `promo-edp.mp4` to `dis-1shot-vertical.mp4` with `muted:true`; zero failed requests.
+
+**Operational, and this is the fragile part:**
+- `live-receive.py` runs HERE, not on DART. If this machine sleeps or the session ends, the
+  phones freeze on the last state. The talk itself is completely unaffected.
+- Two earlier `live-relay.py` pollers survived a `kill` of their bash wrappers and kept
+  overwriting state.json — the pids to kill are the python ones, not the shell's. Both are dead;
+  the receiver is now the only writer.
+- Port 8791 was already taken by another python process (left alone); the receiver is on 8793.
+
 ### Still open
 - **The 60-second DIS vertical is not found.** Looked in DART `videos\` (32 files),
   DART `videos-heavy-2026-08-11\` (40), FIRMAMENT `D:\` by name, and Google Drive by name.
