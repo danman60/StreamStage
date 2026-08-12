@@ -66,6 +66,8 @@ def main():
     print(f"poll   : every {a.interval}s (read-only on the presenter)", flush=True)
 
     last = None
+    prev_sig = None
+    last_write = 0.0
     misses = 0
     while True:
         try:
@@ -90,15 +92,22 @@ def main():
         # ignore `ts` when deciding whether anything actually moved, or every tick is a write
         sig = hashlib.md5(json.dumps({k: v for k, v in payload.items()
                                       if k != "ts"}, sort_keys=True).encode()).hexdigest()
-        if sig != last:
+        # Write on change, and at least every 30 s regardless. Without the heartbeat a deck
+        # that simply is not moving is indistinguishable from a relay that has died, and the
+        # phones would quietly start telling the room the talk had not begun.
+        due = (time.time() - last_write) > 30
+        if sig != last or due:
             body = json.dumps(payload).encode()
             s3.put_object(Bucket=bucket, Key=key, Body=body,
                           ContentType="application/json",
                           # the whole point is freshness; never let the CDN hold this
                           CacheControl="no-store, max-age=0, must-revalidate")
             last = sig
-            print(f"  -> slide {payload['idx'] + 1}/{payload['total']}  {payload['title'][:48]}",
-                  flush=True)
+            last_write = time.time()
+            if sig != prev_sig:
+                print(f"  -> slide {payload['idx'] + 1}/{payload['total']}  {payload['title'][:48]}",
+                      flush=True)
+                prev_sig = sig
         if a.once:
             return
         time.sleep(a.interval)
