@@ -55,6 +55,30 @@ The real cost was that `show(0)` runs at the very END of the script (`:2342`), l
 browser has begun fetching every `preload="auto"` video in the document. That is what competed
 with slide 1's 181 s / 22.6 MB film, and that is what is fixed.
 
+
+### Third pass — 2026-08-12 01:25 ET. Deck md5 `01a64f22` on DART, site pushed (`eb10623`).
+- **Slide 10 runs the promos back to back.** The player no longer loops, so `ended` fires and the
+  next film starts with its tab lit. Stops on the last one rather than wrapping. **EDP (Elite
+  Dance Project, Guelph) added** as a fourth promo — it was already on DART as a wall tile.
+- **Slide 27 plays once and holds an end card** — wordmark, the StudioSage QR, studiosage.ai.
+  The mark is cloned at runtime off the media-fee slide so the logo is not embedded twice.
+- **Reel wall no longer letterboxes.** Each tile carries its own aspect ratio (7 portrait tiles
+  identified from the encoded files), rows are centred flex strips at 210 / 170 / 200 px, and
+  portrait tiles get smaller labels — "Highlight" was rendering as "hlight".
+- **The checklist page offers the deck as a PDF** once the email gate is passed:
+  `public/streamstage-video-talk-deck.pdf`, 29 pages, 2.4 MB, live and verified at
+  `streamstage.live/streamstage-video-talk-deck.pdf` (2,405,338 B). Built by rendering every
+  slide with a poster frame pulled off DART, so the film slides show real footage instead of
+  black. `/dancepromo` +15% is also live (`1st camera: $865`).
+
+### Still open
+- **The 60-second DIS vertical is not found.** Looked in DART `videos\` (32 files),
+  DART `videos-heavy-2026-08-11\` (40), FIRMAMENT `D:\` by name, and Google Drive by name.
+  The only 60 s DIS asset anywhere is `promo-dis-full` and it is 1280x720 landscape; the DIS
+  verticals on hand are 4-7 s. Daniel says it exists — needs a path from him.
+- Talk 1 has still never been walked end to end on DART.
+- **A browser tab opened before a deploy keeps serving the old deck.** Hard-reload after each push.
+
 ### NOT done / open
 - **`/dancepromo` is not deployed** — the change is local only, deploys are hook-gated.
 - Talk 1 has never been walked end to end on DART with these changes.

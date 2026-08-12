@@ -1117,15 +1117,20 @@
       <!-- The three films at full length. They are BUTTONS, not autoplay: three minutes of
            film played at the room would eat the clock, and the ask was that all three are
            reachable, not that all three run. Pick one, talk over it, move on. -->
-      <button class="sw on" data-src="videos/promo-csod-full.mp4" data-aud="1" data-fit="contain">Studio promo &middot; CSOD</button>
-      <button class="sw" data-src="videos/promo-kmsd-full.mp4" data-aud="1" data-fit="contain">Studio promo &middot; KMSD</button>
-      <button class="sw" data-src="videos/promo-wsdy-full.mp4" data-aud="1" data-fit="contain">Studio promo &middot; WSDY</button>
+      <button class="sw on" data-src="videos/promo-csod-full.mp4" data-aud="1" data-fit="contain">CSOD</button>
+      <button class="sw" data-src="videos/promo-kmsd-full.mp4" data-aud="1" data-fit="contain">KMSD</button>
+      <button class="sw" data-src="videos/promo-wsdy-full.mp4" data-aud="1" data-fit="contain">WSDY</button>
       <!-- 2026-08-12: EDP added at Daniel's request — Elite Dance Project, Guelph. The full
            promo is already on this machine; it is one of the tiles on the examples wall. -->
-      <button class="sw" data-src="videos/promo-edp.mp4" data-aud="1" data-fit="contain">Studio promo &middot; EDP</button>
+      <button class="sw" data-src="videos/promo-edp.mp4" data-aud="1" data-fit="contain">EDP</button>
+      <!-- 2026-08-12: the DIS one-shot, 9:16, 52s. Source off Drive was HEVC at 7,216 kbps,
+           which this laptop would likely have refused outright; re-encoded to h264 720x1280 at
+           1,430 kbps. It stays "contain" — cropping a one-shot vertical to fill a 16:9 frame
+           would throw away the whole point of it. -->
+      <button class="sw" data-src="videos/dis-1shot-vertical.mp4" data-aud="1" data-fit="contain">DIS &middot; vertical</button>
       <!-- 2026-08-12: Tiffany Adoranti's single testimonial pulled at Daniel's request. The
            kiosk reel stays — it is every testimonial back to back, so nothing is lost. -->
-      <button class="sw" data-src="videos/kiosk-testimonials.mp4" data-aud="1" data-fit="contain">Every testimonial &middot; kiosk reel</button>
+      <button class="sw" data-src="videos/kiosk-testimonials.mp4" data-aud="1" data-fit="contain">Kiosk reel</button>
       <!-- One control that steps along the row, so the next film is a single press instead of a
            hunt for a small target while talking. Also bound to the . key. -->
       <button class="sw nextsrc" id="nextsrc" title="Next film (.)">Next &#9656;</button>
