@@ -27,14 +27,23 @@
   .stage{position:relative;width:min(100%, calc((100dvh - 108px) * 16 / 9));
     aspect-ratio:16/9;background:#000;overflow:hidden;margin-inline:auto}
   @supports not (height: 100dvh){ .stage{width:min(100%, calc((100vh - 108px) * 16 / 9))} }
-  /* Landscape is the read-it-properly orientation: give the slide the screen and get the
-     furniture out of the way. */
+  /* Landscape is the read-it-properly orientation: the slide gets the WHOLE window. The status
+     bar floats ON the slide instead of stacking above it — stacked, it stole 46px of height,
+     which on a 16/9 box costs 82px of width. Full height is the ceiling for a 16/9 slide here. */
   @media (orientation: landscape) and (max-height: 560px){
-    .bar{padding:calc(env(safe-area-inset-top) + 5px) 12px 5px}
-    .bar b{font-size:12px}
-    .stage{width:min(100%, calc((100dvh - 46px) * 16 / 9))}
+    .bar{position:fixed;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top) + 4px) 12px 4px;
+      background:linear-gradient(rgba(7,9,12,.72),rgba(7,9,12,0));border-bottom:0;
+      backdrop-filter:none;pointer-events:none}
+    .bar b{font-size:11px}
+    .bar .n{font-size:11px}
+    .stage{width:min(100%, calc(100dvh * 16 / 9));height:100dvh}
     .ttl{font-size:16px;padding:8px 14px 2px}
     .sub{display:none}
+  }
+  @supports not (height: 100dvh){
+    @media (orientation: landscape) and (max-height: 560px){
+      .stage{width:min(100%, calc(100vh * 16 / 9));height:100vh}
+    }
   }
   .stage img,.stage video{position:absolute;inset:0;width:100%;height:100%;display:block}
   .stage img{object-fit:contain}
@@ -204,7 +213,7 @@
 
   // a phone that sleeps mid-talk should catch up the moment it wakes, not one poll later
   document.addEventListener('visibilitychange',function(){
-    if(!document.hidden){ cur=null; tick(); }
+    if(!document.hidden){ curKey=null; tick(); }
   });
 })();
 </script>
