@@ -24,15 +24,15 @@ import Footer from "@/components/Footer";
 
 /* ── Constants ── */
 
-const CAMERA_BASE = 750;
-const CAMERA_ADDITIONAL = 150;
+const CAMERA_BASE = 865;
+const CAMERA_ADDITIONAL = 175;
 
 const DELIVERABLES = [
   {
     id: "30s",
     label: "30-Second Vertical Video",
     description: "Portrait format, social-ready content",
-    price: 175,
+    price: 200,
     unit: "each",
     hasQuantity: true,
   },
@@ -40,7 +40,7 @@ const DELIVERABLES = [
     id: "1min",
     label: "1-Minute Brand Story",
     description: "Uses all footage to create a captivating brand story video",
-    price: 350,
+    price: 405,
     unit: "each",
     hasQuantity: true,
   },
@@ -48,7 +48,7 @@ const DELIVERABLES = [
     id: "10s",
     label: "10-Second Vertical Video",
     description: "Micro clip for hooks and teasers",
-    price: 100,
+    price: 115,
     unit: "each",
     hasQuantity: true,
   },
@@ -56,7 +56,7 @@ const DELIVERABLES = [
     id: "raw",
     label: "Raw Footage Package",
     description: "All raw video captured for client remix and use",
-    price: 250,
+    price: 290,
     unit: "flat",
     hasQuantity: false,
   },
@@ -87,9 +87,9 @@ const SHOOT_OPTIONS = [
 ];
 
 const VOLUME_TIERS = [
-  { min: 2250, discount: 0.2, label: "20%" },
-  { min: 1750, discount: 0.15, label: "15%" },
-  { min: 1250, discount: 0.1, label: "10%" },
+  { min: 2600, discount: 0.2, label: "20%" },
+  { min: 2000, discount: 0.15, label: "15%" },
+  { min: 1450, discount: 0.1, label: "10%" },
 ];
 
 function money(n: number) {
@@ -126,10 +126,14 @@ export default function DancePromo() {
       cameraCount === 0 ? 0 : CAMERA_BASE + (cameraCount - 1) * CAMERA_ADDITIONAL;
 
     let deliverablesCost = 0;
-    deliverablesCost += quantities["30s"] * 175;
-    deliverablesCost += quantities["1min"] * 350;
-    deliverablesCost += quantities["10s"] * 100;
-    if (rawFootage) deliverablesCost += 250;
+    // read the prices from DELIVERABLES — these used to be a second hardcoded copy, so a rate
+    // change could update the constants and never reach the quote
+    const priceOf = (id: string) =>
+      DELIVERABLES.find((d) => d.id === id)?.price ?? 0;
+    deliverablesCost += quantities["30s"] * priceOf("30s");
+    deliverablesCost += quantities["1min"] * priceOf("1min");
+    deliverablesCost += quantities["10s"] * priceOf("10s");
+    if (rawFootage) deliverablesCost += priceOf("raw");
 
     const preModifier = elementsCost + deliverablesCost;
     const shootOption = SHOOT_OPTIONS.find((s) => s.hours === shootLength)!;
@@ -151,11 +155,11 @@ export default function DancePromo() {
     // Next discount tier info
     let nextTierMsg = "";
     if (discountPct === 0 && subtotal > 0) {
-      nextTierMsg = `Add ${money(1250 - subtotal)} more to unlock 10% savings`;
+      nextTierMsg = `Add ${money(VOLUME_TIERS[2].min - subtotal)} more to unlock 10% savings`;
     } else if (discountPct === 0.1) {
-      nextTierMsg = `Add ${money(1750 - subtotal)} more to unlock 15% savings`;
+      nextTierMsg = `Add ${money(VOLUME_TIERS[1].min - subtotal)} more to unlock 15% savings`;
     } else if (discountPct === 0.15) {
-      nextTierMsg = `Add ${money(2250 - subtotal)} more to unlock 20% savings`;
+      nextTierMsg = `Add ${money(VOLUME_TIERS[0].min - subtotal)} more to unlock 20% savings`;
     }
 
     return {
@@ -358,7 +362,7 @@ export default function DancePromo() {
                 Production Elements
               </h2>
               <p className="text-base text-gray-500 mb-6">
-                1st camera: $750. Each additional: +$150. All cameras capture
+                1st camera: $865. Each additional: +$175. All cameras capture
                 the full shoot length.
               </p>
 
@@ -519,8 +523,9 @@ export default function DancePromo() {
                       {calc.nextTierMsg}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      Volume discounts: 10% at $1,250 &middot; 15% at $1,750
-                      &middot; 20% at $2,250
+                      Volume discounts: 10% at {money(VOLUME_TIERS[2].min)}{" "}
+                      &middot; 15% at {money(VOLUME_TIERS[1].min)} &middot; 20%
+                      at {money(VOLUME_TIERS[0].min)}
                     </p>
                   </div>
                 )}

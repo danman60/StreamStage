@@ -399,7 +399,43 @@
   .s10 .sw{font:800 21px/1 var(--mono);letter-spacing:.04em;color:#c3d0da;background:rgba(12,18,25,.86);
     border:1px solid #2c3d4f;border-radius:11px;padding:15px 20px;cursor:pointer;white-space:nowrap}
   .s10 .sw.on{color:#06121a;background:var(--cyan);border-color:var(--cyan)}
-  .s10 .third{position:absolute;left:24px;bottom:112px;z-index:6;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+  /* 2026-08-12: this only overrode position, so it still inherited the full-width 94%-black
+     gradient from the shared .third rule — a giant dark box across the bottom of the film.
+     The list sits on its own shadowed pills now, so the picture is uncovered. */
+  .s10 .third{position:absolute;left:24px;bottom:112px;z-index:6;display:flex;flex-direction:column;gap:10px;align-items:flex-start;
+    background:none;padding:0}
+  .s10 .third .it{background:rgba(6,12,18,.72);border-radius:10px;padding:9px 16px;
+    text-shadow:0 2px 12px rgba(0,0,0,.9)}
+  /* --- the explainer film and the Calgary offer, added 2026-08-12 --- */
+  .s-explain .player{position:absolute;inset:0;background:#000}
+  .s-explain .framevid{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:1}
+  .s-explain .land{position:absolute;left:0;right:0;bottom:34px;z-index:6;text-align:center;
+    font-size:52px;font-weight:900;text-shadow:0 3px 22px rgba(0,0,0,.95)}
+  .s-explain .land b{color:var(--amber)}
+  .s-calgary .offer{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:44px}
+  .s-calgary .ost{display:flex;gap:18px;background:rgba(12,20,28,.72);border:1px solid #22323f;
+    border-radius:18px;padding:26px 24px}
+  .s-calgary .ost.hot{border-color:var(--amber);background:rgba(52,36,8,.5)}
+  .s-calgary .ost .k{font:900 40px/1 var(--mono);color:var(--cyan);opacity:.85}
+  .s-calgary .ost.hot .k{color:var(--amber)}
+  .s-calgary .ost h3{font-size:29px;margin:0 0 8px}
+  .s-calgary .ost p{font-size:22px;line-height:1.35;color:var(--dim);margin:0}
+  /* push the date strip to the floor of the slide so the offer fills the frame instead of
+     stopping halfway down it */
+  .s-calgary .wrap{display:flex;flex-direction:column}
+  .s-calgary .slots{display:flex;align-items:center;justify-content:center;gap:64px;margin-top:auto;padding-bottom:18px}
+  .s-calgary .dates{display:flex;align-items:baseline;gap:16px}
+  .s-calgary .dates span{font:900 30px/1 var(--mono);letter-spacing:.16em;color:var(--dim)}
+  .s-calgary .dates b{font:900 86px/1 var(--mono);color:var(--amber)}
+  .s-calgary .four{display:flex;gap:20px}
+  .s-calgary .slot{width:128px;height:128px;border:3px dashed #35495a;border-radius:18px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+  .s-calgary .slot .sn{font:900 46px/1 var(--mono);color:var(--cyan);opacity:.85}
+  .s-calgary .slot .sl{font:800 15px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+  .s-calgary .odead{margin-top:46px;font-size:34px;font-weight:800;color:var(--dim);text-align:center}
+  .s-calgary .odead b{color:#fff}
+  .s-fee .feelogo{position:absolute;right:56px;top:98px;width:200px;opacity:.92;z-index:5}
+  .s10 .sw.nextsrc{background:rgba(12,18,25,.86);border-color:var(--cyan);color:var(--cyan);margin-left:auto}
   .s10 .land{position:absolute;left:0;right:0;bottom:34px;z-index:6;text-align:center;
     text-shadow:0 3px 22px rgba(0,0,0,.95)}
 
@@ -433,7 +469,8 @@
   .s3 .role{font:800 24px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);margin-top:16px}
 
   /* --- s8: nine REAL vertical reels instead of a decorative fan --- */
-  .s8 .fan9{flex:1;height:660px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:9px}
+  .s8 .fan9{flex:1;height:660px;display:flex;flex-direction:column;gap:9px}
+  .s8 .fan9 .r9row{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:9px;min-height:0}
   .s8 .fan9 .r9{position:relative;border-radius:11px;overflow:hidden;background:#0b0f15;border:1px solid #22303d}
   .s8 .fan9 .r9 video{width:100%;height:100%;object-fit:cover;display:block}
   .s8 .fan9 .r9 .t{position:absolute;left:9px;bottom:7px;z-index:2;font:800 13px/1 var(--mono);
@@ -490,7 +527,7 @@
   .rec .land b{color:var(--amber)}
 
   /* ===== the recital block (capture / distribution / media fee / what's included) ===== */
-  .s-ang .wrap,.s-dist .wrap,.s-fee .wrap,.s-incl .wrap{position:absolute;inset:0;padding:60px 88px 92px;
+  .s-ang .wrap,.s-dist .wrap,.s-fee .wrap,.s-incl .wrap,.s-calgary .wrap{position:absolute;inset:0;padding:60px 88px 92px;
     display:flex;flex-direction:column}
   .s-ang .h-lg,.s-dist .h-lg,.s-fee .h-lg,.s-incl .h-lg{font-size:74px;max-width:1520px}
 
@@ -710,6 +747,19 @@
   .apx.c5 .c p{font-size:20px;line-height:1.4}
   .apx .c.hot{border-color:rgba(245,158,11,.4)}
   .apx .c.hot .k{color:var(--amber)}
+  /* 2026-08-12: the five camera-settings cards ran full height with the text at the top and
+     nothing under it. Each one now ends in a big line-art glyph that says the same thing the
+     heading does, so the empty half reads as designed instead of unfinished. */
+  .apx .c{position:relative}
+  .apx .cg{margin-top:auto;padding-top:18px;width:100%;display:block}
+  .apx .cg svg{width:100%;height:auto;display:block;overflow:visible}
+  .apx .cg .ln{fill:none;stroke:var(--cyan);stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+  .apx .cg .fl{fill:var(--cyan);opacity:.18}
+  .apx .cg .dim{fill:none;stroke:#2f4353;stroke-width:3;stroke-dasharray:7 8;stroke-linecap:round}
+  .apx .c.hot .cg .ln{stroke:var(--amber)}
+  .apx .c.hot .cg .fl{fill:var(--amber)}
+  .apx .cg .big{font:900 60px/1 var(--mono);fill:var(--cyan);opacity:.9}
+  .apx .c.hot .cg .big{fill:var(--amber)}
   .apxfoot{margin-top:24px;font:700 24px/1.35 var(--mono);color:var(--dim)}
   .apxfoot b{color:var(--amber)}
 
@@ -844,10 +894,10 @@
   <div class="split">
     <div class="ph tx-rig">
       <div class="mos">
-        <video data-aud="1" data-bg src="videos/promo-dis-full.mp4" muted loop playsinline preload="auto"></video>
-        <video data-aud="1" data-bg src="videos/promo-csod-full.mp4" muted loop playsinline preload="auto"></video>
-        <video data-aud="1" data-bg src="videos/promo-footprints-bigs.mp4" muted loop playsinline preload="auto"></video>
-        <video data-aud="1" data-bg src="videos/promo-kmsd.mp4" muted loop playsinline preload="auto"></video>
+        <video data-aud="1" data-bg src="videos/promo-dis-full.mp4" muted loop playsinline preload="none"></video>
+        <video data-aud="1" data-bg src="videos/promo-csod-full.mp4" muted loop playsinline preload="none"></video>
+        <video data-aud="1" data-bg src="videos/promo-footprints-bigs.mp4" muted loop playsinline preload="none"></video>
+        <video data-aud="1" data-bg src="videos/promo-kmsd.mp4" muted loop playsinline preload="none"></video>
       </div>
       <div class="grain"></div>
     </div>
@@ -865,14 +915,6 @@
     </div>
   </div>
   <aside class="note"><b>1:30–2:00 · OPEN</b> — Credibility beat. Keep short — persona jokes are budgeted to Talk 2.</aside>
-</section>
-<section class="slide qslide" data-title="How Are You Making Video Now?" data-beats="!!TAKE 3-4 ANSWERS AND REACT BY NAME. This is the warm-up, not a survey.|Prompts on the slide: phone in the lobby? hired for the gala? niece with a ring light?|&gt;&gt;Remember what they say - you call back to it at Stations and the Reel Wall.|2:00-3:00 - PROBLEM">
-  <div class="badge">[INTERACT]</div>
-  <div class="wrap">
-    <div class="q">How are you making video <span class="cy">right now?</span></div>
-    <div class="light">Phone in the lobby? &nbsp;Hired for the gala? &nbsp;Niece with a ring light?</div>
-  </div>
-  <aside class="note"><b>2:00–3:00 · PROBLEM · [INTERACT]</b> — Take 3–4 answers, react by name. Seeds which examples to lean on next.</aside>
 </section>
 <section class="slide s-apx" data-title="Appendix · Frame, Format, Delivery" data-beats="!!APPENDIX - you are OFF the main line. Right arrow at the end of B brings you back.|..CLICK 1: open gate - the whole sensor square.|..CLICK 2: what cropping actually costs you.|..CLICK 3: one ad, six deliveries.|..CLICK 4: H.264 vs H.265 - when in doubt send H.264.|&gt;&gt;&#x27;It was never a resolution problem. It is a framing problem.&#x27;|!!Do not start this unless somebody asks. It is a primer, not an act.|APPENDIX - on demand only">
   <div class="badge cy">[APPENDIX]</div>
@@ -915,31 +957,63 @@
         <div class="k">Frame rate</div>
         <h3>30 fps</h3>
         <p>24 is the movie-theatre look. 60 is more frames in a second &mdash; that is not the same as more quality. 30 is the one that survives every platform.</p>
+        <div class="cg"><svg viewBox="0 0 260 108" role="img" aria-label="A film strip, three frames lit">
+<rect class="dim" x="4" y="20" width="252" height="68" rx="7"/>
+<rect class="fl" x="18" y="34" width="62" height="40" rx="4"/><rect class="ln" x="18" y="34" width="62" height="40" rx="4"/>
+<rect class="fl" x="99" y="34" width="62" height="40" rx="4"/><rect class="ln" x="99" y="34" width="62" height="40" rx="4"/>
+<rect class="ln" x="180" y="34" width="62" height="40" rx="4"/>
+<path class="ln" d="M14 12h232M14 96h232" opacity=".35"/></svg></div>
       </div>
       <div class="c frag f-up" data-frag="2">
         <div class="k">Resolution</div>
         <h3>4K</h3>
         <p>Resolution is your crop budget. Shoot bigger than you deliver and you can reframe, punch in, and cut a vertical later without paying for it.</p>
+        <div class="cg"><svg viewBox="0 0 260 108" role="img" aria-label="A large frame with a smaller delivery crop inside it">
+<rect class="dim" x="6" y="8" width="248" height="92" rx="8"/>
+<rect class="fl" x="74" y="30" width="112" height="52" rx="6"/><rect class="ln" x="74" y="30" width="112" height="52" rx="6"/>
+<path class="ln" d="M74 30 6 8M186 30l68-22M74 82 6 100M186 82l68 18" opacity=".45"/></svg></div>
       </div>
       <div class="c hot frag f-up" data-frag="3">
         <div class="k">Exposure</div>
         <h3>Everything on auto</h3>
         <p>Auto white balance, auto ISO, auto f-stop. A correctly exposed auto shot beats a manual one you got wrong, and you are there to run a studio, not to chase a light meter.</p>
+        <div class="cg"><svg viewBox="0 0 260 108" role="img" aria-label="A camera aperture, wide open">
+<circle class="fl" cx="130" cy="54" r="44"/><circle class="ln" cx="130" cy="54" r="44"/>
+<path class="ln" d="M130 10l38 22M168 32l-6 44M162 76l-38 22M124 98l-38-22M86 76l6-44M92 32l38-22" opacity=".7"/>
+<circle class="ln" cx="130" cy="54" r="15"/></svg></div>
       </div>
       <div class="c frag f-up" data-frag="4">
         <div class="k">Variety</div>
         <h3>Vary the focal length</h3>
         <p>Wide, close, from the floor, at the toe. Every shot taken from the same doorway at shoulder height is exactly what makes UGC look like UGC.</p>
+        <div class="cg"><svg viewBox="0 0 260 108" role="img" aria-label="Three different framings of the same subject">
+<rect class="ln" x="6" y="16" width="72" height="76" rx="6"/><circle class="fl" cx="42" cy="60" r="9"/>
+<rect class="ln" x="94" y="16" width="72" height="76" rx="6"/><circle class="fl" cx="130" cy="58" r="17"/>
+<rect class="ln" x="182" y="16" width="72" height="76" rx="6"/><circle class="fl" cx="218" cy="56" r="30"/></svg></div>
       </div>
       <div class="c frag f-up" data-frag="5">
         <div class="k">On a phone</div>
         <h3>Zoom with your feet</h3>
         <p>A phone has one lens worth using. Move closer instead of pinching &mdash; pinching just throws away pixels you already paid for.</p>
+        <div class="cg"><svg viewBox="0 0 260 108" role="img" aria-label="Footprints walking toward a phone frame">
+<rect class="ln" x="196" y="14" width="52" height="82" rx="9"/><path class="ln" d="M214 22h16" opacity=".6"/>
+<ellipse class="fl" cx="26" cy="72" rx="13" ry="20"/><ellipse class="ln" cx="26" cy="72" rx="13" ry="20"/>
+<ellipse class="fl" cx="72" cy="46" rx="13" ry="20"/><ellipse class="ln" cx="72" cy="46" rx="13" ry="20"/>
+<ellipse class="fl" cx="118" cy="72" rx="13" ry="20"/><ellipse class="ln" cx="118" cy="72" rx="13" ry="20"/>
+<ellipse class="fl" cx="164" cy="46" rx="13" ry="20"/><ellipse class="ln" cx="164" cy="46" rx="13" ry="20"/></svg></div>
       </div>
     </div>
     <div class="apxfoot">Vertical or landscape? If you cannot shoot open gate, shoot a mix. <b>Short answer: do both.</b></div>
   </div>
   <aside class="note"><b>APPENDIX &middot; on demand only</b> &mdash; Straight from <i>ExpoMic</i> :375&ndash;387, two audience questions in a row that he answered well with nothing on screen. Same content is on the videographer brief handout, so you can point at that instead if time is short. <b>&rarr;</b> from here returns you to the main line.</aside>
+</section>
+<section class="slide qslide" data-title="How Are You Making Video Now?" data-beats="!!TAKE 3-4 ANSWERS AND REACT BY NAME. This is the warm-up, not a survey.|Prompts on the slide: phone in the lobby? hired for the gala? niece with a ring light?|&gt;&gt;Remember what they say - you call back to it at Stations and the Reel Wall.|2:00-3:00 - PROBLEM">
+  <div class="badge">[INTERACT]</div>
+  <div class="wrap">
+    <div class="q">How are you making video <span class="cy">right now?</span></div>
+    <div class="light">Phone in the lobby? &nbsp;Hired for the gala? &nbsp;Niece with a ring light?</div>
+  </div>
+  <aside class="note"><b>2:00–3:00 · PROBLEM · [INTERACT]</b> — Take 3–4 answers, react by name. Seeds which examples to lean on next.</aside>
 </section>
 <section class="slide s5" data-title="The Exhausting Way" data-beats="..CLICKS 1-3: the three mismatched posts land one at a time.|&gt;&gt;&#x27;Piecemeal looks piecemeal.&#x27;|&gt;&gt;&#x27;Three studios. Three people. Never met.&#x27;|!!Name the pain here. Do NOT solve it yet.|3:00-4:00 - PROBLEM">
   <div class="wrap">
@@ -1009,6 +1083,34 @@
     </div>
   </div>
   <aside class="note"><b>5:30–7:00 · FIX</b> — <b>Item 21.</b> Last time station 4 fell out of the list and the room had to ask for it (<i>"What was the fourth station?"</i> — then "Extra. Yeah, extra. Thank you. I was like, I don't know"). The counter top-right is a presenter cue: it only goes amber at <b>4 / 4</b>, and the fifth click puts all four names on screen at once. You cannot leave this slide without them. "People doing people things — the one thing AI can't generate." Drone / wall-art aside belongs on 04.</aside>
+</section>
+<section class="slide s10" data-title="What You Walk Out With / Demo" data-beats="!!FULL-SCREEN SCRUBBABLE PLAYER. Drag the bar - you can run to any point.|!!FIVE SOURCES along the top. THREE FULL FILMS: CSOD, KMSD, WSDY. Then Tiffany, then the kiosk reel.|!!PLAY ONE. Not three. Pick the studio closest to this room and talk over it.|&gt;&gt;&#x27;Three studios, three completely different rooms, same one-day method.&#x27;|!!CLICK THE PICTURE ONCE for sound. Everything starts muted so it can autoplay.|Tiffany Adoranti - Caledonia School of Dance. Her own words about the promo AND the raw footage.|The kiosk reel is every testimonial back to back - use it if the room wants more.|!!AUDIO: KMSD runs about 10dB quieter than CSOD and WSDY. Ask for level if you play it.|..Each click adds one line of the walk-out list.|&gt;&gt;Land it: &#x27;One morning in. Twelve months of posts out.&#x27;|!!Projector audio was tested at sound check. HDMI audio is the #1 silent failure.|16:00-19:30 - FIX - DEMO">
+  <div class="badge">[DEMO]</div>
+  <div class="player">
+    <video data-aud="1" data-autoaud="1" id="mainplayer" class="framevid" src="videos/promo-csod-full.mp4" controls loop playsinline preload="none"></video>
+    <div class="srcs">
+      <!-- The three films at full length. They are BUTTONS, not autoplay: three minutes of
+           film played at the room would eat the clock, and the ask was that all three are
+           reachable, not that all three run. Pick one, talk over it, move on. -->
+      <button class="sw on" data-src="videos/promo-csod-full.mp4" data-aud="1" data-fit="contain">Studio promo &middot; CSOD</button>
+      <button class="sw" data-src="videos/promo-kmsd-full.mp4" data-aud="1" data-fit="contain">Studio promo &middot; KMSD</button>
+      <button class="sw" data-src="videos/promo-wsdy-full.mp4" data-aud="1" data-fit="contain">Studio promo &middot; WSDY</button>
+      <!-- 2026-08-12: Tiffany Adoranti's single testimonial pulled at Daniel's request. The
+           kiosk reel stays — it is every testimonial back to back, so nothing is lost. -->
+      <button class="sw" data-src="videos/kiosk-testimonials.mp4" data-aud="1" data-fit="contain">Every testimonial &middot; kiosk reel</button>
+      <!-- One control that steps along the row, so the next film is a single press instead of a
+           hunt for a small target while talking. Also bound to the . key. -->
+      <button class="sw nextsrc" id="nextsrc" title="Next film (.)">Next &#9656;</button>
+    </div>
+    <div class="third">
+      <div class="it frag f-up" data-frag="1"><b>&#9656;</b> Homepage story video</div>
+      <div class="it frag f-up" data-frag="2"><b>&#9656;</b> Living background video</div>
+      <div class="it frag f-up" data-frag="3"><b>&#9656;</b> Recital + competition reels</div>
+      <div class="it frag f-up" data-frag="4"><b>&#9656;</b> Dozens of social cuts, scheduled</div>
+    </div>
+    <div class="land frag f-up" data-frag="5">One morning in. <b>Twelve months of posts out.</b></div>
+  </div>
+  <aside class="note"><b>16:00–19:30 · FIX · [DEMO]</b> — Full-screen scrubbable player. <b>Five sources across the top, three of them full one-minute films: CSOD, KMSD and WSDY.</b> Then <b>Tiffany Adoranti (Caledonia School of Dance)</b> and the full kiosk reel of every testimonial. <b>Play one, not three</b> — they are buttons so the room sees whichever studio fits it, not three minutes of film back to back. Three different rooms, one method: that is the line. Click the picture once for sound. <b>Level note:</b> KMSD's full cut sits about 10 dB under CSOD and WSDY. Land it: <b>One morning in. Twelve months of posts out.</b></aside>
 </section>
 <section class="slide s7b" data-title="The Provoke" data-beats="..THREE CLICKS: the polite question, the provoke, the rule.|!!Say it once and land it. Do NOT apologise for the analogy.|!!&#x27;All the good stuff&#x27;s in the middle.&#x27; Top and tail are dead.|Hostage video = everyone agreeable, nothing to cut.|Questions are on the free checklist QR at the end.|7:00-8:30 - FIX">
   <div class="wrap">
@@ -1103,7 +1205,7 @@
         <div class="n">01</div>
         <h3>Mic'd-up class</h3>
         <div class="exvid">
-          <video data-aud="1" src="videos/example-micd-up.mp4" muted loop playsinline preload="auto" controls></video>
+          <video data-aud="1" src="videos/example-micd-up.mp4" muted loop playsinline preload="none" controls></video>
           <span class="src">@joffreyballet</span>
         </div>
         <p>Corrections, effort, jokes, breath — the lesson as it actually sounds.</p>
@@ -1162,20 +1264,26 @@
     <div class="row">
       <div class="clip">
         <video data-aud="1" class="clipvid" src="videos/recital-lhl-act1.mp4"
-               controls muted loop playsinline preload="auto"></video>
+               controls muted loop playsinline preload="none"></video>
         <div class="lbl">ONE RECITAL CLIP</div>
       </div>
       <div class="arrow9 frag f-up" data-frag="1"><div class="x9">&times;9</div><div class="shaft"></div></div>
-      <div class="fan9 frag f-fade" data-frag="2" id="fan1">
-        <div class="r9"><video data-aud="0" src="videos/reel9-01-dis.mp4" muted loop playsinline preload="auto"></video><div class="t">DIS · reel</div></div>
-        <div class="r9"><video data-aud="0" src="videos/reel9-09-jj.mp4" muted loop playsinline preload="auto"></video><div class="t">JJ · recital cut</div></div>
-        <div class="r9"><video data-aud="1" src="videos/reel-grad-dtl.mp4" muted loop playsinline preload="auto"></video><div class="t">GRAD · Dancing Through Life</div></div>
-        <div class="r9"><video data-aud="0" src="videos/reel9-04-wsdy.mp4" muted loop playsinline preload="auto"></video><div class="t">WSDY · teaser</div></div>
-        <div class="r9"><video data-aud="0" src="videos/reel9-07-acro.mp4" muted loop playsinline preload="auto"></video><div class="t">Acro · 15s</div></div>
-        <div class="r9"><video data-aud="1" src="videos/reel-lds-showtime.mp4" muted loop playsinline preload="auto"></video><div class="t">LDS · Showtime 2026</div></div>
-        <div class="r9"><video data-aud="0" src="videos/reel9-02-dis.mp4" muted loop playsinline preload="auto"></video><div class="t">DIS · story</div></div>
-        <div class="r9"><video data-aud="0" src="videos/reel9-08-gdo.mp4" muted loop playsinline preload="auto"></video><div class="t">GDO · slow-mo</div></div>
-        <div class="r9"><video data-aud="0" src="videos/reel9-03-dis.mp4" muted loop playsinline preload="auto"></video><div class="t">DIS · promo cut</div></div>
+      <div class="fan9" id="fan1">
+        <div class="r9row frag f-fade" data-frag="2">
+          <div class="r9"><video data-aud="0" src="videos/reel9-01-dis.mp4" muted loop playsinline preload="none"></video><div class="t">DIS · reel</div></div>
+          <div class="r9"><video data-aud="0" src="videos/reel9-09-jj.mp4" muted loop playsinline preload="none"></video><div class="t">JJ · recital cut</div></div>
+          <div class="r9"><video data-aud="1" src="videos/reel-grad-dtl.mp4" muted loop playsinline preload="none"></video><div class="t">GRAD · Dancing Through Life</div></div>
+        </div>
+        <div class="r9row frag f-fade" data-frag="3">
+          <div class="r9"><video data-aud="0" src="videos/reel9-04-wsdy.mp4" muted loop playsinline preload="none"></video><div class="t">WSDY · teaser</div></div>
+          <div class="r9"><video data-aud="0" src="videos/reel9-07-acro.mp4" muted loop playsinline preload="none"></video><div class="t">Acro · 15s</div></div>
+          <div class="r9"><video data-aud="1" src="videos/reel-lds-showtime.mp4" muted loop playsinline preload="none"></video><div class="t">LDS · Showtime 2026</div></div>
+        </div>
+        <div class="r9row frag f-fade" data-frag="4">
+          <div class="r9"><video data-aud="0" src="videos/reel9-02-dis.mp4" muted loop playsinline preload="none"></video><div class="t">DIS · story</div></div>
+          <div class="r9"><video data-aud="0" src="videos/reel9-08-gdo.mp4" muted loop playsinline preload="none"></video><div class="t">GDO · slow-mo</div></div>
+          <div class="r9"><video data-aud="0" src="videos/reel9-03-dis.mp4" muted loop playsinline preload="none"></video><div class="t">DIS · promo cut</div></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1228,30 +1336,6 @@
   </div>
   <aside class="note"><b>13:30&ndash;15:00 &middot; FIX &middot; [FOCUS]</b> &mdash; <b>Ad-libs 6 + 7, merged.</b> He interrupted himself mid-sentence for the grad-profile idea: <i>"what a great idea, write this down."</i> Deliver it that way &mdash; it reads as thinking, not selling. The double&rarr;triple arc is his too (<i>"a clip from September and a clip from January and a clip from May"</i>). Close on his own framing: <b>go deep on one thing instead of "I have to make a video this week."</b></aside>
 </section>
-<section class="slide s10" data-title="What You Walk Out With / Demo" data-beats="!!FULL-SCREEN SCRUBBABLE PLAYER. Drag the bar - you can run to any point.|!!FIVE SOURCES along the top. THREE FULL FILMS: CSOD, KMSD, WSDY. Then Tiffany, then the kiosk reel.|!!PLAY ONE. Not three. Pick the studio closest to this room and talk over it.|&gt;&gt;&#x27;Three studios, three completely different rooms, same one-day method.&#x27;|!!CLICK THE PICTURE ONCE for sound. Everything starts muted so it can autoplay.|Tiffany Adoranti - Caledonia School of Dance. Her own words about the promo AND the raw footage.|The kiosk reel is every testimonial back to back - use it if the room wants more.|!!AUDIO: KMSD runs about 10dB quieter than CSOD and WSDY. Ask for level if you play it.|..Each click adds one line of the walk-out list.|&gt;&gt;Land it: &#x27;One morning in. Twelve months of posts out.&#x27;|!!Projector audio was tested at sound check. HDMI audio is the #1 silent failure.|16:00-19:30 - FIX - DEMO">
-  <div class="badge">[DEMO]</div>
-  <div class="player">
-    <video data-aud="1" id="mainplayer" class="framevid" src="videos/promo-csod-full.mp4" controls loop playsinline preload="auto"></video>
-    <div class="srcs">
-      <!-- The three films at full length. They are BUTTONS, not autoplay: three minutes of
-           film played at the room would eat the clock, and the ask was that all three are
-           reachable, not that all three run. Pick one, talk over it, move on. -->
-      <button class="sw on" data-src="videos/promo-csod-full.mp4" data-aud="1" data-fit="contain">Studio promo &middot; CSOD</button>
-      <button class="sw" data-src="videos/promo-kmsd-full.mp4" data-aud="1" data-fit="contain">Studio promo &middot; KMSD</button>
-      <button class="sw" data-src="videos/promo-wsdy-full.mp4" data-aud="1" data-fit="contain">Studio promo &middot; WSDY</button>
-      <button class="sw" data-src="videos/tiffany-testimonial.mp4" data-aud="1" data-fit="contain">Tiffany Adoranti &middot; testimonial</button>
-      <button class="sw" data-src="videos/kiosk-testimonials.mp4" data-aud="1" data-fit="contain">Every testimonial &middot; kiosk reel</button>
-    </div>
-    <div class="third">
-      <div class="it frag f-up" data-frag="1"><b>&#9656;</b> Homepage story video</div>
-      <div class="it frag f-up" data-frag="2"><b>&#9656;</b> Living background video</div>
-      <div class="it frag f-up" data-frag="3"><b>&#9656;</b> Recital + competition reels</div>
-      <div class="it frag f-up" data-frag="4"><b>&#9656;</b> Dozens of social cuts, scheduled</div>
-    </div>
-    <div class="land frag f-up" data-frag="5">One morning in. <b>Twelve months of posts out.</b></div>
-  </div>
-  <aside class="note"><b>16:00–19:30 · FIX · [DEMO]</b> — Full-screen scrubbable player. <b>Five sources across the top, three of them full one-minute films: CSOD, KMSD and WSDY.</b> Then <b>Tiffany Adoranti (Caledonia School of Dance)</b> and the full kiosk reel of every testimonial. <b>Play one, not three</b> — they are buttons so the room sees whichever studio fits it, not three minutes of film back to back. Three different rooms, one method: that is the line. Click the picture once for sound. <b>Level note:</b> KMSD's full cut sits about 10 dB under CSOD and WSDY. Land it: <b>One morning in. Twelve months of posts out.</b></aside>
-</section>
 <section class="slide s-rec" data-title="Recital → Recruiting Film" data-beats="&gt;&gt;&#x27;Recital night is PEAK VIBES for your studio. Everyone is there, everyone is dressed up.&#x27;|&gt;&gt;&#x27;You already paid for the hardest shoot of your year. Use it twice.&#x27;|..CLICK 1: interviews with the parents, in the lobby, on the night.|!!The prompts that work: &#x27;Are you nervous?&#x27; &#x27;How do you think it&#x27;s going to go?&#x27; Get them TALKING.|..CLICK 2: the room energy - applause, reunions, the hallway after.|..CLICK 3: the routines themselves.|..CLICK 4: it becomes the registration film for next season.|KMSD is the example on screen - one recital, cut into a recruiting piece.|!!AUDIO: KMSD full cut is about 10dB quieter than CSOD and WSDY. Push the desk if you play it out loud.|Then you go home and take a nap and ignore the phone for two weeks. Shoot it FIRST.|19:30-21:00 - FIX">
   <div class="badge cy">[FOCUS]</div>
   <div class="wrap">
@@ -1266,7 +1350,7 @@
       </div>
       <div>
         <div class="vid">
-          <video data-aud="1" src="videos/promo-kmsd-full.mp4" muted loop playsinline preload="auto" controls></video>
+          <video data-aud="1" src="videos/promo-kmsd-full.mp4" muted loop playsinline preload="none" controls></video>
           <span class="tag">KMSD · recital → promo · full 1 min</span>
         </div>
         <div class="land frag f-up" data-frag="4">One night of footage. <b>A whole registration season.</b></div>
@@ -1343,21 +1427,22 @@
 <section class="slide s-fee" data-title="The Media Fee" data-beats="!!NO RATES ON THIS SLIDE ON PURPOSE. Talk the shape of it, quote nobody in the room.|!!FRAME IT FOR THIS ROOM: this is the deal to ask ANY videographer for, not a StreamStage product.|&gt;&gt;&#x27;Recital video does not have to cost the studio anything. It can pay the studio.&#x27;|&gt;&gt;&#x27;This works with whoever you hire. It is the shape of the deal that matters, not who is holding the camera.&#x27;|..CLICK 1-3: the three steps.|..CLICK 4: the two bars - what families pay, what it costs, and the gap.|!!No revenue share. No split. No platform fee. Say that plainly - and tell them to DEMAND it in writing.|The parent-facing number is THEIR call. Real numbers happen in a quote, not on stage.|!!Do not quote a rate. You have not set one for this market.|+3:00-+4:30 - RECITAL - MONEY">
   <div class="badge">[MONEY]</div>
   <div class="wrap">
-    <div class="kicker">Per-dancer pricing · works with whoever you hire · the studio sets the parent-facing number</div>
+    <div class="kicker">How we do it · per-dancer pricing · the studio sets the parent-facing number</div>
+    <img class="feelogo" alt="StreamStage" src="data:image/png;base64,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">
     <div class="h-lg">The recital video that <span class="am">pays for itself.</span></div>
     <div class="fee">
       <div class="steps">
         <div class="st frag f-up" data-frag="1">
           <div class="k">1</div>
-          <div><h3>You charge a media fee</h3><p>One flat amount per dancer, collected at registration with everything else. Families understand it — it is the same idea as a costume fee.</p></div>
+          <div><h3>We charge you a media fee per dancer</h3><p>Not per routine, not a flat day rate. It scales with your enrolment, so a big show and a small show are both fair &mdash; and it is the only shape that lets step 3 work.</p></div>
         </div>
         <div class="st frag f-up" data-frag="2">
           <div class="k">2</div>
-          <div><h3>They charge you per dancer</h3><p>Not per routine, not a flat day rate. Ask for it that way. It scales with your enrolment, so a big show and a small show are both fair &mdash; and it is the only shape that lets step 3 work.</p></div>
+          <div><h3>You charge families per dancer</h3><p>One flat amount, collected at registration with everything else. Families understand it &mdash; it is the same idea as a costume fee.</p></div>
         </div>
         <div class="st hot frag f-up" data-frag="3">
           <div class="k">3</div>
-          <div><h3>The difference is yours</h3><p>No revenue share. No percentage split. No platform fee. Whatever you set above their rate stays with the studio. Get that in writing before you sign anything.</p></div>
+          <div><h3>You make the margin</h3><p>No revenue share. No percentage split. No platform fee. Whatever you set above our rate stays with the studio &mdash; and you get that in writing.</p></div>
         </div>
       </div>
       <div class="ex frag f-up" data-frag="4">
@@ -1370,7 +1455,7 @@
           <div class="bar">
             <div class="bl">What it costs you</div>
             <div class="track"><div class="fill cost"></div></div>
-            <div class="bs">their rate &times; every dancer</div>
+            <div class="bs">our rate &times; every dancer</div>
           </div>
           <div class="gap">
             <div class="gl">the difference</div>
@@ -1435,19 +1520,19 @@
         <h4>Recital reels <span>— the show, cut for the feed</span></h4>
         <div class="row">
           <div class="gcard"><span class="gtag">JJ Dance Arts</span>
-            <video data-aud="1" src="videos/recital-lhl-act1.mp4" muted loop playsinline preload="auto"></video>
+            <video data-aud="1" src="videos-lo/recital-lhl-act1.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Act One</span></div>
           <div class="gcard"><span class="gtag">Footprints</span>
-            <video data-aud="1" src="videos/promo-footprints-bigs.mp4" muted loop playsinline preload="auto"></video>
+            <video data-aud="1" src="videos-lo/promo-footprints-bigs.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Bigs</span></div>
           <div class="gcard"><span class="gtag">Footprints</span>
-            <video data-aud="1" src="videos/promo-footprints-littles.mp4" muted loop playsinline preload="auto"></video>
+            <video data-aud="1" src="videos-lo/promo-footprints-littles.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Littles</span></div>
           <div class="gcard"><span class="gtag">7 Attitudes</span>
-            <video data-aud="1" src="videos/reel-7att.mp4" muted loop playsinline preload="auto"></video>
+            <video data-aud="1" src="videos-lo/reel-7att.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Highlight</span></div>
           <div class="gcard"><span class="gtag">JJ Dance Arts</span>
-            <video data-aud="0" src="videos/reel9-09-jj.mp4" muted loop playsinline preload="auto"></video>
+            <video data-aud="0" src="videos-lo/reel9-09-jj.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Vertical</span></div>
         </div>
       </div>
@@ -1458,22 +1543,22 @@
              44s cut — it plays the real 60s film now, so the label is finally true. -->
         <div class="row six">
           <div class="gcard"><span class="gtag hot">KMSD</span>
-            <video data-aud="1" src="videos/promo-kmsd-full.mp4" muted loop playsinline preload="auto"></video>
+            <video data-aud="1" src="videos-lo/promo-kmsd-full.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">1 min</span></div>
           <div class="gcard"><span class="gtag">CSOD</span>
-            <video data-aud="1" src="videos/promo-csod-full.mp4" muted loop playsinline preload="auto"></video>
+            <video data-aud="1" src="videos-lo/promo-csod-full.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">1 min</span></div>
           <div class="gcard"><span class="gtag hot">WSDY</span>
-            <video data-aud="1" src="videos/promo-wsdy-full.mp4" poster="posters/wsdy-full.jpg" muted loop playsinline preload="auto"></video>
+            <video data-aud="1" src="videos-lo/promo-wsdy-full.mp4" poster="posters/wsdy-full.jpg" muted loop playsinline preload="none"></video>
             <span class="glbl">1 min</span></div>
           <div class="gcard"><span class="gtag hot">DIS</span>
-            <video data-aud="1" src="videos/promo-dis-full.mp4" muted loop playsinline preload="auto"></video>
+            <video data-aud="1" src="videos-lo/promo-dis-full.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Full trailer</span></div>
           <div class="gcard"><span class="gtag">EDP</span>
-            <video data-aud="1" src="videos/promo-edp.mp4" muted loop playsinline preload="auto"></video>
+            <video data-aud="1" src="videos-lo/promo-edp.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Studio promo</span></div>
           <div class="gcard"><span class="gtag">Shuffle</span>
-            <video data-aud="1" src="videos/promo-shuffle24.mp4" muted loop playsinline preload="auto"></video>
+            <video data-aud="1" src="videos-lo/promo-shuffle24.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Highlight</span></div>
         </div>
       </div>
@@ -1481,19 +1566,19 @@
         <h4>Vertical + social cuts <span>— same day, same footage</span></h4>
         <div class="row">
           <div class="gcard"><span class="gtag">DIS</span>
-            <video data-aud="0" src="videos/reel9-03-dis.mp4" muted loop playsinline preload="auto"></video>
+            <video data-aud="0" src="videos-lo/reel9-03-dis.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Reel</span></div>
           <div class="gcard"><span class="gtag hot">LDS</span>
-            <video data-aud="1" src="videos/reel-lds-showtime.mp4" muted loop playsinline preload="auto"></video>
+            <video data-aud="1" src="videos-lo/reel-lds-showtime.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Showtime 2026</span></div>
           <div class="gcard"><span class="gtag">WSDY</span>
-            <video data-aud="0" src="videos/reel9-04-wsdy.mp4" muted loop playsinline preload="auto"></video>
+            <video data-aud="0" src="videos-lo/reel9-04-wsdy.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Teaser</span></div>
           <div class="gcard"><span class="gtag hot">Grand River</span>
-            <video data-aud="1" src="videos/reel-grad-dtl.mp4" muted loop playsinline preload="auto"></video>
+            <video data-aud="1" src="videos-lo/reel-grad-dtl.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Dancing Thru Life</span></div>
           <div class="gcard"><span class="gtag">GDO</span>
-            <video data-aud="0" src="videos/reel9-08-gdo.mp4" muted loop playsinline preload="auto"></video>
+            <video data-aud="0" src="videos-lo/reel9-08-gdo.mp4" muted loop playsinline preload="none"></video>
             <span class="glbl">Slow-mo</span></div>
         </div>
       </div>
@@ -1564,10 +1649,51 @@
   <div class="where frag f-up" data-frag="3">The whole demo was yesterday&rsquo;s AI talk. There&rsquo;s a code for it on the next slide.</div>
   <aside class="note"><b>26:00&ndash;26:30 &middot; STING</b> &mdash; <b>Item 23. Thirty seconds, hard stop.</b> Last time this ran about seven minutes and cost the Q&amp;A. What survives: the one-sentence mechanic, the snark slider (the <i>only</i> tagged laugh in the talk), and where the idea came from. What is deliberately gone: the price, the dashboard walkthrough, the knowledge base, the conversation log, the robot-vacuum bit and the $1,000-an-hour block &mdash; <b>talk 2 owns every one of those.</b> Land it and go to the close &mdash; <b>that is where the software ask lives now</b> (ask 2, its own QR). Weight comes from the CTA, not from talking longer here. Still no price: none is set.</aside>
 </section>
+<section class="slide s-explain" data-block="" data-title="StudioSage &middot; The Explainer" data-beats="!!THE FILM TALKS, NOT YOU. 48 seconds. Let it run.|It comes up with sound already on - one click earlier in the talk armed the audio.|!!DO NOT narrate over it and DO NOT pause it to explain a feature. The booth owns the detail.|&gt;&gt;After it lands: 'That is the whole thing. The code is on the next slide.'|+0:50 - STING">
+  <div class="badge">[EXPLAINER]</div>
+  <div class="player">
+    <video id="sageexplain" class="framevid" data-aud="1" data-autoaud="1"
+           src="videos/studiosage-explainer.mp4" controls loop playsinline preload="none"></video>
+  </div>
+  <div class="land frag f-up" data-frag="1">Your emails in. <b>Your parents answered.</b></div>
+  <aside class="note"><b>+0:50 &middot; STING</b> &mdash; The kiosk explainer, re-encoded to 720p / 1,334 kbps so DART plays it without stuttering (the kiosk original is 1080p at 2,746 kbps, well over the 1,557 kbps ceiling this laptop chokes on). <b>48 seconds. Let the film talk.</b> It arrives with sound on because the first click of the talk armed the page. Do not pause it to explain a feature &mdash; slide 26's whole discipline is that the booth owns the detail, and this film is the version of that story you do not have to tell yourself.</aside>
+</section>
+<section class="slide s-calgary" data-block="" data-title="&#9733; Calgary Offer" data-beats="!!THE ONLY OFFER IN THE TALK. Say it once, clearly, and do not discount it further from the stage.|&gt;&gt;'One weekend. October 2nd to the 5th. I am flying out for it either way.'|&gt;&gt;'If FOUR studios book a content day that weekend, I cover my own travel. All four of you.'|..CLICK 1: the three conditions.|..CLICK 2: the deadline line.|!!If asked what a content day costs: streamstage.live/dancepromo, or the booth. Do not quote from the stage.|+1:00 - CLOSE">
+  <div class="badge">[CALGARY]</div>
+  <div class="wrap">
+    <div class="kicker">One weekend &middot; Calgary only &middot; first four studios</div>
+    <div class="h-lg">Four studios, <span class="am">one weekend.</span></div>
+    <div class="offer">
+      <div class="ost frag f-up" data-frag="1">
+        <div class="k">1</div>
+        <div><h3>October 2&ndash;5</h3><p>One content day per studio, booked inside that weekend.</p></div>
+      </div>
+      <div class="ost frag f-up" data-frag="1">
+        <div class="k">2</div>
+        <div><h3>Four studios</h3><p>Four of you book it and the weekend is full &mdash; that is what makes the trip work.</p></div>
+      </div>
+      <div class="ost hot frag f-up" data-frag="1">
+        <div class="k">3</div>
+        <div><h3>Travel is on me</h3><p>My travel cost comes out of all four quotes. You pay for the shoot day, not for getting me to Alberta.</p></div>
+      </div>
+    </div>
+    <div class="odead frag f-up" data-frag="2">I am in Ontario. This is the weekend I am already coming west &mdash; <b>after that it is a flight on your invoice.</b></div>
+    <div class="slots frag f-up" data-frag="2">
+      <div class="dates"><span>OCT</span><b>2</b><b>3</b><b>4</b><b>5</b></div>
+      <div class="four">
+        <div class="slot"><div class="sn">1</div><div class="sl">studio</div></div>
+        <div class="slot"><div class="sn">2</div><div class="sl">studio</div></div>
+        <div class="slot"><div class="sn">3</div><div class="sl">studio</div></div>
+        <div class="slot"><div class="sn">4</div><div class="sl">studio</div></div>
+      </div>
+    </div>
+  </div>
+  <aside class="note"><b>+1:00 &middot; CLOSE</b> &mdash; <b>The only offer anywhere in this talk</b>, and it exists because the travel cost is the thing that kills an Ontario videographer in an Alberta room. Four studios across Oct 2&ndash;5 make one trip pay for itself, so the travel line comes off every quote. Say it <b>once</b> &mdash; do not sweeten it live, and do not quote a day rate from the stage. Rates are <code>streamstage.live/dancepromo</code> or the booth.</aside>
+</section>
 <section class="slide s13" data-title="Close / CTA" data-beats="..CLICK 1: ask one + the big cyan QR - the FREE checklist.|&gt;&gt;&#x27;Take the checklist whether or not you ever hire anybody. Run the day yourself - or hand PART FOUR to whoever you do hire. That part is the brief, and it works with any videographer on earth.&#x27;|..CLICK 2: ask two + the cyan mini QR - StudioSage.|!!THIS IS THE ONE YOU ARE HERE TO CLOSE. Say it out loud, do not skip it:|&gt;&gt;&#x27;Second thing, and this one does not care where you are: studiosage dot ai. It answers your parents out of your own emails.&#x27;|!!NO PRICE. NO OFFER. None is set for this market - if asked, take it to the booth.|..CLICK 3: ask three + the amber QR - the recital conversation.|&gt;&gt;&#x27;Third. I am in Ontario, but I do travel for bigger shows. Come find me and we will see if it makes sense.&#x27;|!!DO NOT close on &#x27;send me an email&#x27; or &#x27;come talk to me&#x27; ALONE. Last time that was the whole close and it cost you.|&gt;&gt;&#x27;Start simple, see it work, scale. Partnership, not an invoice.&#x27;|End on the thesis: do the hard thing once.|!!Q&amp;A follows - leave both QRs up.|26:30-29:30 - CLOSE + OPEN FLOOR">
   <div class="ph bleed tx-stage" style="position:absolute;inset:0">
     <div class="beam b1"></div><div class="beam b3"></div><div class="grain"></div><div class="silh"></div>
-    <video data-aud="1" class="bgvid" data-bg src="videos/promo-kmsd.mp4" muted loop playsinline preload="auto" style="opacity:.4"></video>
+    <video data-aud="1" class="bgvid" data-bg src="videos/promo-kmsd.mp4" muted loop playsinline preload="none" style="opacity:.4"></video>
   </div>
   <div class="scrim"></div>
   <div class="wrap">
@@ -1597,7 +1723,7 @@
         <div class="ask three frag f-up" data-frag="3">
           <div class="k">3</div>
           <div>
-            <h3>Bigger show? I travel.</h3>
+            <h3>Local team shoots, we deliver.</h3>
             <p>Come find me and we&rsquo;ll see if it makes sense &mdash; <b>streamstage.live/book</b></p>
           </div>
         </div>
@@ -1618,7 +1744,7 @@
       <div class="qrmini frag f-up" data-frag="3">
         <img src="qr-book.svg" alt="QR to talk about a recital or content day">
         <div class="url">streamstage.live/book</div>
-        <div class="scan">Bigger show? Let&rsquo;s talk</div>
+        <div class="scan">Local team shoots, we deliver</div>
       </div>
     </div>
     </div>
@@ -1773,7 +1899,15 @@
       if(shown(v)){
         if(!v.getAttribute('src') && v.dataset.src){ v.setAttribute('src',v.dataset.src); v.load(); }
         if(!v.hasAttribute('loop'))v.loop=true;
-        if(!v.dataset.unmuted)v.muted=true;
+        /* 2026-08-12 — audio on arrival, where it is wanted.
+           Chrome will not start a video with sound unless the page has had a real user
+           gesture, so nothing can autoplay loud from a cold open no matter what we set.
+           What DOES work: the first click or keypress of the talk arms the page for the rest
+           of the session. After that, a clip explicitly marked data-autoaud="1" comes up with
+           sound already on and Daniel does not have to click the picture mid-sentence.
+           Only marked clips do this — wall tiles and backgrounds stay silent as before. */
+        if(v.dataset.autoaud==='1' && window.__audioArmed){ v.muted=false; v.dataset.unmuted='1'; }
+        else if(!v.dataset.unmuted)v.muted=true;
         v.preload='auto';
         setTimeout(function(){ tryPlay(v); }, Math.min((k++)*90,700));
         var c=v.closest('.gcard'); if(c)c.classList.add('playing');
@@ -1791,6 +1925,21 @@
       if(v.paused && !v.ended && v.currentTime===0) tryPlay(v);
     });
   },1200);
+
+  /* One gesture anywhere arms audio for the whole deck. Capture phase so it counts even when
+     another handler stops propagation, and once:true so it costs nothing after the first. */
+  window.__audioArmed=false;
+  ['pointerdown','keydown'].forEach(function(ev){
+    document.addEventListener(ev,function(){
+      if(window.__audioArmed)return;
+      window.__audioArmed=true;
+      var s=document.querySelector('.slide.active'); if(!s)return;
+      s.querySelectorAll('video[data-autoaud="1"]').forEach(function(v){
+        v.muted=false; v.dataset.unmuted='1';
+        var pr=v.play(); if(pr&&pr.catch)pr.catch(function(){});
+      });
+    },{capture:true});
+  });
 
   function show(i,allFrags){
     cur=Math.max(0,Math.min(slides.length-1,i));
@@ -1812,7 +1961,7 @@
     // the phone remote down with it.
     playVisible(s);
     // Warm ONLY the next slide. Everything else stays unfetched so the current slide gets the
-    // bandwidth: preload="auto" on all thirty files at once is what made the deck crawl.
+    // bandwidth: preload="none" on all thirty files at once is what made the deck crawl.
     // The deck holds 46 <video> elements. Chrome will not keep that many media players alive at
     // once, so slides carrying ten or fifteen tiles (the nine-reel fan, the reel wall) silently
     // never got one and sat paused at 0 no matter how often we called play(). Lowering `preload`
@@ -1931,17 +2080,39 @@
   (function(){
     var mp=document.getElementById('mainplayer');
     if(!mp)return;
-    document.querySelectorAll('.s10 .sw').forEach(function(btn){
-      btn.addEventListener('click',function(e){
-        e.stopPropagation();
-        document.querySelectorAll('.s10 .sw').forEach(function(b){b.classList.toggle('on',b===btn);});
-        var wasAudible = !mp.muted;
-        mp.src=btn.dataset.src;
-        mp.dataset.src=btn.dataset.src;
-        mp.muted = !wasAudible;
-        if(wasAudible)mp.dataset.unmuted='1';
-        var pr=mp.play(); if(pr&&pr.catch)pr.catch(function(){});
-      });
+    function srcButtons(){
+      return [].slice.call(document.querySelectorAll('.s10 .sw[data-src]'));
+    }
+    function pick(btn){
+      if(!btn)return;
+      srcButtons().forEach(function(b){b.classList.toggle('on',b===btn);});
+      var wasAudible = !mp.muted;
+      mp.src=btn.dataset.src;
+      mp.dataset.src=btn.dataset.src;
+      mp.muted = !wasAudible;
+      if(wasAudible)mp.dataset.unmuted='1';
+      var pr=mp.play(); if(pr&&pr.catch)pr.catch(function(){});
+    }
+    srcButtons().forEach(function(btn){
+      btn.addEventListener('click',function(e){ e.stopPropagation(); pick(btn); });
+    });
+    /* Step to the next film along the top. Wraps, so leaning on it cycles the row rather than
+       dead-ending on the last one mid-sentence. */
+    function nextSrc(){
+      var all=srcButtons();
+      if(!all.length)return;
+      var i=all.findIndex(function(b){return b.classList.contains('on');});
+      pick(all[(i+1)%all.length]);
+    }
+    var nb=document.getElementById('nextsrc');
+    if(nb)nb.addEventListener('click',function(e){ e.stopPropagation(); nextSrc(); });
+    document.addEventListener('keydown',function(e){
+      // only on the demo slide, and never while typing into something
+      if(e.key!=='.')return;
+      // ask the DOM which slide is up rather than trusting the cursor — anything that moves
+      // the deck without going through show() would otherwise silently kill this key
+      var s=document.querySelector('.slide.active'); if(!s||!s.classList.contains('s10'))return;
+      e.preventDefault(); nextSrc();
     });
   })();
 

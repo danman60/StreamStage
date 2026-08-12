@@ -1,5 +1,115 @@
 # Current Work - StreamStage
 
+## 2026-08-12 01:00 ET — TALK 1 FIX LIST APPLIED AND ON DART. Talk is 10:50 MDT today.
+
+Daniel's 13 notes for the video talk are in the deck. Plan + acceptance checks:
+`docs/plans/2026-08-12-talk1-fix-list.md`. **Deck is live on DART**, 337,585 B, md5
+`d42b2285`, byte-verified after copy. Rollback: `_rollback\talk1-deck-2026-08-12-pre-fixlist.html`.
+
+### Done, verified
+- **Order is now 3, 5, 6, 4, 7** (his explicit list) and **slide 17 moved to sit right after
+  Stations**. Deck is 29 slides: 27 + the explainer + the Calgary offer.
+- **Slide 23 runs on `videos-lo/`** — 16 tiles re-encoded on DART to 640x360 / ~390 kbps / 30 fps.
+  The worst section went **7,806 -> 2,304 kbps**, and the two 120 fps files are now 30. Originals
+  in `videos\` untouched; reverting is a path swap.
+- **The demo slide (now 10)**: Tiffany's button removed, a **Next** control added (also the `.`
+  key), and the giant black box killed — `.s10 .third` overrode position but not `background`, so
+  it still inherited the full-width 94% scrim from the shared rule.
+- **Audio on arrival**: the first click or keypress of the talk arms the page, after which any
+  clip marked `data-autoaud="1"` comes up unmuted. Only the demo player and the explainer are
+  marked. Browsers will not autoplay sound without that gesture — there is no way around it.
+- **Slide 21 (media fee)** rewritten to his three bullets — we charge you per dancer / you charge
+  families per dancer / you make the margin — with the StreamStage logo on the slide.
+- **Camera Settings cards** end in line-art glyphs instead of dead space.
+- **New: StudioSage Explainer** (the kiosk film, re-encoded 1280x720 / 1,334 kbps — the kiosk
+  original is 1080p at 2,746 kbps, well over the 1,557 kbps DART ceiling) and **New: Calgary
+  Offer** (four studios, Oct 2-5, travel included).
+- **Close** reads "Local team shoots, we deliver." in both places.
+- **`/dancepromo` +15%**: 750->865, 150->175, 175->200, 350->405, 100->115, 250->290; volume
+  tiers 1250/1750/2250 -> 1450/2000/2600. The deliverable prices and tier thresholds were each
+  hardcoded a SECOND time in the maths and the copy, so a rate change could have updated the
+  constants and never reached the quote — both now read the constants. `tsc --noEmit` clean.
+
+### Tests run
+Playwright against the real deck: Next steps CSOD -> KMSD -> WSDY -> kiosk -> wraps; `.` key
+advances; no Tiffany button; audio armed after a gesture and `mainplayer.muted=false`; explainer
+`muted:false`; all 16 slide-23 tiles on `videos-lo/`. All 29 slides render; the one inline script
+passes `node --check`. **Found and fixed in testing:** both new handlers keyed off the `cur`
+cursor instead of `.slide.active`, so anything moving the deck outside `show()` killed them.
+
+### Playback fixes (second pass) — deck redeployed, 337,834 B, md5 `8d7c8493`
+- **Slide 15's nine-reel fan is now three rows of three** (frags 2, 3, 4) instead of one fragment
+  that started ten players at once. Contained to that slide: `.fan9` became a flex column of
+  `.r9row` grids, so the 3x3 layout is pixel-identical. **Deliberately did NOT change the global
+  fragment logic** to group-reveal by index — slides 18, 22, 28 and 29 already carry duplicate
+  `data-frag` values, and altering their click counts hours before the talk is not worth it.
+- **The cold-open preload burst is gone.** 36 videos dropped from `preload="auto"` to
+  `preload="none"`; slide 1 keeps its one. Measured before/after in a real browser:
+  **mp4 requests in the first 3 seconds went from the whole document to 2**, and after load only
+  **1 of 49** video elements still holds a src. The engine already sets `preload='auto'` and
+  restores src as slides come into range, so nothing is lost.
+
+**CORRECTION to the earlier entry:** slide 1 was NOT prefetching slide 3. The halo is
+`Math.abs(j-cur)<=1`, so at `cur=0` it covers slides 1 and 2 — and slide 2 has no videos at all.
+The real cost was that `show(0)` runs at the very END of the script (`:2342`), long after the
+browser has begun fetching every `preload="auto"` video in the document. That is what competed
+with slide 1's 181 s / 22.6 MB film, and that is what is fixed.
+
+### NOT done / open
+- **`/dancepromo` is not deployed** — the change is local only, deploys are hook-gated.
+- Talk 1 has never been walked end to end on DART with these changes.
+- Slide 8's one `preload="metadata"` film still gets a header fetch on open. Harmless, left alone.
+
+## 2026-08-11 19:45 ET — CALGARY DAY 2. Booth hardware fixed live. Talk 1 is 10:50 MDT tomorrow.
+
+**Reason for refresh:** long live-support session (booth firefighting + post-expo analysis).
+
+### Everything shipped today, all VERIFIED on real hardware, NONE of it committed
+The whole working tree is uncommitted. First job for anyone picking this up is to commit it.
+
+1. **Six-up reel now works** — `boothloop 1.5.0` (versionCode 8) installed on the Fire Stick.
+   The bug was a deadlock, not decoders: `enterMenuLoop()` started the reel playing into a
+   `GONE` PlayerView, and a GONE view has no surface, so no frame renders, so
+   `onRenderedFirstFrame` — the ONLY thing that made the view visible — could never fire. The
+   TV froze on the parked film's last frame every time. Fix: show the view BEFORE playing.
+   Proof: `Six-up reel is on screen` in logcat (never appeared before) + two TV screencaps
+   7s apart with different md5s.
+2. **Phone film list now works** — `phonepresenter 2.3.0` (versionCode 8) on the Pixel.
+   `FilmPanel.kt` added the list with `height 0, weight 1`. Weight absorbs the LEFTOVER space,
+   and today's tablet section made it negative, so the list ate the whole deficit at 0px.
+   A first fix that kept the weight did NOT work. Fixed height, no weight.
+3. **Loop toggle + hold-the-selection** — new `loop` verb on the stick, `loopOne` in the tv
+   state, `↻ Loop film` button on the phone. A film you pick now REPEATS until something else
+   plays (`holdSelection`, default true); the uncommanded attract reel still advances.
+4. **Six-up reel re-designed** — StreamStage.live logo reveal + "Videography · Live streaming /
+   The latest studio software" in the top-right blank. Wipe-in, hairline rule, staggered lines,
+   fades out over the last 700ms so the 30s loop seam is invisible. The rule/second line take
+   the lit product's accent colour. Shipped as `.menu-loop.mp4` on the stick (override path,
+   no APK rebuild). Live and confirmed on the booth TV.
+5. **Talk 1 films re-encoded** — all 32, 208.4 MB -> 150.6 MB, peak bitrate 2843 -> 1557 kbps.
+   Swapped in on DART; old films kept at `videos-heavy-2026-08-11\`. Committed as `3d3d398`.
+6. **`talk1-deck.html` committed** (`3d3d398`) — the 27-slide deck existed ONLY on DART.
+   NOTE: the repo's `talk1-video.html` is a DIFFERENT 13-slide Aug-7 file. Do not confuse them.
+
+### Open, and NOT started
+- **Commit + push the uncommitted tree** (phone-app, kiosk-app, menu-loop, tablet-app).
+- **PA items never written** — 10 real contacts + the booth prize draw, whose winner must reach
+  the organiser BEFORE 4:00 PM Wed Aug 12. Nothing is in `~/projects/assistant/INBOX.md` yet.
+- **360 Dance Project site never delivered.** Promised free from the stage this morning
+  ("It's yours. Free. We'll host it for a year — after that, twenty dollars a YEAR").
+  Build sits at `expo-assets/decks/facelift-out/site/`, never deployed. Lead: `360danceproject@gmail.com`.
+- **Talk 1, Wed 10:50 MDT**: slide 12 "The Cliffhanger" points at "my next session" — backwards
+  now the Calgary running order is reversed.
+- Two logos on the six-up frame now (big top-right + old small bottom-right watermark). Daniel's call.
+- Six-up subheading wording assumed "and" where Daniel typed "at" — unconfirmed.
+
+### Booth state as of 19:45 ET
+Stick `boothloop 1.5.0` at 172.20.154.213:8180 serves EVERYTHING (tablet page, films, leads).
+**DART's kiosk is NOT reachable on the venue wifi** — the tablet's own 254-address scan got 83
+answers and DART (172.20.154.36) was not one, though it is on the LAN and answers over Tailscale.
+Point the phone/tablet at the STICK, not DART. DART's presenter (8090) is DOWN; it needs starting
+before talk 1. Leads: 10 on the stick (all flushed), 4 on DART (all flushed).
+
 ## 2026-08-11 16:0x ET — TALK 2 IS DELIVERED. The live facelift worked on stage.
 
 ### Last session summary

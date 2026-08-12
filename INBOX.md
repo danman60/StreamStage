@@ -157,3 +157,11 @@ headless session writes streamstageproductions.com into status.json and presente
 the only thing correcting it, so deleting that file mid-run mislabelled a live build;
 (2) CLEAR FACELIFT now kills the builder's tmux session, so a cleared run stops writing state
 instead of resurrecting itself on the next poll.
+
+## From StreamStage-12 — 2026-08-12 00:02 ET
+Running a READ-ONLY-safe encode on DART: `powershell -File C:\Users\User\Desktop\encode-lo.ps1`
+writes NEW files into `StudioSage-Live-Demo\videos-lo\` (16 tiles for talk-1 slide 23, capped at
+360px short side / 400 kbps / 30 fps). **Nothing in `videos\` is touched** — originals intact,
+change is reversible by pointing slide 23 back at `videos/`. Reason: slide 23 section 2 decodes
+6 x 720p at 7,806 kbps and locks up. Daniel asked for low-res tiles for that slide. Talk 1 is
+10:50 MDT today.
