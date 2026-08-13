@@ -780,7 +780,9 @@
       touch: function () {
         if (!open) return;
         if (timer) clearTimeout(timer);
-        timer = setTimeout(end, CONFIG.idle.tabletResetMs);
+        // The GATE's memory, not the tablet's idle-home timer. Five minutes, so a
+        // conversation does not re-gate somebody who already typed their email.
+        timer = setTimeout(end, CONFIG.idle.visitorMemoryMs || CONFIG.idle.tabletResetMs);
       },
 
       onEnd: function (fn) { enders.push(fn); },
@@ -1116,23 +1118,38 @@
      tablet follow the operator when he cuts to another film from his phone. */
   var dismissed = null;
 
-  /* THE 30-SECOND CEILING ON THE NOW-PLAYING CARD.
-     Daniel: "the tablet view that shows the current playing video should only
-     show that view for about 30 seconds, then it should return automatically to
-     the 6UP view if it hasn't already."
-     Deliberately NOT the same thing as [idleTimer]: that one is reset by every
-     touch, so a visitor idly tapping the card could sit on one product forever.
-     This is a ceiling measured from the moment the card opened. The single
-     exception is somebody typing their email into it — cutting a lead off
-     mid-address to tidy the screen would be a bad trade — so it waits and
-     re-checks rather than yanking. The film keeps playing either way. */
+  /* THE CEILING ON THE NOW-PLAYING CARD — and why it now waits for the film.
+     It began as a flat 30 seconds: "the tablet view that shows the current
+     playing video should only show that view for about 30 seconds, then it
+     should return automatically to the 6UP view if it hasn't already."
+     That was written before the card carried the product's QR. Daniel,
+     2026-08-13: "we want the qr scan on tablet to up as long as the video is
+     playing" — a visitor watching a two-minute film was losing the code to scan
+     ninety seconds before the film ended.
+     So the ceiling still exists, still is NOT reset by touching the screen (a
+     visitor idly tapping must not be able to park the tablet on one product),
+     but it now DEFERS while the big screen is still playing this product, and
+     starts counting for real the moment the film stops. Two deferrals, same
+     mechanism: a film still playing, and somebody mid-way through typing an
+     email. The film keeps playing either way. */
   var nowCapTimer = null;
+
+  /* What the TV last said it was doing. Read by the ceiling above; written by
+     the bus handler below on every heartbeat. */
+  var tvNow = { state: null, product: null };
+
+  function tvStillOnCurrent() {
+    return !!current &&
+           (tvNow.state === 'playing' || tvNow.state === 'end') &&
+           tvNow.product === current.id;
+  }
 
   function armNowCap() {
     if (nowCapTimer) clearTimeout(nowCapTimer);
     nowCapTimer = setTimeout(function tick() {
       if (!current) return;
-      if (leadBusy()) { nowCapTimer = setTimeout(tick, 5000); return; }
+      if (tvStillOnCurrent()) { nowCapTimer = setTimeout(tick, 2000); return; }
+      if (leadBusy())         { nowCapTimer = setTimeout(tick, 5000); return; }
       backToGrid(true);
     }, CONFIG.idle.tabletNowMs);
   }
@@ -1232,6 +1249,13 @@
     // this their session would expire mid-film and the next tap would re-gate
     // the same person.
     if (msg.state === 'playing' || msg.state === 'end') Visitor.touch();
+
+    // The ceiling on the now-playing card reads this to decide whether the film
+    // it is about to close is still on the big screen. Written every heartbeat,
+    // before any of the early returns below — a card must never be closed on a
+    // stale idea of what the TV is doing.
+    tvNow.state   = msg.state || null;
+    tvNow.product = msg.product || null;
 
     /* WHAT THE TV CANNOT PLAY. Replaced wholesale each heartbeat rather than
        merged, so a film the TV recovers stops being marked here within a

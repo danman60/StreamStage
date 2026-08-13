@@ -115,13 +115,29 @@ var CONFIG = {
     returnToAttractMs: 6000,   // after a film ends / is stopped, before attract
     tabletResetMs:     90000,  // tablet drops back to the tile grid if untouched
                                // — and the film gate re-arms for the next visitor
-    tabletNowMs:       30000,  // HARD cap on the now-playing card. Daniel: "the tablet
-                               // view that shows the current playing video should only
-                               // show that view for about 30 seconds, then return
-                               // automatically to the 6UP view". Unlike tabletResetMs
-                               // this is NOT reset by touching the screen — it is a
-                               // ceiling, so the tablet cannot be parked on one product.
-                               // Deferred only while somebody is typing an email.
+    tabletNowMs:       30000,  // Cap on the now-playing card, measured from the moment
+                               // the card opened — but ONLY once the film has stopped.
+                               // Daniel, 2026-08-13: "we want the qr scan on tablet to
+                               // up as long as the video is playing". So while the TV is
+                               // still playing this product the cap keeps deferring, and
+                               // the product QR stays in front of the visitor for the
+                               // whole film. It supersedes his earlier "only show that
+                               // view for about 30 seconds" — that was written before the
+                               // card carried a QR worth scanning.
+                               // Unlike tabletResetMs it is NOT reset by touching the
+                               // screen, so an idle tablet still cannot be parked on one
+                               // product after the film ends.
+                               // Deferred also while somebody is typing an email.
+    visitorMemoryMs:  300000,  // HOW LONG THE GATE REMEMBERS A PERSON. Daniel, 2026-08-13:
+                               // "we dont want to ask for another email for more like
+                               // 5 min". This used to be tabletResetMs (90 s), which meant
+                               // a conversation longer than a minute and a half re-gated
+                               // somebody who had already given their email, and the
+                               // operator had to hit the override. Deliberately NOT the
+                               // same number as tabletResetMs: the tablet still goes home
+                               // to the six tiles after 90 s so the next visitor does not
+                               // walk up to somebody else's product card, but the person
+                               // standing there is still remembered.
     tabletFollowMs:    60000,  // how recently the tablet must have been touched for it
                                // to auto-open the card when the TV changes film. Past
                                // this, nobody is standing there: the TV plays on and
