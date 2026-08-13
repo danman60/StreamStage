@@ -36,13 +36,47 @@ channel (`channel: "game"`) writing the same lead shape as the tablet.
    only on the local path, so it breaks precisely when the network does. **Turn-based survives both
    transports.**
 
-**Candidate formats** (undecided — Daniel parked the choice):
-- Dance-studio trivia, 5 questions, score + leaderboard, ends in a prize entry. Questions are
-  campaign data, and each one can carry a selling point.
-- Guess the studio from a reel clip — the attract loop and the pitch become the same thing.
-- Prediction / vote wall ("what's the hardest part of recital season?") — no scoring, live bars
-  building on the TV, and the results are market research you keep.
-- Head-to-head reaction race — best spectacle, but needs the low-latency local path.
+### Who is actually playing — 2026-08-13
+
+Daniel: *"needs to be dancer focused."* With one correction that shapes every format: these are
+**Dance Teacher** expos. The people at the booth are studio owners, teachers and competition
+directors, not dancers in class — often on their feet since 8am, holding a coffee, in a crowded
+aisle. **Dance-native, not physically demanding.** Anything asking them to move their body in
+public gets watched, not played.
+
+**Candidate formats** (Daniel 2026-08-13: *"we'll explore later"* — choice deliberately open):
+- **Catch the 8** — tap on the beat, scored for rhythm accuracy. The most dance-native option,
+  needs no reading, everyone at that show is good at it, and it authors itself (no clip tagging).
+- **Which take ships?** — two versions of one performance clip, one carrying a real production
+  fault (blown highlight, missed cue, phone-camera audio). The game *is* the pitch. Costs edit time.
+- **Name the style** — clips off the existing reel wall, guess the genre. Zero new footage, just
+  tagging the 32 films already encoded.
+- **Recital season triage** — rapid "would you rather" on costume delays, ticket sales, dress
+  rehearsal chaos. No winner, live bars on the TV, and the answers are market research.
+- **Choreo memory** — Simon-says with four positions. Scales from phone to wall.
+- **Formation puzzle** — drag dancers into a stage formation against the clock. The only one that
+  genuinely *needs* a big surface, and therefore the one that commits to hardware up front.
+
+### The giant touch surface — decided 2026-08-13
+
+Daniel asked whether to upgrade to a giant touch surface. **Decision: build surface-agnostic, ship
+on the Fire tablet already carried, rent a panel for one show only if the game proves it stops
+traffic.** No purchase on a guess.
+
+**The real argument for touch is not spectacle, it is the network.** Every failure that hurt at
+Calgary was two devices failing to find each other — the tablet could not see DART, the phone could
+not see the kiosk, and venue wifi does client isolation as policy. A touch surface has **no second
+device**, so that entire failure class disappears.
+
+**Against:** these shows are flown to. A 43–55" commercial touch panel is 30–50 lb, not carry-on,
+and convention-centre drayage runs to hundreds per shipment before the panel is paid for; show-AV
+rental is four figures. An IR touch *overlay* is cheap but assumes a TV he owns and controls the
+bezel of, not a rented one. And on a 6×6 table booth it does not fit at all — note that
+`expo-assets/CALGARY-2026-08-10-LOGISTICS.md:128-130` still records the booth tier as **UNVERIFIED**,
+which is a prerequisite for any surface bigger than the tablet.
+
+**So the game must be written with the surface abstracted from the start:** the same game runs on
+(a) TV + phones, (b) the Fire tablet, (c) a large panel later, with no rewrite.
 
 **What v1 must do now so this slots in later:** nothing beyond keeping `channel` open-ended on the
 lead record and letting campaign content carry arbitrary config. No v1 work required.

@@ -29,6 +29,7 @@ and the handoff to the systems that own follow-up.
 | Hosted follower — room's phones mirror the deck | **Built + proven live** 2026-08-12 | `public/live.html`, `src/app/api/live/` |
 | Lead capture + self-delivering giveaways | **Built** | `src/app/api/expo-leads/` |
 | Booth → CRM bridge | **DOES NOT EXIST.** `BOOTH-SYSTEM.md` §6 says so; the PA imported 22 Calgary leads by hand out of notification emails | — |
+| Gate memory 5 min, and the product QR held for the whole film | **Shipped 2026-08-13** (`f620e68`), verified in a browser against a real bus | `expo-assets/kiosk/kiosk.js`, `tablet.html` |
 
 **Reuse map (verified 2026-08-07, still valid):** `~/projects/TVBOX` has the Fire TV shell, a
 companion tablet app and a LAN installer; `~/projects/PhonePresenter` has the WebView shell.
@@ -150,13 +151,23 @@ and the booth path needs no internet by design.
 
 ## 5. v1 scope
 
-**In:** shared core module (kill the six duplicated files) · stick as capture buffer · validated
-tablet capture with the seven rules above · phone hold-to-talk memo · booth → CommandCentered
-bridge · Rode ingest with sync marker and confidence-marked slices · per-show export + decisions
-digest.
+**In:** **show lifecycle (arm → live → close)**, because §10 pattern 2 makes it the primitive the
+rest hangs off · shared core module (kill the six duplicated files) · stick as capture buffer ·
+validated tablet capture with the capture rules in §4 · phone hold-to-talk memo · booth →
+CommandCentered bridge · Rode ingest with sync marker and confidence-marked slices · per-show export
++ decisions digest · **prize draw as a capture channel** · **show-health screen on the phone** ·
+**encode manifest with the 1,557 kbps ceiling enforced** (the last three added by the 2026-08-13
+pass, §9).
 
 **Out, deliberately:** the follow-up queue, drafting, sending (owned elsewhere) · deck-as-data
-(next slice) · scan-to-play game (`docs/expo-app-ideas.md`) · deck on the stick (Aug-7 Phase 4).
+(next slice) · the attract game (`docs/expo-app-ideas.md`) · deck on the stick (Aug-7 Phase 4).
+
+**One v1 obligation the game creates**, decided 2026-08-13: the game will be **surface-agnostic**
+(TV + phones, the Fire tablet, or a large touch panel later, with no rewrite), and hardware is not
+being bought on a guess — it ships on the tablet already carried, and a panel gets rented for one
+show only if the game proves it stops traffic. v1 owes it exactly two things, both already in this
+spec: `channel` stays open-ended on the lead record (§4), and campaign content may carry arbitrary
+config (§4 content). Nothing else in v1 changes.
 
 **Consent model, decided by Daniel 2026-08-12:** **his lapel only.** No booth mic. Recording is his
 own voice plus deliberate hold-to-talk memos; visitors are captured only as incidentally as they
@@ -178,6 +189,15 @@ already are. Revisit before any ambient capture ships.
 8. End of show: one digest of **decisions** in the PA inbox, and no client email sent by the app.
 9. A test run cannot write to production — explicit endpoint, no usable default, destination printed
    at startup (`--no-flush` discipline; this has fired twice).
+10. **Closing a show produces the export and the digest in one action**, and a show that was never
+    closed says so rather than silently exporting nothing.
+11. **A prize draw entry is a record**: entrant, timestamp, consent, and a winner chosen in a way
+    that can be shown to an organiser afterwards. Calgary had none of this and the winner was owed
+    by a hard 4:00 PM deadline.
+12. **The film that would freeze the screen cannot be added.** Anything over 1,557 kbps is refused
+    at the point it enters the library, not discovered on stage.
+13. The phone's show-health screen answers, without walking to the booth: which host is answering,
+    how many leads are queued, and when the last flush succeeded.
 
 ---
 
