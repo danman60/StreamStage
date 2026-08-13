@@ -229,3 +229,76 @@ Daniel's Aug-7 words were *"an easy way to update semantically via LLM."* Decide
    after a show. Cheaper to answer before the first recording exists.
 5. **Does the DNYC exhibitor-platform lane import automatically, or stay a paste?** It is a channel
    the booth never touches, and today only the PA sees it.
+
+---
+
+## 9. The twenty, integrated
+
+From `docs/five-and-five-2026-08-13.md`, 2026-08-13. Every item is placed; nothing is left floating.
+
+### Absorbed into v1 (they ARE v1, not additions to it)
+
+| # | Item | Where it lands in this spec |
+|---|---|---|
+| 1 | Idempotent upsert + `is_test` | §4 lead model + acceptance 3, 4 |
+| 2 | Validation + confirm at capture | §4 capture rules + acceptance 5 |
+| 3 | Lapel audio sliced onto leads | §3 part 4 + acceptance 7 |
+| 4 | Booth → CommandCentered bridge | §3 part 3 + §2 boundary 3 |
+| 5 | Hold-to-talk memo | §3 part 1 + acceptance 6 |
+| 11 | Shared core module | §3 "one codebase, three roles" |
+| 15 | Invert the flush default | §7 constraint 6 + acceptance 9 |
+| 17 | No production default in the lead route | acceptance 9 (same rule, second site) |
+
+### Added to v1 by this pass — small, and they close real holes
+
+| # | Item | Why it earns a place now |
+|---|---|---|
+| 6 | Prize draw as a capture channel | The one Calgary failure with an external deadline attached, and it needs the show-close hook v1 already builds |
+| 10 | Show-health screen on the phone | Every incident this week was found by walking to the booth; the data already exists in `Diag.kt` |
+| 8 | Encode manifest with enforced ceiling | §4 content model already declares encodes — enforcing the 1,557 kbps ceiling is one validation, not a feature |
+
+### Next slice, after v1
+
+| # | Item |
+|---|---|
+| 9 | Deck as data + phone-driven LLM edits — already §6 of this spec |
+| 7 | Capture from the follower page |
+| 12 | One film library with a manifest |
+| 19 | Unify `Playlist.kt` (folds into 11 and 12) |
+
+### Housekeeping — do any time, no design dependency
+
+13 delete the retired relay pair · 14 resolve the two talk-1 decks · 16 archive `videos-heavy-2026-08-11\`
+· 18 fix or delete `public/expo-leads.html` · 20 clean `scratchpad/` out of the repo.
+
+---
+
+## 10. What the exercise surfaced — patterns, not items
+
+Writing twenty grounded items exposed five things that no single item fixes. These are higher
+leverage than anything in §9 and should shape the build order.
+
+1. **Every capture defect is one defect: there is no schema at the edge.** The tablet, the web route
+   and the stick each accept whatever they are handed. Items 1, 2, 6 and 17 are four faces of it.
+   The fix is one shared lead contract, validated at every entry point, rather than four patches.
+2. **A show is not a thing the software knows about.** There is no start, no end, no close. That is
+   why the prize draw has no record, why "end of show export" has nowhere to hang, and why leads
+   were flushed at unrelated moments. **Show lifecycle (arm → live → close) is the missing primitive
+   most of v1 hangs off**, and it is cheap.
+3. **Safety defaults are inverted in at least three places** — flush-to-production by default, a
+   production email fallback when env is unset, and no test flag. One "posture" the app knows
+   (rehearsal vs live show) would derive all three, instead of three flags nobody remembers.
+4. **Nothing keeps a ledger of a show.** Events, leads, app logs, films played and QR impressions
+   land in different jsonl files on different machines. One append-only **show journal**, with
+   everything else derived from it, would have answered "who won the prize", "what played when" and
+   "when did the tablet actually die" without anyone reconstructing it afterwards.
+5. **The booth insists on LAN-only, but the hosted path proved itself on stage.** The follower ran
+   the whole talk over `deck → /api/live → R2 → phones` with zero failures, while the LAN path lost
+   the tablet to client isolation. **One transport abstraction — same message bus, LAN or hosted,
+   chosen at runtime — would delete the entire class of "the phone cannot find the host" bugs**,
+   which is the single most expensive recurring failure in this system's history.
+
+A sixth, stated plainly because it is the reason the app is being built at all: **content and code
+are fused.** Tile copy, QR targets, slide text and film choices live inside HTML and Kotlin, which
+is why a wording change needs a developer at 1am. §6 is the cure; item 12's manifest is the same
+cure applied to films.
