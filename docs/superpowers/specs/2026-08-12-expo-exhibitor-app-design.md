@@ -105,6 +105,22 @@ Five parts:
    Survives dead venue wifi, which is what it already does.
 3. **The bridge** — at end of show (or whenever internet appears) the stick emits one JSON per lead
    and upserts into `commandcentered.leads` by idempotent `lead_id`.
+
+   **The destination already exists — do not build a second one.**
+   `CommandCentered/app/src/app/api/webhook/lead-intake/route.ts` is a live ingest endpoint:
+   `POST`, authenticated with an `X-Webhook-Secret` header against `LEAD_INTAKE_WEBHOOK_SECRET`,
+   and it **already dedupes by `{tenantId, email}`** — an existing lead is updated with a note
+   rather than duplicated. That is most of acceptance criteria 3 and 4, already written.
+
+   **Two mismatches that must be settled with CommandCentered before the bridge is built**, and
+   neither may be worked around by inventing data (§7 rule: never invent a field):
+   - It **requires `organization` AND `contactName`** alongside email. The booth's whole design is
+     "one email box" (`BOOTH-SYSTEM.md` §5), so most real booth leads have neither. Sending a
+     placeholder would put a fabricated studio name into the CRM. **The endpoint has to accept an
+     email-only lead.**
+   - It has **nowhere to put** `captured_at`, `consent`, `is_test`, `channel`, `staff_note` or a
+     transcript slice. Today they would have to be flattened into `sourceDetails`, which makes them
+     unqueryable. **Needs either new columns or a nested payload field.**
 4. **The audio join** — off-box on SPYBALLOON's GPU. Rode file + memos → Whisper → per-lead slices
    at **±90 s**, offset-corrected from the show's sync marker, each with `match_confidence`.
 5. **Class B separation** at the write path.
@@ -124,9 +140,24 @@ and the booth path needs no internet by design.
 - **content** — film with *multiple declared encodes* (path, resolution, bitrate, target), deck as
   structured slides, QR targets. One manifest, so "which encode plays where" stops being folklore
   and the **1,557 kbps DART ceiling** becomes a validated field rather than a remembered number.
-- **lead** — the PA's contract verbatim: idempotent `lead_id` · `captured_at` **event-local with
-  offset, never bare UTC** · channel · device_id · person and org as **separate identity fields** ·
-  asked_for · product_interest · note_text · consent · **`is_test` as a first-class flag**.
+- **lead** — the PA's contract, inlined verbatim below so it does not live only in a collab message.
+
+```jsonc
+{
+  "lead_id": "stable, idempotent — same person twice = same id, not two rows",
+  "captured_at": "2026-08-11T10:07:00-06:00",   // event-local WITH offset, never bare UTC
+  "channel": "booth_tablet | talk_qr | booth_tv | checklist | dnyc | website | game",
+  "device_id": "which tablet, for triage",
+  "person":  { "name": "", "email": "", "phone": "", "role": "" },
+  "org":     { "name": "", "website": "" },
+  "asked_for": ["recital video checklist"],
+  "product_interest": ["StudioSage", "Reflect"],
+  "note_text": "free text the visitor typed",
+  "staff_note": { "audio_ref": "...", "transcript": "...", "captured_at": "..." },
+  "consent": { "marketing": true, "recording": true },
+  "is_test": false
+}
+```
 - **staff_note** — lead, audio ref, transcript, captured_at, and whether it came from a memo or a
   lapel slice.
 - **recording** — a Rode file: start time, offset correction, Class B at the storage layer.
@@ -239,9 +270,12 @@ Daniel's Aug-7 words were *"an easy way to update semantically via LLM."* Decide
 
 ## 8. Open questions — do not guess these
 
-1. **Which tablet, which Android version?** Decides NSD behaviour, lock-task mode, and whether the
-   WebView needs a flag for autoplay-with-audio. *(Unanswered since 2026-08-07.)*
-2. **Which Fire Stick generation?** Decides storage headroom and the sideload path.
+1. ~~**Which tablet, which Android version?**~~ **CLOSED 2026-08-13** — it was already recorded and
+   nobody looked: `docs/BOOTH-TESTED-FLOW-2026-08-07.md:5-9` names the Fire tablet **KFTRWI** as the
+   customer surface and the **Pixel 9 Pro** as the operator surface.
+2. ~~**Which Fire Stick generation?**~~ **CLOSED 2026-08-13, same source** — **AFTKRT, Fire OS on
+   Android 11 (SDK 30)**. Both of these sat open for six days as "ask Daniel" while the answer was
+   in the repo.
 3. **WebView wrapper vs native for the controller?** The wrapper keeps one codebase and preserves
    what is already verified — portrait-first, zero scroll at five viewports, 87–91 ms tap-to-frame.
    Almost certainly right; still his call.
