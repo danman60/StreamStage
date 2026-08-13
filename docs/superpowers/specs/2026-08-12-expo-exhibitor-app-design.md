@@ -276,11 +276,18 @@ Daniel's Aug-7 words were *"an easy way to update semantically via LLM."* Decide
 2. ~~**Which Fire Stick generation?**~~ **CLOSED 2026-08-13, same source** — **AFTKRT, Fire OS on
    Android 11 (SDK 30)**. Both of these sat open for six days as "ask Daniel" while the answer was
    in the repo.
-3. **WebView wrapper vs native for the controller?** The wrapper keeps one codebase and preserves
-   what is already verified — portrait-first, zero scroll at five viewports, 87–91 ms tap-to-frame.
-   Almost certainly right; still his call.
-4. **Retention for lapel audio and slices** — how long kept, who can reach them, what is deleted
-   after a show. Cheaper to answer before the first recording exists.
+3. ~~**WebView wrapper vs native for the controller?**~~ **DECIDED 2026-08-13: the WebView wrapper.**
+   It keeps one codebase, and it preserves what is already measured rather than re-earning it —
+   portrait-first at 1024×768 and 820×1180 off a single `vmin` type scale, no scroll, 87–91 ms
+   tap-to-frame, and the operator refusals enforced in both the page and the server. Native is weeks
+   of work that throws all of that away. **Daniel may veto**; nothing else in the spec changes if he
+   does, because §12 describes the surface, not its toolkit.
+4. **Retention for lapel audio and slices.** **Assumed until Daniel says otherwise**, so the build is
+   not blocked: raw recordings live on SPYBALLOON under the Class B root, never published and never
+   in a client build step; **slices are kept with the lead** because they are the note, and a lead
+   deleted takes its slices with it; nothing is uploaded to R2 or any CDN. **What needs his answer
+   is the number** — how long raw recordings are kept before deletion. Everything else above is a
+   storage-layer rule the code can enforce today.
 5. **Does the DNYC exhibitor-platform lane import automatically, or stay a paste?** It is a channel
    the booth never touches, and today only the PA sees it.
 
@@ -406,3 +413,76 @@ and pushed*; never for anything *captured in the moment*.
 
 Hold the only copy of a lead · be required for the tablet to drive the TV · be required for the gate
 to work · send a client email (§2 boundary 6).
+
+---
+
+## 12. The surfaces — context for UX design
+
+Six surfaces, six different humans, six sets of physics. Everything here is measured or quoted from
+the running code, not assumed.
+
+### A. The booth TV — Fire Stick AFTKRT, Fire OS / Android 11 (SDK 30)
+
+Watched from **8–15 feet**, in a bright hall, by people walking past. No touch. No mouse. The remote
+exists but a visitor must never need it. **Nothing on this screen is a control** — it is a poster
+that moves. Two attract loops (six product cards with QRs; a 30-second six-up reel), and films that
+follow on from one another with an end card carrying that product's QR.
+
+Constraints that bite: the reel **must stay warmed in the background** — loaded on demand it
+measured **17 seconds of black screen**, warmed it switches in **255 ms** · a `GONE` PlayerView has
+no surface, so `onRenderedFirstFrame` never fires and the screen freezes on the last frame — show
+the view *before* playing · **1,557 kbps is the playback ceiling** proven on DART, and 2.6 Mbps
+froze it mid-talk.
+
+### B. The booth tablet — Fire KFTRWI, the visitor's surface
+
+**Portrait is the real booth orientation**; landscape must not break. Type scales off the **short**
+edge (`html{font-size:clamp(11px, 1.62vmin, 19px)}`) so one layout serves **1024×768 landscape and
+820×1180 portrait** with no per-device overrides. `user-scalable=no`, body pinned, no scroll, no
+tap highlight.
+
+The design rule, quoted from the file: *"One tap on a tile = that film starts on the TV. There is no
+second step, no menu, no back button you need to find, and nothing that can be got stuck in."*
+Measured **87–91 ms tap-to-frame**. In portrait the on-screen keyboard eats the bottom half of the
+screen, so the gate pins to the **top**. A visitor cannot pause, mute, go fullscreen, change the
+attract loop, or start the operator-only film — refused twice, on the wire and in the page.
+
+**As of 2026-08-13** (`f620e68`) the now-playing card holds the product QR for as long as the film
+plays, and the gate remembers a person for **5 minutes** while the tablet still goes home to the six
+tiles after 90 seconds.
+
+### C. The operator phone — Pixel 9 Pro
+
+One hand, often mid-conversation, sometimes on a stage. Two roles chosen at launch (DECK or KIOSK),
+which exists because a phone that sweeps the LAN uninvited caused its own problems. This is where
+recovery lives: preflight, demo reset, six-up vs films, tablet rescue. **Everything here is one
+thumb-reach and must survive being wrong** — it is used when something is already broken.
+
+### D. The audience's own phones — `streamstage.live/live`
+
+Not our hardware, not our network, not our attention. Arrives by QR mid-talk, one-handed, in a dark
+room, on whatever they own. Portrait fills the width (**390×219 slide on a 390-wide phone**);
+landscape gives the slide the **whole window** (693×390 on an 844×390 phone, edge-to-edge at
+667×375) with the status bar floating over it. Films play **muted, on purpose**, so nobody's phone
+interrupts the room. It polls every 900 ms and pre-decodes the next click-state.
+
+### E. The deck — laptop to projector
+
+16:9, a dark room, read from the back row. Driven from the phone or the keyboard. The audience is
+looking at the **screen**, not at a UI, so any control surface is for Daniel alone.
+
+### F. The desktop control centre — Electron, new build (§11)
+
+The only surface with a keyboard, a mouse and time to think. This is where density is allowed: lead
+tables, transcripts, playlists, slide editing, show state. Everywhere else optimises for one glance
+and one tap; here it optimises for **review**.
+
+### The through-line for whoever designs this
+
+Three audiences, and they must not be designed alike:
+
+| | Visitor (TV, tablet) | Operator (phone, desktop) | Audience (their phones) |
+|---|---|---|---|
+| Attention | Seconds, in an aisle | Split, mid-conversation | Passive, following a talk |
+| Failure cost | Walks away, no lead | The booth stays broken | Loses the room's thread |
+| Design rule | One tap, no dead ends, nothing to get stuck in | Fast, recoverable, honest about state | Zero interaction, never interrupts |
