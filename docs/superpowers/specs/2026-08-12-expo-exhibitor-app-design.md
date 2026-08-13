@@ -302,3 +302,53 @@ A sixth, stated plainly because it is the reason the app is being built at all: 
 are fused.** Tile copy, QR targets, slide text and film choices live inside HTML and Kotlin, which
 is why a wording change needs a developer at 1am. §6 is the cure; item 12's manifest is the same
 cure applied to films.
+
+---
+
+## 11. The desktop control centre (Electron)
+
+**Decided 2026-08-13: a fresh Electron app**, not built on `CompSyncElectronApp`.
+
+> Daniel's constraint, verbatim: *"the laptop has to disappear from the booth to run the decks for
+> talks and we need the tv to still be operated by tablet, otherwise the laptop can be the overall
+> brain, but lead capture and tab operability can disappear when laptop is away."*
+
+### Authority is split by domain, not by device
+
+A device that walks away cannot hold anything the booth needs. That is not a preference — it is the
+lesson of `e6dfa99`, which made the stick a client of DART's relay and put the laptop back on the
+critical path; the tablet then died at Calgary the moment DART left for the stage.
+
+| Domain | Owner | Why |
+|---|---|---|
+| What is playing, attract loop, tablet surface, the gate, leads captured at the booth | **The stick, permanently** | It is the only device that never leaves, and it already serves all of this since 2026-08-11 |
+| Decks, playlists, tile copy, QR targets, campaign setup, film library + encodes | **The laptop** | All of it is *staged before* a show and pushed; none of it is captured in the moment |
+| The aggregate view — every lead from every lane, transcripts, slices, exports | **The laptop, as consumer** | It merges and renders; `commandcentered.leads` is still the record (§2) |
+
+**Push flows one way, state flows the other.** A stick that cannot see the laptop is a fully working
+booth running the last content it was given. A laptop that cannot see the stick is a content editor
+with a stale mirror, and says so.
+
+**The rule in one line:** the control centre may be authoritative for anything that can be *staged
+and pushed*; never for anything *captured in the moment*.
+
+### What it does
+
+1. **Owns the launchers.** `1 - START THE TALKS.bat` and `2 - START THE BOOTH.bat` become buttons
+   with the thing those scripts never had: whether the presenter is actually up, which port it took,
+   and whether the deck tab is serving the file you think it is. (Three separate Calgary incidents:
+   a stale pid that made a "restart" silently do nothing, a browser tab serving a pre-deploy deck,
+   and a preflight that declared a healthy booth dead because it assumed a port.)
+2. **Slide editing** — the §6 declarative content file, edited here and pushed. Stage 2's
+   phone-driven LLM instructions write to the same file.
+3. **Video playlist + encode manifest** — item 12, with the 1,557 kbps ceiling enforced at the point
+   of adding a film rather than discovered on stage.
+4. **Every lead visible** — booth tablet, talk QR, booth TV, checklist and DNYC in one list, with
+   notes and transcript slices attached, and the show export from §3.
+5. **Show lifecycle** (§10 pattern 2) — arm, live, close. The close is what triggers the export, the
+   digest and the prize draw, and it is the primitive none of this has today.
+
+### What it must never do
+
+Hold the only copy of a lead · be required for the tablet to drive the TV · be required for the gate
+to work · send a client email (§2 boundary 6).
