@@ -81,8 +81,8 @@ export default function RecitalsPage() {
       <section className="relative flex min-h-[85vh] items-center overflow-hidden px-4 sm:px-6">
         <video
           className="absolute inset-0 h-full w-full object-cover opacity-40"
-          src="/campaign/angle-faces.mp4"
-          poster="/campaign/angle-faces.jpg"
+          src="/campaign/recital-hero.mp4"
+          poster="/campaign/recital-hero.jpg"
           autoPlay
           muted
           loop
