@@ -42,7 +42,10 @@ const nextConfig: NextConfig = {
       { source: "/proposal-builder-videoproduction", destination: "/videoproduction", permanent: true },
       // Old main pages → new sections or pages
       { source: "/home", destination: "/", permanent: true },
-      { source: "/dance", destination: "/dance", permanent: true },
+      // REMOVED 2026-08-15: `/dance -> /dance` was a self-referential permanent redirect, so
+      // streamstage.live/dance served an infinite 308 loop and the page was unreachable in
+      // production. Verified locally and against prod (status line only). /dance is a real page
+      // at src/app/dance/page.tsx and now serves normally.
       { source: "/aboutus", destination: "/#team", permanent: true },
       { source: "/contact", destination: "/#contact", permanent: true },
       { source: "/business", destination: "/#business-video", permanent: true },
@@ -69,8 +72,9 @@ const nextConfig: NextConfig = {
       { source: "/live-page-template-1", destination: "/", permanent: true },
       { source: "/store", destination: "/#contact", permanent: false },
       // /privacy-policy now has its own page — no redirect needed
-      // Old /recitals path (if anyone bookmarked during brief period it was live)
-      { source: "/recitals", destination: "/dance", permanent: true },
+      // /recitals is a real page again (recital campaign landing page, 2026-08-15).
+      // The old `/recitals -> /dance` 308 was removed to free the route. Browsers that cached
+      // the permanent redirect will keep following it until their cache clears.
       { source: "/recitals/proposal", destination: "/dancerecital", permanent: true },
     ];
   },
