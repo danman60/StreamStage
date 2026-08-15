@@ -42,14 +42,14 @@ const testimonials = [
   {
     quote:
       "One of our dance moms messaged me about five minutes later saying this video is awesome. She saw the difference immediately.",
-    name: "Studio owner",
-    title: "Ontario",
+    name: "Kerry Moore",
+    title: "Kerry Moore School of Dance",
   },
   {
     quote:
       "There is so much going on on recital day, and that was one thing I did not even have to think about.",
-    name: "Studio director",
-    title: "Ontario",
+    name: "Mandy London",
+    title: "Ancaster Dance Arts",
   },
 ];
 

@@ -44,14 +44,14 @@ const testimonials = [
   {
     quote:
       "I look at that raw footage probably once a week just to say, what can I pull out today and post. It was very, very valuable.",
-    name: "Studio owner",
-    title: "Ontario",
+    name: "Tiffany Adoranti",
+    title: "Caledonia School of Dance",
   },
   {
     quote:
-      "Not only was the one minute promo video absolutely perfect, it captured everything. It just elevated our brand so much.",
-    name: "Studio owner",
-    title: "Ontario",
+      "Take the leap, you won't be disappointed, and you'll be a repeat customer for sure.",
+    name: "Nicole",
+    title: "Stagecoach",
   },
 ];
 
