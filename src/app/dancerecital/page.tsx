@@ -21,7 +21,7 @@ import Footer from "@/components/Footer";
 
 /* ── Constants ── */
 
-const EARLY_BIRD_DEADLINE = "April 15, 2026";
+const EARLY_BIRD_DEADLINE = "December 31, 2026";
 
 const PRICES = {
   small: { video: 25, streaming: 5, photo: 8, bundle: 35 },

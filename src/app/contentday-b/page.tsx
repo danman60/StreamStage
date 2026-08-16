@@ -17,12 +17,14 @@ const deliverables = [
   { label: "All raw footage", price: 290 },
 ];
 
+/* StreamStage's own work only, verified by frame 2026-08-16. The former example-*.mp4 clips
+   were other accounts' posts from the expo talk's credited audit slide. Do not restore them. */
 const formats = [
-  { src: "example-dayinlife", title: "Day in the life" },
-  { src: "example-interview", title: "Interview" },
-  { src: "example-micd-up", title: "Mic'd up" },
-  { src: "example-pov", title: "POV" },
-  { src: "example-correction", title: "The correction" },
+  { src: "fmt-owner-oncamera", title: "Owner on camera" },
+  { src: "fmt-class-in-motion", title: "Class in motion" },
+  { src: "fmt-studio-culture", title: "Studio culture" },
+  { src: "fmt-studio-tour", title: "Studio tour and team" },
+  { src: "fmt-cinematic", title: "Cinematic studio shoot" },
 ];
 
 const logos = [
@@ -48,8 +50,8 @@ export default function ContentDayBPage() {
       <section className="relative flex min-h-[92vh] items-center overflow-hidden px-4 sm:px-6">
         <video
           className="absolute inset-0 h-full w-full object-cover opacity-35"
-          src="/campaign/example-dayinlife.mp4"
-          poster="/campaign/example-dayinlife.jpg"
+          src="/campaign/contentday-hero.mp4"
+          poster="/campaign/contentday-hero.jpg"
           autoPlay muted loop playsInline preload="metadata" aria-hidden="true"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-charcoal-deep/80 via-charcoal-deep/60 to-charcoal-deep" />
@@ -104,7 +106,7 @@ export default function ContentDayBPage() {
           <h2 className="font-heading text-3xl sm:text-5xl font-bold text-white text-center mb-3">
             Five formats. One morning.
           </h2>
-          <p className="text-center text-lg text-gray-400 mb-10">Every clip below is real work.</p>
+          <p className="text-center text-lg text-gray-400 mb-10">Every clip below is our own work, from five different studios.</p>
           <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
             {formats.map((f) => (
               <figure key={f.src} className="overflow-hidden rounded-2xl border border-white/10">

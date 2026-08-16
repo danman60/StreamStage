@@ -213,6 +213,35 @@ export default function RecitalsPage() {
               </div>
             </div>
           </ScrollReveal>
+
+          {/* Directors on camera. Cut from the StreamStage services film shown at the expo booth. */}
+          <ScrollReveal>
+            <div className="mt-12 grid gap-6 lg:grid-cols-[1.15fr_1fr] items-center">
+              <figure className="overflow-hidden rounded-xl border border-white/10 bg-charcoal-dark">
+                <video
+                  className="aspect-video w-full object-cover"
+                  src="/campaign/services-proof.mp4"
+                  poster="/campaign/services-proof.jpg"
+                  controls
+                  playsInline
+                  preload="none"
+                />
+                <figcaption className="px-3 py-2 font-heading text-sm font-semibold text-cyan-brand">
+                  Studio directors, in their own words
+                </figcaption>
+              </figure>
+              <div>
+                <h2 className="font-heading text-2xl sm:text-3xl font-bold text-white mb-3">
+                  Ask the studios who already did it.
+                </h2>
+                <p className="text-base leading-relaxed text-gray-300">
+                  Laura Ramsey at Grand River Academy of Dance, Alana Colver at Lindsay Dance
+                  School, Kerry Moore, Tiffany Adoranti at Caledonia. Recital films, multi camera
+                  capture, ten day turnaround, and a portal your families buy from directly.
+                </p>
+              </div>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 

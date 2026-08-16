@@ -16,12 +16,17 @@ const deliverables = [
   { label: "All raw footage", price: 290 },
 ];
 
+/* Every clip here is StreamStage's own work, verified by frame 2026-08-16, and each title
+   describes what is actually on screen. The five example-*.mp4 clips that used to sit here
+   were other accounts' posts (@joffreyballet, @ikindance, @theballeteducator,
+   @imaginedancechallenge, @moveitshakeit), shown credited in the expo talk as a public audit.
+   They were never StreamStage footage and must not return to this page. */
 const formats = [
-  { src: "example-dayinlife", icon: Sparkles, title: "Day in the life" },
-  { src: "example-interview", icon: Mic, title: "Interview" },
-  { src: "example-micd-up", icon: Mic, title: "Mic'd up" },
-  { src: "example-pov", icon: Film, title: "POV" },
-  { src: "example-correction", icon: Repeat, title: "The correction" },
+  { src: "fmt-owner-oncamera", icon: Mic, title: "Owner on camera" },
+  { src: "fmt-class-in-motion", icon: Sparkles, title: "Class in motion" },
+  { src: "fmt-studio-culture", icon: Layers, title: "Studio culture" },
+  { src: "fmt-studio-tour", icon: Film, title: "Studio tour and team" },
+  { src: "fmt-cinematic", icon: Repeat, title: "Cinematic studio shoot" },
 ];
 
 const logos = [
@@ -65,8 +70,8 @@ export default function ContentDayPage() {
       <section className="relative overflow-hidden px-4 sm:px-6 pt-28 pb-12 sm:pt-32 sm:pb-16">
         <video
           className="absolute inset-0 h-full w-full object-cover opacity-30"
-          src="/campaign/example-dayinlife.mp4"
-          poster="/campaign/example-dayinlife.jpg"
+          src="/campaign/contentday-hero.mp4"
+          poster="/campaign/contentday-hero.jpg"
           autoPlay
           muted
           loop
@@ -153,7 +158,7 @@ export default function ContentDayPage() {
             <h2 className="font-heading text-2xl sm:text-3xl font-bold text-white">
               What one morning produces
             </h2>
-            <p className="text-sm text-gray-400">Five formats, all shot the same day. Real work.</p>
+            <p className="text-sm text-gray-400">Five formats, five real studios. Every one of these is our own work.</p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
