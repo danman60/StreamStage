@@ -1,5 +1,37 @@
 # Current Work - StreamStage
 
+## 2026-08-17 18:20 ET — campaign is sendable. Copy written, both rotations complete, all deployed.
+
+Daniel's five decisions, applied everywhere: keep the revenue reframe and never explain the
+plumbing (Laura Ramsey's direct billing line retired from campaign use) · deploy yes · paid parked
+until copy and assets are done · no guarantee · recital form cut from 7 fields to 3.
+
+**Pushed and live:** StreamStage `3cf3a5e`, CommandCentered `aa7ae74`.
+
+Written this session, all in `docs/campaigns/`: `recital-email-sequence.md` (3 touches by 3 arms),
+`contentday-email-sequence.md`, `recital-captions.md` and `contentday-captions.md` (16 slots each),
+`carousel-decks.md` (8 decks, slide by slide), and two print ready handouts that the week 3 story
+slots referenced and that did not exist.
+
+**Both rotations are now 8 of 8 reel slots.** Five content day cuts built into
+`contentday/cuts/`. The kmsd cut starts at 11.5s because the original opens on a countdown and a
+title card reading June 6th 2026.
+
+**Cold email is unblocked and verified.** The endpoint was never missing, it 404'd because
+CommandCentered's ticket URL rewrite swallowed `/u/<token>`. Fixed, deployed, and proven end to end
+against production. Tranche 01 (30 leads) is minted at
+`/mnt/firmament/StreamStageCampaigns/cold-tranche-01.csv`.
+
+**Mistake worth remembering:** spot checking a minted link with curl suppressed a real lead,
+`info@danceshala.com`, because opening the link IS the unsubscribe. Row deleted, fresh token minted,
+CSV updated, warning added to the script header.
+
+**Review page:** `C:\Users\danie\Desktop\CAMPAIGN-REVIEW.html` on FIRMAMENT, current as of this
+session.
+
+**Left for Daniel:** read and edit the six emails, queue rotation week 1, decide what local means
+(cold list is filterable, clients are not, 3 of 105 carry a city), unpark paid when he wants it.
+
 ## 2026-08-17 15:45 ET — campaign open items. Four worked, one blocked on Daniel.
 
 Plan: `docs/plans/2026-08-17-campaign-open-items.md`. Commit `11ac98b` here, `ffa48e7` in
