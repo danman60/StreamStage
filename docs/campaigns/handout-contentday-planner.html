@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<title>Content day planner, StreamStage</title>
+<style>
+  @page { size: letter; margin: 0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0A0A0A; color: #E8E8E8;
+         font: 13px/1.5 "Segoe UI", Helvetica, Arial, sans-serif; }
+  .sheet { width: 8.5in; min-height: 11in; padding: 0.6in 0.65in; margin: 0 auto; background: #0A0A0A; }
+  .top { display: flex; justify-content: space-between; align-items: flex-end;
+         border-bottom: 2px solid #4EC5D4; padding-bottom: 12px; margin-bottom: 20px; }
+  h1 { font-size: 27px; margin: 0; letter-spacing: -0.5px; line-height: 1.1; }
+  .kicker { color: #4EC5D4; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; margin: 0 0 6px; }
+  .brand { color: #6E6E6E; font-size: 11px; text-align: right; line-height: 1.4; }
+  .lede { color: #9A9A9A; font-size: 12.5px; margin: 0 0 18px; max-width: 6.2in; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  h2 { font-size: 11px; color: #4EC5D4; letter-spacing: 0.14em; text-transform: uppercase; margin: 0 0 8px; }
+  .block { background: #131313; border: 1px solid #262626; border-radius: 8px; padding: 13px 15px; margin-bottom: 14px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { padding: 4px 0 4px 22px; position: relative; font-size: 12.5px; }
+  li:before { content: ""; position: absolute; left: 0; top: 7px; width: 11px; height: 11px;
+              border: 1.5px solid #4A4A4A; border-radius: 3px; }
+  li.dot:before { content: ""; border: none; background: #4EC5D4; width: 5px; height: 5px;
+                  border-radius: 50%; left: 3px; top: 10px; }
+  .note { color: #6E6E6E; font-size: 11.5px; margin-top: 6px; }
+  .nine { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 4px; }
+  .nine span { background: #191919; border: 1px solid #2A2A2A; border-radius: 5px;
+               padding: 6px 7px; font-size: 11px; color: #C4C4C4; }
+  .foot { margin-top: 18px; border-top: 1px solid #262626; padding-top: 12px;
+          display: flex; justify-content: space-between; color: #6E6E6E; font-size: 11px; }
+  .foot b { color: #4EC5D4; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="top">
+    <div>
+      <p class="kicker">Studio handout, yours to keep</p>
+      <h1>The content day planner</h1>
+    </div>
+    <div class="brand">StreamStage<br>streamstage.live/contentday</div>
+  </div>
+
+  <p class="lede">One morning of shooting, planned properly, is worth more than a year of grabbing
+    phone clips between classes. This is the sheet we work off. Use it even if you shoot it yourself.</p>
+
+  <div class="cols">
+    <div>
+
+      <div class="block">
+        <h2>Decide first</h2>
+        <ul>
+          <li>Which classes are on camera, and at what time</li>
+          <li>Which teachers are comfortable being filmed</li>
+          <li>Whether the owner goes on camera</li>
+          <li>Costumes, uniforms or studio wear</li>
+          <li>Any dancer who must not appear on camera</li>
+          <li>What the studio needs to look like before we arrive</li>
+        </ul>
+        <p class="note">The most common regret is not booking enough classes into the morning. Empty
+          rooms film fast, full rooms do not.</p>
+      </div>
+
+      <div class="block">
+        <h2>Five formats worth having on file</h2>
+        <ul>
+          <li class="dot">Day in the life, one class start to finish</li>
+          <li class="dot">Interview, a teacher or the owner talking straight to camera</li>
+          <li class="dot">Mic'd up, the real coaching voice over real class footage</li>
+          <li class="dot">POV, the room from a dancer's eyeline</li>
+          <li class="dot">The correction, the moment a note lands and the dancer fixes it</li>
+        </ul>
+        <p class="note">All five can be shot in the same morning. Filming them one at a time across
+          a season is why they never get made.</p>
+      </div>
+
+      <div class="block">
+        <h2>The shot list nobody writes down</h2>
+        <ul>
+          <li>The front door and the sign</li>
+          <li>The studio empty, lights up</li>
+          <li>Hands, feet, mirrors, barre</li>
+          <li>The waiting area with parents in it</li>
+          <li>A teacher demonstrating, not just watching</li>
+          <li>Something that only happens at your studio</li>
+        </ul>
+      </div>
+
+    </div>
+    <div>
+
+      <div class="block">
+        <h2>One clip, nine posts</h2>
+        <div class="nine">
+          <span>Reel, hook first</span>
+          <span>Carousel, teaching point</span>
+          <span>Story set, behind the scenes</span>
+          <span>Class promo</span>
+          <span>Teacher spotlight</span>
+          <span>Registration push</span>
+          <span>Website background loop</span>
+          <span>Ad creative</span>
+          <span>Filler for a quiet week</span>
+        </div>
+        <p class="note">This is the whole economics of a content day. The shoot is the small part.</p>
+      </div>
+
+      <div class="block">
+        <h2>What you walk away with</h2>
+        <ul>
+          <li class="dot">A promo film</li>
+          <li class="dot">Short social cuts</li>
+          <li class="dot">All the raw footage, yours to mine</li>
+        </ul>
+        <p class="note">Studios tell us the raw is what they keep going back to. Tiffany Adoranti at
+          Caledonia School of Dance looks at hers about once a week to see what she can pull out and
+          post that day.</p>
+      </div>
+
+      <div class="block">
+        <h2>Keep posting your own phone videos</h2>
+        <p style="margin:0 0 6px;font-size:12.5px;">Pro footage does not replace what your teachers
+          and dancers film. It feeds it.</p>
+        <p class="note">Phone content is immediate and honest, and it dries up the week everyone
+          gets busy. Only one of the two can be stockpiled in advance.</p>
+      </div>
+
+      <div class="block">
+        <h2>After the shoot</h2>
+        <ul>
+          <li>Pick your promo cut length</li>
+          <li>Decide who holds the raw footage at your end</li>
+          <li>Put a standing hour in the calendar to mine it</li>
+          <li>Post from it before you shoot anything new</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="foot">
+    <div>StreamStage, Ontario. <b>streamstage.live/contentday</b></div>
+    <div>daniel@streamstage.live</div>
+  </div>
+
+</div>
+</body>
+</html>

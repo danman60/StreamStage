@@ -55,10 +55,10 @@ const testimonials = [
 ];
 
 const faq = [
-  { q: "How long does it take?", a: "One morning at your studio. Everyone in costume, hair and makeup done, lights up. We shoot it all at once." },
-  { q: "Do we still post our own phone videos?", a: "Yes, and you should. Pro footage is the well you draw from; it makes everything you shoot yourself look better." },
-  { q: "What do we walk away with?", a: "A promo film, short social cuts, background video for your site, and the raw footage. Studios say the raw is what they keep going back to." },
-  { q: "When should we book it?", a: "Early enough that you post from it all season instead of scrambling. Autumn dates fill first." },
+  { q: "How long does it take?", a: "One morning at your studio. Costumes on, lights up, all of it in one go." },
+  { q: "Do we still post our own phone videos?", a: "Yes, and you should. Pro footage is the well you draw from when nobody has time to shoot." },
+  { q: "What do we walk away with?", a: "A promo film, short social cuts, and the raw footage. Studios say the raw is what they keep going back to." },
+  { q: "When should we book it?", a: "Whenever suits your schedule. There is no season for this, and the footage does not expire." },
 ];
 
 export default function ContentDayPage() {
@@ -67,7 +67,7 @@ export default function ContentDayPage() {
       <RecitalNav ctaLabel="Build Your Content Day" ctaHref="/dancepromo" />
 
       {/* ── 1. Hero + inline how-it-works ─────────────────────── */}
-      <section className="relative overflow-hidden px-4 sm:px-6 pt-28 pb-12 sm:pt-32 sm:pb-16">
+      <section className="relative overflow-hidden px-4 sm:px-6 pt-28 pb-12 sm:pt-32 sm:pb-16 lg:flex lg:min-h-screen lg:items-center lg:pb-28">
         <video
           className="absolute inset-0 h-full w-full object-cover opacity-30"
           src="/campaign/contentday-hero.mp4"
@@ -131,7 +131,7 @@ export default function ContentDayPage() {
       </section>
 
       {/* ── 2. Social proof bar ───────────────────────────────── */}
-      <section className="border-y border-white/5 py-7 px-4 sm:px-6">
+      <section className="border-y border-white/5 py-10 lg:py-14 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
           <p className="text-center font-heading text-xs uppercase tracking-[0.18em] text-gray-500 mb-5">
             Trusted by studios, theatres and broadcasters
@@ -152,7 +152,7 @@ export default function ContentDayPage() {
       </section>
 
       {/* ── 3. What one morning produces ──────────────────────── */}
-      <section className="py-14 px-4 sm:px-6">
+      <section className="py-16 lg:py-32 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
             <h2 className="font-heading text-2xl sm:text-3xl font-bold text-white">
@@ -192,18 +192,17 @@ export default function ContentDayPage() {
           </div>
 
           <p className="mt-6 max-w-3xl text-sm leading-relaxed text-gray-400">
-            Keep posting your own phone videos. We would never tell you to stop. The value is the
-            mix: pro footage becomes the well you draw from, and it makes everything you shoot
-            yourself look intentional.
+            Keep posting your own phone videos. The value is the mix: pro footage is the well you
+            draw from when nobody has time to shoot.
           </p>
         </div>
       </section>
 
       {/* ── 4. Testimonials ───────────────────────────────────── */}
-      <section className="py-14 px-4 sm:px-6 border-t border-white/5">
-        <div className="max-w-6xl mx-auto grid gap-5 lg:grid-cols-3">
+      <section className="py-16 lg:py-40 px-4 sm:px-6 border-t border-white/5">
+        <div className="max-w-6xl mx-auto grid gap-10 lg:gap-12 lg:grid-cols-3">
           {testimonials.map((t) => (
-            <blockquote key={t.name} className="rounded-xl border border-white/10 bg-charcoal-dark p-6">
+            <blockquote key={t.name} className="rounded-xl border border-white/10 bg-charcoal-dark p-7 lg:p-8">
               <Quote className="h-5 w-5 text-cyan-brand mb-3" />
               <p className="text-base leading-relaxed text-gray-200">{t.quote}</p>
               <footer className="mt-4">
@@ -216,16 +215,15 @@ export default function ContentDayPage() {
       </section>
 
       {/* ── 5. Price + close ──────────────────────────────────── */}
-      <section className="py-14 px-4 sm:px-6 border-t border-white/5">
+      <section className="py-16 lg:py-32 px-4 sm:px-6 border-t border-white/5">
         <div className="max-w-5xl mx-auto">
-          <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] items-center">
+          <div className="grid gap-12 lg:gap-16">
             <div>
               <h2 className="font-heading text-2xl sm:text-3xl font-bold text-white mb-2">
                 A shoot day, then whatever you want cut
               </h2>
               <p className="text-base text-gray-400 mb-5">
-                Every camera captures the whole day, so more angles means more usable cuts from the
-                same morning.
+                Every camera captures the whole day, so more angles means more usable cuts.
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-white/10 bg-charcoal-dark p-5">
@@ -249,13 +247,12 @@ export default function ContentDayPage() {
               <p className="mt-3 text-xs text-gray-500">All prices CAD, plus HST.</p>
             </div>
 
-            <div className="rounded-2xl border border-cyan-brand/30 bg-cyan-brand/5 p-7 text-center">
+            <div className="mx-auto w-full max-w-xl rounded-2xl border border-cyan-brand/30 bg-cyan-brand/5 p-7 text-center">
               <h3 className="font-heading text-xl font-bold text-white mb-2">
                 Build it in about a minute
               </h3>
               <p className="text-sm text-gray-300 mb-5">
-                Pick your cameras, pick your cuts, see the number. Then stop wondering what to post
-                for the rest of the season.
+                Pick your cameras, pick your cuts, see the number.
               </p>
               <Link
                 href="/dancepromo"
@@ -269,7 +266,13 @@ export default function ContentDayPage() {
             </div>
           </div>
 
-          <dl className="mt-12 grid gap-x-10 gap-y-5 sm:grid-cols-2">
+        </div>
+      </section>
+
+      {/* ── 6. Objections ─────────────────────────────────────── */}
+      <section className="py-16 lg:py-32 px-4 sm:px-6 border-t border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <dl className="grid gap-x-10 gap-y-7 sm:grid-cols-2">
             {faq.map((f) => (
               <div key={f.q}>
                 <dt className="font-heading text-sm font-semibold text-white">{f.q}</dt>
@@ -278,13 +281,6 @@ export default function ContentDayPage() {
             ))}
           </dl>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-xs text-gray-500">
-            {["One shoot day", "A year of posts", "Raw footage included", "Ontario based"].map((b) => (
-              <span key={b} className="inline-flex items-center gap-1.5">
-                <Check className="h-3.5 w-3.5 text-cyan-brand" /> {b}
-              </span>
-            ))}
-          </div>
         </div>
       </section>
 

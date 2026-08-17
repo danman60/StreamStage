@@ -172,14 +172,10 @@ export default function RecitalProposal() {
   };
 
   const handleSubmit = async () => {
-    if (
-      !form.studio ||
-      !form.email ||
-      !form.contact ||
-      !form.phone ||
-      !form.date ||
-      !form.venue
-    ) {
+    // Three fields, same as /dancepromo. Contact person, phone, show times and
+    // venue are asked in the reply instead: a 7 field form costs 25 to 50 percent
+    // of completions at the exact step where the money is.
+    if (!form.studio || !form.email || !form.date) {
       setSubmitError("Please fill in all required fields.");
       return;
     }
@@ -681,72 +677,20 @@ export default function RecitalProposal() {
                       onChange={(v) => updateForm("email", v)}
                       required
                     />
-                    <FormInput
-                      label="Contact Person"
-                      value={form.contact}
-                      onChange={(v) => updateForm("contact", v)}
-                      required
-                    />
-                    <FormInput
-                      label="Phone Number"
-                      type="tel"
-                      value={form.phone}
-                      onChange={(v) => updateForm("phone", v)}
-                      required
-                    />
                   </div>
-
-                  <div className="grid sm:grid-cols-2 gap-5 mb-5">
-                    <FormInput
-                      label="Recital Date"
-                      type="date"
-                      value={form.date}
-                      onChange={(v) => updateForm("date", v)}
-                      required
-                    />
-                    <div>
-                      <label className="block text-base text-gray-400 mb-2">
-                        Number of Shows
-                      </label>
-                      <select
-                        value={showCount}
-                        onChange={(e) =>
-                          setShowCount(parseInt(e.target.value))
-                        }
-                        className="w-full px-4 py-3 rounded-lg bg-charcoal-mid border border-white/10 text-white text-base focus:outline-none focus:border-cyan-brand/50 focus:ring-1 focus:ring-cyan-brand/20 transition-all"
-                      >
-                        {[1, 2, 3, 4].map((n) => (
-                          <option key={n} value={n}>
-                            {n} Show{n > 1 ? "s" : ""}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Dynamic show time inputs */}
-                  <div className="grid sm:grid-cols-2 gap-5 mb-5">
-                    {Array.from({ length: showCount }).map((_, i) => (
-                      <FormInput
-                        key={i}
-                        label={`Show ${i + 1} Time`}
-                        placeholder="e.g. 2:00 PM"
-                        value={showTimes[i]}
-                        onChange={(v) => updateShowTime(i, v)}
-                      />
-                    ))}
-                  </div>
-
-                  <p className="text-sm text-gray-500 mb-5">
-                    No additional surcharge for multiple shows.
-                  </p>
 
                   <FormInput
-                    label="Venue or Location"
-                    value={form.venue}
-                    onChange={(v) => updateForm("venue", v)}
+                    label="Recital Date"
+                    type="date"
+                    value={form.date}
+                    onChange={(v) => updateForm("date", v)}
                     required
                   />
+
+                  <p className="mt-3 text-sm text-gray-500">
+                    Show times, venue and the rest come later, in the reply. No additional
+                    surcharge for multiple shows.
+                  </p>
 
                   <div className="mt-5">
                     <label className="block text-base text-gray-400 mb-2">

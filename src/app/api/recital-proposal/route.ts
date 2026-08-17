@@ -98,9 +98,9 @@ function buildHtml(d: ProposalData) {
           <p style="margin:0 0 4px;font-size:11px;font-weight:600;color:#4EC5D4;text-transform:uppercase;letter-spacing:1.5px;">Contact Details</p>
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;">
             ${row("Studio / Org", esc(d.studio))}
-            ${row("Contact Person", esc(d.contact))}
+            ${d.contact ? row("Contact Person", esc(d.contact)) : ""}
             ${row("Email", `<a href="mailto:${esc(d.email)}" style="color:#4EC5D4;text-decoration:none;">${esc(d.email)}</a>`)}
-            ${row("Phone", esc(d.phone))}
+            ${d.phone ? row("Phone", esc(d.phone)) : ""}
           </table>
         </td></tr>
 
@@ -109,8 +109,8 @@ function buildHtml(d: ProposalData) {
           <p style="margin:0 0 4px;font-size:11px;font-weight:600;color:#4EC5D4;text-transform:uppercase;letter-spacing:1.5px;">Event Details</p>
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;">
             ${row("Recital Date", esc(d.date))}
-            ${row("Shows", `${d.showCount} &mdash; ${esc(showTimesStr)}`)}
-            ${row("Venue", esc(d.venue))}
+            ${d.showCount ? row("Shows", `${d.showCount}, ${esc(showTimesStr)}`) : ""}
+            ${d.venue ? row("Venue", esc(d.venue)) : ""}
             ${row("Dancers", `${d.dancerCount} (${esc(d.tier)})`)}
           </table>
         </td></tr>
@@ -167,7 +167,9 @@ export async function POST(request: Request) {
   try {
     const body: ProposalData = await request.json();
 
-    if (!body.studio || !body.email || !body.contact || !body.phone || !body.date || !body.venue) {
+    // Three required fields, matching the form. Contact person, phone, show times
+    // and venue are optional here because they are now asked in the reply.
+    if (!body.studio || !body.email || !body.date) {
       return NextResponse.json({ error: "All required fields must be filled." }, { status: 400 });
     }
 

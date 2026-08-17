@@ -101,13 +101,17 @@ verified by frame 2026-08-16:**
 
 | Week | Reel A | Reel B | Carousel | Stories |
 |---|---|---|---|---|
-| 1 | `tiffany-content-day` (V, 29s) | `promo-kmsd-full` (L, 60s) | "One clip, nine posts" | behind the scenes, link to page |
-| 2 | `promo-shuffle24` (V, 59s) | `promo-footprints-littles` (L, 63s) | Tiffany quote card | poll: what do you never get around to filming |
-| 3 | `wsdy` (V, 12s) + `dis-reel5` (V, 4s) cut together | `promo-csod-full` (L, 64s) | The five formats, one per slide | planner handout, link in story |
-| 4 | `tiffany-testimonial` (V, 46s) | `promo-wsdy-full` (L, 66s) | Pro feeds UGC, the honest argument | what a content day morning looks like |
+| 1 | `tiffany-content-day` (V, 29s) | **`cuts/promo-kmsd-full-9x16.mp4`** (V, 49s, BUILT) | "One clip, nine posts" | behind the scenes, link to page |
+| 2 | `promo-shuffle24` (V, 59s) | **`cuts/promo-footprints-littles-9x16.mp4`** (V, 63s, BUILT) | Tiffany quote card | poll: what do you never get around to filming |
+| 3 | **`cuts/wsdy-dis-cut-9x16.mp4`** (V, 16s, BUILT) | **`cuts/promo-csod-full-9x16.mp4`** (V, 64s, BUILT) | The five formats, one per slide | planner handout, link in story |
+| 4 | `tiffany-testimonial` (V, 46s) | **`cuts/promo-wsdy-full-9x16.mp4`** (V, 66s, BUILT) | Pro feeds UGC, the honest argument | what a content day morning looks like |
 
-`V` = already vertical, post as is. `L` = landscape, **needs reframing to 9:16 before it can be a
-reel.** That is production work, not a scheduling step.
+**All 8 reel slots are built as of 2026-08-17.** Every Reel B was landscape and is now a reframed
+9:16 cut in `contentday/cuts/`: source scaled to fill, blurred and darkened as the backdrop, sharp
+video centred on top. Week 3 Reel A is `wsdy` and `dis-reel5` cut together.
+
+**`promo-kmsd-full` opens on a countdown leader and a title card reading June 6th 2026.** The cut
+starts at 11.5 seconds so neither is ever posted. Never post the original in a reel.
 
 **Conflict to respect:** `promo-kmsd-full` is byte-identical to `recital/video/kmsd-highlight.mp4`.
 The two campaigns must not schedule it in the same week. It is assigned to content day week 1 here,
@@ -125,16 +129,21 @@ Hooks from `amplify/docs/transcripts/INDEX-iamchrischung.md`. Run the observable
 before writing captions: 50 specific, nuanced, observable moments a studio owner experiences around
 making content, ranked common to niche. Never ask for "viral ideas".
 
-## Channel 3: Cold email, BLOCKED
+## Channel 3: Cold email, UNBLOCKED 2026-08-17
 
-Same blocker as recital: no unsubscribe tokens against the lead list, CASL applies. See the recital
-playbook for the full state and the unblock. `amplify_comps` (100) are competition organizers and
-are the wrong audience here too.
+The unsubscribe path is fixed, deployed and verified end to end. See the recital playbook for the
+detail and for how a tranche is minted. `cold_amplify_comps` (96) are competition organizers and are
+the wrong audience here too.
 
-## Channel 4: Paid
+**One offer per person.** A studio that runs recitals gets the recital sequence, because that is the
+bigger and more time bound purchase. Content day cold sends go only to studios the recital sequence
+did not land with, and never inside the same month. Copy is drafted in
+`contentday-email-sequence.md`.
 
-**Daniel specified paid ads for the recital campaign. He has not said paid for studio promo.**
-Not assumed either way, and nothing here should start until he says so. If it opens, the creative
+## Channel 4: Paid, PARKED
+
+**Daniel specified paid ads for the recital campaign, and parked all paid on 2026-08-17 to put copy
+and assets first.** He has still never said paid for studio promo, so that stays unassumed. If it opens, the creative
 is already ad-shaped: the finished promos run 37 to 66 seconds. Retarget `/contentday` visitors who
 never reached `/dancepromo`.
 
@@ -142,9 +151,13 @@ never reached `/dancepromo`.
 
 ## Open
 
-- **What counts as local.** Not answerable from the CRM: 3 of 104 clients have a city or province.
-- **Landing variant.** `/contentday` measures 165 words per screen, `/contentday-b` measures 33 to
-  35, and the measured reference band is 64 to 104. Neither is in it. This is a third pass, not a
-  pick.
-- Whether paid is in scope for this campaign at all.
-- Whether there is a guarantee worth stating on the page and in email.
+- **What counts as local.** Clients cannot be filtered by region, 3 of 105 have a non-blank city.
+  The cold list can be, 351 of 355 carry one.
+- Whether paid is in scope for this campaign at all, whenever paid comes off the shelf.
+
+## Settled 2026-08-17
+
+- **No guarantee.** Daniel's call. Nothing on the page or in an email implies one.
+- **Landing density.** `/contentday` was 170 words per screen on desktop and is now 106, against the
+  64 to 104 band. The FAQ line that read "Autumn dates fill first" is gone, it broke the evergreen
+  rule this campaign is built on.

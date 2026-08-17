@@ -23,9 +23,9 @@ weekend Daniel works manually and is not part of any campaign in this folder.
 |---|---|---|---|
 | 1 | Email, rebooking | Existing customers | Ready |
 | 2 | Email, warm | Leads close to buying | Ready |
-| 3 | Email, cold | Never heard of us | **BLOCKED, CASL** |
+| 3 | Email, cold | Never heard of us | **Open 2026-08-17**, unsubscribe verified live |
 | 4 | Social, organic | People who have not worked with us | Ready |
-| 5 | Paid ads | Same as 4 | **BLOCKED**, no ad account, budget or audiences |
+| 5 | Paid ads | Same as 4 | **Parked by Daniel 2026-08-17**, copy and assets first |
 
 Arms 4 and 5 aim at the same person on purpose. Organic earns the room, paid buys reach into it.
 
@@ -60,23 +60,27 @@ computes **Suggested Media Fee** and **Profit to Studio** and says "Client retai
 **You charge the media fee, we bill per dancer, you keep the spread.** Nobody else in the market
 states this. Every arm carries it.
 
-**Open, and it gates the revenue copy:** Laura Ramsey's testimonial says the money goes direct to
-Daniel and comes off her bill, while the calculator frames the studio as collecting the fee and
-keeping the profit. Two different mechanics. Which is current, and is it the same for every studio?
+**Settled 2026-08-17.** The copy keeps the reframe and never explains the plumbing. You charge the
+media fee, we bill per dancer, the difference is yours. Nothing anywhere describes who collects from
+families or how the money settles. **Laura Ramsey's line about the money going direct and coming off
+her bill is retired from campaign use**, in email, on the page, in a caption and on a carousel
+slide. Her passage in the services film is cut out of the week 2 reel for the same reason.
 
 ---
 
 ## Arm 1: Email, rebooking existing customers
 
-**Audience: 80 clients with an email and at least one event with us.** They have seen the work.
-Shortest path to revenue in the whole campaign.
+**Audience: 101 clients with an email, 26 of whom have an event on record with us.** Verified
+against the live CRM 2026-08-17, correcting the 80 this file used to claim: there are 47 events
+across 26 distinct clients. They have seen the work. Shortest path to revenue in the whole
+campaign.
 
 Ranked:
 
 1. **`lifecycle_stage = 'rebooking'`, 7 clients.** Already flagged as due. Start here, same day.
 2. **`lifecycle_stage = 'delivered'`, 13 clients.** Job finished, nothing booked since. The natural
    "same again for the spring?" note.
-3. **The remaining ~60 with events.** Everyone else who has shot with us.
+3. **The rest of the 26 with events.** Everyone else who has shot with us.
 4. **Recital-adjacent clients who have only bought promo work.** They know the quality, they have
    never bought this product.
 
@@ -92,8 +96,8 @@ Never paste the calculator URL. Link the landing page, which offers the calculat
 
 ## Arm 2: Email, warm leads
 
-**Audience: 38 leads.** `engaged` 25, `contacted` 8, `proposal_sent` 5. Conversation already
-started, so this is a re-open and not an introduction.
+**Audience: 40 leads.** `engaged` 27, `contacted` 8, `proposal_sent` 5, verified 2026-08-17.
+Conversation already started, so this is a re-open and not an introduction.
 
 `proposal_sent` (5) goes first: they have seen a number. Those five are the highest-intent contacts
 in the entire campaign and should be handled personally, not on a sequence.
@@ -101,28 +105,37 @@ in the entire campaign and should be handled personally, not on a sequence.
 **Suppress the 9 leads whose email already matches a client row.** Otherwise they get a cold pitch
 for something they have already bought.
 
-## Arm 3: Email, cold, never heard of us, BLOCKED
+## Arm 3: Email, cold, never heard of us, UNBLOCKED 2026-08-17
 
-**Audience on paper: 455 leads with status `new`.**
+**Audience, verified 2026-08-17: 445 leads with status `new`.**
 
-| Source | Count | Verdict |
+| Source | Status new | Verdict |
 |---|---|---|
-| `kwc-scrape-2026-03` | 355 | **This is the local list.** Kitchener, Waterloo, Cambridge |
-| `amplify_comps` | 100 | **Hold out.** Competition organizers, not studio owners. Wrong audience for a recital offer |
+| `cold_kwc_scrape_2026_03` | 349 | **The sendable cold list.** Southern Ontario, not the Waterloo region, see the geography note below |
+| `cold_amplify_comps` | 96 | **Hold out.** Competition organizers, not studio owners. Wrong audience for a recital offer |
 
-So the real cold recital list is roughly 355, not 523.
+So the real cold recital list is 349.
 
-**The blocker is hard and it is legal, not technical judgment.** That list carries **1 suppression
-record and 0 unsubscribe tokens**. CASL requires a working unsubscribe on every commercial message
-to a cold Canadian contact. The tables exist (`commandcentered.email_suppressions`,
-`unsubscribe_tokens`) and are empty.
+**What the blocker actually was.** The endpoint, the token model, the suppression table, the footer
+injection and the suppression checks on all five send paths were already built. What was broken is
+that `/u/<token>` returned 404 in production: CommandCentered's clean ticket URL rewrite swallowed
+it into `/tickets/u/<token>`. Fixed in `next.config.ts`, deployed 2026-08-17, and verified end to
+end: token minted, link clicked, page confirmed the unsubscribe, suppression row written, token
+marked consumed.
 
-**Unblocking it is build work, not a decision:** generate a token per lead, stand up the unsub
-endpoint, put the link in the footer, honour it on send. Roughly 2 hours, and it opens the arm
-permanently. Daniel's call whether to spend it.
+**How a tranche gets sent.** These go out by hand from Gmail, so nothing mints a token
+automatically. Run `CommandCentered/app/scripts/mint-unsubscribe-tranche.ts` for the tranche, which
+writes a CSV of email, organization, city and a live unsubscribe URL. Merge that URL into the
+footer of every message. **Never open a URL from that CSV to check it. Opening it IS the
+unsubscribe.** Tranche 01, 30 leads, is already minted at
+`/mnt/firmament/StreamStageCampaigns/cold-tranche-01.csv`.
 
-When it opens: send in tranches of 20 to 40 that Daniel can personally handle. Landing page as the
-only link. Frameworks in `marketingskills/skills/cold-email/references/`.
+Geography note, verified 2026-08-17: this list is southern Ontario, not the Waterloo region.
+Hamilton 48, London 45, Toronto 41, Kitchener 32, Waterloo 14, Cambridge 7, all Ontario, 351 of 355
+carrying a city. Filter with `--cities` if a tranche is meant to be local.
+
+Send in tranches of 20 to 40 that Daniel can personally handle. Landing page as the only link.
+Copy is drafted in `recital-email-sequence.md`.
 
 ## Arm 4: Social, organic, aimed at people who have not worked with us
 
@@ -200,15 +213,16 @@ Hooks come from `amplify/docs/transcripts/INDEX-iamchrischung.md`. Before writin
 observable-moments pass: ask for 50 specific, nuanced, observable moments a studio owner
 experiences around recital day, ranked common to niche. Never ask for "viral ideas".
 
-## Arm 5: Paid ads, BLOCKED
+## Arm 5: Paid ads, PARKED 2026-08-17
 
 Daniel wants paid running alongside organic. Creative is ready: the wide-versus-close pair is the
 obvious first ad and needs no copy to work. Destination is `/recitals`. Structure per the 5x5
 creative matrix in `MARKETING-PLAYBOOK.md`. Retarget `/recitals` visitors who never reached
 `/dancerecital`.
 
-**Needs from Daniel before anything starts:** which ad account, whose budget and what monthly
-number, and audience definitions. None are confirmed. Nothing on this arm can begin without them.
+**Parked deliberately.** Daniel's call on 2026-08-17: copy and assets first, paid later. When it
+opens it still needs an ad account, a monthly number and audience definitions, none of which exist
+yet.
 
 ---
 
@@ -222,14 +236,9 @@ Business logic, so it is Daniel's call.
 
 ## Open
 
-- **What counts as local.** Geography is not in the CRM: 3 of 104 clients have a city or province.
-  `kwc-scrape` covers the cold list, but the client and warm segments cannot be filtered by region
-  until this is answered or backfilled.
-- **Landing variant.** `/recitals` measures 172 words per screen, `/recitals-b` measures 33 to 35.
-  The measured reference band from Vanta, Framer, Attio and Linear is 64 to 104. Neither variant is
-  in it, so this is not an A-or-B choice, it is a third pass.
-- Revenue mechanics: Laura's version versus the calculator's.
-- Cold email opt-out handling.
-- Paid social account, budget, audiences.
+- **What counts as local.** The cold list can be filtered, 351 of 355 carry a city. Clients and warm
+  leads cannot: 3 of 105 clients have a non-blank city. Either accept region filtering on cold only,
+  or backfill client cities.
+- Paid social account, budget, audiences, whenever paid comes off the shelf.
 - Availability data, if "dates remaining" is ever to be a true number. `events.created_at` is the
   row date, not the show date, so there is currently no honest source for it.
