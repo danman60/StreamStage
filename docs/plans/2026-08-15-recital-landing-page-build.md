@@ -5,7 +5,8 @@ calculator to book."*
 
 Check every deliverable against that line, not against this plan. If they disagree, the line wins.
 
-**Track 1 of the recital campaign.** Context: `amplify/docs/campaigns/2026-Q-recital-campaign-CONTEXT.md`
+**Track 1 of the recital campaign.** Context: `docs/campaigns/2026-Q-recital-campaign-CONTEXT.md`
+(moved out of the deprecated amplify repo 2026-08-17, along with both campaign playbooks).
 
 ---
 

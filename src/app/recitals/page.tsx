@@ -7,7 +7,6 @@ import {
   Users,
   Clock,
   Wallet,
-  Check,
   ArrowRight,
   Quote,
 } from "lucide-react";
@@ -52,7 +51,7 @@ const testimonials = [
   },
   {
     quote:
-      "Hands down the best experience we have ever had with a videographer. Their artistic eyes capture the creative nuances and the performance.",
+      "Hands down the best experience we have ever had with a videographer.",
     name: "Christina Canella",
     title: "Artistic Movement Dance Studio",
   },
@@ -60,9 +59,9 @@ const testimonials = [
 
 const faq = [
   { q: "How does the money work?", a: "You set a media fee for your families. We bill you per dancer. The difference is yours." },
-  { q: "Small studio, still worth it?", a: "The per-dancer rate is highest for small shows and drops with your count. The calculator tells you in a minute." },
+  { q: "Small studio, still worth it?", a: "The per-dancer rate is highest for small shows and drops as your count grows." },
   { q: "What do parents get?", a: "A link, not a disc. They find their dancer's routine, watch it, download it." },
-  { q: "Our date is close.", a: "Ask anyway. Spring weekends collide and we have a finite number of crews, but December usually has room." },
+  { q: "Our date is close.", a: "Ask anyway. Spring weekends collide and crews are finite, but December usually has room." },
 ];
 
 export default function RecitalsPage() {
@@ -71,7 +70,7 @@ export default function RecitalsPage() {
       <RecitalNav ctaLabel="See Your Pricing" ctaHref="/dancerecital" />
 
       {/* ── 1. Hero + inline how-it-works ─────────────────────── */}
-      <section className="relative overflow-hidden px-4 sm:px-6 pt-28 pb-12 sm:pt-32 sm:pb-16">
+      <section className="relative overflow-hidden px-4 sm:px-6 pt-28 pb-12 sm:pt-32 sm:pb-16 lg:flex lg:min-h-screen lg:items-center lg:pb-28">
         <video
           className="absolute inset-0 h-full w-full object-cover opacity-30"
           src="/campaign/recital-hero.mp4"
@@ -96,9 +95,8 @@ export default function RecitalsPage() {
               <span className="text-cyan-brand">You keep the difference.</span>
             </h1>
             <p className="mx-auto max-w-2xl text-lg text-gray-300 mb-7">
-              Your dancers deserve better than a tripod in the back row. We shoot your recital
-              properly, your families buy the video from you, and recital day stops being one more
-              thing you manage.
+              Your dancers deserve better than a tripod in the back row. We shoot the show, your
+              families buy the video from you, and recital day gets easier.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
               <Link
@@ -114,9 +112,7 @@ export default function RecitalsPage() {
                 Ask a question
               </a>
             </div>
-            <p className="mt-3 text-sm text-gray-500">
-              Published pricing. No account, no sales call, nobody chases you.
-            </p>
+            <p className="mt-3 text-sm text-gray-500">Published pricing.</p>
           </div>
 
           {/* how it works, inline and dense */}
@@ -137,7 +133,7 @@ export default function RecitalsPage() {
       </section>
 
       {/* ── 2. Social proof bar ───────────────────────────────── */}
-      <section className="border-y border-white/5 py-7 px-4 sm:px-6">
+      <section className="border-y border-white/5 py-10 lg:py-14 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
           <p className="text-center font-heading text-xs uppercase tracking-[0.18em] text-gray-500 mb-5">
             Trusted by studios, theatres and broadcasters
@@ -158,9 +154,9 @@ export default function RecitalsPage() {
       </section>
 
       {/* ── 3. What you get, dense grid ───────────────────────── */}
-      <section className="py-14 px-4 sm:px-6">
+      <section className="py-16 lg:py-32 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-x-10 gap-y-10 lg:gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
             {included.map((f) => (
               <div key={f.title} className="flex gap-3">
                 <f.icon className="h-5 w-5 shrink-0 text-cyan-brand mt-1" />
@@ -175,7 +171,7 @@ export default function RecitalsPage() {
       </section>
 
       {/* ── 4. The proof shot ─────────────────────────────────── */}
-      <section className="py-14 px-4 sm:px-6 border-t border-white/5">
+      <section className="py-16 lg:py-32 px-4 sm:px-6 border-t border-white/5">
         <div className="max-w-6xl mx-auto">
           <ScrollReveal>
             <div className="grid gap-6 lg:grid-cols-[1fr_1fr] items-center">
@@ -207,8 +203,8 @@ export default function RecitalsPage() {
                 </h2>
                 <p className="text-base leading-relaxed text-gray-300">
                   One camera at the back gets you heads and a distant stage. We shoot the room
-                  properly, so a parent watching later sees the face their kid makes when she lands
-                  it. That difference is the entire reason families buy the video.
+                  properly, so a parent sees the face their kid makes when she lands it. That is
+                  why families buy the video.
                 </p>
               </div>
             </div>
@@ -216,10 +212,10 @@ export default function RecitalsPage() {
 
           {/* Directors on camera. Cut from the StreamStage services film shown at the expo booth. */}
           <ScrollReveal>
-            <div className="mt-12 grid gap-6 lg:grid-cols-[1.15fr_1fr] items-center">
-              <figure className="overflow-hidden rounded-xl border border-white/10 bg-charcoal-dark">
+            <div className="mt-12 lg:mt-24 grid gap-6 lg:grid-cols-[1fr_1fr] items-center">
+              <figure className="mx-auto w-full max-w-sm overflow-hidden rounded-xl border border-white/10 bg-charcoal-dark">
                 <video
-                  className="aspect-video w-full object-cover"
+                  className="aspect-[4/5] w-full object-cover"
                   src="/campaign/services-proof.mp4"
                   poster="/campaign/services-proof.jpg"
                   controls
@@ -235,9 +231,8 @@ export default function RecitalsPage() {
                   Ask the studios who already did it.
                 </h2>
                 <p className="text-base leading-relaxed text-gray-300">
-                  Laura Ramsey at Grand River Academy of Dance, Alana Colver at Lindsay Dance
-                  School, Kerry Moore, Tiffany Adoranti at Caledonia. Recital films, multi camera
-                  capture, ten day turnaround, and a portal your families buy from directly.
+                  Kerry Moore and Alana Colver, on their own recitals. Ten day turnaround, and a
+                  portal families buy from directly.
                 </p>
               </div>
             </div>
@@ -246,10 +241,10 @@ export default function RecitalsPage() {
       </section>
 
       {/* ── 5. Testimonials ───────────────────────────────────── */}
-      <section className="py-14 px-4 sm:px-6 border-t border-white/5">
-        <div className="max-w-6xl mx-auto grid gap-5 lg:grid-cols-3">
+      <section className="py-16 lg:py-32 px-4 sm:px-6 border-t border-white/5">
+        <div className="max-w-6xl mx-auto grid gap-10 lg:gap-12 lg:grid-cols-3">
           {testimonials.map((t) => (
-            <blockquote key={t.name} className="rounded-xl border border-white/10 bg-charcoal-dark p-6">
+            <blockquote key={t.name} className="rounded-xl border border-white/10 bg-charcoal-dark p-7 lg:p-8">
               <Quote className="h-5 w-5 text-cyan-brand mb-3" />
               <p className="text-base leading-relaxed text-gray-200">{t.quote}</p>
               <footer className="mt-4">
@@ -262,17 +257,16 @@ export default function RecitalsPage() {
       </section>
 
       {/* ── 6. Price + close, together ────────────────────────── */}
-      <section className="py-14 px-4 sm:px-6 border-t border-white/5">
+      <section className="py-16 lg:py-32 px-4 sm:px-6 border-t border-white/5">
         <div className="max-w-5xl mx-auto">
-          <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] items-center">
+          <div className="grid gap-12 lg:gap-16">
             <div>
               <h2 className="font-heading text-2xl sm:text-3xl font-bold text-white mb-2">
                 Priced per dancer. Published, not quoted.
               </h2>
               <p className="text-base text-gray-400 mb-5">
                 Video, livestream and photography together. The bigger your recital, the less it
-                costs per dancer. Video alone costs less, and discounts stack for booking early,
-                sharing your experience, and committing to three years.
+                costs per dancer.
               </p>
               <div className="grid grid-cols-3 gap-3">
                 {tiers.map((t) => (
@@ -287,7 +281,7 @@ export default function RecitalsPage() {
               <p className="mt-3 text-xs text-gray-500">All prices CAD, plus HST.</p>
             </div>
 
-            <div className="rounded-2xl border border-cyan-brand/30 bg-cyan-brand/5 p-7 text-center">
+            <div className="mx-auto w-full max-w-xl rounded-2xl border border-cyan-brand/30 bg-cyan-brand/5 p-7 text-center">
               <h3 className="font-heading text-xl font-bold text-white mb-2">
                 See your number in about a minute
               </h3>
@@ -307,8 +301,13 @@ export default function RecitalsPage() {
             </div>
           </div>
 
-          {/* compressed objections */}
-          <dl className="mt-12 grid gap-x-10 gap-y-5 sm:grid-cols-2">
+        </div>
+      </section>
+
+      {/* ── 7. Objections ─────────────────────────────────────── */}
+      <section className="py-16 lg:py-32 px-4 sm:px-6 border-t border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <dl className="grid gap-x-10 gap-y-7 sm:grid-cols-2">
             {faq.map((f) => (
               <div key={f.q}>
                 <dt className="font-heading text-sm font-semibold text-white">{f.q}</dt>
@@ -317,13 +316,6 @@ export default function RecitalsPage() {
             ))}
           </dl>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-xs text-gray-500">
-            {["Multi-camera", "Livestream included", "You keep the revenue", "Ontario based"].map((b) => (
-              <span key={b} className="inline-flex items-center gap-1.5">
-                <Check className="h-3.5 w-3.5 text-cyan-brand" /> {b}
-              </span>
-            ))}
-          </div>
         </div>
       </section>
 
