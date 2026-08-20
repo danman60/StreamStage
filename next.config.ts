@@ -89,6 +89,10 @@ const nextConfig: NextConfig = {
       // page. Rewrite, not redirect, so the address bar keeps the short URL the
       // code advertises and the query string survives.
       { source: "/g", destination: "/g.html" },
+      // The six product films on one page, for sending to one person. Rewrite so the
+      // link you paste into a text is streamstage.live/v and not a .html file, which
+      // reads as a download rather than a page.
+      { source: "/v", destination: "/v.html" },
     ];
   },
   async headers() {

@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>StreamStage — the six product films</title>
+<meta name="description" content="StudioSage, CompSync, Callboard, CostumeCraft, StudioBeat and Reflect. One short film each.">
+
+<!-- Unfurls as a card rather than a download when this link is texted or emailed. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="StreamStage">
+<meta property="og:title" content="StreamStage — the six product films">
+<meta property="og:description" content="StudioSage, CompSync, Callboard, CostumeCraft, StudioBeat and Reflect. One short film each.">
+<meta property="og:image" content="https://pub-626d1637ca4c4f34a7916019aaa3efce.r2.dev/booth/posters/studiosage.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<style>
+/* Tokens lifted from expo-assets/kiosk/brand.css so this page and the booth screens
+   are visibly the same product: near-black ground, Inter, cyan and amber. */
+:root{
+  --bg:#07090C; --bg-2:#0B0F16; --panel:#111722; --panel-2:#161E2B;
+  --line:rgba(255,255,255,.10); --line-hot:rgba(255,255,255,.20);
+  --ink:#FFFFFF; --dim:#A8B6C4; --faint:#5C6A78;
+  --cyan:#4EC5D4; --amber:#F59E0B;
+  --sans:"Inter",-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box}
+/* The ground colour goes on html, not only body: a fixed-attachment gradient covers the
+   viewport but leaves bare html showing on a page taller than one screen, which reads as
+   a white band under the content. */
+html{background:var(--bg)}
+html,body{margin:0;padding:0;min-height:100%}
+body{
+  background:radial-gradient(1200px 600px at 50% -10%, var(--bg-2), var(--bg)) fixed;
+  color:var(--ink); font-family:var(--sans);
+  -webkit-font-smoothing:antialiased; line-height:1.5;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:clamp(24px,5vw,56px) clamp(16px,4vw,32px) 80px}
+
+header{margin-bottom:clamp(28px,5vw,48px)}
+h1{
+  margin:0 0 10px; font-size:clamp(26px,4.4vw,42px); font-weight:800;
+  letter-spacing:-.02em;
+}
+header p{margin:0;color:var(--dim);font-size:clamp(14px,1.6vw,17px);max-width:60ch}
+
+.grid{display:grid;gap:clamp(18px,2.6vw,26px);grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+
+.card{
+  background:linear-gradient(180deg,var(--panel),var(--panel-2));
+  border:1px solid var(--line); border-radius:16px; overflow:hidden;
+  display:flex; flex-direction:column;
+  transition:border-color .25s var(--ease), transform .25s var(--ease);
+}
+.card:hover{border-color:var(--line-hot);transform:translateY(-2px)}
+
+/* 16/9 box so the grid does not reflow as each film's metadata loads. */
+.card video{
+  display:block; width:100%; aspect-ratio:16/9; background:#000;
+  object-fit:cover; border-bottom:1px solid var(--line);
+}
+
+.body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:10px;flex:1}
+.name{font-size:19px;font-weight:700;letter-spacing:-.01em;margin:0}
+.tag{margin:0;color:var(--dim);font-size:14px;flex:1}
+
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.btn{
+  appearance:none;border:1px solid var(--line-hot);background:transparent;
+  color:var(--ink);font:inherit;font-size:13px;font-weight:600;
+  padding:8px 14px;border-radius:9px;cursor:pointer;text-decoration:none;
+  display:inline-flex;align-items:center;gap:7px;
+  transition:background .2s var(--ease),border-color .2s var(--ease);
+}
+.btn:hover{background:rgba(255,255,255,.06);border-color:var(--cyan)}
+.btn.primary{border-color:rgba(78,197,212,.6);color:var(--cyan)}
+.btn.primary:hover{background:rgba(78,197,212,.12)}
+.btn.copied{border-color:var(--amber);color:var(--amber)}
+
+footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--line);color:var(--faint);font-size:13px}
+footer a{color:var(--dim)}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important}
+  .card:hover{transform:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>The six product films</h1>
+  <p>Each one runs about a minute, with sound. Tap a film to play it, or copy its direct link to send on.</p>
+</header>
+
+<main class="grid" id="grid"></main>
+
+<footer>
+  StreamStage &middot; <a href="https://streamstage.live">streamstage.live</a>
+</footer>
+
+</div>
+
+<script>
+/* Copy is verbatim from expo-assets/kiosk/kiosk.js CONFIG.products, which is the one
+   place this wording is edited. Nothing here is written fresh: the booth screens and
+   this page have to say the same thing about the same product. */
+var BASE = 'https://pub-626d1637ca4c4f34a7916019aaa3efce.r2.dev/booth/';
+
+var PRODUCTS = [
+  { id:'studiosage',   name:'StudioSage',
+    tagline:'The AI front desk. Parents text it — it answers from your own emails.',
+    url:'https://studiosage.ai' },
+  { id:'compsync',     name:'CompSync',
+    tagline:'Competition management, from entries through to the livestream.',
+    url:'https://compsync.net' },
+  { id:'callboard',    name:'Callboard',
+    tagline:'Recital running orders that already know your rules — siblings, quick changes, and the gaps in between.',
+    url:'https://callboard-scheduler.vercel.app' },
+  { id:'costumecraft', name:'CostumeCraft',
+    tagline:'Design, measurements and per-class quantities in one place.',
+    url:'https://costume-craft.vercel.app' },
+  { id:'studiobeat',   name:'StudioBeat',
+    tagline:'Classes, families, payments and the season calendar — one platform instead of five.',
+    url:'https://www.studiobeat.io/' },
+  { id:'reflect',      name:'Reflect',
+    tagline:"The system that runs your studio's day — and remembers it.",
+    url:'https://reflect-vert.vercel.app/demo/login' }
+];
+
+var grid = document.getElementById('grid');
+
+PRODUCTS.forEach(function (p) {
+  var film = BASE + p.id + '.mp4';
+  var poster = BASE + 'posters/' + p.id + '.jpg';
+
+  var card = document.createElement('article');
+  card.className = 'card';
+
+  var v = document.createElement('video');
+  v.src = film;
+  v.poster = poster;
+  v.controls = true;
+  v.preload = 'none';           // six films on one page: never pull metadata for all six at once
+  v.playsInline = true;
+  card.appendChild(v);
+
+  // Only one film plays at a time. Six soundtracks at once is the failure mode of
+  // every multi-video page.
+  v.addEventListener('play', function () {
+    document.querySelectorAll('video').forEach(function (other) {
+      if (other !== v) other.pause();
+    });
+  });
+
+  var body = document.createElement('div');
+  body.className = 'body';
+
+  var h = document.createElement('h2');
+  h.className = 'name';
+  h.textContent = p.name;
+
+  var t = document.createElement('p');
+  t.className = 'tag';
+  t.textContent = p.tagline;
+
+  var row = document.createElement('div');
+  row.className = 'row';
+
+  var copy = document.createElement('button');
+  copy.className = 'btn primary';
+  copy.type = 'button';
+  copy.textContent = 'Copy link';
+  copy.addEventListener('click', function () {
+    // clipboard.writeText needs a secure context and can be refused outright, so the
+    // textarea path is a real fallback, not decoration.
+    var done = function () {
+      copy.textContent = 'Copied';
+      copy.classList.add('copied');
+      setTimeout(function () {
+        copy.textContent = 'Copy link';
+        copy.classList.remove('copied');
+      }, 1600);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(film).then(done, fallback);
+    } else {
+      fallback();
+    }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = film;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); }
+      catch (e) { window.prompt('Copy this link:', film); }
+      document.body.removeChild(ta);
+    }
+  });
+
+  var open = document.createElement('a');
+  open.className = 'btn';
+  open.href = film;
+  open.target = '_blank';
+  open.rel = 'noopener';
+  open.textContent = 'Open film';
+
+  var site = document.createElement('a');
+  site.className = 'btn';
+  site.href = p.url;
+  site.target = '_blank';
+  site.rel = 'noopener';
+  site.textContent = 'Visit ' + p.name;
+
+  row.appendChild(copy);
+  row.appendChild(open);
+  row.appendChild(site);
+
+  body.appendChild(h);
+  body.appendChild(t);
+  body.appendChild(row);
+  card.appendChild(body);
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>
