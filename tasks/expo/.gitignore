@@ -1,0 +1,4 @@
+runs/
+status.json
+*-status.json
+*-log.md
