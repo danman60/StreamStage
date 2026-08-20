@@ -25,7 +25,9 @@ class DigestRendererTest {
 
     @Test fun countsRealLeadsAndExcludesTests() {
         val out = DigestRenderer.render("Calgary CDTE day 2", leads, null)
-        assertTrue(out.contains("2"))
+        // The count has to be LABELLED, not a bare digit on its own line. Asserting only
+        // contains("2") passed a version that emitted exactly that and read as noise.
+        assertTrue(out.contains("2 leads captured"))
         assertFalse(out.contains("t@test.com"))
     }
 

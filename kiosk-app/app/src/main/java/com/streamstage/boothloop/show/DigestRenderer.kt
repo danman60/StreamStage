@@ -7,7 +7,10 @@ object DigestRenderer {
 
         val sb = StringBuilder()
         sb.append("## $showName\n")
-        sb.append("$count\n")
+        // Labelled, not a bare number. The first version of this line emitted just the digit,
+        // which satisfied the test and read as noise in the inbox: the test asked for the count
+        // to be present, not for it to be legible.
+        sb.append("$count leads captured\n")
 
         val channelMap = nonTestLeads
             .groupBy { it.channel }
