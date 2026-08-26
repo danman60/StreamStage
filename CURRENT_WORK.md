@@ -1,5 +1,84 @@
 # Current Work - StreamStage
 
+## 2026-08-26 11:24 ET, session wrap-up
+
+### Last session summary
+Campaign copy and assets finished on 2026-08-17 and shipped. Since then this window did video
+delivery for StudioSage on 2026-08-24, and received one mis-routed broker message on 2026-08-24
+night that was addressed to the sysadmin session and needed no action here.
+
+### What changed
+- `be091b1` `3cf3a5e` campaign copy: both email sequences, both caption banks, eight carousel decks,
+ two print ready handouts, `/contentday` density pass, recital form cut from 7 fields to 3.
+- `e0d4723` **wip, not this session's work.** Booth show build leftovers from the 2026-08-20 session
+ that owned commits `c84e4d4` through `ea8b956`. Committed so nothing was lost. Includes
+ `kiosk-app/.../show/LeadValidator.kt` and its test (task 07 ran to done, 88 turns, 0 errors, never
+ committed), kiosk/phone/tablet app edits, expo asset updates, and the consumed queue task files.
+- Not in git, delivered to the campaign folder on FIRMAMENT: `recital/cuts/services-kerry-alana-9x16.mp4`,
+ five `contentday/cuts/*-9x16.mp4`, both handout PDFs and PNGs, `cold-tranche-01.csv`.
+- `~/projects/sage-film/kiosk/studiosage-explainer-narrated-nocaptions.mp4`, built 2026-08-24, the
+ Aug 18 clean plate muxed with the original narration, stream copied.
+
+### Build status
+Typecheck passing as of 2026-08-17 (`npx tsc --noEmit`, exit 0). **Not re-run since.** The wip
+commit above contains Kotlin from another session that was never compiled here.
+
+### Known bugs and issues
+- A stray file literally named `ShowHealth.kt\n` (embedded newline) sits untracked in
+ `kiosk-app/app/src/main/java/com/streamstage/boothloop/show/`. It is the 08:22 runner artifact,
+ 1817 bytes, superseded by the real `ShowHealth.kt` at 08:28, 2096 bytes. Left in place on purpose.
+ Whoever owns that build should delete it.
+- `scratchpad/` is not gitignored and holds 40+ session screenshots and probe scripts. Left
+ uncommitted.
+- `NEXT_PUBLIC_APP_URL` on CommandCentered production is `https://commandcentered.vercel.app`, not
+ `meet.streamstage.live`. Both resolve, so unsubscribe links work either way, but the links in
+ automated marketing email carry the vercel.app host.
+
+### Incomplete work
+- Carousel decks are specified slide by slide in `docs/campaigns/carousel-decks.md`. They are not
+ designed as images.
+- No honest source for "dates remaining" on the recital page. `events.created_at` is the row date,
+ not the show date.
+- Client and warm segments cannot be filtered by region: 3 of 105 clients carry a non-blank city.
+ The cold list can be, 351 of 355.
+
+### Tests
+- Last verification 2026-08-17: browser density measurements on `/recitals` and `/contentday` at
+ 390x844 and 1440x900, screenshots read, `npx tsc --noEmit` clean.
+- Unsubscribe path proven end to end against production: token minted, link opened, page confirmed,
+ suppression row written, token consumed. Re-checked 2026-08-26, `/u/<token>` still returns 200.
+- Untested since: everything in the `e0d4723` wip commit.
+
+### Next steps, priority order
+1. **Daniel reads and edits the six email drafts, then sends the first cold tranche.** Copy is in
+  `docs/campaigns/recital-email-sequence.md` and `contentday-email-sequence.md`. Tranche 01 is
+  minted at `/mnt/firmament/StreamStageCampaigns/cold-tranche-01.csv`.
+2. Queue rotation week 1 on the social accounts. Both rotations are 8 of 8 slots with files.
+3. Decide what "local" means, or backfill client cities so the client and warm segments can be
+  filtered.
+4. Whoever owns the booth show build: compile and test what landed in `e0d4723`, and clear the
+  stray newline file.
+
+### Gotchas for next session
+- **Never open an unsubscribe URL from a tranche CSV to test it. Opening it IS the unsubscribe.**
+ That happened on 2026-08-17 and suppressed `info@danceshala.com`, a real lead. The row was deleted
+ and a fresh token minted. The warning is in the script header.
+- Never post the five `example-*.mp4` clips. They are other accounts' posts.
+- `promo-kmsd-full` opens on a countdown and a title card reading June 6th 2026. The cut in
+ `contentday/cuts/` starts at 11.5s for that reason.
+- The StudioSage explainer has exactly one narrated master, md5 `b711a683`, from 2026-08-07. The
+ Aug 18 re-renders are silent. If a newer narrated master exists it is on FIRMAMENT, not here.
+- Broker queue rows in this repo's window are not this session's. Verified 2026-08-24: zero rows
+ carry a StreamStage `origin_session`. A message about pinned uvalux GPUs was addressed to sysadmin
+ and landed here.
+- Deploys are gated. Pushing `main` deploys, and that has been used deliberately.
+
+### Files touched this session
+`CURRENT_WORK.md`, plus the 39 files in `e0d4723` which came from the 2026-08-20 booth session, not
+from here. Campaign files from 2026-08-17 are already committed in `3cf3a5e` and `be091b1`.
+
+---
+
 ## 2026-08-17 18:20 ET — campaign is sendable. Copy written, both rotations complete, all deployed.
 
 Daniel's five decisions, applied everywhere: keep the revenue reframe and never explain the
