@@ -30,8 +30,11 @@ android {
         // so the two are tellable apart on the device rather than by guessing at a build time.
         // 4 is the launch-picker build: the app asks DECK or KIOSK before it connects to anything,
         // and no LAN sweep starts unless the operator presses a button that says it will.
-        versionCode = 4
-        versionName = "2.1.0"
+        // 5 puts the things Daniel had to ask for by curl on the console as buttons: the six-up /
+        // film-cards attract toggle, and the booth tablet's three rescue commands plus a line
+        // saying whether that tablet has reported in at all.
+        versionCode = 8
+        versionName = "2.3.0"
     }
 
     // Diag prints the running version on screen and into every shipped log line, so a report

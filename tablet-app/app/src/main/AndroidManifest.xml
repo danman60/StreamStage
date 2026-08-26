@@ -15,6 +15,10 @@
     <!-- Screen stays on all show day. FLAG_KEEP_SCREEN_ON is set in code; this covers
          the tablet's own idle timer while a film is on the takeover. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- ACCESS_WIFI_STATE: for the WifiLock that keeps the radio associated through
+         sleep. Without it the tablet wakes with no network and used to abandon a
+         working kiosk (see MainActivity.resumedAt). Grants no new data access. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <!-- A phone will install this fine for bench testing; a tablet is what it is for. -->
     <uses-feature android:name="android.hardware.touchscreen" android:required="true" />

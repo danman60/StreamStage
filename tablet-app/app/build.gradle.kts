@@ -14,8 +14,8 @@ android {
         // instruction — so nothing here is holding minSdk up for lock task.)
         minSdk = 24
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.2.0"
     }
 
     // Diag reports the running version on screen and in every shipped log line, so that a

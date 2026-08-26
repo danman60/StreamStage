@@ -74,8 +74,8 @@ Room". Nothing further to chase, and no no-show exposure.
   wifi. Being in the building means you can test it Monday evening after setup rather than
   discovering it at 09:15.
 - **Thursday's departure is much simpler** — the Westin is on the airport grounds, so the 11:15
-  flight no longer needs a cab window. Still check out early; standard check-out will be around
-  11:00–12:00 and you want to be through security before then.
+  flight no longer needs a cab window. Daniel's call 2026-08-10: **no early check-out needed**, do
+  not arrange one.
 
 ---
 
@@ -87,11 +87,19 @@ Organiser: DNYC Events · `calgaryexpo@dnyc-events.com`
 | Day | What | Time |
 |---|---|---|
 | **Mon Aug 10** | Exhibitor setup | **4:00 pm – 8:00 pm** |
-| **Tue Aug 11** | Expo hall | 9:00 am – 5:30 pm |
+| **Tue Aug 11** | Expo hall | **9:00 am – 6:00 pm** |
 | | Cocktails & Costumes fashion show | 5:30 pm |
-| **Wed Aug 12** | Expo hall | 9:00 am – 6:00 pm |
+| **Wed Aug 12** | Expo hall | **9:00 am – 5:30 pm** |
 | | Exhibitor prize giveaway | 5:00 pm (draw at close, 5:30) |
 | **Thu Aug 13** | — travel day — | |
+
+> **Hall hours corrected 2026-08-10.** This table previously had Tue and Wed reversed (Tue 5:30,
+> Wed 6:00). Two independent primary sources agree on the version above: the organiser's
+> **"UPDATED EXHIBITOR INFO"** email of Aug 9 2026 18:25 PDT (msg `19fe945fabe43bea`) and the live
+> event site session cards (`Expo Hall Aug 11 09:00 AM to 06:00 PM MDT`, `Aug 12 09:00 AM to
+> 05:30 PM MDT`), both read 2026-08-10. The Vendor Packet V3 (dated 06/26/2026) prints 9:00–6:00
+> for both days and is stamped "schedule subject to change", so it is the stale one.
+> **Wednesday now closes at 5:30, not 6:00.**
 
 Land 11:20 Mon, hotel check-in 3:00 pm, setup 4:00–8:00 pm. That sequence works with room to spare.
 
@@ -100,7 +108,30 @@ Land 11:20 Mon, hotel check-in 3:00 pm, setup 4:00–8:00 pm. That sequence work
   appointment schedule, session times, floor info, and **badge scanning for lead capture**.
 - **Private appointment schedule** — attendees book slots through the platform. Worth reviewing
   before you fly; there may already be meetings on it.
-- **Exhibitor Packet** — organiser recommends downloading and printing the latest copy.
+- **Exhibitor Packet** — ✅ **retrieved 2026-08-10.** Latest is `2026 CDTE Vendor Packet V3.pdf`
+  (8 pages, dated 06/26/2026), saved to
+  `expo-assets/calgary-2026-08-10/2026-CDTE-Vendor-Packet-V3.pdf`. Nothing left to download.
+- **Badge pickup** — at the Calgary Dance Teacher Expo **Registration Desk** on arrival. Each
+  exhibitor picks up their own badge.
+- ⚠ **All booth staff must be added to the booth by the booth owner BEFORE the event.** Anyone not
+  added gets no badge and is not permitted into the expo hall. Only matters if anyone besides
+  Daniel is working the booth.
+- **Vendor liaison:** Renée Stojek, `renee@dancenewyorkcity.com`, **732-880-0278**.
+
+### From the packet (V3), things that change on-site decisions
+- **Complimentary airport shuttle**, Westin is under 10 minutes from YYC. Shuttle line for
+  today's landing: **403-452-5406**. Free on-site parking too.
+- **Booth prize draw is mandatory for every exhibitor.** Daniel collects the entries and runs the
+  draw himself. **Entrants must be present to win**, and the winner's name goes to the organiser
+  **before 4:00 pm Wed Aug 12** so it can be announced on the main stage.
+- **Booth inclusions depend on the tier purchased** and the tier is not recorded here, so do not
+  assume what shows up at the booth. Table (C$500, 6x6) = 6ft table, 2 chairs, wastebasket, wifi.
+  Mini (C$1150, 8x8), Single (C$1400, 8x10) and Double (C$2650, 8x20) add pipe & drape; Double is
+  2 tables and 4 chairs. **UNVERIFIED: which tier this booth is.**
+- **Electricity is not included and the order deadline has passed** (C$200 by Jul 1, C$300 after).
+  If the booth needs power, it is an on-site ask to **Global Convention Services, 587-324-4821,
+  `ahobmaier@globalconvention.ca`**, who also handle all furnishing rentals. Rental/service order
+  deadline was Jul 22.
 
 ---
 
@@ -141,9 +172,9 @@ CommandCentered with a due date, so it surfaces without anyone re-reading this f
 | 1 | **Booth prize, $100+ value** — physical item or gift certificate. Winner's name to the organiser by **4:00 pm Wed Aug 12** | "Complete Your Calgary Exhibitor Prize Giveaway Form", Jul 27 | **OPEN.** No completed-form confirmation in the mailbox, and Daniel has not said what the prize is. CC todo due Aug 9 |
 | 2 | **DNYC Events app** — install, sign in with the registered exhibitor email | EXHIBITOR INFO, Jul 21 | **OPEN.** Carries the private appointment schedule, so check whether attendees have already booked slots. CC todo due Aug 9 |
 | 3 | Free conference shirt request | "Request a FREE Conference Shirt", Jul 8 | **OPEN, low stakes.** Unclear whether claimed. CC todo due Aug 9 |
-| 4 | Thursday check-out vs the 11:15 flight | above | **OPEN.** Westin is on airport grounds so no cab window, but standard check-out is ~11:00–12:00. Arrange early check-out at the desk on arrival. CC todo due Aug 12 |
+| 4 | ~~Thursday check-out vs the 11:15 flight~~ | above | ✅ **CLOSED 2026-08-10 by Daniel: "We don't need early checking."** Not being arranged. Westin is on airport grounds, standard check-out stands |
 | 5 | ~~Written cancellation from Hotel Clique (conf 220855)~~ | changed 2026-08-05 | ✅ **CLOSED 2026-08-06.** The confirmation exists, see the hotel section above. No money at risk |
-| 6 | **Exhibitor Packet** — download and print the latest copy | EXHIBITOR INFO, Jul 21 | **OPEN.** Do it before flying, printing in a hotel is a nuisance. CC todo due Aug 9 |
+| 6 | ~~**Exhibitor Packet** — download the latest copy~~ | EXHIBITOR INFO, Jul 21 | ✅ **CLOSED 2026-08-10.** V3 pulled from the organiser's Zoho link and saved to `calgary-2026-08-10/2026-CDTE-Vendor-Packet-V3.pdf`. Printing is moot now that he has flown; contents summarised in the Expo section above |
 
 ---
 

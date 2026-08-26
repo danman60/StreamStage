@@ -1,0 +1,11 @@
+{
+  "state": "running",
+  "turns": 1,
+  "tool_calls": 0,
+  "errors": 0,
+  "files_changed": [],
+  "elapsed": "0s",
+  "updated": "11:31:27",
+  "provider_history": [],
+  "provider_switched": false
+}

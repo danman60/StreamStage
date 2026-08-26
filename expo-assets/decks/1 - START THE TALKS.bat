@@ -58,12 +58,26 @@ echo.
 echo   arrows / space = next        number + Enter = jump to a slide
 echo   SHIFT+P = presenter notes    (the room can see them - mind the projector)
 echo.
-echo   PHONE REMOTE
-echo     same wifi ...... http://192.168.0.11:8090/remote
-echo     any network .... http://100.90.103.121:8090/remote     (Tailscale)
+echo   PHONE REMOTE - open one of these in Chrome on the phone
 echo.
-echo   If the phone cannot see this laptop on venue or hotel wifi, that is
-echo   client isolation - put this laptop on your phone hotspot, or use the
-echo   Tailscale address above.
+REM  NEVER hardcode a LAN address here. This laptop's IP changes with every
+REM  network it joins - it was 192.168.0.13, then .11, and on hotel wifi it is
+REM  a 172.x. So the launcher READS the live addresses every time it runs.
+REM  The 100.x Tailscale address is the one that does not move; it works on any
+REM  network, including cellular, as long as both ends have internet.
+for /f "tokens=2 delims=:" %%A in ('ipconfig ^| findstr /i "IPv4"') do (
+  for /f "tokens=* delims= " %%B in ("%%A") do (
+    echo      http://%%B:8090/remote
+  )
+)
+echo.
+echo   The 100.x one above is Tailscale - use it on hotel or venue wifi.
+echo   The other is this laptop on the local network - faster, needs no
+echo   internet, but only works if the phone is on the SAME network and that
+echo   network allows devices to see each other.
+echo.
+echo   Phone cannot see this laptop at all? That is client isolation, which
+echo   most hotel and venue wifi has switched on. Put this laptop on your
+echo   phone hotspot, or use the Tailscale address.
 echo.
 pause

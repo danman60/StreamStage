@@ -67,18 +67,34 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
     /** Dropped after a drag — the new order, already saved locally, ready to publish. */
     var onReorder: ((List<KioskBus.Film>) -> Unit)? = null
 
+    /** Which attract loop to run between films — [KioskBus.ATTRACT_MENU] or ATTRACT_CARDS. */
+    var onAttract: ((String) -> Unit)? = null
+
+    /** Repeat the film on screen instead of advancing. True = start repeating. */
+    var onLoop: ((Boolean) -> Unit)? = null
+
+    /** A rescue command for the booth tablet — one of [TabletLink]'s CMD_ constants. */
+    var onTabletCmd: ((String) -> Unit)? = null
+
     private val tvLine = TextView(ctx)
     private val posBar = View(ctx)
     private val posWrap = LinearLayout(ctx)
     private val playBtn = transport(ctx, "▶  Play")
     private val pauseBtn = transport(ctx, "❚❚  Pause")
     private val stopBtn = transport(ctx, "■  Stop")
+    private val loopBtn = transport(ctx, "↻  Loop film")
+    private val sixUpBtn = transport(ctx, "▦  Six-up")
+    private val cardsBtn = transport(ctx, "▤  Films")
+    private val attractNote = TextView(ctx)
     private val featureBtn = Button(ctx)
     private val hint = TextView(ctx)
     private val note = TextView(ctx)
     private val list = RecyclerView(ctx)
     private val empty = TextView(ctx)
     private val adapter = FilmAdapter()
+
+    private val tabletLine = TextView(ctx)
+    private val tabletMsg = TextView(ctx)
 
     private val ui = Handler(Looper.getMainLooper())
     private val polling = AtomicBoolean(false)
@@ -150,6 +166,41 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
         transport.addView(stopBtn, weighted())
         addView(transport, wide())
 
+        // ------------------------------------------- 2b. the attract loop
+        // Same row idiom as the transport above it, because it is the same kind of control: what
+        // the big screen is doing right now, one thumb, no confirmation. The two buttons are
+        // EXPLICIT ("run six-up" / "run cards") rather than one toggle — see KioskBus.attract for
+        // why a toggle races a 2-second poll.
+        val attractRow = LinearLayout(ctx).apply {
+            orientation = HORIZONTAL
+            setPadding(dp(10), dp(4), dp(10), dp(2))
+        }
+        sixUpBtn.setOnClickListener { onAttract?.invoke(KioskBus.ATTRACT_MENU) }
+        cardsBtn.setOnClickListener { onAttract?.invoke(KioskBus.ATTRACT_CARDS) }
+        attractRow.addView(sixUpBtn, weighted())
+        attractRow.addView(cardsBtn, weighted())
+        addView(attractRow, wide())
+
+        // Repeat-one. Its own row rather than a third button on the attract row, because it is a
+        // different question: that row is "what runs BETWEEN films", this is "what happens when
+        // the film on screen ENDS". Explicit value, not a bare toggle — same 2-second-poll race
+        // that KioskBus.attract explains.
+        val loopRow = LinearLayout(ctx).apply {
+            orientation = HORIZONTAL
+            setPadding(dp(10), dp(2), dp(10), dp(2))
+        }
+        loopBtn.setOnClickListener { onLoop?.invoke(tv?.loopOne != true) }
+        loopRow.addView(loopBtn, weighted())
+        addView(loopRow, wide())
+
+        attractNote.apply {
+            setTextColor(DIM)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
+            setPadding(dp(16), dp(2), dp(16), dp(4))
+            text = "Between films: the six-up reel, or the film cards."
+        }
+        addView(attractNote, wide())
+
         // --------------------------------------------- 3. the StreamStage film
         featureBtn.apply {
             isAllCaps = false
@@ -186,7 +237,21 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
         list.adapter = adapter
         list.setPadding(dp(10), 0, dp(10), dp(10))
         list.clipToPadding = false
-        addView(list, LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+        // Height 0 + weight 1 gives this the LEFTOVER space — and on 2026-08-11 at the Calgary
+        // booth there was none left, so the operator's whole film list rendered at zero pixels.
+        // The tablet section added below is taller than the slack the panel had; the list did not
+        // disappear, it was laid out 0px high while holding all seven films. A console that cannot
+        // show the films is the one thing this panel exists to do, so it now gets a floor it keeps
+        // no matter what else is added underneath, and still takes any spare space above that.
+        // NO WEIGHT. Weight does not mean "get at least this" — it means "absorb the leftover",
+        // and when a LinearLayout's children overrun it the leftover is NEGATIVE, so the single
+        // weighted child eats the whole deficit and lays out at 0px. That is what happened at the
+        // Calgary booth on 2026-08-11: the panel held all seven films and drew none of them,
+        // because the tablet section below pushed the column past the screen. A fixed height
+        // cannot be taken away, and the list scrolls internally, so seven films or seventy both
+        // fit. Anything that must be reachable below this belongs above it or in the scroller.
+        list.minimumHeight = dp(300)
+        addView(list, LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(300)))
 
         // THE STANDARD ANSWER, not an invented gesture system. The helper is kept so the ⠿ handle
         // can start a drag on touch-down — see FilmVH.
@@ -204,7 +269,42 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
 
         addView(secondary("Refresh the film list") { onRefresh?.invoke() }, wide(dp(4), dp(16)))
 
+        // ------------------------------------------------- 5. the booth tablet
+        // The Fire tablet has no adb and cannot be dialled into. Everything here is a note left
+        // on the kiosk for the tablet to pick up on its own next poll — see TabletLink. Nothing
+        // in this section scans the network; it only ever talks to the kiosk already connected.
+        tabletLine.apply {
+            setTextColor(DIM)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+            typeface = Typeface.MONOSPACE
+            setBackgroundColor(PANEL)
+            setPadding(dp(16), dp(10), dp(16), dp(10))
+            text = "tablet: not checked yet"
+        }
+        addView(tabletLine, wide(dp(12), 0))
+
+        val tabletRow = LinearLayout(ctx).apply {
+            orientation = HORIZONTAL
+            setPadding(dp(10), dp(6), dp(10), dp(2))
+        }
+        tabletRow.addView(
+            secondary("Point here", 13f) { onTabletCmd?.invoke(TabletLink.CMD_SETHOST) }, weighted())
+        tabletRow.addView(
+            secondary("Reload", 13f) { onTabletCmd?.invoke(TabletLink.CMD_RELOAD) }, weighted())
+        tabletRow.addView(
+            secondary("Re-discover", 13f) { onTabletCmd?.invoke(TabletLink.CMD_REDISCOVER) }, weighted())
+        addView(tabletRow, wide())
+
+        tabletMsg.apply {
+            setTextColor(Color.parseColor("#6C7488"))
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
+            setPadding(dp(16), dp(4), dp(16), dp(14))
+            text = TABLET_LAG_NOTE
+        }
+        addView(tabletMsg, wide())
+
         renderTransport()
+        renderAttract()
     }
 
     // ------------------------------------------------------------------- data
@@ -265,6 +365,9 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
         ui.removeCallbacks(poller)
     }
 
+    /** Ticks of [poller]. The tablet check rides this rather than a second timer of its own. */
+    private var tick = 0
+
     private val poller = object : Runnable {
         override fun run() {
             if (!polling.get()) return
@@ -276,8 +379,20 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
                         val s = KioskBus.tvState(h)
                         ui.post { if (polling.get()) render(s) }
                     }
+                    // THE TABLET CHECK IS ON ITS OWN, MUCH SLOWER CADENCE — every
+                    // [TABLET_EVERY] ticks. It reads /applog, which is a bigger reply than
+                    // /state, and "has the tablet reported in the last twenty minutes" does not
+                    // change between two-second polls. It is also on the TELEMETRY port, so it
+                    // never spends the page port's connection budget.
+                    if (tick % TABLET_EVERY == 0) {
+                        pool.execute {
+                            val r = TabletLink.lastSeen(h)
+                            ui.post { if (polling.get()) renderTablet(r) }
+                        }
+                    }
                 } catch (_: Throwable) { /* pool shutting down */ }
             }
+            tick++
             ui.postDelayed(this, KioskBus.STATE_POLL_MS)
         }
     }
@@ -309,6 +424,112 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
         adapter.markPlaying(if (!stale && s.isPlaying) s.product else null)
         setProgress(if (stale) 0f else s.progress)
         renderTransport()
+        renderAttract()
+    }
+
+    /**
+     * THE ATTRACT TOGGLE, AND THE ONE HONEST REFUSAL ON IT.
+     *
+     * The buttons stay LIVE whenever the console is up, deliberately: the only reason to grey out
+     * a control he asked for is a reason worth saying out loud, and "the poll has not come back
+     * yet" is not one. There is exactly one such reason here — `menuLoop:false` means the screen
+     * has no six-up reel on it (no menu-loop.mp4), and it refuses `menu` on its own side and logs
+     * why. A button that is accepted 200 and then dropped is the failure mode this avoids.
+     *
+     * `menuLoop:null` is NOT that case. It means the screen has not said — an older TV, or the
+     * retained state gone stale and stripped by serve.py — so the button stays available and the
+     * note says the state is unknown rather than inventing one.
+     */
+    private fun renderAttract() {
+        val s = tv
+        val mode = s?.attract
+        val loop = s?.menuLoop
+
+        paintToggle(sixUpBtn, mode == KioskBus.ATTRACT_MENU)
+        paintToggle(cardsBtn, mode == KioskBus.ATTRACT_CARDS)
+
+        // Repeat-one. Null means the screen has not said, which is drawn as its own state — the
+        // button stays pressable (an older screen simply ignores the verb) but is not lit as if
+        // repeating were already on.
+        val looping = s?.loopOne
+        paintToggle(loopBtn, looping == true)
+        loopBtn.text = if (looping == true) "↻  Looping this film" else "↻  Loop film"
+
+        val canSixUp = loop != false
+        sixUpBtn.isEnabled = canSixUp
+        sixUpBtn.alpha = if (canSixUp) 1f else 0.4f
+
+        attractNote.text = when {
+            loop == false ->
+                "Six-up is off: this screen has no six-up reel (menu-loop.mp4 is not on it), " +
+                    "so it would refuse the command. Film cards is all it can run."
+            mode == KioskBus.ATTRACT_MENU -> "Between films: the six-up reel is running."
+            looping == true ->
+                "This film repeats instead of handing over — the attract loop is paused behind it."
+            mode == KioskBus.ATTRACT_CARDS -> "Between films: the film cards are running."
+            else -> "Between films: the screen has not said which loop it is on."
+        }
+        attractNote.setTextColor(if (loop == false) WARN else DIM)
+    }
+
+    /** Selected = the loop the screen says it is actually on, painted like a playing row. */
+    private fun paintToggle(b: Button, on: Boolean) {
+        b.setBackgroundColor(if (on) ROW_ON else Color.parseColor("#1F2430"))
+        b.setTypeface(b.typeface, if (on) Typeface.BOLD else Typeface.NORMAL)
+    }
+
+    // ------------------------------------------------------------- the tablet
+
+    /**
+     * Has the booth tablet reported in, and how long ago.
+     *
+     * null means THE CHECK FAILED, which is not the same as the tablet being quiet, and is not
+     * drawn as if it were. `report.seen == false` means the kiosk was asked and had nothing from
+     * a `tabletapp` surface in the window — this phone's own log lines are in that same file and
+     * are filtered out in [TabletLink.lastSeen], because counting them is exactly how a phone
+     * gets reported back as "the tablet is connected".
+     */
+    fun renderTablet(report: TabletLink.Report?) {
+        val mins = TabletLink.WINDOW_MS / 60_000
+        when {
+            report == null -> {
+                tabletLine.text = "tablet: could not read the kiosk's /applog"
+                tabletLine.setTextColor(WARN)
+            }
+            !report.seen -> {
+                tabletLine.text = "tablet: no report in ${mins}m — nothing from it on this kiosk"
+                tabletLine.setTextColor(WARN)
+            }
+            else -> {
+                val sb = StringBuilder("tablet: last seen ${age(report.ageMs)} ago")
+                report.host?.let { sb.append("\npointing at $it") }
+                report.state?.let { sb.append(if (report.host == null) "\n" else " · ").append(it) }
+                tabletLine.text = sb
+                tabletLine.setTextColor(if (report.ageMs > FRESH_MS) WARN else FG)
+            }
+        }
+    }
+
+    /** The confirmation line under the rescue buttons. Warnings in amber, everything else dim. */
+    fun showTabletMsg(text: String, warn: Boolean = false) {
+        tabletMsg.text = text
+        tabletMsg.setTextColor(if (warn) WARN else Color.parseColor("#9BA3B4"))
+        ui.removeCallbacks(resetTabletMsg)
+        ui.postDelayed(resetTabletMsg, TABLET_MSG_MS)
+    }
+
+    private val resetTabletMsg = Runnable {
+        tabletMsg.text = TABLET_LAG_NOTE
+        tabletMsg.setTextColor(Color.parseColor("#6C7488"))
+    }
+
+    private fun age(ms: Long): String {
+        val s = ms / 1000
+        return when {
+            s < 5 -> "just now"
+            s < 90 -> "${s}s"
+            else -> "${s / 60}m"
+        }
     }
 
     private fun setProgress(fraction: Float) {
@@ -542,10 +763,10 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
         minimumHeight = dp(60)
     }
 
-    private fun secondary(label: String, onClick: () -> Unit) = Button(context).apply {
+    private fun secondary(label: String, size: Float = 15f, onClick: () -> Unit) = Button(context).apply {
         text = label
         isAllCaps = false
-        setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, size)
         setTextColor(Color.parseColor("#C7CEDB"))
         setBackgroundColor(Color.parseColor("#1A1E27"))
         minimumHeight = dp(48)
@@ -585,5 +806,28 @@ class FilmPanel(ctx: Context) : LinearLayout(ctx) {
          * first; this only exists so a lost callback can never leave a booth control dead.
          */
         private const val SEND_RELEASE_MS = 4_000L
+
+        /**
+         * How many [KioskBus.STATE_POLL_MS] ticks between tablet checks. 8 x 2s = every 16s,
+         * against a tablet that ships its log every 10s — so a tablet that has just gone quiet
+         * shows up within about half a minute, and a tablet that is fine costs one small request
+         * on the telemetry port a quarter of a minute.
+         */
+        private const val TABLET_EVERY = 8
+
+        /** Past this, the tablet's last line is old enough to say so in amber. It ships every 10s. */
+        private const val FRESH_MS = 60_000L
+
+        /** How long a confirmation sits before the standing note comes back. */
+        private const val TABLET_MSG_MS = 12_000L
+
+        /**
+         * THE HONEST LAG. The tablet is not being told anything — a command is left on the kiosk
+         * and the tablet finds it on its next poll, which is every 8 s (tablet
+         * RemoteControl.pollMs). Saying so on screen is the difference between "it takes a
+         * moment" and pressing the button four more times.
+         */
+        const val TABLET_LAG_NOTE =
+            "No adb on the tablet: a command waits on the kiosk until it polls, up to ~8s."
     }
 }

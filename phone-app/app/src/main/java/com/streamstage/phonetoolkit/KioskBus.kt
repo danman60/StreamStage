@@ -114,7 +114,27 @@ object KioskBus {
          * OPTIONAL: a TV that has not shipped it yet simply reports false, and the console
          * degrades to exactly today's behaviour rather than showing a wrong state.
          */
-        val paused: Boolean = false
+        val paused: Boolean = false,
+        /**
+         * WHICH ATTRACT LOOP IS RUNNING — "cards" or "menu" — and whether the menu reel exists on
+         * that screen at all. Published by tv.html:1805 and by the stick (BoothBus.tvMessage).
+         *
+         * **BOTH ARE NULLABLE AND THAT IS THE POINT.** serve.py strips the live fields off the
+         * retained `tv` object once it is 5 s stale (serve.py:1030), and an older screen never
+         * sent them. Null therefore means "this screen has not said", which is a different thing
+         * from "cards" and from "no reel", and the console draws it as its own third state rather
+         * than guessing a default and lighting up the wrong button.
+         */
+        val attract: String? = null,
+        val menuLoop: Boolean? = null,
+        /**
+         * Is the film on screen repeating instead of handing over to the next one?
+         *
+         * Nullable for the same reason as [attract]: a screen that has not shipped the verb never
+         * says, and "has not said" must not be drawn as "off" — that would light the button as if
+         * pressing it would do something.
+         */
+        val loopOne: Boolean? = null
     ) {
         val isPlaying: Boolean get() = state == "playing"
 
@@ -185,7 +205,12 @@ object KioskBus {
                 muted = tv.optBoolean("muted", true),
                 warm = tv.optInt("warm", 0),
                 atMs = tv.optLong("at", 0),
-                paused = tv.optBoolean("paused", false)
+                paused = tv.optBoolean("paused", false),
+                // has() rather than opt-with-a-default: a missing field must stay null. See the
+                // note on TvState.attract for why a default here would draw a wrong button.
+                attract = tv.optString("attract").takeIf { tv.has("attract") && it.isNotBlank() },
+                loopOne = if (tv.has("loopOne")) tv.optBoolean("loopOne") else null,
+                menuLoop = if (tv.has("menuLoop")) tv.optBoolean("menuLoop", false) else null
             )
         } catch (_: Throwable) {
             null
@@ -262,6 +287,46 @@ object KioskBus {
 
     /** Ask the TV to re-announce itself, so the strip is right immediately after a reconnect. */
     fun ping(h: ServerHost): Boolean = send(h, "ping")
+
+    /** The six-up reel of live film thumbnails. Only exists where menu-loop.mp4 does. */
+    const val ATTRACT_MENU = "menu"
+
+    /** The film cards — the loop the booth has always run between films. */
+    const val ATTRACT_CARDS = "cards"
+
+    /**
+     * Choose WHICH attract loop runs between films: the six-up reel, or the film cards.
+     *
+     * OPERATOR-GATED, IN TWO PLACES, AND [send] IS WHAT GETS PAST BOTH. `attract` is in serve.py's
+     * OPERATOR_ONLY_CMDS (serve.py:189) and in the stick's own copy of that set
+     * (BoothBus:496): a message without `src:"phone"` is refused 403 by the relay and never
+     * published, so a visitor on the booth tablet cannot change what the big screen shows between
+     * films. Every message this object sends carries that stamp — which is precisely why the
+     * stamp lives in [send] and not at each call site.
+     *
+     * `mode` is ALWAYS sent explicitly. Both screens treat an absent mode as a toggle (tv.html
+     * setAttractMode, BoothLoopActivity.setAttractMode), and a toggle races a console that sees
+     * the TV on a 2-second poll — two presses against a stale view invert it. Same reasoning as
+     * pause/resume being separate verbs rather than one toggle.
+     *
+     * A `200` means the RELAY took it. If the screen has no six-up reel it refuses `menu` on its
+     * own side and logs why — so the console disables that button up front rather than letting
+     * him press a control that is accepted and then quietly dropped. See [TvState.menuLoop].
+     */
+    fun attract(h: ServerHost, mode: String): Boolean =
+        send(h, "attract") { it.put("mode", mode) }
+
+    /**
+     * Repeat the film on screen instead of advancing to the next one.
+     *
+     * `on` is ALWAYS sent explicitly, for the reason spelled out on [attract]: the screen accepts
+     * a bare toggle, but a toggle raced against a 2-second poll inverts on a double press. The
+     * console knows what it wants, so it says it.
+     *
+     * Operator-gated like attract, so it goes out through [send] with the `phone` stamp.
+     */
+    fun loop(h: ServerHost, on: Boolean): Boolean =
+        send(h, "loop") { it.put("on", on) }
 
     /**
      * MUTE IS NOT AVAILABLE OVER THE BUS, and this app will not pretend otherwise.

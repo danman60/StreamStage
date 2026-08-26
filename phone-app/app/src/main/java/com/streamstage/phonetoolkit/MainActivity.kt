@@ -564,6 +564,85 @@ class MainActivity : Activity() {
         onRefresh = { refreshFilms() }
 
         /**
+         * WHICH ATTRACT LOOP RUNS BETWEEN FILMS. No gate on the click path: `attract` carries an
+         * explicit mode and both screens no-op when it already matches, so it is idempotent and a
+         * double tap cannot invert it — unlike `play`, which restarts the film.
+         */
+        onAttract = { m ->
+            val h = current
+            val what = if (m == KioskBus.ATTRACT_MENU) "the six-up reel" else "the film cards"
+            if (h == null) {
+                Diag.e("attract $m with no kiosk connected")
+                films.showSendFailed("attract -> $what")
+            } else {
+                Diag.i("TAP attract $m -> ${h.origin}/bus")
+                films.showSent(what)
+                io.execute {
+                    val ok = KioskBus.attract(h, m)
+                    if (!ok) ui.post { films.showSendFailed("attract -> $what") }
+                }
+            }
+        }
+
+        /**
+         * REPEAT-ONE. Same shape as attract above, and idempotent for the same reason: an
+         * explicit value, so a double tap against a 2-second-stale view cannot invert it.
+         */
+        onLoop = { on ->
+            val h = current
+            val what = if (on) "loop this film" else "stop looping"
+            if (h == null) {
+                Diag.e("loop $on with no kiosk connected")
+                films.showSendFailed(what)
+            } else {
+                Diag.i("TAP loop $on -> ${h.origin}/bus")
+                films.showSent(what)
+                io.execute {
+                    val ok = KioskBus.loop(h, on)
+                    if (!ok) ui.post { films.showSendFailed(what) }
+                }
+            }
+        }
+
+        /**
+         * THE TABLET RESCUE BUTTONS. Nothing here reaches the tablet — the command is left on the
+         * kiosk and the tablet picks it up on its own poll (see [TabletLink]). So the honest
+         * confirmation is "it is on the server", never "the tablet did it", and the ~8s wait is
+         * said on screen rather than discovered by pressing the button again.
+         */
+        onTabletCmd = { cmd ->
+            val h = current
+            val what = TabletLink.label(cmd, h)
+            when {
+                h == null -> films.showTabletMsg(
+                    "Not connected to a kiosk — the tablet is only reachable through one.", warn = true)
+                !h.mode.hasTelemetryPort -> films.showTabletMsg(
+                    "${h.mode.label} has no telemetry port — the tablet channel is kiosk-only.",
+                    warn = true)
+                else -> {
+                    Diag.i("TAP tablet '$cmd' -> ${h.host}:${h.telemetryPort}/log")
+                    films.showTabletMsg("sending: $what …")
+                    io.execute {
+                        val ok = when (cmd) {
+                            TabletLink.CMD_SETHOST -> TabletLink.setHost(h)
+                            TabletLink.CMD_RELOAD -> TabletLink.reload(h)
+                            TabletLink.CMD_REDISCOVER -> TabletLink.rediscover(h)
+                            else -> TabletLink.send(h, cmd, null)
+                        }
+                        ui.post {
+                            if (ok) films.showTabletMsg(
+                                "Left on the kiosk: $what. The tablet polls every ~8s — " +
+                                    "give it that long before pressing again.")
+                            else films.showTabletMsg(
+                                "COULD NOT SEND: $what — ${h.host}:${h.telemetryPort} did not accept it.",
+                                warn = true)
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
          * DROPPED ON THE TV. Fired once per drag gesture, on release — see FilmPanel.DragCallback
          * .clearView. The order is saved locally first so it survives a restart even if the laptop
          * is not reachable at that moment, then published as a `playlist` message

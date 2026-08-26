@@ -83,6 +83,24 @@ class MainActivity : Activity() {
      */
     private var healthMisses = 0
 
+    /** Held for the life of the activity so sleep cannot park the wifi chip. See onCreate. */
+    private var wifiLock: android.net.wifi.WifiManager.WifiLock? = null
+
+    /**
+     * When the screen last came back on. Measured at the booth 2026-08-11: the tablet was
+     * abandoning a perfectly good kiosk every time it slept.
+     *
+     * The old sequence: onResume probes IMMEDIATELY, wifi has not reassociated yet, so that is
+     * miss 1; the watchdog fires 15s later into the same dead radio, that is miss 2, and two
+     * misses means "the laptop has gone" -> startConnect(force=true) -> the whole 46-port walk
+     * and a 254-address sweep behind a full-screen overlay. The server never moved. The tablet
+     * simply asked during the seconds when it had no network.
+     *
+     * So: a failed probe only counts as a miss when this tablet actually HAS a network and is
+     * past the wake grace window. No network is not evidence about the laptop.
+     */
+    private var resumedAt = 0L
+
     /**
      * WebView fires onPageFinished for a main-frame URL even after onReceivedError has already
      * failed it, so without this the app marks a connection-refused error page as "loaded",
@@ -102,6 +120,23 @@ class MainActivity : Activity() {
         Diag.init(this)
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        // HOLD THE RADIO UP. FLAG_KEEP_SCREEN_ON only covers the foreground; the moment the
+        // tablet is slept by the power button, Fire OS parks the wifi chip and the association
+        // is gone. Waking then costs several seconds of no network — during which the health
+        // checks below used to conclude the laptop had vanished. A full high-perf wifi lock
+        // keeps the association through sleep, so most wakes have a live network immediately.
+        // The tablet is on a charger at the booth; battery is not the constraint.
+        try {
+            val wm = applicationContext.getSystemService(WIFI_SERVICE) as? android.net.wifi.WifiManager
+            wifiLock = wm?.createWifiLock(android.net.wifi.WifiManager.WIFI_MODE_FULL_HIGH_PERF,
+                                          "boothtablet:wifi")?.apply {
+                setReferenceCounted(false)
+                acquire()
+            }
+        } catch (e: Exception) {
+            Diag.w("could not hold a wifi lock: ${e.javaClass.simpleName}")
+        }
 
         root = FrameLayout(this).apply { setBackgroundColor(Color.parseColor("#0B0B0F")) }
         web = buildWebView()
@@ -544,6 +579,15 @@ class MainActivity : Activity() {
                         Diag.i("$reason: $h is answering but the page is not loaded — loading it")
                         loadKiosk(h)
                     }
+                } else if (!networkUp()) {
+                    // THIS TABLET has no network. That says nothing about the laptop, so it is
+                    // not a miss — counting it is what used to trigger a pointless full sweep
+                    // after every sleep. Keep the page and wait for the radio.
+                    Diag.w("$reason: no network on this tablet yet — not counting it against $h")
+                } else if (SystemClock.elapsedRealtime() - resumedAt < WAKE_GRACE_MS) {
+                    // Just woke. Wifi can report connected a beat before it can actually carry
+                    // traffic, so give it the grace window before believing a failure.
+                    Diag.w("$reason: within ${WAKE_GRACE_MS / 1000}s of waking — not counting it against $h")
                 } else if (++healthMisses >= 2) {
                     healthMisses = 0
                     Diag.w("$reason: $h missed 2 health checks, re-discovering")
@@ -577,7 +621,11 @@ class MainActivity : Activity() {
         // Straight after a wake, do not wait a whole watchdog cycle — but run the SAME check the
         // watchdog runs. This used to be its own one-miss-and-reload rule, which is why a power
         // button press over a half-typed lead form cost the lead.
-        healthCheck("WAKE")
+        resumedAt = SystemClock.elapsedRealtime()
+        // Was an immediate probe. On a tablet that has just woken that lands before the radio
+        // is back and the answer is meaningless, so wait a beat first — and the grace window
+        // above means even this one cannot condemn the laptop on its own.
+        ui.postDelayed({ healthCheck("WAKE") }, WAKE_PROBE_DELAY_MS)
         ui.removeCallbacks(watchdog)
         ui.postDelayed(watchdog, WATCHDOG_MS)
     }
@@ -596,8 +644,39 @@ class MainActivity : Activity() {
         remote.stop()
         DebugBridge.unregister(this)
         io.shutdownNow()
+        try {
+            wifiLock?.let { if (it.isHeld) it.release() }
+        } catch (e: Exception) {
+            Diag.w("releasing the wifi lock failed: ${e.javaClass.simpleName}")
+        }
         web.destroy()
         super.onDestroy()
+    }
+
+    /**
+     * Does THIS TABLET have a usable network right now?
+     *
+     * Used to decide whether a failed probe is evidence about the laptop or evidence about the
+     * tablet's own radio. Deliberately conservative: anything it cannot determine counts as
+     * "up", so an unknown state falls back to the old behaviour rather than wedging the app in
+     * a state where it never re-discovers a laptop that really did move.
+     */
+    private fun networkUp(): Boolean {
+        return try {
+            val cm = getSystemService(CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager
+                ?: return true
+            if (android.os.Build.VERSION.SDK_INT >= 23) {
+                val n = cm.activeNetwork ?: return false
+                val caps = cm.getNetworkCapabilities(n) ?: return false
+                caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) ||
+                    caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)
+            } else {
+                @Suppress("DEPRECATION")
+                cm.activeNetworkInfo?.isConnected == true
+            }
+        } catch (e: Exception) {
+            true
+        }
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -653,6 +732,17 @@ class MainActivity : Activity() {
 
     companion object {
         private const val WATCHDOG_MS = 15_000L
+
+        /** Let the radio come back before the first post-wake probe means anything. */
+        private const val WAKE_PROBE_DELAY_MS = 4_000L
+
+        /**
+         * How long after a wake a failed probe is treated as "this tablet is not ready" rather
+         * than "the laptop is gone". Fire tablets have been measured taking well over ten
+         * seconds to carry traffic again; two watchdog cycles is the safe side of that, and the
+         * cost of waiting is only that a genuinely-moved laptop is re-found a few seconds later.
+         */
+        private const val WAKE_GRACE_MS = 30_000L
         private const val CORNER_TAPS = 7
         private const val CORNER_WINDOW_MS = 6_000L
     }

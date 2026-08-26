@@ -96,6 +96,22 @@ object BoothBus {
         data class Mute(val on: Boolean) : Command()
         /** Toggle the on-screen diagnostic line. */
         object Hud : Command()
+        /**
+         * Which attract loop runs between films: the reel of films (`cards`, what this app has
+         * always done) or the six-up menu reel (`menu`).
+         *
+         * `mode` null means TOGGLE, matching `tv.html:setAttractMode` and mute/hud: the phone
+         * polls state on a 2 s cycle, so an explicit value cannot invert by accident, but a bare
+         * toggle is still accepted because the contract allows it.
+         */
+        data class Attract(val mode: String?) : Command()
+
+        /**
+         * Repeat the film on screen instead of advancing. `on` null means TOGGLE, the same
+         * contract as mute/hud/attract and for the same reason: the phone polls state, so an
+         * explicit value cannot invert by accident, but a bare toggle still works.
+         */
+        data class Loop(val on: Boolean?) : Command()
     }
 
     /** The `tv` message, built on the main thread and sent from the bus thread. */
@@ -107,7 +123,24 @@ object BoothBus {
         val muted: Boolean,
         val paused: Boolean,
         val order: List<String>,
-        val warm: Int
+        val warm: Int,
+        /**
+         * `cards` | `menu` — which attract loop is running, and whether the menu reel is even
+         * available on this screen. The browser TV has published both since the reel was added
+         * (tv.html:1805); the stick published neither, so `GET /state` answered `null` for them
+         * and the phone had no way to tell "this screen cannot do menu mode" from "nobody has
+         * asked it to yet".
+         */
+        val attract: String,
+        val menuLoop: Boolean,
+        /**
+         * True when the film on screen repeats instead of handing over to the next one.
+         *
+         * Asked for at the Calgary booth 2026-08-11: with a studio owner stood in front of the
+         * TV, the operator wants THIS film to keep playing while they talk over it, not to be
+         * three films along by the time they look up.
+         */
+        val loopOne: Boolean
     )
 
     interface Listener {
@@ -395,24 +428,41 @@ object BoothBus {
         }
     }
 
+    private fun handle(o: JSONObject) {
+        if (typeOf(o) == "ping") publishNow()          // "say what you are doing, now"
+        val cmd = screenCommand(o) ?: return
+        Log.i(TAG, "Bus command: ${typeOf(o)}")
+        main.post { runCatching { listener?.onBusCommand(cmd) } }
+    }
+
     /**
-     * Turn one bus message into something the booth screen can do.
+     * The verb a bus message is asking for.
+     *
+     * `{"type":"cmd","cmd":"pause"}` is an accepted alias for every command (BUS-CONTRACT §5.4).
+     */
+    fun typeOf(o: JSONObject): String = when (val t = o.optString("type", "")) {
+        "cmd" -> o.optString("cmd", "")
+        else -> t
+    }
+
+    /**
+     * Turn one bus message into something the booth screen can do, or null.
      *
      * Anything unrecognised is dropped in silence. A relay carrying a verb this build has never
      * heard of — the kiosk side adds them while shows are running — must be a no-op here, not a
      * crash and not a guess.
+     *
+     * Public because [BoothServer] needs the SAME answer this does. When the tablet POSTs to the
+     * stick's own `/bus` there is no `serve.py` in front of it, so the screen-level check below
+     * is the only one there is — and it must be the identical check, not a second copy of it.
      */
-    private fun handle(o: JSONObject) {
-        // `{"type":"cmd","cmd":"pause"}` is an accepted alias for every command (BUS-CONTRACT §5.4).
-        val type = when (val t = o.optString("type", "")) {
-            "cmd" -> o.optString("cmd", "")
-            else -> t
-        }
+    fun screenCommand(o: JSONObject): Command? {
+        val type = typeOf(o)
 
         // ---- the two roles, enforced here as well as at the relay ----
         if (type !in setOf("tv", "ping", "") && !allowed(type, o)) {
             Log.w(TAG, "Refusing '$type' — it did not come from the operator")
-            return
+            return null
         }
 
         val cmd: Command? = when (type) {
@@ -428,16 +478,71 @@ object BoothBus {
             "playlist" -> Command.Playlist(strings(o.optJSONArray("order")))
             "mute" -> Command.Mute(o.optBoolean("on", true))
             "hud" -> Command.Hud
+            // `serve.py:COMMANDS` line 138 — and note WHY it is listed there as well as in
+            // OPERATOR_ONLY_CMDS: a type the relay does not know is not a command at all, so it
+            // is never operator-checked, merely relayed. Same trap here in reverse: until this
+            // line existed, `{"type":"attract","mode":"menu"}` fell through to `else -> null`
+            // and was dropped in silence, which is why POSTing it returned ok and the booth TV
+            // did nothing.
+            "attract" -> Command.Attract(o.optString("mode", "").trim().lowercase().ifEmpty { null })
+            // `on` absent -> toggle. Accepts {"type":"loop"} and {"type":"loop","on":true}.
+            "loop" -> Command.Loop(if (o.has("on")) o.optBoolean("on") else null)
             // `fullscreen` is meaningless here — this app has no window chrome and no browser to
             // be outside of. Accepted and ignored on purpose, so the phone's button is not a
             // dead end that looks like a fault.
             "fullscreen" -> null
             else -> null
         }
-        if (type == "ping") publishNow()          // "say what you are doing, now"
-        if (cmd == null) return
-        Log.i(TAG, "Bus command: $type")
-        main.post { runCatching { listener?.onBusCommand(cmd) } }
+        return cmd
+    }
+
+    // ------------------------------------------------------------------ the relay's own rules
+
+    /**
+     * `serve.py:COMMANDS` (line 124). A type that is NOT in here is not a command at all — it is
+     * simply relayed, and is never operator-checked. That distinction is load-bearing and has
+     * already cost the booth once: `attract` was listed only as operator-only, `command_of()`
+     * returned None for it, and a visitor surface could change the attract loop and get a 200.
+     */
+    private val COMMANDS = setOf(
+        "play", "playfilm", "pause", "resume", "stop", "playlist", "ping",
+        "mute", "fullscreen", "hud", "attract", "loop"
+    )
+
+    /** `serve.py:OPERATOR_ONLY_CMDS` (line 189). `stop` is deliberately NOT here. */
+    private val OPERATOR_ONLY_CMDS = setOf("mute", "fullscreen", "hud", "pause", "resume", "attract", "loop")
+
+    /**
+     * WHY A COMMAND MUST NOT BE PUBLISHED, or null to let it through.
+     *
+     * This is `serve.py:refuse_reason`, and it exists here because when the tablet talks to the
+     * stick directly there is no `serve.py` in front of the bus any more — this app is the relay
+     * as well as the screen, and the relay's refusal has to survive the move. The two layers stay
+     * separate on purpose, exactly as they are today: this one decides what is PUBLISHED (so no
+     * screen ever sees it), [screenCommand] decides what this screen OBEYS.
+     *
+     * A type this build does not know is relayed untouched, deliberately: the kiosk side adds
+     * verbs while shows are running, and a stick that 403s something DART would have relayed is
+     * a booth that behaves differently depending on which server the tablet happened to find.
+     */
+    fun relayRefusal(o: JSONObject): String? {
+        val cmd = typeOf(o).takeIf { it in COMMANDS } ?: return null
+        if (isOperator(o)) return null
+        return when {
+            cmd == "play" || cmd == "playfilm" ->
+                film(o)?.lowercase()?.takeIf { it in OPERATOR_ONLY_FILMS }
+                    ?.let { "operator-only film: $it" }
+            cmd == "playlist" -> {
+                // The attract order is an operator control outright, not merely one that must
+                // not name the operator-only film — naming that film in an order is the one way
+                // a visitor surface could put it on the screen without ever sending a play.
+                val bad = strings(o.optJSONArray("order")).filter { it.lowercase() in OPERATOR_ONLY_FILMS }
+                if (bad.isNotEmpty()) "operator-only film in playlist: ${bad.joinToString(", ")}"
+                else "playlist is an operator control"
+            }
+            cmd in OPERATOR_ONLY_CMDS -> "$cmd is an operator control"
+            else -> null
+        }
     }
 
     /**
@@ -473,7 +578,10 @@ object BoothBus {
             // any business doing. `pause`/`resume` moved here 2026-08-07: a visitor-origin pause
             // was accepted and held the booth TV on a single frame with nothing on any visitor
             // surface able to release it.
-            "playlist", "mute", "fullscreen", "hud", "pause", "resume" -> false
+            // `attract` joined them 2026-08-11 for the reason `serve.py:189` gives: which attract
+            // loop runs is what the booth shows between films, and a visitor surface must not be
+            // able to change it.
+            "playlist", "mute", "fullscreen", "hud", "pause", "resume", "attract", "loop" -> false
             else -> false
         }
     }
@@ -519,25 +627,37 @@ object BoothBus {
         }
     }
 
+    /**
+     * The retained `tv` message — what THIS screen is doing, in the shape `tv.html` publishes.
+     *
+     * Built here and nowhere else, because it now goes to two places: DART's relay (below) and
+     * the stick's own relay ([BoothServer], for a tablet talking to this device directly). Two
+     * copies of this object would be two answers to "what is on the booth TV", which is exactly
+     * the class of bug the retained state exists to prevent.
+     */
+    fun tvMessage(s: TvState): JSONObject = JSONObject()
+        .put("type", "tv")
+        .put("state", s.state)
+        .put("product", s.product ?: JSONObject.NULL)
+        .put("pos", s.pos)
+        .put("dur", s.dur)
+        .put("muted", s.muted)
+        .put("paused", s.paused)
+        .put("warm", s.warm)
+        .put("attract", s.attract)
+        .put("menuLoop", s.menuLoop)
+        .put("loopOne", s.loopOne)
+        .put("order", JSONArray(s.order))
+        .put("at", System.currentTimeMillis())
+        // Not part of the contract, and harmless to a parser that ignores unknown keys. It is
+        // here so that when Daniel is looking at /state at 8am he can see *which* screen is
+        // publishing, rather than assuming it is the browser TV.
+        .put("_screen", "firestick")
+
     private fun publishNow() {
         val b = base ?: return
         val s = tv ?: return
-        val body = JSONObject()
-            .put("type", "tv")
-            .put("state", s.state)
-            .put("product", s.product ?: JSONObject.NULL)
-            .put("pos", s.pos)
-            .put("dur", s.dur)
-            .put("muted", s.muted)
-            .put("paused", s.paused)
-            .put("warm", s.warm)
-            .put("order", JSONArray(s.order))
-            .put("at", System.currentTimeMillis())
-            // Not part of the contract, and harmless to a parser that ignores unknown keys. It is
-            // here so that when Daniel is looking at /state at 8am he can see *which* screen is
-            // publishing, rather than assuming it is the browser TV.
-            .put("_screen", "firestick")
-        post("$b/bus", body)
+        post("$b/bus", tvMessage(s))
     }
 
     private fun post(url: String, body: JSONObject): Boolean = runCatching {

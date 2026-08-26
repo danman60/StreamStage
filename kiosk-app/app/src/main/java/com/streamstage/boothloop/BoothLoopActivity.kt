@@ -108,6 +108,27 @@ class BoothLoopActivity : Activity() {
         // visitor prodding the button never gets there, short enough to be discoverable.
         // SELECT still does nothing at all on a normal press.
         const val LONG_PRESS_MS = 800L
+
+        // ---- the six-up menu reel ----
+        //
+        // The two attract loops, spelled exactly as `serve.py` and `tv.html` spell them, because
+        // these strings go out on the bus in `attract` and come back in an `attract` command.
+        const val MODE_CARDS = "cards"
+        const val MODE_MENU = "menu"
+
+        /** Compiled into the APK by the `stageMenuLoop` task. See app/build.gradle.kts. */
+        const val MENU_LOOP_ASSET = "menu-loop.mp4"
+        const val MENU_LOOP_ASSET_URI = "asset:///$MENU_LOOP_ASSET"
+
+        /**
+         * A newer reel pushed next to the films, which wins over the bundled one. The leading dot
+         * is load-bearing: `Playlist.videosIn` skips dotfiles, so this can never become an eighth
+         * film in the booth loop.
+         */
+        const val MENU_LOOP_OVERRIDE = ".menu-loop.mp4"
+
+        /** How long the reel gets to put a frame on screen before it is written off. */
+        const val MENU_PROBE_MS = 6_000L
     }
 
     private var player: ExoPlayer? = null
@@ -224,20 +245,40 @@ class BoothLoopActivity : Activity() {
     private val busTicker = object : Runnable {
         override fun run() {
             val p = player
-            if (p != null) {
+            // `menuShowing` is published even with no player at all: a stick whose films never
+            // arrived can still be showing the six-up, and "no screen attached" would be a lie.
+            if (p != null || menuShowing) {
                 val now = currentlyPlayingName()?.let(::basename)
-                BoothBus.setState(
+                val snapshot =
                     BoothBus.TvState(
-                        state = if (commandedFilm != null && commandedFilm == now) "playing" else "attract",
-                        product = now,
-                        pos = p.currentPosition.coerceAtLeast(0L) / 1000.0,
-                        dur = p.duration.takeIf { it > 0 }?.div(1000.0) ?: 0.0,
-                        muted = p.volume <= 0.01f,
+                        // While the six-up owns the screen no film is on it, so this is attract
+                        // and there is no product — the same shape tv.html publishes in menu mode,
+                        // where `current` is null.
+                        state = if (!menuShowing && commandedFilm != null && commandedFilm == now)
+                            "playing" else "attract",
+                        product = if (menuShowing) null else now,
+                        pos = if (menuShowing) 0.0 else (p?.currentPosition ?: 0L).coerceAtLeast(0L) / 1000.0,
+                        dur = if (menuShowing) 0.0 else p?.duration?.takeIf { it > 0 }?.div(1000.0) ?: 0.0,
+                        // The truth about sound, not the intent (tv.html:1788). The six-up is
+                        // muted wallpaper and the film reel is parked while it plays, so the
+                        // booth is silent whatever the operator's last mute was.
+                        muted = if (menuShowing) true else (p?.volume ?: 0f) <= 0.01f,
                         paused = pausedByOperator,
                         order = reelBasenames(),
-                        warm = p.mediaItemCount
+                        warm = p?.mediaItemCount ?: 0,
+                        attract = attractMode,
+                        // What the operator can SEE happening: held only counts while a chosen
+                        // film is actually on screen. Reporting the preference while the attract
+                        // reel advances underneath would light the button on a lie.
+                        loopOne = holdSelection && commandedFilm != null && !menuShowing,
+                        menuLoop = menuLoopOk
                     )
-                )
+                // ONE snapshot, both relays. DART's (when there is a DART) and this stick's own
+                // (for a tablet talking to it directly). Building it twice would be two answers
+                // to "what is on the booth TV", which is the exact bug the retained state exists
+                // to prevent.
+                BoothBus.setState(snapshot)
+                BoothServer.setState(snapshot)
             }
             // The dead-man on a pause nobody came back to.
             if (pausedByOperator && android.os.SystemClock.uptimeMillis() > pauseExpiresAt) {
@@ -246,6 +287,20 @@ class BoothLoopActivity : Activity() {
                 resumeFromOperatorPause()
             }
             handler.postDelayed(this, 1_000L)
+        }
+    }
+
+    /**
+     * The tablet, talking to this stick directly, with no laptop in the middle.
+     *
+     * It is the SAME vocabulary and the SAME [obey] — a command that arrives over this stick's
+     * own relay must do exactly what the identical command arriving off DART's relay does, or
+     * the booth would behave differently depending on which server the tablet happened to find.
+     */
+    private val serverListener = object : BoothServer.Listener {
+        override fun onServerCommand(command: BoothBus.Command) {
+            runCatching { obey(command) }
+                .onFailure { Log.w(TAG, "Tablet command failed — the reel is unaffected", it) }
         }
     }
 
@@ -276,8 +331,18 @@ class BoothLoopActivity : Activity() {
                     return
                 }
                 clearOperatorPause()
+                // A commanded film always takes the screen, in either attract mode. The six-up
+                // steps aside and comes back on its own when the film ends.
+                if (menuShowing) leaveMenuLoop(release = false, resumeReel = false)
                 commandedFilm = command.film
-                Log.i(TAG, "Bus: cutting to ${command.film}")
+                // HOLD WHAT WAS CHOSEN. Daniel, at the booth 2026-08-11: "if I select kiosk or the
+                // other video they should stay up until something else plays". A film picked for
+                // somebody standing at the TV is not a slot in a running order — it is the thing
+                // being talked about, and the reel walking on underneath that conversation is the
+                // wrong answer. So a COMMANDED film repeats until something else is chosen; the
+                // uncommanded attract reel is untouched and still advances normally.
+                applyRepeatMode()
+                Log.i(TAG, "Bus: cutting to ${command.film}" + if (holdSelection) " (held until something else plays)" else "")
                 p.seekTo(idx, 0L)
                 p.playWhenReady = true
                 p.prepare()
@@ -298,10 +363,15 @@ class BoothLoopActivity : Activity() {
                 // move on to the next one.
                 clearOperatorPause()
                 commandedFilm = null
+                applyRepeatMode()
                 if (p != null && p.mediaItemCount > 1) {
                     p.seekToNextMediaItem()
                     p.playWhenReady = true
                 }
+                // In menu mode the attract loop IS the six-up, so "back to the attract loop"
+                // means the reel takes the screen — and the film player is left parked at the
+                // top of the next film, which is where cards mode should pick it up.
+                if (attractMode == MODE_MENU) enterMenuLoop()
                 Log.i(TAG, "Bus: stop — back to the loop")
             }
             is BoothBus.Command.Playlist -> applyBusOrder(command.order)
@@ -310,6 +380,8 @@ class BoothLoopActivity : Activity() {
                 Log.i(TAG, "Bus: ${if (command.on) "muted" else "unmuted"}")
             }
             is BoothBus.Command.Hud -> toggleHud()
+            is BoothBus.Command.Attract -> setAttractMode(command.mode)
+            is BoothBus.Command.Loop -> setLoopOne(command.on)
         }
     }
 
@@ -328,12 +400,343 @@ class BoothLoopActivity : Activity() {
 
     private fun resumeFromOperatorPause() {
         clearOperatorPause()
-        player?.let {
+        // Never un-park the film reel while the six-up owns the screen: that would put film VO
+        // under the menu reel with no picture to explain it.
+        if (!menuShowing) player?.let {
             it.playWhenReady = true
             lastPosition = -1L
             stalledTicks = 0
         }
         Log.i(TAG, "Bus: resumed")
+    }
+
+    // ------------------------------------------------------- the second attract loop (six-up)
+
+    /**
+     * Which attract loop runs between commanded films.
+     *
+     * `cards` is everything this app has ever done: the reel of films plays end to end, forever.
+     * `menu` is the six-up — one 30 s reel of the six product tiles, muted, looping — which is
+     * the same file `tv.html` shows as `#menuloop`, and it means the same thing here as it does
+     * there (tv.html:1392-1444):
+     *
+     *  - **It is not a film.** It is never in the playlist, never in `order`, never something
+     *    `play` can name, and it is not in `media/` — which is exactly why it is compiled into
+     *    the APK instead (see app/build.gradle.kts). An attract reel filed as a film would play
+     *    as an eighth film in the booth loop.
+     *  - **A commanded film still owns the screen.** The six-up steps aside for `play`, and comes
+     *    back by itself when that film ends. Same rule as `body.menumode.playing #menuloop`.
+     *  - **The reel underneath is parked, not stopped.** The film player keeps its position and
+     *    its item list; going back to `cards` resumes it where it was. Parking it is what stops
+     *    a film's voiceover playing under a silent picture.
+     *  - **It can never be the thing that freezes the booth.** Any failure — the file missing,
+     *    a decoder that will not take it, a reel that stalls — falls back to `cards` and says so
+     *    in the log. The films are the thing that must not stop.
+     */
+    private var attractMode = MODE_CARDS
+
+    /** False until we have actually found a reel to play. `attract menu` is refused while false. */
+    private var menuLoopOk = false
+
+    /** The six-up owns the screen right now. */
+    private var menuShowing = false
+
+    /**
+     * Repeat the film on screen instead of handing over to the next one.
+     *
+     * Asked for at the Calgary booth 2026-08-11: when somebody is stood at the TV talking about
+     * ONE product, the reel moving on underneath the conversation is the wrong behaviour. This
+     * is deliberately a property of the SCREEN and not of a film — it survives cutting to a
+     * different film, so the operator turns it on once and every film they pick then holds.
+     */
+    private var holdSelection = true
+
+    private var menuPlayer: ExoPlayer? = null
+    private var menuView: PlayerView? = null
+
+    private var menuLastPosition = -1L
+    private var menuStalledTicks = 0
+    private var menuProbe: Runnable? = null
+
+    /**
+     * Where the six-up comes from, best first:
+     *
+     *  1. `.menu-loop.mp4` next to the films. A dotfile, so [Playlist] skips it and it can never
+     *     become an eighth film — the same trick `.kiosk-host` and `.update-base` use. This is
+     *     how a re-rendered reel reaches the stick with one `adb push` and no new APK.
+     *  2. The copy compiled into this APK.
+     *
+     * @return a URI ExoPlayer can open, or null if this build has no reel at all.
+     */
+    private fun menuLoopUri(): String? {
+        runCatching {
+            val f = File(mediaDir(), MENU_LOOP_OVERRIDE)
+            if (f.isFile && f.canRead() && f.length() > 0L) {
+                Log.i(TAG, "Six-up reel: ${f.absolutePath} (overrides the bundled one)")
+                return f.toURI().toString()
+            }
+        }
+        return if (runCatching { assets.open(MENU_LOOP_ASSET).close() }.isSuccess) {
+            MENU_LOOP_ASSET_URI
+        } else {
+            Log.w(TAG, "This build has no $MENU_LOOP_ASSET — menu mode will be refused")
+            null
+        }
+    }
+
+    /**
+     * Operator-only, and `mode` may be null to toggle — same contract as `mute`/`hud`, and the
+     * same reason: the phone polls state on a 2 s cycle, so an explicit value cannot invert by
+     * accident while a bare toggle still works.
+     */
+    private fun setAttractMode(mode: String?) {
+        val want = when (mode) {
+            MODE_MENU, MODE_CARDS -> mode
+            else -> if (attractMode == MODE_MENU) MODE_CARDS else MODE_MENU
+        }
+
+        if (want == MODE_MENU && !menuLoopOk) {
+            // Refused out loud rather than silently, so the answer to "I pressed it and nothing
+            // happened" is in the log rather than in somebody's theory.
+            Log.w(TAG, "Bus: attract menu refused — this screen has no six-up reel")
+            return
+        }
+        if (want == attractMode) return
+
+        attractMode = want
+        Log.i(TAG, "Bus: attract mode is now $attractMode")
+
+        if (attractMode == MODE_CARDS) {
+            // Takes effect on the spot, even mid-film, for the reason tv.html:1436 gives: the
+            // published mode must not describe a screen the booth is no longer in.
+            leaveMenuLoop(release = true, resumeReel = true)
+        } else if (!filmOwnsScreen()) {
+            // Nobody is watching a film they asked for, so the attract loop is what is on screen
+            // — swap it now. With a commanded film up, this waits for its boundary in
+            // onMediaItemTransition.
+            enterMenuLoop()
+        }
+    }
+
+    /**
+     * Is a film somebody explicitly asked for the thing on screen right now?
+     *
+     * `commandedFilm` on its own is not that question: it is still set after the film it names
+     * has ended and the reel has moved on, so a switch to menu mode an hour after a tap would sit
+     * there doing nothing until the next film boundary — up to three minutes of a button that
+     * looks broken. This asks what is actually playing.
+     */
+    private fun filmOwnsScreen(): Boolean =
+        commandedFilm != null && commandedFilm == currentlyPlayingName()?.let(::basename)
+
+    /**
+     * Repeat-one on the film reel. `on` null toggles, matching mute/hud/attract.
+     *
+     * REPEAT_MODE_ONE is applied to the reel player only; the six-up has always looped itself
+     * and is untouched by this. Nothing else about the reel changes, so turning it back off
+     * hands straight back to the normal running order with no reload.
+     */
+    private fun setLoopOne(on: Boolean?) {
+        val want = on ?: !holdSelection
+        if (want == holdSelection) return
+        holdSelection = want
+        applyRepeatMode()
+        Log.i(TAG, "Bus: hold-the-selection is now $holdSelection")
+    }
+
+    /**
+     * The one place the reel's repeat mode is decided, so the rule cannot drift between the four
+     * callers that used to each set it.
+     *
+     * Repeat-one applies ONLY while a chosen film is on screen. The attract reel must keep
+     * advancing — a booth stuck on one film with nobody standing there is the failure this whole
+     * app was written to avoid — so the moment the selection is dropped (Stop, or the six-up
+     * taking the screen) this goes straight back to advancing.
+     */
+    private fun applyRepeatMode() {
+        player?.repeatMode =
+            if (holdSelection && commandedFilm != null) Player.REPEAT_MODE_ONE
+            else Player.REPEAT_MODE_ALL
+    }
+
+    /** Build (once) the second player. Null only if ExoPlayer itself refused to construct. */
+    private fun ensureMenuPlayer(): ExoPlayer? {
+        menuPlayer?.let { return it }
+        val uri = menuLoopUri() ?: return null
+        return runCatching {
+            val renderers = DefaultRenderersFactory(this)
+                .setEnableDecoderFallback(true)
+                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
+            ExoPlayer.Builder(this, renderers).build().apply {
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(C.USAGE_MEDIA)
+                        .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+                        .build(),
+                    /* handleAudioFocus = */ false
+                )
+                volume = 0f                      // wallpaper never talks
+                repeatMode = Player.REPEAT_MODE_ALL
+                addListener(menuListener)
+                setMediaItem(MediaItem.fromUri(uri))
+                prepare()
+            }.also {
+                menuPlayer = it
+                menuView?.player = it
+                Log.i(TAG, "Six-up reel player built for $uri")
+            }
+        }.onFailure { Log.e(TAG, "Could not build the six-up player — staying on the films", it) }
+            .getOrNull()
+    }
+
+    private val menuListener = object : Player.Listener {
+        /**
+         * The reel is only put in front of the films once it has a frame to show. Otherwise the
+         * booth cuts to black for as long as the decoder takes, which is the exact thing this
+         * app exists to prevent.
+         */
+        override fun onRenderedFirstFrame() {
+            if (!menuShowing) return
+            menuView?.visibility = View.VISIBLE
+            messageView?.visibility = View.GONE
+            cancelMenuProbe()
+            Log.i(TAG, "Six-up reel is on screen")
+        }
+
+        override fun onPlayerError(error: PlaybackException) {
+            failMenuLoop("playback error ${error.errorCodeName}")
+        }
+    }
+
+    /** The six-up takes the screen. Safe to call when it already has it. */
+    private fun enterMenuLoop() {
+        if (menuShowing || attractMode != MODE_MENU || !menuLoopOk) return
+        val mp = ensureMenuPlayer() ?: run {
+            failMenuLoop("the reel player would not build")
+            return
+        }
+
+        // Park the films FIRST. A frozen frame for the fraction of a second before the reel
+        // covers it is a fair price; a film's voiceover playing under the six-up is not.
+        player?.playWhenReady = false
+
+        // The reel's view has to be on screen BEFORE it can render, not after.
+        //
+        // Measured at the Calgary booth 2026-08-11: this used to be revealed only from
+        // onRenderedFirstFrame, which cannot work. A GONE PlayerView owns no surface, a player
+        // with no surface never produces a frame, and onRenderedFirstFrame therefore never
+        // fires — so the view stayed GONE for ever while the films sat parked behind it. The
+        // TV froze on the last film frame every single time the six-up was asked for, and the
+        // log said "Six-up reel starting" with no "on screen" after it.
+        //
+        // Showing it up front costs at most a few frames of black on a 30s reel that is already
+        // decoded and looping; the freeze it replaces was permanent and needed the operator to
+        // switch back to cards to clear it.
+        menuView?.visibility = View.VISIBLE
+
+        menuShowing = true
+        commandedFilm = null
+        applyRepeatMode()
+        menuLastPosition = -1L
+        menuStalledTicks = 0
+        if (mp.playbackState == Player.STATE_IDLE) mp.prepare()
+        mp.volume = 0f
+        mp.playWhenReady = true
+        armMenuProbe()
+        Log.i(TAG, "Six-up reel starting")
+    }
+
+    /**
+     * Hand the screen back.
+     *
+     * @param release drop the second decoder entirely (leaving menu mode), rather than parking it
+     *                for a film that will hand the screen straight back.
+     * @param resumeReel start the films playing again. False when a commanded film is about to
+     *                   do that itself with its own seek.
+     */
+    private fun leaveMenuLoop(release: Boolean, resumeReel: Boolean) {
+        cancelMenuProbe()
+        menuShowing = false
+        menuView?.visibility = View.GONE
+        menuPlayer?.playWhenReady = false
+        if (release) releaseMenuPlayer()
+
+        if (resumeReel && !pausedByOperator) {
+            player?.let {
+                it.playWhenReady = true
+                // Fresh stall accounting: the watchdog must not read the parked position as a
+                // freeze on its very next tick.
+                lastPosition = -1L
+                stalledTicks = 0
+            }
+            if (player == null) showNoMediaMessage()
+        }
+    }
+
+    private fun releaseMenuPlayer() {
+        menuView?.player = null
+        menuPlayer?.let {
+            it.removeListener(menuListener)
+            runCatching { it.release() }
+        }
+        menuPlayer = null
+    }
+
+    /**
+     * The six-up has failed in some way. Give up on it — permanently, for this run — and put the
+     * films back.
+     *
+     * `menuLoopOk` goes false rather than staying true, so the operator gets one honest refusal
+     * instead of a button that appears to work and drops the booth TV to a frozen frame every
+     * time he presses it. It is published on the bus, so the phone can show the control disabled.
+     */
+    private fun failMenuLoop(why: String) {
+        Log.e(TAG, "Six-up reel failed ($why) — back to the films for the rest of this run")
+        menuLoopOk = false
+        attractMode = MODE_CARDS
+        leaveMenuLoop(release = true, resumeReel = true)
+    }
+
+    /**
+     * Confirm the reel actually started. Same reasoning as [armPlaybackProbe]: bytes existing is
+     * not the same claim as this stick's decoder accepting them, and nobody is watching the booth
+     * TV to notice that it went still.
+     */
+    private fun armMenuProbe() {
+        cancelMenuProbe()
+        val probe = Runnable {
+            val mp = menuPlayer
+            if (!menuShowing) return@Runnable
+            if (mp != null && mp.isPlaying && mp.currentPosition > 250L) return@Runnable
+            failMenuLoop("nothing played in ${MENU_PROBE_MS}ms")
+        }
+        menuProbe = probe
+        handler.postDelayed(probe, MENU_PROBE_MS)
+    }
+
+    private fun cancelMenuProbe() {
+        menuProbe?.let { handler.removeCallbacks(it) }
+        menuProbe = null
+    }
+
+    /** The watchdog, for the reel. Called only while the six-up owns the screen. */
+    private fun watchMenuLoop() {
+        val mp = menuPlayer ?: return failMenuLoop("the reel player disappeared")
+        val pos = mp.currentPosition
+        if (mp.isPlaying && pos != menuLastPosition) {
+            menuStalledTicks = 0
+        } else if (mp.playbackState != Player.STATE_BUFFERING) {
+            menuStalledTicks++
+            Log.w(TAG, "Six-up stalled tick $menuStalledTicks (state=${mp.playbackState}, pos=$pos)")
+            when {
+                menuStalledTicks == 2 -> {
+                    mp.prepare()
+                    mp.playWhenReady = true
+                }
+                menuStalledTicks >= 3 -> return failMenuLoop("stalled")
+            }
+        }
+        menuLastPosition = pos
     }
 
     /**
@@ -394,6 +797,8 @@ class BoothLoopActivity : Activity() {
             tv.text = "kiosk ${if (BoothBus.connected) busHost ?: "?" else "—"}   " +
                 "film ${currentlyPlayingName() ?: "—"}   " +
                 "pos ${(p?.currentPosition ?: 0L) / 1000}s   " +
+                "attract $attractMode${if (menuLoopOk) "" else " (no six-up)"}" +
+                "${if (menuShowing) " SIX-UP" else ""}   " +
                 "${if (pausedByOperator) "PAUSED" else "playing"}"
             handler.postDelayed(this, 1_000L)
         }
@@ -456,10 +861,30 @@ class BoothLoopActivity : Activity() {
         startPlayback()
         handler.postDelayed(watchdog, WATCHDOG_INTERVAL_MS)
 
+        // Is there a six-up to switch to at all? Answered from the filesystem and the APK, once,
+        // with no network involved — the equivalent of tv.html's HEAD probe. The booth starts in
+        // `cards` regardless: a power cut must bring back the reel Daniel shipped.
+        menuLoopOk = menuLoopUri() != null
+        Log.i(TAG, "Six-up reel available: $menuLoopOk")
+
         // Start looking for the booth kiosk. This returns immediately, runs on its own daemon
         // threads, and nothing above waits for it or changes if it never finds anything.
         BoothBus.setMediaDir(mediaDir())
         BoothBus.start(this, busListener)
+
+        // AND BE ONE. The tablet does not have to find a laptop to drive this screen — it can
+        // talk to this stick, on this stick's own LAN address, with DART switched off, out of
+        // range or 3,000 km away. See BoothServer for the whole design; the two things worth
+        // knowing here are that it serves on 8180/8181 (so a DART on 8080 still wins the
+        // tablet's first-stage sweep and nothing about today changes), and that the leads the
+        // tablet types now land on this device's own disk and are sent from here.
+        //
+        // Same rule as everything else on this line: it returns immediately, it is all daemon
+        // threads, and a server that cannot start cannot touch the reel.
+        BoothStore.init(this, mediaDir())
+        LeadSender.start(mediaDir())
+        BoothServer.start(this, serverListener)
+
         handler.removeCallbacks(busTicker)
         handler.post(busTicker)
     }
@@ -504,7 +929,10 @@ class BoothLoopActivity : Activity() {
         super.onResume()
         hideSystemBars()
         // Backgrounded, or the TV was switched to another input and back: just play again.
-        player?.playWhenReady = true
+        // Whichever attract loop was running keeps running — the films stay parked while the
+        // six-up owns the screen, or this would restart their audio underneath it.
+        if (menuShowing) menuPlayer?.playWhenReady = true
+        else player?.playWhenReady = true
     }
 
     override fun onPause() {
@@ -527,6 +955,14 @@ class BoothLoopActivity : Activity() {
         // Stop publishing the moment this stops being the screen, so the tablet's "is a screen
         // attached" check tells the truth rather than showing a heartbeat from a dead activity.
         BoothBus.stop()
+        // Same reasoning, same moment: a server with no screen behind it would answer /health
+        // and hand a tablet a page whose taps reach nothing. The lead SENDER keeps running —
+        // leads already on disk must still go out while this activity is off screen.
+        BoothServer.stop()
+        cancelMenuProbe()
+        menuShowing = false
+        menuView?.visibility = View.GONE
+        releaseMenuPlayer()
         releasePlayer()
         @Suppress("DEPRECATION")
         wakeLock?.takeIf { it.isHeld }?.release()
@@ -535,6 +971,7 @@ class BoothLoopActivity : Activity() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacksAndMessages(null)
+        releaseMenuPlayer()
         releasePlayer()
         @Suppress("DEPRECATION")
         wakeLock?.takeIf { it.isHeld }?.release()
@@ -582,6 +1019,24 @@ class BoothLoopActivity : Activity() {
         }
         frame.addView(pv)
 
+        // The six-up, on its own surface directly above the films — the Fire Stick equivalent of
+        // `#menuloop` sitting at z-index 4 over the film layers in tv.html. GONE until the reel
+        // has actually rendered a frame, so switching modes never shows black.
+        val menuPv = PlayerView(this).apply {
+            useController = false
+            controllerAutoShow = false
+            setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
+            resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+            setShutterBackgroundColor(Color.BLACK)
+            setKeepContentOnPlayerReset(true)
+            visibility = View.GONE
+            layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        }
+        frame.addView(menuPv)
+
         // Only ever visible when there is no media to play. It tells whoever is standing at
         // the booth exactly which adb command fixes it, because at that moment they will not
         // have this README to hand.
@@ -603,6 +1058,7 @@ class BoothLoopActivity : Activity() {
         setContentView(frame)
         root = frame
         playerView = pv
+        menuView = menuPv
         messageView = msg
     }
 
@@ -621,6 +1077,10 @@ class BoothLoopActivity : Activity() {
      * because those have completely different fixes.
      */
     private fun showNoMediaMessage() {
+        // The six-up is a picture; an adb command typed over it is not an improvement. If the
+        // films are missing this comes back the moment the reel hands the screen over
+        // (leaveMenuLoop), which is when somebody can act on it.
+        if (menuShowing) return
         val dirs = Playlist.candidateDirs(this)
         val missingPermission = !hasStoragePermission()
 
@@ -722,7 +1182,13 @@ class BoothLoopActivity : Activity() {
                 /* handleAudioFocus = */ false
             )
             volume = 1f
-            repeatMode = Player.REPEAT_MODE_ALL   // playlist loops forever
+            // Normally the whole playlist loops forever. Repeat-one is a property of the SCREEN,
+            // not of a film, so a player rebuilt underneath it (a film version changed, the reel
+            // was reordered) must come back still repeating — otherwise the setting silently
+            // lapses mid-conversation and the reel walks on.
+            repeatMode =
+                if (holdSelection && commandedFilm != null) Player.REPEAT_MODE_ONE
+                else Player.REPEAT_MODE_ALL
             playWhenReady = true
             addListener(playerListener)
         }
@@ -747,6 +1213,11 @@ class BoothLoopActivity : Activity() {
         playerView?.player = exo
         player = exo
         playerReleased = false
+        // Every other caller of this method wants the films playing; while the six-up owns the
+        // screen, exactly one thing must not happen, and it is that. A `playlist` reorder off the
+        // phone rebuilds the reel from here, and without this line the rebuilt player would start
+        // a film's voiceover underneath a silent picture.
+        if (menuShowing) exo.playWhenReady = false
         rememberNowPlaying()
         Log.i(TAG, "Playing ${files.size} file(s), starting at index $index")
     }
@@ -807,6 +1278,21 @@ class BoothLoopActivity : Activity() {
          */
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             rememberNowPlaying()
+
+            // A film ran to its end and the reel moved on. In menu mode that is the moment the
+            // six-up comes back — including after a film somebody commanded, which is the whole
+            // point: the tablet plays a film over the menu, and the menu returns underneath.
+            //
+            // Only on AUTO and REPEAT. A SEEK transition is US cutting to a commanded film, and
+            // acting on that would put the reel straight back over the film we were asked for.
+            if (attractMode == MODE_MENU && !menuShowing &&
+                (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO ||
+                    reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT)
+            ) {
+                commandedFilm = null
+                enterMenuLoop()
+                return
+            }
             // A film's current version changed while the reel was running. Now — between films,
             // where it costs nothing visible — is when the player is rebuilt to see it.
             if (reelDirty) {
@@ -847,6 +1333,14 @@ class BoothLoopActivity : Activity() {
             // opposite of what he asked for. The dead-man in [busTicker] is what stops a pause
             // becoming a frozen booth TV; this just keeps the watchdog out of the way until then.
             if (pausedByOperator) {
+                handler.postDelayed(this, WATCHDOG_INTERVAL_MS)
+                return
+            }
+            // The films are deliberately parked while the six-up is on screen, which looks
+            // exactly like a stall from here. Watch the reel instead — and if THAT stops, the
+            // films come back rather than the booth sitting on a still frame.
+            if (menuShowing) {
+                watchMenuLoop()
                 handler.postDelayed(this, WATCHDOG_INTERVAL_MS)
                 return
             }
