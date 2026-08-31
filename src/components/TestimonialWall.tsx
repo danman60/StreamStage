@@ -1,8 +1,9 @@
 "use client";
 
+import { useRef, useState } from "react";
 import ScrollReveal from "./ScrollReveal";
 import { Marquee } from "./magicui/marquee";
-import { Quote } from "lucide-react";
+import { Quote, Volume2, VolumeX } from "lucide-react";
 
 /* Director + client quotes. Sources: 2026 kiosk testimonial film (word-level
    transcript), 2026-08-31 Zoom testimonial interview (7 Attitudes), and the
@@ -13,6 +14,7 @@ export interface WallQuote {
   name: string;
   title: string;
   featured?: boolean; // short punchy quotes get the big-type treatment
+  clip?: string; // 9:16 clip of the director saying this exact quote
 }
 
 const QUOTES: WallQuote[] = [
@@ -26,6 +28,7 @@ const QUOTES: WallQuote[] = [
     quote: "Take the leap. You won't be disappointed, and you'll be a repeat customer for sure.",
     name: "Nicole",
     title: "Stagecoach Canada",
+    clip: "/testimonials/nicole.mp4",
     featured: true,
   },
   {
@@ -33,6 +36,7 @@ const QUOTES: WallQuote[] = [
       "I really felt that you had it all handled and taken care of. There's so much going on on recital day, and that was one thing I didn't even have to think about.",
     name: "Mandy",
     title: "Ancaster Dance Arts",
+    clip: "/testimonials/mandy.mp4",
   },
   {
     quote: "The turnaround was amazing. I couldn't believe it.",
@@ -45,6 +49,7 @@ const QUOTES: WallQuote[] = [
       "The one-minute promo video you made was absolutely perfect. It captured everything, it had the parents' testimony in the background. Everybody was so happy when they saw that come out. It just elevated our brand so much.",
     name: "Tiffany",
     title: "Caledonia School of Dance",
+    clip: "/testimonials/tiffany.mp4",
   },
   {
     quote:
@@ -63,6 +68,7 @@ const QUOTES: WallQuote[] = [
       "The speed in which the material was returned, the digital link, how easy it is to just click the link and then your options are there.",
     name: "Alana Colver",
     title: "Lindsay Dance School",
+    clip: "/testimonials/alana.mp4",
   },
   {
     quote:
@@ -81,6 +87,7 @@ const QUOTES: WallQuote[] = [
       "One of our dance moms, probably five minutes later, messaged me saying: this video is awesome. She saw the difference immediately. Your footage is just phenomenal. They're going to look back when they're 40, 50 years old and go, look at me.",
     name: "Kerry Moore",
     title: "Kerry Moore School of Dance",
+    clip: "/testimonials/kerry.mp4",
   },
   {
     quote: "I've never seen our show look so good.",
@@ -93,6 +100,7 @@ const QUOTES: WallQuote[] = [
       "It's all branded for my studio and it looks beautiful, and he sets it all up. Selling the digital merchandise is so easy and problem-free for a studio director. I would highly recommend that.",
     name: "Laura Ramsey",
     title: "Grand River Academy of Dance",
+    clip: "/testimonials/laura.mp4",
   },
   {
     quote:
@@ -150,31 +158,76 @@ const QUOTES: WallQuote[] = [
   },
 ];
 
+function ClipPlayer({ src, name }: { src: string; name: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [muted, setMuted] = useState(true);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        const v = ref.current;
+        if (!v) return;
+        const next = !muted;
+        setMuted(next);
+        v.muted = next;
+        if (!next) {
+          v.currentTime = 0;
+          v.play();
+        }
+      }}
+      className="relative shrink-0 w-[130px] self-stretch rounded-lg overflow-hidden bg-black/40 border border-white/10 group/clip cursor-pointer"
+      aria-label={`Play ${name}'s testimonial with sound`}
+    >
+      <video
+        ref={ref}
+        src={src}
+        muted
+        loop
+        autoPlay
+        playsInline
+        preload="metadata"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      <span className="absolute bottom-1.5 right-1.5 rounded-full bg-black/60 p-1.5 text-white/80 group-hover/clip:text-cyan-brand transition-colors">
+        {muted ? <VolumeX size={13} /> : <Volume2 size={13} />}
+      </span>
+    </button>
+  );
+}
+
 function WallCard({ q }: { q: WallQuote }) {
+  const width = q.clip
+    ? q.featured
+      ? "w-[400px] sm:w-[430px]"
+      : "w-[460px] sm:w-[520px]"
+    : q.featured
+      ? "w-[280px] sm:w-[300px]"
+      : "w-[340px] sm:w-[400px]";
   return (
     <figure
-      className={`shrink-0 p-6 rounded-xl bg-charcoal-dark/60 border border-white/5 flex flex-col justify-between transition-colors hover:border-cyan-brand/20 ${
-        q.featured ? "w-[280px] sm:w-[300px]" : "w-[340px] sm:w-[400px]"
-      }`}
+      className={`shrink-0 p-5 rounded-xl bg-charcoal-dark/60 border border-white/5 flex gap-4 transition-colors hover:border-cyan-brand/20 ${width}`}
     >
-      <div>
-        <Quote size={18} className="text-cyan-brand/30 mb-3" aria-hidden="true" />
-        <blockquote
-          className={`text-gray-300 leading-relaxed italic ${
-            q.featured ? "font-heading text-lg text-white not-italic font-semibold" : "text-sm"
-          }`}
-        >
-          &ldquo;{q.quote}&rdquo;
-        </blockquote>
+      {q.clip && <ClipPlayer src={q.clip} name={q.name} />}
+      <div className="flex flex-col justify-between flex-1 min-w-0">
+        <div>
+          <Quote size={18} className="text-cyan-brand/30 mb-3" aria-hidden="true" />
+          <blockquote
+            className={`text-gray-300 leading-relaxed italic ${
+              q.featured ? "font-heading text-lg text-white not-italic font-semibold" : "text-sm"
+            }`}
+          >
+            &ldquo;{q.quote}&rdquo;
+          </blockquote>
+        </div>
+        <figcaption className="mt-4 pt-3 border-t border-white/5">
+          <cite className="not-italic">
+            <span className="font-heading font-semibold text-cyan-brand text-sm block">
+              {q.name}
+            </span>
+            <span className="text-gray-500 text-xs">{q.title}</span>
+          </cite>
+        </figcaption>
       </div>
-      <figcaption className="mt-4 pt-3 border-t border-white/5">
-        <cite className="not-italic">
-          <span className="font-heading font-semibold text-cyan-brand text-sm block">
-            {q.name}
-          </span>
-          <span className="text-gray-500 text-xs">{q.title}</span>
-        </cite>
-      </figcaption>
     </figure>
   );
 }
