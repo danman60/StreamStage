@@ -7,9 +7,39 @@ import { Quote } from "lucide-react";
 const testimonials = [
   {
     quote:
+      "I've never seen our show look so good. Your footage is just phenomenal. They're going to look back when they're 40, 50 years old and go, look at me.",
+    name: "Kerry Moore",
+    role: "Kerry Moore School of Dance",
+  },
+  {
+    quote:
       "Daniel and StreamStage reinvented the dance competition video model. Multiple camera angles, backstage glimpses, tight close ups, and crisp graphics give teachers, dancers, and parents a high quality twist.",
     name: "Kiri-Lyn Muir",
     role: "Director, Ultimate Dance Connection",
+  },
+  {
+    quote:
+      "I really felt that you had it all handled and taken care of. There's so much going on on recital day, and that was one thing I didn't even have to think about.",
+    name: "Mandy",
+    role: "Ancaster Dance Arts",
+  },
+  {
+    quote:
+      "Anytime I email, they answer right away. When I say I've got a show running, I've got a link right away. You're going to be in good hands — all that worry you have, it's going to be gone.",
+    name: "Tiffany Caron",
+    role: "7 Attitudes",
+  },
+  {
+    quote:
+      "Going with a professional video company just streamlines the whole experience. From start to finish, every aspect of it is taken care of. You realize it's totally worth the time, the effort, and the money.",
+    name: "Alana Colver",
+    role: "Lindsay Dance School",
+  },
+  {
+    quote:
+      "If you go into business with Daniel for your events, I assure you, you are getting a person with integrity who will respect your business and deliver the best possible package. You absolutely would not be disappointed.",
+    name: "Laura Ramsey",
+    role: "Grand River Academy of Dance",
   },
   {
     quote:
