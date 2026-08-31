@@ -240,6 +240,48 @@ export default function RecitalsPage() {
         </div>
       </section>
 
+      {/* ── 4b. Highlight reels from this season ──────────────── */}
+      <section className="py-16 lg:py-32 px-4 sm:px-6 border-t border-white/5">
+        <div className="max-w-6xl mx-auto">
+          <ScrollReveal>
+            <div className="text-center mb-8">
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold text-white mb-2">
+                Fresh from this season&rsquo;s shows
+              </h2>
+              <p className="text-base text-gray-400">
+                Highlight reels our studios shared with their families this year.
+              </p>
+            </div>
+          </ScrollReveal>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { src: "seven-att", label: "7 Attitudes" },
+              { src: "grad", label: "Grand River Academy of Dance" },
+              { src: "lds", label: "Lindsay Dance Studio" },
+              { src: "lhl", label: "Recital, Act 1" },
+            ].map((r) => (
+              <figure
+                key={r.src}
+                className="overflow-hidden rounded-xl border border-white/10 bg-charcoal-dark"
+              >
+                <video
+                  className="aspect-[9/16] w-full object-cover"
+                  src={`/campaign/reels/${r.src}.mp4`}
+                  poster={`/campaign/reels/${r.src}.jpg`}
+                  controls
+                  muted
+                  playsInline
+                  preload="none"
+                />
+                <figcaption className="px-3 py-2 font-heading text-xs sm:text-sm font-semibold text-cyan-brand">
+                  {r.label}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── 5. Testimonials ───────────────────────────────────── */}
       <section className="py-16 lg:py-32 px-4 sm:px-6 border-t border-white/5">
         <div className="max-w-6xl mx-auto grid gap-10 lg:gap-12 lg:grid-cols-3">
