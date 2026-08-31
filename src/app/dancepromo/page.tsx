@@ -298,24 +298,39 @@ export default function DancePromo() {
               </div>
             </ScrollReveal>
 
-            {/* Testimonial */}
+            {/* Testimonials */}
             <ScrollReveal delay={0.1}>
-              <div className="mt-8 p-6 rounded-xl bg-charcoal-dark/60 border border-white/5">
-                <Quote size={20} className="text-cyan-brand/30 mb-3" />
-                <p className="text-gray-300 leading-relaxed italic text-base">
-                  &ldquo;Working with the team at StreamStage has been a dream!
-                  Both Dan and Kayla are knowledgeable about the dance world and
-                  were easy to work with when creating our vision. The content
-                  showcased our brand and studio values incredibly well.&rdquo;
-                </p>
-                <div className="mt-4 pt-3 border-t border-white/5">
-                  <p className="font-heading font-semibold text-cyan-brand">
-                    Lainy Zimmer
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Owner, Footprints Dance Centre
-                  </p>
-                </div>
+              <div className="mt-8 grid sm:grid-cols-2 gap-4">
+                {[
+                  {
+                    quote:
+                      "Working with the team at StreamStage has been a dream! Both Dan and Kayla are knowledgeable about the dance world and were easy to work with when creating our vision. The content showcased our brand and studio values incredibly well.",
+                    name: "Lainy Zimmer",
+                    title: "Owner, Footprints Dance Centre",
+                  },
+                  {
+                    quote:
+                      "The one-minute promo video you made was absolutely perfect. It captured everything, it had the parents' testimony in the background. Everybody was so happy when they saw that come out. It just elevated our brand so much.",
+                    name: "Tiffany",
+                    title: "Caledonia School of Dance",
+                  },
+                ].map((t) => (
+                  <div
+                    key={t.name}
+                    className="p-6 rounded-xl bg-charcoal-dark/60 border border-white/5 h-full flex flex-col"
+                  >
+                    <Quote size={20} className="text-cyan-brand/30 mb-3 shrink-0" />
+                    <p className="text-gray-300 leading-relaxed italic text-base flex-1">
+                      &ldquo;{t.quote}&rdquo;
+                    </p>
+                    <div className="mt-4 pt-3 border-t border-white/5">
+                      <p className="font-heading font-semibold text-cyan-brand">
+                        {t.name}
+                      </p>
+                      <p className="text-sm text-gray-500">{t.title}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </ScrollReveal>
           </section>
@@ -534,6 +549,42 @@ export default function DancePromo() {
           </ScrollReveal>
 
           <div className="section-divider mb-14" />
+
+          {/* ── Footage testimonials ── */}
+          <ScrollReveal>
+            <div className="mb-14 grid sm:grid-cols-2 gap-4">
+              {[
+                {
+                  quote:
+                    "Having the raw footage too was absolutely worth it. I look at that probably once a week just to say, what can I pull out today and post. It was very, very valuable.",
+                  name: "Tiffany",
+                  title: "Caledonia School of Dance",
+                },
+                {
+                  quote:
+                    "One of our dance moms, probably five minutes later, messaged me saying: this video is awesome. She saw the difference immediately. Your footage is just phenomenal.",
+                  name: "Kerry Moore",
+                  title: "Kerry Moore School of Dance",
+                },
+              ].map((t) => (
+                <div
+                  key={t.name}
+                  className="p-6 rounded-xl bg-charcoal-dark/60 border border-white/5 h-full flex flex-col"
+                >
+                  <Quote size={20} className="text-cyan-brand/30 mb-3 shrink-0" />
+                  <p className="text-gray-300 leading-relaxed italic text-base flex-1">
+                    &ldquo;{t.quote}&rdquo;
+                  </p>
+                  <div className="mt-4 pt-3 border-t border-white/5">
+                    <p className="font-heading font-semibold text-cyan-brand">
+                      {t.name}
+                    </p>
+                    <p className="text-sm text-gray-500">{t.title}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollReveal>
 
           {/* ── Submit Form ── */}
           <section id="submit-section" className="mb-16 scroll-mt-24">

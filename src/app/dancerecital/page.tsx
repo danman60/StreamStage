@@ -14,6 +14,7 @@ import {
   Check,
   Send,
   CheckCircle2,
+  Quote,
 } from "lucide-react";
 import RecitalNav from "@/components/RecitalNav";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -36,6 +37,47 @@ const TIER_LABELS = {
 } as const;
 
 type Tier = keyof typeof PRICES;
+
+/* Director quotes pulled from the StreamStage kiosk testimonial film (2026). */
+const HERO_QUOTE = {
+  quote:
+    "I really felt that you had it all handled and taken care of. There's so much going on on recital day, and that was one thing I didn't even have to think about.",
+  name: "Mandy",
+  title: "Ancaster Dance Arts",
+};
+
+const TESTIMONIALS = [
+  {
+    quote:
+      "The service with Daniel is amazing. I don't have to worry about anything, Daniel takes care of it all. The quality is fantastic. You're not only getting the full stage, he sets up different cameras at different angles.",
+    name: "Nicole",
+    title: "Stagecoach Canada",
+  },
+  {
+    quote:
+      "I've never seen our show look so good. Your footage is just phenomenal. They're going to look back when they're 40, 50 years old and go, look at me.",
+    name: "Kerry Moore",
+    title: "Kerry Moore School of Dance",
+  },
+  {
+    quote:
+      "Going with a professional video company just streamlines the whole experience. From start to finish, every aspect of it is taken care of. You realize it's totally worth the time, the effort, and the money.",
+    name: "Alana Colver",
+    title: "Lindsay Dance School",
+  },
+  {
+    quote:
+      "It's all branded for my studio and it looks beautiful, and he sets it all up. Selling the digital merchandise is so easy and problem-free for a studio director. I would highly recommend that.",
+    name: "Laura Ramsey",
+    title: "Grand River Academy of Dance",
+  },
+];
+
+const CLOSER_QUOTE = {
+  quote: "Take the leap. You won't be disappointed, and you'll be a repeat customer for sure.",
+  name: "Nicole",
+  title: "Stagecoach Canada",
+};
 
 function getTier(dancers: number): Tier {
   if (dancers <= 100) return "small";
@@ -281,6 +323,22 @@ export default function RecitalProposal() {
                     {badge}
                   </span>
                 ))}
+              </div>
+            </ScrollReveal>
+
+            {/* Hero testimonial */}
+            <ScrollReveal delay={0.1}>
+              <div className="mt-8 p-6 rounded-xl bg-charcoal-dark/60 border border-white/5">
+                <Quote size={20} className="text-cyan-brand/30 mb-3" />
+                <p className="text-gray-300 leading-relaxed italic text-base">
+                  &ldquo;{HERO_QUOTE.quote}&rdquo;
+                </p>
+                <div className="mt-4 pt-3 border-t border-white/5">
+                  <p className="font-heading font-semibold text-cyan-brand">
+                    {HERO_QUOTE.name}
+                  </p>
+                  <p className="text-sm text-gray-500">{HERO_QUOTE.title}</p>
+                </div>
               </div>
             </ScrollReveal>
           </section>
@@ -602,6 +660,35 @@ export default function RecitalProposal() {
             </section>
           </ScrollReveal>
 
+          <div className="section-divider mb-14" />
+
+          {/* ── Director Testimonials ── */}
+          <section className="mb-14">
+            <ScrollReveal>
+              <h2 className="font-heading text-2xl font-semibold text-white mb-6">
+                What Studio Directors Say
+              </h2>
+            </ScrollReveal>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {TESTIMONIALS.map((t, i) => (
+                <ScrollReveal key={`${t.name}-${i}`} delay={i * 0.05}>
+                  <div className="p-6 rounded-xl bg-charcoal-dark/60 border border-white/5 h-full flex flex-col">
+                    <Quote size={20} className="text-cyan-brand/30 mb-3 shrink-0" />
+                    <p className="text-gray-300 leading-relaxed italic text-base flex-1">
+                      &ldquo;{t.quote}&rdquo;
+                    </p>
+                    <div className="mt-4 pt-3 border-t border-white/5">
+                      <p className="font-heading font-semibold text-cyan-brand">
+                        {t.name}
+                      </p>
+                      <p className="text-sm text-gray-500">{t.title}</p>
+                    </div>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </section>
+
           {/* ── Pick Your Date CTA ── */}
           <ScrollReveal>
             <div className="text-center mb-14">
@@ -623,6 +710,19 @@ export default function RecitalProposal() {
           </ScrollReveal>
 
           <div className="section-divider mb-14" />
+
+          {/* ── Closer quote ── */}
+          <ScrollReveal>
+            <div className="text-center mb-14 max-w-2xl mx-auto">
+              <p className="font-heading text-xl sm:text-2xl text-white italic leading-relaxed">
+                &ldquo;{CLOSER_QUOTE.quote}&rdquo;
+              </p>
+              <p className="mt-4 text-base text-cyan-brand font-heading font-semibold">
+                {CLOSER_QUOTE.name}
+                <span className="text-gray-500 font-normal"> &middot; {CLOSER_QUOTE.title}</span>
+              </p>
+            </div>
+          </ScrollReveal>
 
           {/* ── Submit Form ── */}
           <section id="submit-section" className="mb-16 scroll-mt-24">
