@@ -191,14 +191,21 @@ export default function RecitalProposal() {
   useEffect(() => {
     const movedOffDefault = dancerInput !== "50";
     const pickedServices = streaming || photo || bundle;
-    if (calc.total > 0 && (movedOffDefault || pickedServices)) {
+    if (calc.total <= 0 || !(movedOffDefault || pickedServices)) return;
+
+    // Wait for the configuration to settle before reporting a value. Firing on the first
+    // qualifying render captured a half-built quote: 140 dancers at video-only ($3,500)
+    // a moment before the bundle was picked ($4,200), and the once-guard then blocked the
+    // corrected figure. The conversion value Meta optimizes against has to be the settled one.
+    const t = setTimeout(() => {
       funnel.calculatorComplete({
         dancer_count: dancerCount,
         tier: TIER_LABELS[tier],
         total: calc.total,
         services: serviceLabel,
       });
-    }
+    }, 2500);
+    return () => clearTimeout(t);
   }, [calc.total, dancerCount, dancerInput, streaming, photo, bundle, tier, serviceLabel]);
 
   /* Handlers */
