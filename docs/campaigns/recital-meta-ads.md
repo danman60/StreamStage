@@ -8,6 +8,13 @@ reframe. Early Bird Dec 31 2026 is the only date allowed and only appears in Con
 All ads: CTA button **Learn More** → `https://streamstage.live/recitals`.
 Ad account naming: `Recital-2026 / <concept> / <variant>`.
 
+**The four offer pillars (Daniel, 2026-08-31) — every long primary text carries at least two,
+and no piece of campaign copy may contradict them:**
+1. Livestream
+2. Multiple media options (video, photography, livestream — mix or bundle)
+3. The branded portal (studio-branded, families buy from it directly)
+4. **10-day turnaround** (the one clients love; the number is TEN days, never "1 week")
+
 ---
 
 ## Concept 1 — The revenue reframe
@@ -25,9 +32,10 @@ and photography, priced per dancer and published, not quoted.
 **Primary text (long):**
 Most studios treat the recital video as a cost. It only works that way because nobody set it up
 otherwise. Here is the other way: you set the media fee your families pay, we bill you a flat
-published per dancer rate, and the difference stays with the studio. Video, livestream and
-photography, one team, one night. There is a calculator that shows your number in about a minute.
-Nothing to book and nobody calls you.
+published per dancer rate, and the difference stays with the studio. Video, photography and
+livestream, one team, one night, delivered through a portal branded for your studio within 10
+days. There is a calculator that shows your number in about a minute. Nothing to book and nobody
+calls you.
 
 **Link description:** Published per dancer pricing. See your number in a minute.
 
@@ -68,7 +76,7 @@ The proof that counts is not what a video company says about its own work. It is
 does the second they see it. "One of our dance moms, probably five minutes later, I'm getting a
 message from her saying, this video is awesome. She saw the difference immediately. Your footage
 is just phenomenal." Kerry Moore, Kerry Moore School of Dance. Recital video, livestream and
-photography, priced per dancer.
+photography, delivered in a portal branded for your studio, 10-day turnaround, priced per dancer.
 
 **Link description:** Hear it from the studios who already did it.
 
@@ -88,7 +96,8 @@ about." Mandy, Ancaster Dance Arts. Our crew, our gear, your night back.
 "On the day of our recital, Daniel showed up. And I asked him if he had any thing he needed from
 me. And he said, Nope. And just went right to work." Alana Colver, Lindsay Dance School. That is
 the whole product: our operators, our cameras, our audio, planned with you before the show, so the
-one night your whole year builds toward is a night you actually get to watch.
+one night your whole year builds toward is a night you actually get to watch. Livestream for the
+family who could not make it, and the full video in your branded portal 10 days later.
 
 **Link description:** Our operators, our gear, your night back.
 

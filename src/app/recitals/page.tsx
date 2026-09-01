@@ -7,6 +7,8 @@ import {
   Users,
   Clock,
   Wallet,
+  Globe,
+  CalendarCheck,
   ArrowRight,
   Quote,
 } from "lucide-react";
@@ -25,10 +27,12 @@ const tiers = [
 const included = [
   { icon: Video, title: "Multi-camera", body: "Full stage plus the angles that catch faces." },
   { icon: Radio, title: "Livestream", body: "Family who can't be in the room watch it live." },
-  { icon: Camera, title: "Photography", body: "Same show, same night, same team." },
+  { icon: Camera, title: "Your media, your mix", body: "Video, photography, livestream. Take what fits, or bundle all three." },
+  { icon: Globe, title: "Branded portal", body: "Your studio's own portal. Families find their dancer and buy from you." },
+  { icon: Clock, title: "10-day turnaround", body: "The link goes out while the show is still the talk of the lobby." },
   { icon: Users, title: "Our operators", body: "Our crew runs it. You get your day back." },
-  { icon: Clock, title: "4 hrs consultation", body: "Planning with you before the show." },
   { icon: Wallet, title: "All A/V gear", body: "Nothing for you to rent or borrow." },
+  { icon: CalendarCheck, title: "4 hrs consultation", body: "Planning with you before the show." },
 ];
 
 const logos = [

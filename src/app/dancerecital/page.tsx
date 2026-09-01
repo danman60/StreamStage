@@ -285,9 +285,10 @@ export default function RecitalProposal() {
                 {[
                   "Professional operators",
                   "All A/V equipment provided",
-                  "Up to 4 hrs consultation",
+                  "Livestream available",
+                  "Branded media portal",
                   "Client retains all revenue",
-                  "1-week turnaround",
+                  "10-day turnaround",
                 ].map((badge) => (
                   <span
                     key={badge}
