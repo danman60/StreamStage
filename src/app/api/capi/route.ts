@@ -70,14 +70,16 @@ export async function POST(request: Request) {
     };
     if (TEST_CODE) payload.test_event_code = TEST_CODE;
 
-    const res = await fetch(
-      `https://graph.facebook.com/v21.0/${PIXEL_ID}/events?access_token=${encodeURIComponent(TOKEN)}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }
-    );
+    // Token travels as a Bearer header, never as a query parameter: URLs end up in far
+    // more logs and traces than headers do.
+    const res = await fetch(`https://graph.facebook.com/v21.0/${PIXEL_ID}/events`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${TOKEN}`,
+      },
+      body: JSON.stringify(payload),
+    });
 
     if (!res.ok) {
       const detail = await res.text();
