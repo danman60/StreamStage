@@ -105,9 +105,19 @@ const nextConfig: NextConfig = {
         value: "camera=(), microphone=(), geolocation=()",
       },
       {
+        // Analytics hosts are named explicitly. Without them the CSP silently blocked
+        // gtag.js and fbevents.js in production: fbq stayed a stub, its queue grew, and
+        // nothing ever reached Google or Meta.
         key: "Content-Security-Policy",
         value:
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https:; media-src 'self' https:; frame-src 'self' https://vercel.live;",
+          "default-src 'self'; " +
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://www.googletagmanager.com https://connect.facebook.net; " +
+          "style-src 'self' 'unsafe-inline'; " +
+          "img-src 'self' data: https: blob:; " +
+          "font-src 'self' data:; " +
+          "connect-src 'self' https:; " +
+          "media-src 'self' https:; " +
+          "frame-src 'self' https://vercel.live https://www.facebook.com;",
       },
     ];
 
