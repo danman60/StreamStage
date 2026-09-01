@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import RecitalNav from "@/components/RecitalNav";
 import ScrollReveal from "@/components/ScrollReveal";
+import FunnelTracker from "@/components/FunnelTracker";
+import StickyCTA from "@/components/StickyCTA";
 import Footer from "@/components/Footer";
 
 /* Compact landing page: hero -> proof bar -> benefits -> proof -> testimonial -> price+close.
@@ -68,10 +70,29 @@ const faq = [
   { q: "Our date is close.", a: "Ask anyway. Spring weekends collide and crews are finite, but December usually has room." },
 ];
 
-export default function RecitalsPage() {
+/* Message match by traffic source. An ad sets ?v= to the promise that earned the click,
+   so the headline continues that sentence instead of restarting it. Same page body. */
+const HEADLINES = {
+  revenue: { lead: "Your recital video", accent: "can pay your studio." },
+  relief: { lead: "One less thing to manage", accent: "on recital day." },
+  proof: { lead: "Your dancers deserve more", accent: "than a tripod at the back." },
+} as const;
+
+const DEFAULT_HEADLINE = { lead: "You charge the media fee.", accent: "You keep the difference." };
+
+export default async function RecitalsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ v?: string }>;
+}) {
+  const { v } = await searchParams;
+  const headline = (v && HEADLINES[v as keyof typeof HEADLINES]) || DEFAULT_HEADLINE;
+
   return (
     <main className="bg-charcoal-deep min-h-screen">
+      <FunnelTracker event="viewRecitalPage" />
       <RecitalNav ctaLabel="See Your Pricing" ctaHref="/dancerecital" />
+      <StickyCTA />
 
       {/* ── 1. Hero + inline how-it-works ─────────────────────── */}
       <section className="relative overflow-hidden px-4 sm:px-6 pt-28 pb-12 sm:pt-32 sm:pb-16 lg:flex lg:min-h-screen lg:items-center lg:pb-28">
@@ -94,13 +115,17 @@ export default function RecitalsPage() {
               Recital video, livestream &amp; photography
             </p>
             <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4 leading-[1.05]">
-              You charge the media fee.
+              {headline.lead}
               <br />
-              <span className="text-cyan-brand">You keep the difference.</span>
+              <span className="text-cyan-brand">{headline.accent}</span>
             </h1>
-            <p className="mx-auto max-w-2xl text-lg text-gray-300 mb-7">
+            <p className="mx-auto max-w-2xl text-lg text-gray-300 mb-4">
               Your dancers deserve better than a tripod in the back row. We shoot the show, your
               families buy the video from you, and recital day gets easier.
+            </p>
+            <p className="mx-auto max-w-2xl text-base text-gray-400 mb-7">
+              Recital video, livestream and photography for studios across Kitchener, Waterloo,
+              Cambridge, London and surrounding communities.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
               <Link
@@ -113,10 +138,13 @@ export default function RecitalsPage() {
                 href="mailto:daniel@streamstage.live?subject=Recital%20video"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 px-6 py-4 text-base font-medium text-gray-200 transition-colors hover:border-cyan-brand hover:text-cyan-brand"
               >
-                Ask a question
+                Ask Daniel a question
               </a>
             </div>
-            <p className="mt-3 text-sm text-gray-500">Published pricing.</p>
+            <p className="mx-auto mt-4 max-w-xl text-sm text-gray-400">
+              See your pricing privately. If the numbers fit, send us your recital date and
+              Daniel will confirm availability and next steps within one business day.
+            </p>
           </div>
 
           {/* how it works, inline and dense */}
@@ -342,11 +370,28 @@ export default function RecitalsPage() {
                 See your pricing <ArrowRight className="h-5 w-5" />
               </Link>
               <p className="mt-3 text-xs text-gray-400">
-                Nothing to book. No account. Nobody calls you.
+                Nothing to book, no account, no commitment. If the numbers fit, send your
+                date and Daniel replies by email within one business day.
+              </p>
+              <p className="mt-4 text-xs text-amber-brand">
+                Book by December 31, 2026 and save 5%.
               </p>
             </div>
           </div>
 
+        </div>
+      </section>
+
+      {/* ── 6b. Who this is for ───────────────────────────────── */}
+      <section className="py-14 lg:py-20 px-4 sm:px-6 border-t border-white/5">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="font-heading text-xs uppercase tracking-[0.18em] text-cyan-brand mb-4">
+            Best fit
+          </p>
+          <p className="text-lg leading-relaxed text-gray-300">
+            Built for dance studios planning a recital or a winter show who want professional
+            video, livestream, photography, or a combination of all three.
+          </p>
         </div>
       </section>
 

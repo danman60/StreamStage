@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import MetaPixel from "@/components/MetaPixel";
 import { Outfit, DM_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -99,6 +100,7 @@ export default function RootLayout({
         <Script id="ga4-init" strategy="afterInteractive">
           {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`}
         </Script>
+        <MetaPixel />
       </head>
       <body className="font-body antialiased">
         {/* Fixed fullscreen background video */}

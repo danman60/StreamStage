@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Video,
@@ -20,6 +21,7 @@ import RecitalNav from "@/components/RecitalNav";
 import ScrollReveal from "@/components/ScrollReveal";
 import TestimonialWall from "@/components/TestimonialWall";
 import Footer from "@/components/Footer";
+import { funnel } from "@/lib/analytics";
 
 /* ── Constants ── */
 
@@ -46,6 +48,28 @@ const HERO_QUOTE = {
   name: "Mandy",
   title: "Ancaster Dance Arts",
 };
+
+/* The three strongest quotes, shown BEFORE the form. The full library sits below it. */
+const PRE_FORM_QUOTES = [
+  {
+    quote:
+      "With StreamStage, I don't have to do anything. They send me a link, I send it to my customers, and that's it. I don't have to follow up, I don't have to edit the video.",
+    name: "Tiffany Caron",
+    title: "7 Attitudes",
+  },
+  {
+    quote:
+      "One of our dance moms, probably five minutes later, messaged me saying: this video is awesome. She saw the difference immediately.",
+    name: "Kerry Moore",
+    title: "Kerry Moore School of Dance",
+  },
+  {
+    quote:
+      "It's all branded for my studio and it looks beautiful, and he sets it all up. It is so easy and problem-free for a studio director.",
+    name: "Laura Ramsey",
+    title: "Grand River Academy of Dance",
+  },
+];
 
 const CLOSER_QUOTE = {
   quote: "Take the leap. You won't be disappointed, and you'll be a repeat customer for sure.",
@@ -92,10 +116,12 @@ export default function RecitalProposal() {
     email: "",
     contact: "",
     phone: "",
+    city: "",
     date: "",
     venue: "",
     notes: "",
   });
+  const [dateTBD, setDateTBD] = useState(false);
   const [showCount, setShowCount] = useState(1);
   const [showTimes, setShowTimes] = useState(["", "", "", ""]);
 
@@ -149,8 +175,35 @@ export default function RecitalProposal() {
     };
   }, [dancerCount, bundle, streaming, photo, earlyBird, testimonial, loyalty, mediaFeeOverride, p]);
 
+  const router = useRouter();
+
+  const serviceLabel = [
+    "Video",
+    ...(streaming || bundle ? ["Streaming"] : []),
+    ...(photo || bundle ? ["Photo"] : []),
+    ...(bundle ? ["(Bundle)"] : []),
+  ].join(" + ");
+
+  /* Funnel: calculator_start on the first real interaction, calculator_complete once the
+     visitor has a meaningful estimate (they moved off the default and picked services). */
+  const markStart = () => funnel.calculatorStart();
+
+  useEffect(() => {
+    const movedOffDefault = dancerInput !== "50";
+    const pickedServices = streaming || photo || bundle;
+    if (calc.total > 0 && (movedOffDefault || pickedServices)) {
+      funnel.calculatorComplete({
+        dancer_count: dancerCount,
+        tier: TIER_LABELS[tier],
+        total: calc.total,
+        services: serviceLabel,
+      });
+    }
+  }, [calc.total, dancerCount, dancerInput, streaming, photo, bundle, tier, serviceLabel]);
+
   /* Handlers */
   const toggleStreaming = () => {
+    markStart();
     const next = !streaming;
     setStreaming(next);
     if (next && photo) {
@@ -160,6 +213,7 @@ export default function RecitalProposal() {
     }
   };
   const togglePhoto = () => {
+    markStart();
     const next = !photo;
     setPhoto(next);
     if (streaming && next) {
@@ -169,6 +223,7 @@ export default function RecitalProposal() {
     }
   };
   const toggleBundle = () => {
+    markStart();
     if (!bundle) {
       setStreaming(true);
       setPhoto(true);
@@ -188,10 +243,10 @@ export default function RecitalProposal() {
   };
 
   const handleSubmit = async () => {
-    // Three fields, same as /dancepromo. Contact person, phone, show times and
-    // venue are asked in the reply instead: a 7 field form costs 25 to 50 percent
-    // of completions at the exact step where the money is.
-    if (!form.studio || !form.email || !form.date) {
+    // Qualifying set: who they are, where they are, and when. Everything the calculator
+    // already knows (count, tier, services, discounts, totals, media fee) rides along
+    // automatically and is never re-typed.
+    if (!form.studio || !form.email || !form.contact || !form.city || (!form.date && !dateTBD)) {
       setSubmitError("Please fill in all required fields.");
       return;
     }
@@ -209,6 +264,7 @@ export default function RecitalProposal() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          date: dateTBD ? "Date not confirmed" : form.date,
           showCount,
           showTimes: showTimes.slice(0, showCount),
           dancerCount,
@@ -231,11 +287,28 @@ export default function RecitalProposal() {
         }),
       });
 
+      // Lead fires ONLY on a server-accepted submission, and only on the success page,
+      // so a failed POST or a double click can never mint a conversion.
       if (!res.ok) throw new Error("Failed to submit");
+
+      try {
+        sessionStorage.setItem(
+          "ss_proposal_submitted",
+          JSON.stringify({
+            studio: form.studio,
+            email: form.email,
+            city: form.city,
+            date: dateTBD ? "Date not confirmed" : form.date,
+            dancerCount,
+            tier: TIER_LABELS[tier],
+            total: calc.total,
+            services: serviceLabel,
+          })
+        );
+      } catch { /* the confirmation page degrades to a generic thank you */ }
+
       setSubmitted(true);
-      document
-        .getElementById("submit-section")
-        ?.scrollIntoView({ behavior: "smooth" });
+      router.push("/recitals/received");
     } catch {
       setSubmitError(
         "Something went wrong. Please try again or email daniel@streamstage.live directly."
@@ -378,7 +451,11 @@ export default function RecitalProposal() {
                 min={1}
                 max={999}
                 value={dancerInput}
-                onChange={(e) => setDancerInput(e.target.value)}
+                onFocus={markStart}
+                onChange={(e) => {
+                  markStart();
+                  setDancerInput(e.target.value);
+                }}
                 onBlur={() => {
                   const n = parseInt(dancerInput);
                   if (!n || n < 1) setDancerInput("1");
@@ -637,43 +714,26 @@ export default function RecitalProposal() {
 
           <div className="section-divider mb-14" />
 
-          {/* ── Director Testimonials ── */}
-          <div className="mb-14">
-            <TestimonialWall />
-          </div>
-
-          {/* ── Pick Your Date CTA ── */}
+          {/* ── Three strongest quotes, immediately before the form ── */}
           <ScrollReveal>
-            <div className="text-center mb-14">
-              <button
-                onClick={() =>
-                  document
-                    .getElementById("submit-section")
-                    ?.scrollIntoView({ behavior: "smooth" })
-                }
-                className="cursor-pointer px-10 py-4 text-lg font-semibold rounded-lg bg-cyan-brand text-charcoal-deep hover:bg-cyan-brand/90 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-brand/20"
-              >
-                Pick Your Date
-              </button>
-              <p className="text-base text-gray-500 mt-3">
-                Peak recital season fills quickly. Secure your date before
-                it&rsquo;s gone.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <div className="section-divider mb-14" />
-
-          {/* ── Closer quote ── */}
-          <ScrollReveal>
-            <div className="text-center mb-14 max-w-2xl mx-auto">
-              <p className="font-heading text-xl sm:text-2xl text-white italic leading-relaxed">
-                &ldquo;{CLOSER_QUOTE.quote}&rdquo;
-              </p>
-              <p className="mt-4 text-base text-cyan-brand font-heading font-semibold">
-                {CLOSER_QUOTE.name}
-                <span className="text-gray-500 font-normal"> &middot; {CLOSER_QUOTE.title}</span>
-              </p>
+            <div className="grid sm:grid-cols-3 gap-4 mb-14">
+              {PRE_FORM_QUOTES.map((t) => (
+                <div
+                  key={t.name}
+                  className="p-6 rounded-xl bg-charcoal-dark/60 border border-white/5 flex flex-col"
+                >
+                  <Quote size={18} className="text-cyan-brand/30 mb-3 shrink-0" />
+                  <p className="text-sm text-gray-300 leading-relaxed italic flex-1">
+                    &ldquo;{t.quote}&rdquo;
+                  </p>
+                  <div className="mt-4 pt-3 border-t border-white/5">
+                    <p className="font-heading font-semibold text-cyan-brand text-sm">
+                      {t.name}
+                    </p>
+                    <p className="text-xs text-gray-500">{t.title}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </ScrollReveal>
 
@@ -712,22 +772,42 @@ export default function RecitalProposal() {
               ) : (
                 /* Form */
                 <div className="rounded-xl bg-charcoal-dark/60 border border-white/5 p-6 sm:p-8">
-                  <h2 className="font-heading text-2xl font-semibold text-white mb-6">
-                    Submit Your Proposal
+                  <h2 className="font-heading text-2xl font-semibold text-white mb-2">
+                    Send us your recital details
                   </h2>
+                  <p className="text-base text-gray-400 mb-6">
+                    This is not a booking or a commitment. We&rsquo;ll confirm the date and
+                    answer any questions by email. Your numbers above come with it, so
+                    there&rsquo;s nothing to re-enter.
+                  </p>
 
                   <div className="grid sm:grid-cols-2 gap-5 mb-5">
+                    <FormInput
+                      label="Contact Name"
+                      value={form.contact}
+                      onChange={(v) => updateForm("contact", v)}
+                      required
+                    />
                     <FormInput
                       label="Studio or Organization Name"
                       value={form.studio}
                       onChange={(v) => updateForm("studio", v)}
                       required
                     />
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-5 mb-5">
                     <FormInput
                       label="Contact Email"
                       type="email"
                       value={form.email}
                       onChange={(v) => updateForm("email", v)}
+                      required
+                    />
+                    <FormInput
+                      label="City"
+                      value={form.city}
+                      onChange={(v) => updateForm("city", v)}
                       required
                     />
                   </div>
@@ -737,12 +817,48 @@ export default function RecitalProposal() {
                     type="date"
                     value={form.date}
                     onChange={(v) => updateForm("date", v)}
-                    required
+                    disabled={dateTBD}
+                    required={!dateTBD}
                   />
 
+                  <label className="mt-3 inline-flex items-center gap-2 text-base text-gray-400 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={dateTBD}
+                      onChange={(e) => setDateTBD(e.target.checked)}
+                      className="h-4 w-4 accent-cyan-brand"
+                    />
+                    Our date is not confirmed yet
+                  </label>
+
+                  <div className="grid sm:grid-cols-2 gap-5 mt-5">
+                    <FormInput
+                      label="Phone (optional)"
+                      type="tel"
+                      value={form.phone}
+                      onChange={(v) => updateForm("phone", v)}
+                    />
+                    <div>
+                      <label className="block text-base text-gray-400 mb-2">
+                        Number of shows (optional)
+                      </label>
+                      <select
+                        value={showCount}
+                        onChange={(e) => setShowCount(Number(e.target.value))}
+                        className="w-full px-4 py-3 rounded-lg bg-charcoal-mid border border-white/10 text-white text-base focus:outline-none focus:border-cyan-brand/50 focus:ring-1 focus:ring-cyan-brand/20 transition-all"
+                      >
+                        {[1, 2, 3, 4].map((n) => (
+                          <option key={n} value={n}>
+                            {n} {n === 1 ? "show" : "shows"}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
                   <p className="mt-3 text-sm text-gray-500">
-                    Show times, venue and the rest come later, in the reply. No additional
-                    surcharge for multiple shows.
+                    Venue and show times come later, in the reply. No additional surcharge
+                    for multiple shows.
                   </p>
 
                   <div className="mt-5">
@@ -767,10 +883,10 @@ export default function RecitalProposal() {
                     className="cursor-pointer mt-6 w-full sm:w-auto inline-flex items-center justify-center gap-2 px-10 py-4 text-base font-semibold rounded-lg bg-cyan-brand text-charcoal-deep hover:bg-cyan-brand/90 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-brand/20 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {submitting ? (
-                      "Submitting..."
+                      "Sending..."
                     ) : (
                       <>
-                        Submit Proposal <Send size={18} />
+                        Send my recital details <Send size={18} />
                       </>
                     )}
                   </button>
@@ -778,6 +894,26 @@ export default function RecitalProposal() {
               )}
             </ScrollReveal>
           </section>
+
+          <div className="section-divider mb-14" />
+
+          {/* ── Full testimonial library, below the form ── */}
+          <div className="mb-14">
+            <TestimonialWall heading="More from the studios we work with" />
+          </div>
+
+          {/* ── Closer quote ── */}
+          <ScrollReveal>
+            <div className="text-center mb-16 max-w-2xl mx-auto">
+              <p className="font-heading text-xl sm:text-2xl text-white italic leading-relaxed">
+                &ldquo;{CLOSER_QUOTE.quote}&rdquo;
+              </p>
+              <p className="mt-4 text-base text-cyan-brand font-heading font-semibold">
+                {CLOSER_QUOTE.name}
+                <span className="text-gray-500 font-normal"> &middot; {CLOSER_QUOTE.title}</span>
+              </p>
+            </div>
+          </ScrollReveal>
         </div>
 
         <Footer />
@@ -818,6 +954,7 @@ function FormInput({
   type = "text",
   placeholder,
   required = false,
+  disabled = false,
 }: {
   label: string;
   value: string;
@@ -825,6 +962,7 @@ function FormInput({
   type?: string;
   placeholder?: string;
   required?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <div>
@@ -837,7 +975,8 @@ function FormInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder || label}
-        className="w-full px-4 py-3 rounded-lg bg-charcoal-mid border border-white/10 text-white text-base placeholder:text-gray-600 focus:outline-none focus:border-cyan-brand/50 focus:ring-1 focus:ring-cyan-brand/20 transition-all"
+        disabled={disabled}
+        className="w-full px-4 py-3 rounded-lg bg-charcoal-mid border border-white/10 text-white text-base placeholder:text-gray-600 focus:outline-none focus:border-cyan-brand/50 focus:ring-1 focus:ring-cyan-brand/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
       />
     </div>
   );
